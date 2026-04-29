@@ -5,6 +5,6 @@ class LoginMobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Login Mobile Layout')));
+    return const Scaffold(body: Center(child: Text('Login Mobile Layout')));
   }
 }
