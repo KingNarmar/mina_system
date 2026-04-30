@@ -18,54 +18,50 @@ class PasswordTextFormField extends StatefulWidget {
 }
 
 class _PasswordTextFormFieldState extends State<PasswordTextFormField> {
-  bool ishide = true;
+  bool isHidden = true;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: TextFormField(
-        controller: widget.passwordController,
-        obscureText: ishide,
-        keyboardType: TextInputType.visiblePassword,
-        onTapOutside: (event) {
-          FocusManager.instance.primaryFocus?.unfocus();
-        },
-        decoration: InputDecoration(
-          fillColor: AppColors.border,
-          filled: true,
-          suffixIcon: IconButton(
-            icon: ishide
-                ? const Icon(Icons.remove_red_eye)
-                : const Icon(Icons.visibility_off),
-            onPressed: () {
-              setState(() {
-                ishide = !ishide;
-              });
-            },
-          ),
-          hintText: widget.hint ?? 'Password',
-          hintStyle: AppTextStyles.caption,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.error),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.error),
-          ),
+    return TextFormField(
+      controller: widget.passwordController,
+      obscureText: isHidden,
+      keyboardType: TextInputType.visiblePassword,
+      onTapOutside: (event) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.all(16),
+        fillColor: AppColors.border,
+        filled: true,
+        suffixIcon: IconButton(
+          icon: Icon(isHidden ? Icons.visibility_off : Icons.visibility),
+          onPressed: () {
+            setState(() {
+              isHidden = !isHidden;
+            });
+          },
         ),
-        validator: widget.validator,
-        onChanged: (value) {},
+        hintText: widget.hint ?? 'Password',
+        hintStyle: AppTextStyles.caption,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
       ),
+      validator: widget.validator,
+      onChanged: (value) {},
     );
   }
 }

@@ -26,44 +26,41 @@ class CustomTextFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: TextFormField(
-        readOnly: readOnly,
-        onTap: onTap,
-        keyboardType: keyboardType,
-        onTapOutside: (event) {
-          FocusManager.instance.primaryFocus?.unfocus();
-        },
-        controller: controller,
+    return TextFormField(
+      readOnly: readOnly,
+      onTap: onTap,
+      keyboardType: keyboardType,
+      onTapOutside: (event) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      controller: controller,
 
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.all(16),
-          filled: true,
-          fillColor: AppColors.border,
-          hintText: hint,
-          hintStyle: AppTextStyles.caption,
-          prefixIcon: icon,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.error),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.error),
-          ),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.all(16),
+        filled: true,
+        fillColor: AppColors.border,
+        hintText: hint,
+        hintStyle: AppTextStyles.caption,
+        prefixIcon: icon,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
-        validator: validator,
-        onChanged: onChanged,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
       ),
+      validator: validator,
+      onChanged: onChanged,
     );
   }
 }

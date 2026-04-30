@@ -13,7 +13,7 @@ class MainButton extends StatelessWidget {
 
   final String text;
   final VoidCallback onPressed;
-  final Color? color;
+  final Color color;
   final bool isLoading;
 
   @override
@@ -21,7 +21,7 @@ class MainButton extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        minimumSize: const Size(double.infinity, 55),
+        minimumSize: const Size(double.infinity, 48),
         foregroundColor: AppColors.background,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -39,7 +39,9 @@ class MainButton extends StatelessWidget {
             )
           : Text(
               text,
-              style: AppTextStyles.caption.copyWith(
+              style: AppTextStyles.body.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
                 color: color != AppColors.primary
                     ? AppColors.dark
                     : AppColors.background,
