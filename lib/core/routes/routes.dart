@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:mina_system/core/layout/app_shell.dart';
 import 'package:mina_system/features/auth/presentation/screens/login_screen.dart';
-import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 abstract class Routes {
   static const String login = '/';
@@ -10,10 +10,7 @@ abstract class Routes {
     initialLocation: login,
     routes: [
       GoRoute(path: login, builder: (context, state) => const LoginScreen()),
-      GoRoute(
-        path: dashboard,
-        builder: (context, state) => const DashboardScreen(),
-      ),
+      GoRoute(path: dashboard, builder: (context, state) => const AppShell()),
     ],
   );
 }
