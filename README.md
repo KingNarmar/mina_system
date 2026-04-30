@@ -95,7 +95,7 @@ Navigation items currently available:
 | Login Screen | Tablet | <img src="screen_shot/login_screen_tablet_layout.png" width="320"/> |
 | Login Screen | Desktop | <img src="screen_shot/login_screen_desktop_layout.png" width="500"/> |
 | Dashboard Screen | Mobile | <img src="screen_shot/dashboard_screen_mobile_layout.png" width="220"/> |
-| Dashboard Screen | Tablet | <img src="screen_shot/dashboard_screen_tablet_layout.png" width="320"/> |
+| Dashboard Screen | Tablet | <img src="screen_shot/dashboard_screen_taplet_layout.png" width="320"/> |
 | Dashboard Screen | Desktop | <img src="screen_shot/dashboard_screen_desktop_layout.png" width="500"/> |
 
 ---
@@ -290,12 +290,12 @@ The current code uses:
 
 References:
 
-- Flutter Documentation: https://docs.flutter.dev/
-- Material 3 in Flutter: https://docs.flutter.dev/ui/design/material
-- GoRouter Package: https://pub.dev/packages/go_router
-- Flutter Bloc Package: https://pub.dev/packages/flutter_bloc
-- Device Preview Package: https://pub.dev/packages/device_preview
-- Gap Package: https://pub.dev/packages/gap
+- Flutter Documentation: <https://docs.flutter.dev/>
+- Material 3 in Flutter: <https://docs.flutter.dev/ui/design/material>
+- GoRouter Package: <https://pub.dev/packages/go_router>
+- Flutter Bloc Package: <https://pub.dev/packages/flutter_bloc>
+- Device Preview Package: <https://pub.dev/packages/device_preview>
+- Gap Package: <https://pub.dev/packages/gap>
 
 ---
 
