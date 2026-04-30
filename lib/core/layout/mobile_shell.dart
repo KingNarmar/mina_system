@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
-import 'package:mina_system/features/tools/presentation/screens/tools_screen.dart';
-import 'package:mina_system/features/workers/presentation/screens/workers_screen.dart';
+import 'package:mina_system/core/layout/app_nav_items.dart';
 
 class MobileShell extends StatefulWidget {
   const MobileShell({super.key});
@@ -12,15 +10,11 @@ class MobileShell extends StatefulWidget {
 
 class _MobileShellState extends State<MobileShell> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = [
-    const DashboardScreen(),
-    const WorkersScreen(),
-    const ToolsScreen(),
-  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: AppNavItems.items[_selectedIndex].page,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (value) {
@@ -28,20 +22,14 @@ class _MobileShellState extends State<MobileShell> {
             _selectedIndex = value;
           });
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            label: 'Workers',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.build_outlined),
-            label: 'Tools',
-          ),
-        ],
+        destinations: AppNavItems.items
+            .map(
+              (item) => NavigationDestination(
+                icon: Icon(item.icon),
+                label: item.title,
+              ),
+            )
+            .toList(),
       ),
     );
   }

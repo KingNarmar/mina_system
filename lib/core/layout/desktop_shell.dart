@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mina_system/core/layout/app_nav_items.dart';
+import 'package:mina_system/core/layout/app_top_bar.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
-import 'package:mina_system/features/tools/presentation/screens/tools_screen.dart';
-import 'package:mina_system/features/workers/presentation/screens/workers_screen.dart';
 
 class DesktopShell extends StatefulWidget {
   const DesktopShell({super.key});
@@ -14,18 +13,6 @@ class DesktopShell extends StatefulWidget {
 
 class _DesktopShellState extends State<DesktopShell> {
   int _selectedIndex = 0;
-
-  final List<Widget> _pages = const [
-    DashboardScreen(),
-    WorkersScreen(),
-    ToolsScreen(),
-  ];
-
-  final List<_DesktopNavItem> _items = const [
-    _DesktopNavItem(label: 'Dashboard', icon: Icons.dashboard_outlined),
-    _DesktopNavItem(label: 'Workers', icon: Icons.people_outline),
-    _DesktopNavItem(label: 'Tools', icon: Icons.build_outlined),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +31,8 @@ class _DesktopShellState extends State<DesktopShell> {
                   style: AppTextStyles.title.copyWith(color: Colors.white),
                 ),
                 const SizedBox(height: 32),
-                ...List.generate(_items.length, (index) {
-                  final item = _items[index];
+                ...List.generate(AppNavItems.items.length, (index) {
+                  final item = AppNavItems.items[index];
                   final isSelected = _selectedIndex == index;
 
                   return Padding(
@@ -73,7 +60,7 @@ class _DesktopShellState extends State<DesktopShell> {
                             Icon(item.icon, color: Colors.white, size: 20),
                             const SizedBox(width: 12),
                             Text(
-                              item.label,
+                              item.title,
                               style: AppTextStyles.body.copyWith(
                                 color: Colors.white,
                                 fontWeight: isSelected
@@ -90,16 +77,16 @@ class _DesktopShellState extends State<DesktopShell> {
               ],
             ),
           ),
-          Expanded(child: _pages[_selectedIndex]),
+          Expanded(
+            child: Column(
+              children: [
+                AppTopBar(title: AppNavItems.items[_selectedIndex].title),
+                Expanded(child: AppNavItems.items[_selectedIndex].page),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
-}
-
-class _DesktopNavItem {
-  const _DesktopNavItem({required this.label, required this.icon});
-
-  final String label;
-  final IconData icon;
 }
