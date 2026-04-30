@@ -14,7 +14,7 @@ class _MobileShellState extends State<MobileShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppNavItems.items[_selectedIndex].page,
+      body: SafeArea(child: AppNavItems.items[_selectedIndex].page),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (value) {
