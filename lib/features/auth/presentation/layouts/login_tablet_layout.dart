@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/auth/presentation/widgets/login_form.dart';
 
 class LoginTabletLayout extends StatelessWidget {
   const LoginTabletLayout({super.key});
@@ -8,7 +8,12 @@ class LoginTabletLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Text('Login Tablet Layout', style: AppTextStyles.heading),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(32),
+            child: SizedBox(width: 420, child: LoginForm()),
+          ),
+        ),
       ),
     );
   }
