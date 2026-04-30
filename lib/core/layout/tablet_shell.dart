@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:mina_system/features/tools/presentation/screens/tools_screen.dart';
+import 'package:mina_system/features/workers/presentation/screens/workers_screen.dart';
 
-class TabletShell extends StatelessWidget {
+class TabletShell extends StatefulWidget {
   const TabletShell({super.key});
+
+  @override
+  State<TabletShell> createState() => _TabletShellState();
+}
+
+class _TabletShellState extends State<TabletShell> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = const [
+    DashboardScreen(),
+    WorkersScreen(),
+    ToolsScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +25,12 @@ class TabletShell extends StatelessWidget {
       body: Row(
         children: [
           NavigationRail(
-            selectedIndex: 0,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
             destinations: const [
               NavigationRailDestination(
                 icon: Icon(Icons.dashboard_outlined),
@@ -26,7 +47,7 @@ class TabletShell extends StatelessWidget {
             ],
           ),
           const VerticalDivider(width: 1),
-          const Expanded(child: Center(child: Text('Tablet Dashboard Shell'))),
+          Expanded(child: _pages[_selectedIndex]),
         ],
       ),
     );
