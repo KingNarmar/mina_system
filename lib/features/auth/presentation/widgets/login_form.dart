@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/constants/app_images.dart';
+import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/validators/app_validators.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
@@ -33,9 +35,7 @@ class _LoginFormState extends State<LoginForm> {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Login success')));
+          context.go(Routes.dashboard);
         }
 
         if (state is AuthFailure) {
