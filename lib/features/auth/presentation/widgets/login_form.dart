@@ -15,7 +15,7 @@ class LoginForm extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Image.asset(AppImages.logo, height: 200),
+        Image.asset(AppImages.logo, height: 150),
 
         const Text(
           'Manage workers, tools, custody transactions, inventory records, photos, and reports in one secure system.',
@@ -31,7 +31,7 @@ class LoginForm extends StatelessWidget {
             TextButton(
               onPressed: () {},
               child: Text(
-                'Forget password?',
+                'Forgot password?',
                 style: AppTextStyles.caption.copyWith(color: Colors.blue),
               ),
             ),

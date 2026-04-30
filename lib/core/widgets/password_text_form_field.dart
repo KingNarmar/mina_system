@@ -18,7 +18,7 @@ class PasswordTextFormField extends StatefulWidget {
 }
 
 class _PasswordTextFormFieldState extends State<PasswordTextFormField> {
-  bool ishide = true;
+  bool isHidden = true;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class _PasswordTextFormFieldState extends State<PasswordTextFormField> {
       height: 56,
       child: TextFormField(
         controller: widget.passwordController,
-        obscureText: ishide,
+        obscureText: isHidden,
         keyboardType: TextInputType.visiblePassword,
         onTapOutside: (event) {
           FocusManager.instance.primaryFocus?.unfocus();
@@ -35,31 +35,29 @@ class _PasswordTextFormFieldState extends State<PasswordTextFormField> {
           fillColor: AppColors.border,
           filled: true,
           suffixIcon: IconButton(
-            icon: ishide
-                ? const Icon(Icons.remove_red_eye)
-                : const Icon(Icons.visibility_off),
+            icon: Icon(isHidden ? Icons.visibility_off : Icons.visibility),
             onPressed: () {
               setState(() {
-                ishide = !ishide;
+                isHidden = !isHidden;
               });
             },
           ),
           hintText: widget.hint ?? 'Password',
           hintStyle: AppTextStyles.caption,
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.border),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.error),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.error),
           ),
         ),
