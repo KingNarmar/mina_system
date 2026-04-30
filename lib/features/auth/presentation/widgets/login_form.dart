@@ -32,26 +32,11 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is AuthSuccess) {
-          context.go(Routes.dashboard);
-        }
-
-        if (state is AuthFailure) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
-        }
-      },
-      builder: (context, state) {
-        return Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset(AppImages.logo, height: 150),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Image.asset(AppImages.logo, height: 200),
 
               const Text(
                 'Manage workers, tools, custody transactions, inventory records, photos, and reports in one secure system.',
@@ -66,51 +51,32 @@ class _LoginFormState extends State<LoginForm> {
                 keyboardType: TextInputType.emailAddress,
               ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Forgot password?',
-                      style: AppTextStyles.caption.copyWith(color: Colors.blue),
-                    ),
-                  ),
-                ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: () {},
+              child: Text(
+                'Forget password?',
+                style: AppTextStyles.caption.copyWith(color: Colors.blue),
               ),
-              PasswordTextFormField(
-                passwordController: _passwordController,
-                validator: AppValidators.validatePassword,
-              ),
-              const Gap(20),
-              MainButton(
-                text: 'Login',
-                onPressed: _onLoginPressed,
-                isLoading: state is AuthLoading,
-              ),
-              const Gap(20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  AppImages.loginPic,
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ],
+            ),
+          ],
+        ),
+        const PasswordTextFormField(),
+        const Gap(20),
+        MainButton(text: 'Login', onPressed: () {}),
+        const Gap(20),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            AppImages.loginPic,
+            height: 120,
+            width: double.infinity,
+            fit: BoxFit.cover,
           ),
-        );
-      },
+        ),
+      ],
     );
-  }
-
-  void _onLoginPressed() {
-    if (_formKey.currentState!.validate()) {
-      context.read<AuthCubit>().login(
-        emailOrUsername: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-    }
   }
 }
