@@ -42,7 +42,7 @@ class WorkersCubit extends Cubit<WorkersState> {
       activeCustodyCount: 2,
     ),
   ];
-// Search worker
+  // Search worker
   void searchWorkers(String query) {
     final searchQuery = query.trim().toLowerCase();
 
@@ -65,7 +65,8 @@ class WorkersCubit extends Cubit<WorkersState> {
 
     emit(state.copyWith(searchQuery: query, filteredWorkers: filteredWorkers));
   }
-// Add Worker
+
+  // Add Worker
   void addWorker(WorkerModel worker) {
     final updatedWorkers = List<WorkerModel>.from(state.workers)..add(worker);
 
@@ -79,22 +80,24 @@ class WorkersCubit extends Cubit<WorkersState> {
       ),
     );
   }
-// Delete Worker
-void deleteWorker(WorkerModel worker) {
-  final updatedWorkers = state.workers.where((item) {
-    return item.hrCode != worker.hrCode;
-  }).toList();
 
-  emit(
-    state.copyWith(
-      workers: updatedWorkers,
-      filteredWorkers: _filterWorkers(
+  // Delete Worker
+  void deleteWorker(WorkerModel worker) {
+    final updatedWorkers = state.workers.where((item) {
+      return item.hrCode != worker.hrCode;
+    }).toList();
+
+    emit(
+      state.copyWith(
         workers: updatedWorkers,
-        query: state.searchQuery,
+        filteredWorkers: _filterWorkers(
+          workers: updatedWorkers,
+          query: state.searchQuery,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
   List<WorkerModel> _filterWorkers({
     required List<WorkerModel> workers,
     required String query,

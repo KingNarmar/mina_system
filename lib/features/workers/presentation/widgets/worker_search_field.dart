@@ -3,10 +3,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class WorkerSearchField extends StatelessWidget {
-  const WorkerSearchField({
-    super.key,
-    required this.onChanged,
-  });
+  const WorkerSearchField({super.key, required this.onChanged});
 
   final ValueChanged<String> onChanged;
 

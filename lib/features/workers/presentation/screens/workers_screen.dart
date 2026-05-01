@@ -33,150 +33,170 @@ class _WorkersView extends StatelessWidget {
             final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
             if (isMobile) {
-              return Scaffold(
-                backgroundColor: AppColors.background,
-                body: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-                  itemCount: workers.length + 1,
-                  separatorBuilder: (context, index) {
-                    return const SizedBox(height: 12);
-                  },
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return WorkerSearchField(
-                        onChanged: (value) {
-                          context.read<WorkersCubit>().searchWorkers(value);
-                        },
-                      );
-                    }
-
-                    final worker = workers[index - 1];
-
-                    return WorkerCard(
-                      worker: worker,
-                      onDelete: () {
-                        _confirmDeleteWorker(context, worker);
-                      },
-                    );
-                  },
-                ),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () {
-                    _showAddWorkerBottomSheet(context);
-                  },
-                  child: const Icon(Icons.add),
-                ),
-              );
+              return _WorkersMobileLayout(workers: workers);
             }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: WorkerSearchField(
-                          onChanged: (value) {
-                            context.read<WorkersCubit>().searchWorkers(value);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            _showAddWorkerDialog(context);
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Worker'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: WorkersTable(
-                      workers: workers,
-                      onDelete: (worker) {
-                        _confirmDeleteWorker(context, worker);
-                      },
-                    ),
-                  ),
-                ],
-              ),
+            return _WorkersDesktopLayout(workers: workers);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _WorkersMobileLayout extends StatelessWidget {
+  const _WorkersMobileLayout({required this.workers});
+
+  final List<WorkerModel> workers;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+        itemCount: workers.length + 1,
+        separatorBuilder: (context, index) {
+          return const SizedBox(height: 12);
+        },
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return WorkerSearchField(
+              onChanged: (value) {
+                context.read<WorkersCubit>().searchWorkers(value);
+              },
             );
-          },
-        );
-      },
-    );
-  }
+          }
 
-  void _showAddWorkerBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          final worker = workers[index - 1];
+
+          return WorkerCard(
+            worker: worker,
+            onDelete: () {
+              _confirmDeleteWorker(context, worker);
+            },
+          );
+        },
       ),
-      builder: (_) {
-        return AddWorkerForm(
-          onSave: (worker) {
-            context.read<WorkersCubit>().addWorker(worker);
-          },
-        );
-      },
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddWorkerBottomSheet(context);
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
+}
 
-  void _showAddWorkerDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: SizedBox(
-            width: 460,
-            child: AddWorkerForm(
-              onSave: (worker) {
-                context.read<WorkersCubit>().addWorker(worker);
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
+class _WorkersDesktopLayout extends StatelessWidget {
+  const _WorkersDesktopLayout({required this.workers});
 
-  void _confirmDeleteWorker(BuildContext context, WorkerModel worker) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Delete Worker'),
-          content: Text('Are you sure you want to delete ${worker.name}?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
+  final List<WorkerModel> workers;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: WorkerSearchField(
+                  onChanged: (value) {
+                    context.read<WorkersCubit>().searchWorkers(value);
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _showAddWorkerDialog(context);
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Worker'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: WorkersTable(
+              workers: workers,
+              onDelete: (worker) {
+                _confirmDeleteWorker(context, worker);
               },
-              child: const Text('Cancel'),
             ),
-            TextButton(
-              onPressed: () {
-                context.read<WorkersCubit>().deleteWorker(worker);
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
+}
+
+void _showAddWorkerBottomSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.card,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (_) {
+      return AddWorkerForm(
+        onSave: (worker) {
+          context.read<WorkersCubit>().addWorker(worker);
+        },
+      );
+    },
+  );
+}
+
+void _showAddWorkerDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: SizedBox(
+          width: 460,
+          child: AddWorkerForm(
+            onSave: (worker) {
+              context.read<WorkersCubit>().addWorker(worker);
+            },
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void _confirmDeleteWorker(BuildContext context, WorkerModel worker) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Delete Worker'),
+        content: Text('Are you sure you want to delete ${worker.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<WorkersCubit>().deleteWorker(worker);
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
 }
