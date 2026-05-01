@@ -17,29 +17,29 @@ class WorkersScreen extends StatefulWidget {
 class _WorkersScreenState extends State<WorkersScreen> {
   String _searchQuery = '';
 
-  static const List<WorkerModel> workers = [
-    WorkerModel(
+  final List<WorkerModel> _workers = [
+    const WorkerModel(
       name: 'Ahmed Ali',
       hrCode: 'HR-001',
       department: 'Warehouse',
       jobTitle: 'Storekeeper',
       activeCustodyCount: 6,
     ),
-    WorkerModel(
+    const WorkerModel(
       name: 'Mohamed Samir',
       hrCode: 'HR-002',
       department: 'Fabrication',
       jobTitle: 'Welder',
       activeCustodyCount: 3,
     ),
-    WorkerModel(
+    const WorkerModel(
       name: 'Khaled Hassan',
       hrCode: 'HR-003',
       department: 'Mechanical',
       jobTitle: 'Mechanic',
       activeCustodyCount: 4,
     ),
-    WorkerModel(
+    const WorkerModel(
       name: 'Sayed Mahmoud',
       hrCode: 'HR-004',
       department: 'Electrical',
@@ -50,17 +50,28 @@ class _WorkersScreenState extends State<WorkersScreen> {
 
   List<WorkerModel> get filteredWorkers {
     if (_searchQuery.trim().isEmpty) {
-      return workers;
+      return _workers;
     }
 
     final query = _searchQuery.trim().toLowerCase();
 
-    return workers.where((worker) {
+    return _workers.where((worker) {
       final name = worker.name.toLowerCase();
       final hrCode = worker.hrCode.toLowerCase();
+      final department = worker.department.toLowerCase();
+      final jobTitle = worker.jobTitle.toLowerCase();
 
-      return name.contains(query) || hrCode.contains(query);
+      return name.contains(query) ||
+          hrCode.contains(query) ||
+          department.contains(query) ||
+          jobTitle.contains(query);
     }).toList();
+  }
+
+  void _addWorker(WorkerModel worker) {
+    setState(() {
+      _workers.add(worker);
+    });
   }
 
   @override
@@ -146,7 +157,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return const AddWorkerForm();
+        return AddWorkerForm(onSave: _addWorker);
       },
     );
   }
@@ -159,7 +170,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const SizedBox(width: 460, child: AddWorkerForm()),
+          child: SizedBox(width: 460, child: AddWorkerForm(onSave: _addWorker)),
         );
       },
     );
