@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:mina_system/features/lookups/presentation/screens/lookups_screen.dart';
 import 'package:mina_system/features/tools/presentation/screens/tools_screen.dart';
 import 'package:mina_system/features/workers/presentation/screens/workers_screen.dart';
 
@@ -17,5 +18,10 @@ abstract class AppNavItems {
       page: WorkersScreen(),
     ),
     AppNavItem(title: 'Tools', icon: Icons.build_outlined, page: ToolsScreen()),
+    AppNavItem(
+      title: 'Lookups',
+      icon: Icons.tune_outlined,
+      page: LookupsScreen(),
+    ),
   ];
 }
