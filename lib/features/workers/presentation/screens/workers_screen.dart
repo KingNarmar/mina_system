@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
-import 'package:mina_system/core/theme/app_colors.dart';
-import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
-import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
-import 'package:mina_system/features/workers/presentation/widgets/add_worker_form.dart';
-import 'package:mina_system/features/workers/presentation/widgets/worker_card.dart';
-import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
-import 'package:mina_system/features/workers/presentation/widgets/workers_empty_state.dart';
-import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
+import 'package:mina_system/features/workers/presentation/widgets/layouts/workers_mobile_layout.dart';
+import 'package:mina_system/features/workers/presentation/widgets/layouts/workers_desktop_layout.dart';
 
 class WorkersScreen extends StatelessWidget {
   const WorkersScreen({super.key});
@@ -35,223 +29,13 @@ class _WorkersView extends StatelessWidget {
             final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
             if (isMobile) {
-              return _WorkersMobileLayout(workers: workers);
+              return WorkersMobileLayout(workers: workers);
             }
 
-            return _WorkersDesktopLayout(workers: workers);
+            return WorkersDesktopLayout(workers: workers);
           },
         );
       },
     );
   }
-}
-
-class _WorkersMobileLayout extends StatelessWidget {
-  const _WorkersMobileLayout({required this.workers});
-
-  final List<WorkerModel> workers;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-        itemCount: workers.isEmpty ? 2 : workers.length + 1,
-        separatorBuilder: (context, index) {
-          return const SizedBox(height: 12);
-        },
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return WorkerSearchField(
-              onChanged: (value) {
-                context.read<WorkersCubit>().searchWorkers(value);
-              },
-            );
-          }
-
-          if (workers.isEmpty) {
-            return const WorkersEmptyState(message: 'No workers found');
-          }
-
-          final worker = workers[index - 1];
-
-          return WorkerCard(
-            worker: worker,
-            onEdit: () {
-              _showWorkerBottomSheet(context, worker: worker);
-            },
-            onDelete: () {
-              _confirmDeleteWorker(context, worker);
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showWorkerBottomSheet(context);
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class _WorkersDesktopLayout extends StatelessWidget {
-  const _WorkersDesktopLayout({required this.workers});
-
-  final List<WorkerModel> workers;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: WorkerSearchField(
-                  onChanged: (value) {
-                    context.read<WorkersCubit>().searchWorkers(value);
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    _showWorkerDialog(context);
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Worker'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: WorkersTable(
-              workers: workers,
-              onEdit: (worker) {
-                _showWorkerDialog(context, worker: worker);
-              },
-              onDelete: (worker) {
-                _confirmDeleteWorker(context, worker);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-void _showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.card,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (_) {
-      return BlocProvider.value(
-        value: context.read<LookupsCubit>(),
-        child: AddWorkerForm(
-          initialWorker: worker,
-          isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
-          onSave: (savedWorker) {
-            if (worker == null) {
-              context.read<WorkersCubit>().addWorker(savedWorker);
-              _showSuccessMessage(context, 'Worker added successfully');
-              return;
-            }
-
-            context.read<WorkersCubit>().updateWorker(
-              currentHrCode: worker.hrCode,
-              updatedWorker: savedWorker,
-            );
-
-            _showSuccessMessage(context, 'Worker updated successfully');
-          },
-        ),
-      );
-    },
-  );
-}
-
-void _showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
-  showDialog(
-    context: context,
-    builder: (_) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: SizedBox(
-          width: 460,
-          child: BlocProvider.value(
-            value: context.read<LookupsCubit>(),
-            child: AddWorkerForm(
-              initialWorker: worker,
-              isHrCodeAlreadyUsed: context
-                  .read<WorkersCubit>()
-                  .isHrCodeAlreadyUsed,
-              onSave: (savedWorker) {
-                if (worker == null) {
-                  context.read<WorkersCubit>().addWorker(savedWorker);
-                  _showSuccessMessage(context, 'Worker added successfully');
-                  return;
-                }
-
-                context.read<WorkersCubit>().updateWorker(
-                  currentHrCode: worker.hrCode,
-                  updatedWorker: savedWorker,
-                );
-
-                _showSuccessMessage(context, 'Worker updated successfully');
-              },
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-void _confirmDeleteWorker(BuildContext context, WorkerModel worker) {
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: const Text('Delete Worker'),
-        content: Text('Are you sure you want to delete ${worker.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<WorkersCubit>().deleteWorker(worker);
-              Navigator.pop(dialogContext);
-              _showSuccessMessage(context, 'Worker deleted successfully');
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-void _showSuccessMessage(BuildContext context, String message) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
 }

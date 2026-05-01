@@ -7,8 +7,7 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
-
-typedef HrCodeValidator = bool Function(String hrCode, {String? ignoredHrCode});
+import 'package:mina_system/features/workers/presentation/functions/worker_form_validators.dart';
 
 class AddWorkerForm extends StatefulWidget {
   const AddWorkerForm({
@@ -87,20 +86,24 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                   CustomTextFormField(
                     hint: 'Worker Name',
                     controller: _nameController,
-                    validator: _requiredTextValidator,
+                    validator: WorkerFormValidators.requiredWorkerTextValidator,
                   ),
                   const SizedBox(height: 12),
                   CustomTextFormField(
                     hint: 'HR Code',
                     controller: _hrCodeController,
-                    validator: _hrCodeValidator,
+                    validator: (value) => WorkerFormValidators.hrCodeValidator(
+                      value,
+                      isHrCodeAlreadyUsed: widget.isHrCodeAlreadyUsed,
+                      initialHrCode: widget.initialWorker?.hrCode,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   CustomDropdownFormField(
                     hint: 'Department',
                     value: _selectedDepartment,
                     items: lookupsState.departments,
-                    validator: _requiredDropdownValidator,
+                    validator: WorkerFormValidators.requiredWorkerDropdownValidator,
                     onChanged: (value) {
                       setState(() {
                         _selectedDepartment = value;
@@ -115,7 +118,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                         : 'Job Title',
                     value: _selectedJobTitle,
                     items: filteredJobTitles,
-                    validator: _requiredDropdownValidator,
+                    validator: WorkerFormValidators.requiredWorkerDropdownValidator,
                     onChanged: (value) {
                       setState(() {
                         _selectedJobTitle = value;
@@ -134,43 +137,6 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
         );
       },
     );
-  }
-
-  String? _requiredTextValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'This field is required';
-    }
-
-    return null;
-  }
-
-  String? _requiredDropdownValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please select a value';
-    }
-
-    return null;
-  }
-
-  String? _hrCodeValidator(String? value) {
-    final requiredError = _requiredTextValidator(value);
-
-    if (requiredError != null) {
-      return requiredError;
-    }
-
-    final hrCode = value!.trim();
-
-    final isDuplicated = widget.isHrCodeAlreadyUsed?.call(
-      hrCode,
-      ignoredHrCode: widget.initialWorker?.hrCode,
-    );
-
-    if (isDuplicated == true) {
-      return 'HR Code already exists';
-    }
-
-    return null;
   }
 
   void _onSavePressed() {
