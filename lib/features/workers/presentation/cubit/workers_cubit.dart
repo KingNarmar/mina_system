@@ -42,56 +42,82 @@ class WorkersCubit extends Cubit<WorkersState> {
       activeCustodyCount: 2,
     ),
   ];
-  // Search worker
+
   void searchWorkers(String query) {
-    final searchQuery = query.trim().toLowerCase();
-
-    if (searchQuery.isEmpty) {
-      emit(state.copyWith(searchQuery: '', filteredWorkers: state.workers));
-      return;
-    }
-
-    final filteredWorkers = state.workers.where((worker) {
-      final name = worker.name.toLowerCase();
-      final hrCode = worker.hrCode.toLowerCase();
-      final department = worker.department.toLowerCase();
-      final jobTitle = worker.jobTitle.toLowerCase();
-
-      return name.contains(searchQuery) ||
-          hrCode.contains(searchQuery) ||
-          department.contains(searchQuery) ||
-          jobTitle.contains(searchQuery);
-    }).toList();
+    final filteredWorkers = _filterWorkers(
+      workers: state.workers,
+      query: query,
+    );
 
     emit(state.copyWith(searchQuery: query, filteredWorkers: filteredWorkers));
   }
 
-  // Add Worker
   void addWorker(WorkerModel worker) {
+    if (isHrCodeAlreadyUsed(worker.hrCode)) {
+      return;
+    }
+
     final updatedWorkers = List<WorkerModel>.from(state.workers)..add(worker);
 
-    emit(
-      state.copyWith(
-        workers: updatedWorkers,
-        filteredWorkers: _filterWorkers(
-          workers: updatedWorkers,
-          query: state.searchQuery,
-        ),
-      ),
-    );
+    emitUpdatedWorkers(updatedWorkers);
   }
 
-  // Delete Worker
-  void deleteWorker(WorkerModel worker) {
-    final updatedWorkers = state.workers.where((item) {
-      return item.hrCode != worker.hrCode;
+  void updateWorker({
+    required String currentHrCode,
+    required WorkerModel updatedWorker,
+  }) {
+    if (isHrCodeAlreadyUsed(
+      updatedWorker.hrCode,
+      ignoredHrCode: currentHrCode,
+    )) {
+      return;
+    }
+
+    final updatedWorkers = state.workers.map((worker) {
+      if (_isSameHrCode(worker.hrCode, currentHrCode)) {
+        return updatedWorker.copyWith(
+          activeCustodyCount: worker.activeCustodyCount,
+        );
+      }
+
+      return worker;
     }).toList();
 
+    emitUpdatedWorkers(updatedWorkers);
+  }
+
+  void deleteWorker(WorkerModel worker) {
+    final updatedWorkers = state.workers.where((item) {
+      return !_isSameHrCode(item.hrCode, worker.hrCode);
+    }).toList();
+
+    emitUpdatedWorkers(updatedWorkers);
+  }
+
+  bool isHrCodeAlreadyUsed(String hrCode, {String? ignoredHrCode}) {
+    final normalizedHrCode = _normalizeText(hrCode);
+    final normalizedIgnoredHrCode = ignoredHrCode == null
+        ? null
+        : _normalizeText(ignoredHrCode);
+
+    return state.workers.any((worker) {
+      final existingHrCode = _normalizeText(worker.hrCode);
+
+      if (normalizedIgnoredHrCode != null &&
+          existingHrCode == normalizedIgnoredHrCode) {
+        return false;
+      }
+
+      return existingHrCode == normalizedHrCode;
+    });
+  }
+
+  void emitUpdatedWorkers(List<WorkerModel> workers) {
     emit(
       state.copyWith(
-        workers: updatedWorkers,
+        workers: workers,
         filteredWorkers: _filterWorkers(
-          workers: updatedWorkers,
+          workers: workers,
           query: state.searchQuery,
         ),
       ),
@@ -102,22 +128,30 @@ class WorkersCubit extends Cubit<WorkersState> {
     required List<WorkerModel> workers,
     required String query,
   }) {
-    final searchQuery = query.trim().toLowerCase();
+    final searchQuery = _normalizeText(query);
 
     if (searchQuery.isEmpty) {
       return workers;
     }
 
     return workers.where((worker) {
-      final name = worker.name.toLowerCase();
-      final hrCode = worker.hrCode.toLowerCase();
-      final department = worker.department.toLowerCase();
-      final jobTitle = worker.jobTitle.toLowerCase();
+      final name = _normalizeText(worker.name);
+      final hrCode = _normalizeText(worker.hrCode);
+      final department = _normalizeText(worker.department);
+      final jobTitle = _normalizeText(worker.jobTitle);
 
       return name.contains(searchQuery) ||
           hrCode.contains(searchQuery) ||
           department.contains(searchQuery) ||
           jobTitle.contains(searchQuery);
     }).toList();
+  }
+
+  bool _isSameHrCode(String firstHrCode, String secondHrCode) {
+    return _normalizeText(firstHrCode) == _normalizeText(secondHrCode);
+  }
+
+  String _normalizeText(String value) {
+    return value.trim().toLowerCase();
   }
 }

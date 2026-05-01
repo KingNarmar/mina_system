@@ -4,10 +4,19 @@ import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 
+typedef HrCodeValidator = bool Function(String hrCode, {String? ignoredHrCode});
+
 class AddWorkerForm extends StatefulWidget {
-  const AddWorkerForm({super.key, required this.onSave});
+  const AddWorkerForm({
+    super.key,
+    required this.onSave,
+    this.initialWorker,
+    this.isHrCodeAlreadyUsed,
+  });
 
   final ValueChanged<WorkerModel> onSave;
+  final WorkerModel? initialWorker;
+  final HrCodeValidator? isHrCodeAlreadyUsed;
 
   @override
   State<AddWorkerForm> createState() => _AddWorkerFormState();
@@ -20,6 +29,22 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
   final _hrCodeController = TextEditingController();
   final _departmentController = TextEditingController();
   final _jobTitleController = TextEditingController();
+
+  bool get _isEditMode => widget.initialWorker != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final worker = widget.initialWorker;
+
+    if (worker != null) {
+      _nameController.text = worker.name;
+      _hrCodeController.text = worker.hrCode;
+      _departmentController.text = worker.department;
+      _jobTitleController.text = worker.jobTitle;
+    }
+  }
 
   @override
   void dispose() {
@@ -46,7 +71,10 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Add Worker', style: AppTextStyles.title),
+              Text(
+                _isEditMode ? 'Edit Worker' : 'Add Worker',
+                style: AppTextStyles.title,
+              ),
               const SizedBox(height: 20),
               CustomTextFormField(
                 hint: 'Worker Name',
@@ -57,7 +85,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
               CustomTextFormField(
                 hint: 'HR Code',
                 controller: _hrCodeController,
-                validator: _requiredValidator,
+                validator: _hrCodeValidator,
               ),
               const SizedBox(height: 12),
               CustomTextFormField(
@@ -72,7 +100,10 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                 validator: _requiredValidator,
               ),
               const SizedBox(height: 20),
-              MainButton(text: 'Save Worker', onPressed: _onSavePressed),
+              MainButton(
+                text: _isEditMode ? 'Update Worker' : 'Save Worker',
+                onPressed: _onSavePressed,
+              ),
             ],
           ),
         ),
@@ -88,6 +119,27 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
     return null;
   }
 
+  String? _hrCodeValidator(String? value) {
+    final requiredError = _requiredValidator(value);
+
+    if (requiredError != null) {
+      return requiredError;
+    }
+
+    final hrCode = value!.trim();
+
+    final isDuplicated = widget.isHrCodeAlreadyUsed?.call(
+      hrCode,
+      ignoredHrCode: widget.initialWorker?.hrCode,
+    );
+
+    if (isDuplicated == true) {
+      return 'HR Code already exists';
+    }
+
+    return null;
+  }
+
   void _onSavePressed() {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -98,7 +150,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
       hrCode: _hrCodeController.text.trim(),
       department: _departmentController.text.trim(),
       jobTitle: _jobTitleController.text.trim(),
-      activeCustodyCount: 0,
+      activeCustodyCount: widget.initialWorker?.activeCustodyCount ?? 0,
     );
 
     widget.onSave(worker);

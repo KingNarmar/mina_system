@@ -8,6 +8,7 @@ import 'package:mina_system/features/workers/presentation/cubit/workers_state.da
 import 'package:mina_system/features/workers/presentation/widgets/add_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_card.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
+import 'package:mina_system/features/workers/presentation/widgets/workers_empty_state.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
 
 class WorkersScreen extends StatelessWidget {
@@ -55,7 +56,7 @@ class _WorkersMobileLayout extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-        itemCount: workers.length + 1,
+        itemCount: workers.isEmpty ? 2 : workers.length + 1,
         separatorBuilder: (context, index) {
           return const SizedBox(height: 12);
         },
@@ -68,10 +69,17 @@ class _WorkersMobileLayout extends StatelessWidget {
             );
           }
 
+          if (workers.isEmpty) {
+            return const WorkersEmptyState(message: 'No workers found');
+          }
+
           final worker = workers[index - 1];
 
           return WorkerCard(
             worker: worker,
+            onEdit: () {
+              _showWorkerBottomSheet(context, worker: worker);
+            },
             onDelete: () {
               _confirmDeleteWorker(context, worker);
             },
@@ -80,7 +88,7 @@ class _WorkersMobileLayout extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddWorkerBottomSheet(context);
+          _showWorkerBottomSheet(context);
         },
         child: const Icon(Icons.add),
       ),
@@ -113,7 +121,7 @@ class _WorkersDesktopLayout extends StatelessWidget {
                 height: 52,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    _showAddWorkerDialog(context);
+                    _showWorkerDialog(context);
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('Add Worker'),
@@ -126,6 +134,9 @@ class _WorkersDesktopLayout extends StatelessWidget {
             width: double.infinity,
             child: WorkersTable(
               workers: workers,
+              onEdit: (worker) {
+                _showWorkerDialog(context, worker: worker);
+              },
               onDelete: (worker) {
                 _confirmDeleteWorker(context, worker);
               },
@@ -137,7 +148,7 @@ class _WorkersDesktopLayout extends StatelessWidget {
   }
 }
 
-void _showAddWorkerBottomSheet(BuildContext context) {
+void _showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -147,15 +158,28 @@ void _showAddWorkerBottomSheet(BuildContext context) {
     ),
     builder: (_) {
       return AddWorkerForm(
-        onSave: (worker) {
-          context.read<WorkersCubit>().addWorker(worker);
+        initialWorker: worker,
+        isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
+        onSave: (savedWorker) {
+          if (worker == null) {
+            context.read<WorkersCubit>().addWorker(savedWorker);
+            _showSuccessMessage(context, 'Worker added successfully');
+            return;
+          }
+
+          context.read<WorkersCubit>().updateWorker(
+            currentHrCode: worker.hrCode,
+            updatedWorker: savedWorker,
+          );
+
+          _showSuccessMessage(context, 'Worker updated successfully');
         },
       );
     },
   );
 }
 
-void _showAddWorkerDialog(BuildContext context) {
+void _showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
   showDialog(
     context: context,
     builder: (_) {
@@ -164,8 +188,23 @@ void _showAddWorkerDialog(BuildContext context) {
         child: SizedBox(
           width: 460,
           child: AddWorkerForm(
-            onSave: (worker) {
-              context.read<WorkersCubit>().addWorker(worker);
+            initialWorker: worker,
+            isHrCodeAlreadyUsed: context
+                .read<WorkersCubit>()
+                .isHrCodeAlreadyUsed,
+            onSave: (savedWorker) {
+              if (worker == null) {
+                context.read<WorkersCubit>().addWorker(savedWorker);
+                _showSuccessMessage(context, 'Worker added successfully');
+                return;
+              }
+
+              context.read<WorkersCubit>().updateWorker(
+                currentHrCode: worker.hrCode,
+                updatedWorker: savedWorker,
+              );
+
+              _showSuccessMessage(context, 'Worker updated successfully');
             },
           ),
         ),
@@ -192,6 +231,7 @@ void _confirmDeleteWorker(BuildContext context, WorkerModel worker) {
             onPressed: () {
               context.read<WorkersCubit>().deleteWorker(worker);
               Navigator.pop(dialogContext);
+              _showSuccessMessage(context, 'Worker deleted successfully');
             },
             child: const Text('Delete'),
           ),
@@ -199,4 +239,12 @@ void _confirmDeleteWorker(BuildContext context, WorkerModel worker) {
       );
     },
   );
+}
+
+void _showSuccessMessage(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    );
 }
