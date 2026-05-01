@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
@@ -157,23 +158,26 @@ void _showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (_) {
-      return AddWorkerForm(
-        initialWorker: worker,
-        isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
-        onSave: (savedWorker) {
-          if (worker == null) {
-            context.read<WorkersCubit>().addWorker(savedWorker);
-            _showSuccessMessage(context, 'Worker added successfully');
-            return;
-          }
+      return BlocProvider.value(
+        value: context.read<LookupsCubit>(),
+        child: AddWorkerForm(
+          initialWorker: worker,
+          isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
+          onSave: (savedWorker) {
+            if (worker == null) {
+              context.read<WorkersCubit>().addWorker(savedWorker);
+              _showSuccessMessage(context, 'Worker added successfully');
+              return;
+            }
 
-          context.read<WorkersCubit>().updateWorker(
-            currentHrCode: worker.hrCode,
-            updatedWorker: savedWorker,
-          );
+            context.read<WorkersCubit>().updateWorker(
+              currentHrCode: worker.hrCode,
+              updatedWorker: savedWorker,
+            );
 
-          _showSuccessMessage(context, 'Worker updated successfully');
-        },
+            _showSuccessMessage(context, 'Worker updated successfully');
+          },
+        ),
       );
     },
   );
@@ -187,25 +191,28 @@ void _showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SizedBox(
           width: 460,
-          child: AddWorkerForm(
-            initialWorker: worker,
-            isHrCodeAlreadyUsed: context
-                .read<WorkersCubit>()
-                .isHrCodeAlreadyUsed,
-            onSave: (savedWorker) {
-              if (worker == null) {
-                context.read<WorkersCubit>().addWorker(savedWorker);
-                _showSuccessMessage(context, 'Worker added successfully');
-                return;
-              }
+          child: BlocProvider.value(
+            value: context.read<LookupsCubit>(),
+            child: AddWorkerForm(
+              initialWorker: worker,
+              isHrCodeAlreadyUsed: context
+                  .read<WorkersCubit>()
+                  .isHrCodeAlreadyUsed,
+              onSave: (savedWorker) {
+                if (worker == null) {
+                  context.read<WorkersCubit>().addWorker(savedWorker);
+                  _showSuccessMessage(context, 'Worker added successfully');
+                  return;
+                }
 
-              context.read<WorkersCubit>().updateWorker(
-                currentHrCode: worker.hrCode,
-                updatedWorker: savedWorker,
-              );
+                context.read<WorkersCubit>().updateWorker(
+                  currentHrCode: worker.hrCode,
+                  updatedWorker: savedWorker,
+                );
 
-              _showSuccessMessage(context, 'Worker updated successfully');
-            },
+                _showSuccessMessage(context, 'Worker updated successfully');
+              },
+            ),
           ),
         ),
       );
