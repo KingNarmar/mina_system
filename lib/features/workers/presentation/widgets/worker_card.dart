@@ -4,13 +4,10 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 
 class WorkerCard extends StatelessWidget {
-  const WorkerCard({
-    super.key,
-    required this.worker,
-  });
+  const WorkerCard({super.key, required this.worker, this.onDelete});
 
   final WorkerModel worker;
-
+  final VoidCallback? onDelete;
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -44,6 +41,11 @@ class WorkerCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                IconButton(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete_outline),
+                  color: AppColors.error,
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -62,10 +64,7 @@ class WorkerCard extends StatelessWidget {
 }
 
 class _WorkerInfoRow extends StatelessWidget {
-  const _WorkerInfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _WorkerInfoRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -76,10 +75,7 @@ class _WorkerInfoRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Text(
-            '$label:',
-            style: AppTextStyles.caption,
-          ),
+          Text('$label:', style: AppTextStyles.caption),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
