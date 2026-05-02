@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
@@ -13,39 +15,50 @@ class TransactionsDesktopLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tableWidth = math.max(constraints.maxWidth, 980.0);
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
             children: [
-              Expanded(
-                child: TransactionSearchField(
-                  onChanged: (value) {
-                    context.read<TransactionsCubit>().searchTransactions(value);
-                  },
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TransactionSearchField(
+                      onChanged: (value) {
+                        context.read<TransactionsCubit>().searchTransactions(
+                          value,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        showTransactionDialog(context);
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Transaction'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    showTransactionDialog(context);
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Transaction'),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: tableWidth,
+                  child: TransactionsTable(transactions: transactions),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: TransactionsTable(transactions: transactions),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -77,6 +77,9 @@ class _TransactionTypeBadge extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
         style: AppTextStyles.caption.copyWith(
           color: color,
           fontWeight: FontWeight.w700,

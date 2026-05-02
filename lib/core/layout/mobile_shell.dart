@@ -26,11 +26,19 @@ class _MobileShellState extends State<MobileShell> {
             .map(
               (item) => NavigationDestination(
                 icon: Icon(item.icon),
-                label: item.title,
+                label: _getMobileLabel(item.title),
               ),
             )
             .toList(),
       ),
     );
+  }
+
+  String _getMobileLabel(String title) {
+    if (title == 'Transactions') {
+      return 'TRX';
+    }
+
+    return title;
   }
 }
