@@ -1,23 +1,32 @@
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 
+enum TransactionTypeFilter {
+  all,
+  issue,
+  returnTool,
+}
+
 class TransactionsState {
   const TransactionsState({
     required this.transactions,
     required this.filteredTransactions,
     required this.searchQuery,
     required this.custodyBalanceSearchQuery,
+    required this.typeFilter,
   });
 
   final List<TransactionModel> transactions;
   final List<TransactionModel> filteredTransactions;
   final String searchQuery;
   final String custodyBalanceSearchQuery;
+  final TransactionTypeFilter typeFilter;
 
   TransactionsState copyWith({
     List<TransactionModel>? transactions,
     List<TransactionModel>? filteredTransactions,
     String? searchQuery,
     String? custodyBalanceSearchQuery,
+    TransactionTypeFilter? typeFilter,
   }) {
     return TransactionsState(
       transactions: transactions ?? this.transactions,
@@ -25,6 +34,7 @@ class TransactionsState {
       searchQuery: searchQuery ?? this.searchQuery,
       custodyBalanceSearchQuery:
           custodyBalanceSearchQuery ?? this.custodyBalanceSearchQuery,
+      typeFilter: typeFilter ?? this.typeFilter,
     );
   }
 }

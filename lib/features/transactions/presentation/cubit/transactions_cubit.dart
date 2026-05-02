@@ -11,6 +11,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
           filteredTransactions: [],
           searchQuery: '',
           custodyBalanceSearchQuery: '',
+          typeFilter: TransactionTypeFilter.all,
         ),
       );
 
@@ -18,11 +19,27 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     final filteredTransactions = _filterTransactions(
       transactions: state.transactions,
       query: query,
+      typeFilter: state.typeFilter,
     );
 
     emit(
       state.copyWith(
         searchQuery: query,
+        filteredTransactions: filteredTransactions,
+      ),
+    );
+  }
+
+  void filterTransactionsByType(TransactionTypeFilter typeFilter) {
+    final filteredTransactions = _filterTransactions(
+      transactions: state.transactions,
+      query: state.searchQuery,
+      typeFilter: typeFilter,
+    );
+
+    emit(
+      state.copyWith(
+        typeFilter: typeFilter,
         filteredTransactions: filteredTransactions,
       ),
     );
@@ -178,6 +195,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         filteredTransactions: _filterTransactions(
           transactions: transactions,
           query: state.searchQuery,
+          typeFilter: state.typeFilter,
         ),
       ),
     );
@@ -186,14 +204,21 @@ class TransactionsCubit extends Cubit<TransactionsState> {
   List<TransactionModel> _filterTransactions({
     required List<TransactionModel> transactions,
     required String query,
+    required TransactionTypeFilter typeFilter,
   }) {
     final searchQuery = _normalizeText(query);
 
-    if (searchQuery.isEmpty) {
-      return transactions;
-    }
-
     return transactions.where((transaction) {
+      final matchesType = _matchesTransactionType(transaction, typeFilter);
+
+      if (!matchesType) {
+        return false;
+      }
+
+      if (searchQuery.isEmpty) {
+        return true;
+      }
+
       final transactionCode = _normalizeText(transaction.transactionCode);
       final workerHrCode = _normalizeText(transaction.workerHrCode);
       final workerName = _normalizeText(transaction.workerName);
@@ -210,6 +235,20 @@ class TransactionsCubit extends Cubit<TransactionsState> {
           unit.contains(searchQuery) ||
           type.contains(searchQuery);
     }).toList();
+  }
+
+  bool _matchesTransactionType(
+    TransactionModel transaction,
+    TransactionTypeFilter typeFilter,
+  ) {
+    switch (typeFilter) {
+      case TransactionTypeFilter.all:
+        return true;
+      case TransactionTypeFilter.issue:
+        return transaction.isIssue;
+      case TransactionTypeFilter.returnTool:
+        return transaction.isReturn;
+    }
   }
 
   String _normalizeText(String value) {

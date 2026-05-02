@@ -26,6 +26,7 @@ class _TransactionsView extends StatelessWidget {
     return BlocBuilder<TransactionsCubit, TransactionsState>(
       builder: (context, state) {
         final transactions = state.filteredTransactions;
+        final selectedFilter = state.typeFilter;
         final custodyBalances = context
             .read<TransactionsCubit>()
             .getFilteredCustodyBalances();
@@ -56,10 +57,14 @@ class _TransactionsView extends StatelessWidget {
                       child: TabBarView(
                         children: [
                           if (isMobile)
-                            TransactionsMobileLayout(transactions: transactions)
+                            TransactionsMobileLayout(
+                              transactions: transactions,
+                              selectedFilter: selectedFilter,
+                            )
                           else
                             TransactionsDesktopLayout(
                               transactions: transactions,
+                              selectedFilter: selectedFilter,
                             ),
                           if (isMobile)
                             CustodyBalanceMobileLayout(
