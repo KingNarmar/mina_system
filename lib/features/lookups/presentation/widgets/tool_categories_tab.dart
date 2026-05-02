@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/add_tool_category_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_tool_category_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
 
@@ -36,34 +36,20 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
             title: 'Manage Tool Categories',
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextFormField(
-                        hint: 'Category Name',
-                        controller: _categoryController,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final isAdded = addToolCategoryLookup(
-                            context: context,
-                            category: _categoryController.text,
-                            categories: state.toolCategories,
-                          );
+                LookupAddRow(
+                  hint: 'Category Name',
+                  controller: _categoryController,
+                  onAdd: () {
+                    final isAdded = addToolCategoryLookup(
+                      context: context,
+                      category: _categoryController.text,
+                      categories: state.toolCategories,
+                    );
 
-                          if (isAdded) {
-                            _categoryController.clear();
-                          }
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add'),
-                      ),
-                    ),
-                  ],
+                    if (isAdded) {
+                      _categoryController.clear();
+                    }
+                  },
                 ),
                 const SizedBox(height: 20),
                 if (state.toolCategories.isEmpty)

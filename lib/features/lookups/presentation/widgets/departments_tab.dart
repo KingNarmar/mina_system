@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/add_department_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_department_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
 
@@ -36,34 +36,20 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
             title: 'Manage Departments',
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextFormField(
-                        hint: 'Department Name',
-                        controller: _departmentController,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final isAdded = addDepartmentLookup(
-                            context: context,
-                            department: _departmentController.text,
-                            departments: state.departments,
-                          );
+                LookupAddRow(
+                  hint: 'Department Name',
+                  controller: _departmentController,
+                  onAdd: () {
+                    final isAdded = addDepartmentLookup(
+                      context: context,
+                      department: _departmentController.text,
+                      departments: state.departments,
+                    );
 
-                          if (isAdded) {
-                            _departmentController.clear();
-                          }
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add'),
-                      ),
-                    ),
-                  ],
+                    if (isAdded) {
+                      _departmentController.clear();
+                    }
+                  },
                 ),
                 const SizedBox(height: 20),
                 if (state.departments.isEmpty)

@@ -10,10 +10,7 @@ import 'package:mina_system/features/tools/presentation/widgets/tool_search_fiel
 import 'package:mina_system/features/tools/presentation/widgets/tools_empty_state.dart';
 
 class ToolsMobileLayout extends StatelessWidget {
-  const ToolsMobileLayout({
-    super.key,
-    required this.tools,
-  });
+  const ToolsMobileLayout({super.key, required this.tools});
 
   final List<ToolModel> tools;
 

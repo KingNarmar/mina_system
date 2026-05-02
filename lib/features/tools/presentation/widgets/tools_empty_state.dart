@@ -25,11 +25,7 @@ class ToolsEmptyState extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 42,
-              color: AppColors.textSecondary,
-            ),
+            Icon(icon, size: 42, color: AppColors.textSecondary),
             const SizedBox(height: 12),
             Text(
               message,

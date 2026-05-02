@@ -3,11 +3,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class LookupCard extends StatelessWidget {
-  const LookupCard({
-    super.key,
-    required this.title,
-    required this.child,
-  });
+  const LookupCard({super.key, required this.title, required this.child});
 
   final String title;
   final Widget child;

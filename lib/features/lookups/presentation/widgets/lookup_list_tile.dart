@@ -30,10 +30,7 @@ class LookupListTile extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        subtitle: Text(
-          subtitle,
-          style: AppTextStyles.caption,
-        ),
+        subtitle: Text(subtitle, style: AppTextStyles.caption),
         trailing: IconButton(
           onPressed: onDelete,
           icon: const Icon(Icons.delete_outline),

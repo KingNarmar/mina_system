@@ -4,7 +4,12 @@ import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/widgets/table/workers_table_cell.dart';
 
 class WorkersTableRow extends StatelessWidget {
-  const WorkersTableRow({super.key, required this.worker, this.onEdit, this.onDelete});
+  const WorkersTableRow({
+    super.key,
+    required this.worker,
+    this.onEdit,
+    this.onDelete,
+  });
 
   final WorkerModel worker;
   final void Function(WorkerModel worker)? onEdit;
@@ -22,7 +27,10 @@ class WorkersTableRow extends StatelessWidget {
               WorkersTableBodyCell(value: worker.hrCode, flex: 2),
               WorkersTableBodyCell(value: worker.department, flex: 2),
               WorkersTableBodyCell(value: worker.jobTitle, flex: 2),
-              WorkersTableBodyCell(value: worker.activeCustodyCount.toString(), flex: 2),
+              WorkersTableBodyCell(
+                value: worker.activeCustodyCount.toString(),
+                flex: 2,
+              ),
               Expanded(
                 flex: 2,
                 child: Row(

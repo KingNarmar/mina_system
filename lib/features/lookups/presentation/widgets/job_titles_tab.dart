@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
-import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/add_job_title_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_job_title_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
 
@@ -52,35 +52,21 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                   },
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextFormField(
-                        hint: 'Job Title',
-                        controller: _jobTitleController,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final isAdded = addJobTitleLookup(
-                            context: context,
-                            department: _selectedDepartment,
-                            jobTitle: _jobTitleController.text,
-                            jobTitles: jobTitles,
-                          );
+                LookupAddRow(
+                  hint: 'Job Title',
+                  controller: _jobTitleController,
+                  onAdd: () {
+                    final isAdded = addJobTitleLookup(
+                      context: context,
+                      department: _selectedDepartment,
+                      jobTitle: _jobTitleController.text,
+                      jobTitles: jobTitles,
+                    );
 
-                          if (isAdded) {
-                            _jobTitleController.clear();
-                          }
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add'),
-                      ),
-                    ),
-                  ],
+                    if (isAdded) {
+                      _jobTitleController.clear();
+                    }
+                  },
                 ),
                 const SizedBox(height: 20),
                 if (_selectedDepartment == null)

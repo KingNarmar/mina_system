@@ -103,7 +103,8 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                     hint: 'Department',
                     value: _selectedDepartment,
                     items: lookupsState.departments,
-                    validator: WorkerFormValidators.requiredWorkerDropdownValidator,
+                    validator:
+                        WorkerFormValidators.requiredWorkerDropdownValidator,
                     onChanged: (value) {
                       setState(() {
                         _selectedDepartment = value;
@@ -118,7 +119,8 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                         : 'Job Title',
                     value: _selectedJobTitle,
                     items: filteredJobTitles,
-                    validator: WorkerFormValidators.requiredWorkerDropdownValidator,
+                    validator:
+                        WorkerFormValidators.requiredWorkerDropdownValidator,
                     onChanged: (value) {
                       setState(() {
                         _selectedJobTitle = value;

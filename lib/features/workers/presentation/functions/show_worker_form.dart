@@ -42,7 +42,9 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
             value: context.read<LookupsCubit>(),
             child: AddWorkerForm(
               initialWorker: worker,
-              isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
+              isHrCodeAlreadyUsed: context
+                  .read<WorkersCubit>()
+                  .isHrCodeAlreadyUsed,
               onSave: (savedWorker) {
                 _saveWorker(context, worker, savedWorker);
               },
@@ -54,7 +56,11 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
   );
 }
 
-void _saveWorker(BuildContext context, WorkerModel? originalWorker, WorkerModel savedWorker) {
+void _saveWorker(
+  BuildContext context,
+  WorkerModel? originalWorker,
+  WorkerModel savedWorker,
+) {
   if (originalWorker == null) {
     context.read<WorkersCubit>().addWorker(savedWorker);
     showWorkerSuccessMessage(context, 'Worker added successfully');

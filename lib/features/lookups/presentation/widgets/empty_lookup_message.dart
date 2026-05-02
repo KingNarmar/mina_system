@@ -3,10 +3,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class EmptyLookupMessage extends StatelessWidget {
-  const EmptyLookupMessage({
-    super.key,
-    required this.message,
-  });
+  const EmptyLookupMessage({super.key, required this.message});
 
   final String message;
 
@@ -21,9 +18,7 @@ class EmptyLookupMessage extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: AppTextStyles.body.copyWith(
-          color: AppColors.textSecondary,
-        ),
+        style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
         textAlign: TextAlign.center,
       ),
     );

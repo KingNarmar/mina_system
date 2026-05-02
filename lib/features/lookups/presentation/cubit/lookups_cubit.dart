@@ -5,10 +5,10 @@ class LookupsCubit extends Cubit<LookupsState> {
   LookupsCubit()
     : super(
         const LookupsState(
-         departments: _initialDepartments,
-        jobTitlesByDepartment: _initialJobTitlesByDepartment,
-        toolUnits: _initialToolUnits,
-        toolCategories: _initialToolCategories,
+          departments: _initialDepartments,
+          jobTitlesByDepartment: _initialJobTitlesByDepartment,
+          toolUnits: _initialToolUnits,
+          toolCategories: _initialToolCategories,
         ),
       );
 
@@ -73,22 +73,18 @@ class LookupsCubit extends Cubit<LookupsState> {
     'HR': ['HR Manager', 'HR Officer', 'HR Assistant'],
     'Admin': ['Admin Manager', 'Admin Assistant', 'Document Controller'],
   };
-static const List<String> _initialToolUnits = [
-  'Each',
-  'KG',
-  'MTR',
-];
+  static const List<String> _initialToolUnits = ['Each', 'KG', 'MTR'];
 
-static const List<String> _initialToolCategories = [
-  'Power Tools',
-  'Welding Tools',
-  'Consumables',
-  'Measuring Tools',
-  'Hand Tools',
-  'Safety Tools',
-  'Lifting Tools',
-  'Electrical Tools',
-];
+  static const List<String> _initialToolCategories = [
+    'Power Tools',
+    'Welding Tools',
+    'Consumables',
+    'Measuring Tools',
+    'Hand Tools',
+    'Safety Tools',
+    'Lifting Tools',
+    'Electrical Tools',
+  ];
   void addDepartment(String department) {
     final cleanDepartment = department.trim();
 
@@ -173,54 +169,56 @@ static const List<String> _initialToolCategories = [
 
     emit(state.copyWith(jobTitlesByDepartment: updatedJobTitlesByDepartment));
   }
-void addToolUnit(String unit) {
-  final cleanUnit = unit.trim();
 
-  if (cleanUnit.isEmpty) {
-    return;
+  void addToolUnit(String unit) {
+    final cleanUnit = unit.trim();
+
+    if (cleanUnit.isEmpty) {
+      return;
+    }
+
+    if (_containsValue(state.toolUnits, cleanUnit)) {
+      return;
+    }
+
+    final updatedToolUnits = List<String>.from(state.toolUnits)..add(cleanUnit);
+
+    emit(state.copyWith(toolUnits: updatedToolUnits));
   }
 
-  if (_containsValue(state.toolUnits, cleanUnit)) {
-    return;
+  void deleteToolUnit(String unit) {
+    final updatedToolUnits = state.toolUnits.where((item) {
+      return !_isSameValue(item, unit);
+    }).toList();
+
+    emit(state.copyWith(toolUnits: updatedToolUnits));
   }
 
-  final updatedToolUnits = List<String>.from(state.toolUnits)..add(cleanUnit);
+  void addToolCategory(String category) {
+    final cleanCategory = category.trim();
 
-  emit(state.copyWith(toolUnits: updatedToolUnits));
-}
+    if (cleanCategory.isEmpty) {
+      return;
+    }
 
-void deleteToolUnit(String unit) {
-  final updatedToolUnits = state.toolUnits.where((item) {
-    return !_isSameValue(item, unit);
-  }).toList();
+    if (_containsValue(state.toolCategories, cleanCategory)) {
+      return;
+    }
 
-  emit(state.copyWith(toolUnits: updatedToolUnits));
-}
+    final updatedToolCategories = List<String>.from(state.toolCategories)
+      ..add(cleanCategory);
 
-void addToolCategory(String category) {
-  final cleanCategory = category.trim();
-
-  if (cleanCategory.isEmpty) {
-    return;
+    emit(state.copyWith(toolCategories: updatedToolCategories));
   }
 
-  if (_containsValue(state.toolCategories, cleanCategory)) {
-    return;
+  void deleteToolCategory(String category) {
+    final updatedToolCategories = state.toolCategories.where((item) {
+      return !_isSameValue(item, category);
+    }).toList();
+
+    emit(state.copyWith(toolCategories: updatedToolCategories));
   }
 
-  final updatedToolCategories = List<String>.from(state.toolCategories)
-    ..add(cleanCategory);
-
-  emit(state.copyWith(toolCategories: updatedToolCategories));
-}
-
-void deleteToolCategory(String category) {
-  final updatedToolCategories = state.toolCategories.where((item) {
-    return !_isSameValue(item, category);
-  }).toList();
-
-  emit(state.copyWith(toolCategories: updatedToolCategories));
-}
   bool _containsValue(List<String> values, String value) {
     return values.any((item) => _isSameValue(item, value));
   }
