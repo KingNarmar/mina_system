@@ -6,6 +6,7 @@ import 'package:mina_system/core/layout/tablet_shell.dart';
 import 'package:mina_system/core/responsive/responsive_layout.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
 class AppShell extends StatelessWidget {
@@ -18,6 +19,7 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => WorkersCubit()),
         BlocProvider(create: (_) => LookupsCubit()),
         BlocProvider(create: (_) => ToolsCubit()),
+        BlocProvider(create: (_) => TransactionsCubit()),
       ],
       child: const ResponsiveLayout(
         mobile: MobileShell(),

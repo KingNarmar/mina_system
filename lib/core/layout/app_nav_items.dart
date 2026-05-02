@@ -3,6 +3,7 @@ import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:mina_system/features/lookups/presentation/screens/lookups_screen.dart';
 import 'package:mina_system/features/tools/presentation/screens/tools_screen.dart';
+import 'package:mina_system/features/transactions/presentation/screens/transactions_screen.dart';
 import 'package:mina_system/features/workers/presentation/screens/workers_screen.dart';
 
 abstract class AppNavItems {
@@ -17,7 +18,16 @@ abstract class AppNavItems {
       icon: Icons.people_outline,
       page: WorkersScreen(),
     ),
-    AppNavItem(title: 'Tools', icon: Icons.build_outlined, page: ToolsScreen()),
+    AppNavItem(
+      title: 'Tools',
+      icon: Icons.build_outlined,
+      page: ToolsScreen(),
+    ),
+    AppNavItem(
+      title: 'Transactions',
+      icon: Icons.swap_horiz_outlined,
+      page: TransactionsScreen(),
+    ),
     AppNavItem(
       title: 'Lookups',
       icon: Icons.tune_outlined,
