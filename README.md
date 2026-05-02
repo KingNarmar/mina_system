@@ -2,218 +2,163 @@
 
 **M.I.N.A System** stands for **Materials Inventory Navigation Assistant**.
 
-M.I.N.A System is a Flutter-based warehouse custody and inventory management application designed to help manage workers, tools, custody transactions, inventory records, photos, and reports in one organized system.
+M.I.N.A System is a Flutter-based warehouse custody and inventory management application designed to help companies manage workers, tools, custody transactions, inventory records, and operational accountability in one organized system.
 
-> Project status: **Under Development**  
-> Current stage: **Responsive UI foundation + Login flow + Dashboard layout**
-
----
-
-## 📌 Project Overview
-
-This project is being built as a modern warehouse management system that supports multiple screen sizes, including:
-
-- Mobile
-- Tablet
-- Desktop
-
-The current version focuses on preparing the main structure of the app, including authentication UI, responsive layouts, dashboard design, reusable core widgets, and navigation shells.
+> **Project Status:** Under Development  
+> **Current Stage:** Responsive UI foundation + Core modules structure  
+> **Future Vision:** Online, multi-company, multi-user, role-based inventory and custody management platform
 
 ---
 
-## ✅ Current Progress
+## Project Overview
 
-The project currently includes:
+M.I.N.A System is the new and upgraded version of a previous offline/local tools tracking system.
 
-- Responsive app structure for mobile, tablet, and desktop.
-- Login screen with separate layouts for each screen size.
-- Basic demo authentication using `AuthCubit`.
-- Dashboard screen with statistics cards.
-- Recent transactions preview card.
-- Quick actions card.
-- Main app shell with different navigation styles based on screen size.
-- Centralized theme, colors, text styles, validators, and reusable widgets.
-- Placeholder screens for Workers and Tools modules.
+The first version was built to solve a real warehouse problem: tracking issued tools, returned tools, workers' custody, and basic reports inside a local workflow.
+
+The new version is being redesigned with a larger vision:
+
+- Online access instead of offline-only usage
+- Multi-company support
+- Multiple users
+- Role-based permissions
+- Responsive design for desktop, tablet, and mobile
+- Cleaner and more scalable project structure
+- Better user experience for warehouse teams and management
+
+This project is not only a coding practice project.  
+It is based on real warehouse operations, real custody tracking needs, and real accountability challenges.
 
 ---
 
-## 🔐 Demo Login
+## Key Goals
 
-The current login flow uses demo credentials for testing only.
+The main goal of M.I.N.A System is to help warehouse teams:
 
-| Field | Value |
+- Track tools issued to workers
+- Track returned tools
+- Monitor open custody balances
+- Manage worker records
+- Manage tool records
+- Organize lookup data such as departments, job titles, units, and categories
+- Improve accountability and reduce manual tracking errors
+- Prepare the system for future online and multi-company usage
+
+---
+
+## Current Features Implemented
+
+The current version includes the following modules and UI foundations:
+
+- Responsive login screen
+- Dashboard screen
+- Workers management screen
+- Tools management screen
+- Transactions screen
+- Custody transaction tabs
+- Lookup navigation item
+- Mobile bottom navigation
+- Tablet navigation rail
+- Desktop side menu
+- Search UI for workers, tools, and transactions
+- Add / edit / delete action buttons in module screens
+- Static/mock data structure for development and UI testing
+- Cubit-based state management foundation
+- Reusable layout structure
+
+---
+
+## Planned Features
+
+The project is still under development. The next planned stages include:
+
+- Real online database integration
+- Real authentication system
+- Multi-company structure
+- Multi-user access
+- Role-based permissions
+- User profile and company profile management
+- Persistent login/session handling
+- Full CRUD operations connected to database
+- Issue and return workflows
+- Lost and damaged tool workflows
+- Custody balance calculations
+- Reports generation
+- PDF export
+- Image/photo attachment support for transactions
+- Advanced search and filtering
+- Production-ready error handling
+- Deployment preparation for web/mobile platforms
+
+---
+
+## Responsive Design
+
+M.I.N.A System is designed to work across different screen sizes.
+
+| Device Type | Layout Style |
 |---|---|
-| Username | `admin` |
-| Password | `123456` |
-
-After successful login, the user is redirected to the dashboard.
-
----
-
-## 🖥️ Responsive Layout System
-
-The app uses a responsive layout system based on screen width.
-
-| Device Type | Breakpoint |
-|---|---|
-| Mobile | Less than `600px` |
-| Tablet | From `600px` to less than `1024px` |
-| Desktop | `1024px` and above |
-
-The responsive logic is handled through:
-
-```text
-lib/core/responsive/app_breakpoints.dart
-lib/core/responsive/responsive_layout.dart
-```
-
----
-
-## 📱 Navigation System
-
-The application uses different navigation styles depending on the screen size:
-
-| Screen Type | Navigation Type |
-|---|---|
-| Mobile | Bottom Navigation Bar |
+| Mobile | Bottom Navigation |
 | Tablet | Navigation Rail |
 | Desktop | Side Menu |
 
-Navigation items currently available:
+The goal is to make the system usable by different users in different environments:
 
-- Dashboard
-- Workers
-- Tools
+- Warehouse staff using phones
+- Supervisors using tablets
+- Office/admin users using desktop screens
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
-| Screen | Layout | Preview |
+### Dashboard
+
+| Desktop | Tablet | Mobile |
 |---|---|---|
-| Login Screen | Mobile | <img src="screen_shot/login_screen_mobile_layout.png" width="220"/> |
-| Login Screen | Tablet | <img src="screen_shot/login_screen_tablet_layout.png" width="320"/> |
-| Login Screen | Desktop | <img src="screen_shot/login_screen_desktop_layout.png" width="500"/> |
-| Dashboard Screen | Mobile | <img src="screen_shot/dashboard_screen_mobile_layout.png" width="220"/> |
-| Dashboard Screen | Tablet | <img src="screen_shot/dashboard_screen_taplet_layout.png" width="320"/> |
-| Dashboard Screen | Desktop | <img src="screen_shot/dashboard_screen_desktop_layout.png" width="500"/> |
+| <img src="screen_shot/dashboard_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/dashboard_screen_tablet_layout.png" width="100%"/> | <img src="screen_shot/dashboard_screen_mobile_layout.png" width="100%"/> |
 
 ---
 
-## 🧱 Project Structure
+### Login Screen
 
-```text
-lib
-├── app_root
-│   └── app_root.dart
-│
-├── core
-│   ├── constants
-│   │   └── app_images.dart
-│   │
-│   ├── layout
-│   │   ├── app_nav_item.dart
-│   │   ├── app_nav_items.dart
-│   │   ├── app_shell.dart
-│   │   ├── app_top_bar.dart
-│   │   ├── desktop_shell.dart
-│   │   ├── mobile_shell.dart
-│   │   └── tablet_shell.dart
-│   │
-│   ├── responsive
-│   │   ├── app_breakpoints.dart
-│   │   └── responsive_layout.dart
-│   │
-│   ├── routes
-│   │   └── routes.dart
-│   │
-│   ├── theme
-│   │   ├── app_colors.dart
-│   │   ├── app_text_styles.dart
-│   │   └── app_theme.dart
-│   │
-│   ├── validators
-│   │   └── app_validators.dart
-│   │
-│   └── widgets
-│       ├── custom_text_form_field.dart
-│       ├── main_button.dart
-│       └── password_text_form_field.dart
-│
-├── features
-│   ├── auth
-│   │   └── presentation
-│   │       ├── cubit
-│   │       │   ├── auth_cubit.dart
-│   │       │   └── auth_state.dart
-│   │       │
-│   │       ├── layouts
-│   │       │   ├── login_desktop_layout.dart
-│   │       │   ├── login_mobile_layout.dart
-│   │       │   └── login_tablet_layout.dart
-│   │       │
-│   │       ├── screens
-│   │       │   └── login_screen.dart
-│   │       │
-│   │       └── widgets
-│   │           └── login_form.dart
-│   │
-│   ├── dashboard
-│   │   └── presentation
-│   │       ├── screens
-│   │       │   └── dashboard_screen.dart
-│   │       │
-│   │       └── widgets
-│   │           ├── dashboard_stat_card.dart
-│   │           ├── quick_action_card.dart
-│   │           └── recent_transactions_card.dart
-│   │
-│   ├── tools
-│   │   └── presentation
-│   │       └── screens
-│   │           └── tools_screen.dart
-│   │
-│   └── workers
-│       └── presentation
-│           └── screens
-│               └── workers_screen.dart
-│
-└── main.dart
-```
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| <img src="screen_shot/login_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/login_screen_tablet_layout.png" width="100%"/> | <img src="screen_shot/login_screen_mobile_layout.png" width="100%"/> |
 
 ---
 
-## 🧩 Main Features Implemented
+### Workers Module
 
-### 1. Login Module
-
-The login module includes:
-
-- Responsive login layouts.
-- Mobile, tablet, and desktop versions.
-- Form validation.
-- Password visibility toggle.
-- Demo login using Cubit state management.
-- Loading state during login.
-- Error message when login credentials are incorrect.
-- Navigation to dashboard after successful login.
-
-Main files:
-
-```text
-lib/features/auth/presentation/screens/login_screen.dart
-lib/features/auth/presentation/widgets/login_form.dart
-lib/features/auth/presentation/cubit/auth_cubit.dart
-lib/features/auth/presentation/cubit/auth_state.dart
-```
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| <img src="screen_shot/workers_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/workers_screen_tablet_layout.png" width="100%"/> | <img src="screen_shot/workers_screen_mobile_layout.png" width="100%"/> |
 
 ---
 
-### 2. Dashboard Module
+### Tools Module
 
-The dashboard currently displays mock data to represent the future system overview.
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| <img src="screen_shot/tools_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/tools_screen_tablet_layout.png" width="100%"/> | <img src="screen_shot/tools_screen_mobile_layout.png" width="100%"/> |
 
-Current dashboard sections:
+---
+
+### Transactions Module
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| <img src="screen_shot/transactions_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/transactions_screen_tablet_layout.png" width="100%"/> | <img src="screen_shot/transactions_screen_mobile_layout.png" width="100%"/> |
+
+---
+
+## App Modules
+
+### 1. Dashboard
+
+The dashboard gives a quick overview of the system.
+
+Current dashboard cards include:
 
 - Total Workers
 - Total Tools
@@ -222,196 +167,255 @@ Current dashboard sections:
 - Recent Transactions
 - Quick Actions
 
-Main files:
-
-```text
-lib/features/dashboard/presentation/screens/dashboard_screen.dart
-lib/features/dashboard/presentation/widgets/dashboard_stat_card.dart
-lib/features/dashboard/presentation/widgets/recent_transactions_card.dart
-lib/features/dashboard/presentation/widgets/quick_action_card.dart
-```
+The current data is mock/static data for development purposes.
 
 ---
 
-### 3. App Shell
+### 2. Workers
 
-The app shell controls the main layout after login.
+The Workers module is designed to manage worker records.
 
-It automatically switches between:
+Current UI includes:
 
-- `MobileShell`
-- `TabletShell`
-- `DesktopShell`
-
-Main files:
-
-```text
-lib/core/layout/app_shell.dart
-lib/core/layout/mobile_shell.dart
-lib/core/layout/tablet_shell.dart
-lib/core/layout/desktop_shell.dart
-```
+- Worker list
+- Search field
+- Worker name
+- HR code
+- Department
+- Job title
+- Active custody count
+- Add worker button
+- Edit and delete actions
 
 ---
 
-### 4. Core Design System
+### 3. Tools
 
-The project includes a simple core design system to keep the UI consistent.
+The Tools module is designed to manage tools and inventory-related items.
 
-Included core files:
+Current UI includes:
 
-```text
-lib/core/theme/app_colors.dart
-lib/core/theme/app_text_styles.dart
-lib/core/theme/app_theme.dart
-```
-
-The design system currently includes:
-
-- App colors
-- Text styles
-- Light theme
-- Shared button widget
-- Shared text field widget
-- Shared password field widget
+- Tool list
+- Search field
+- Tool code
+- Tool name
+- Unit
+- Category
+- Active custody count
+- Add tool button
+- Edit and delete actions
 
 ---
 
-## 🛠️ Technologies & Packages Used
+### 4. Transactions
 
-The current code uses:
+The Transactions module is designed to manage tool custody movements.
+
+Current UI includes:
+
+- Transaction list
+- Search field
+- Transaction type filter
+- Tabs for:
+  - Transactions
+  - Custody Balance
+  - Tool Summary
+- Transaction types:
+  - Issue
+  - Return
+  - Lost
+  - Damaged
+
+---
+
+### 5. Lookups
+
+The Lookups module is planned to manage reusable system data such as:
+
+- Departments
+- Job titles
+- Tool units
+- Tool categories
+
+This helps keep the system flexible and easier to maintain as the company structure changes.
+
+---
+
+## Technology Stack
+
+The project is currently built using:
 
 - Flutter
-- Material 3
-- GoRouter
+- Dart
 - Flutter Bloc / Cubit
+- GoRouter
 - Device Preview
 - Gap package
+- Material Design
 
-References:
+Useful references:
 
-- Flutter Documentation: <https://docs.flutter.dev/>
-- Material 3 in Flutter: <https://docs.flutter.dev/ui/design/material>
-- GoRouter Package: <https://pub.dev/packages/go_router>
-- Flutter Bloc Package: <https://pub.dev/packages/flutter_bloc>
-- Device Preview Package: <https://pub.dev/packages/device_preview>
-- Gap Package: <https://pub.dev/packages/gap>
-
----
-
-## 🚧 What Is Still Under Development
-
-The project is still in an early development stage.
-
-The following parts are not fully implemented yet:
-
-- Real database integration.
-- Real authentication.
-- Workers management module.
-- Tools management module.
-- Issue and return tool transactions.
-- Reports generation.
-- Image capture for issue/return transactions.
-- Inventory balance calculations.
-- User roles and permissions.
-- Search and filtering.
-- Exporting reports.
-- Production-ready error handling.
-- Persistent login/session handling.
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Dart Documentation](https://dart.dev/guides)
+- [Flutter Bloc Package](https://pub.dev/packages/flutter_bloc)
+- [GoRouter Package](https://pub.dev/packages/go_router)
+- [Device Preview Package](https://pub.dev/packages/device_preview)
+- [Gap Package](https://pub.dev/packages/gap)
 
 ---
 
-## 📍 Current App Flow
+## Current Project Structure
 
 ```text
-main.dart
-   ↓
-MinaSystem
-   ↓
-MaterialApp.router
-   ↓
-LoginScreen
-   ↓
-AuthCubit demo login
-   ↓
-AppShell
-   ↓
-Dashboard / Workers / Tools
+lib
+├── app_root
+│   └── app_root.dart
+│
+├── core
+│   ├── constants
+│   ├── layout
+│   ├── responsive
+│   ├── routes
+│   ├── theme
+│   ├── validators
+│   └── widgets
+│
+├── features
+│   ├── auth
+│   │   └── presentation
+│   │       ├── cubit
+│   │       ├── layouts
+│   │       ├── screens
+│   │       └── widgets
+│   │
+│   ├── dashboard
+│   │   └── presentation
+│   │       ├── screens
+│   │       └── widgets
+│   │
+│   ├── workers
+│   │   ├── data
+│   │   │   └── models
+│   │   └── presentation
+│   │       ├── cubit
+│   │       ├── screens
+│   │       └── widgets
+│   │
+│   ├── tools
+│   │   ├── data
+│   │   │   └── models
+│   │   └── presentation
+│   │       ├── cubit
+│   │       ├── screens
+│   │       └── widgets
+│   │
+│   ├── transactions
+│   │   ├── data
+│   │   │   └── models
+│   │   └── presentation
+│   │       ├── cubit
+│   │       ├── screens
+│   │       └── widgets
+│   │
+│   └── lookups
+│       └── presentation
+│           ├── cubit
+│           ├── screens
+│           └── widgets
+│
+└── main.dart
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### 1. Install dependencies
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/KingNarmar/mina_system.git
+```
+
+### 2. Navigate to the project folder
+
+```bash
+cd mina_system
+```
+
+### 3. Install dependencies
 
 ```bash
 flutter pub get
 ```
 
-### 2. Run the app
+### 4. Run the project
 
 ```bash
 flutter run
 ```
 
-### 3. Run on desktop
+---
 
-```bash
-flutter run -d windows
-```
+## Run on Different Platforms
 
-### 4. Run on web
+### Run on Chrome
 
 ```bash
 flutter run -d chrome
 ```
 
----
+### Run on Windows
 
-## 📂 Assets Used
-
-The project currently depends on these image assets:
-
-```text
-assets/images/Logo.png
-assets/images/login_pic.png
+```bash
+flutter run -d windows
 ```
 
-Make sure these assets are correctly added in `pubspec.yaml`.
+### Run on Android Emulator
+
+```bash
+flutter run
+```
 
 ---
 
-## 📝 Notes
+## Development Notes
 
-- The current dashboard data is static mock data.
-- The Workers screen is currently a placeholder.
-- The Tools screen is currently a placeholder.
-- The current login system is for demo/testing only.
-- The project structure is already prepared to grow into a complete warehouse custody and inventory management system.
-- The app is designed to be responsive from the beginning, which makes it suitable for future use on warehouse tablets, desktop devices, and mobile devices.
-
----
-
-## 📌 Next Planned Steps
-
-The next development stages can include:
-
-- Building the Workers module.
-- Building the Tools module.
-- Creating the Transactions module.
-- Connecting the app to a local or cloud database.
-- Adding real CRUD operations.
-- Adding issue and return workflows.
-- Adding custody balance calculations.
-- Adding reports and PDF export.
-- Adding user login persistence.
-- Adding role-based access control.
+- The project is still under development.
+- Current data is mainly static/mock data for UI and logic testing.
+- The current focus is building the responsive UI foundation and core modules.
+- The next major step is connecting the system to a real online backend/database.
+- The final vision is to make the system suitable for real companies with multiple users and different permissions.
 
 ---
 
-## 👨‍💻 Project Name Meaning
+## Project Vision
+
+M.I.N.A System is being built to become more than a simple tracking app.
+
+The long-term vision is to create a practical warehouse custody and inventory management platform that can support:
+
+- Real company operations
+- Different departments
+- Different users
+- Different permission levels
+- Online access
+- Accurate custody tracking
+- Better accountability
+
+---
+
+## About the Project Name
 
 **M.I.N.A** = **Materials Inventory Navigation Assistant**
 
-The name reflects the purpose of the application: helping warehouse teams navigate, control, and manage inventory and custody operations in a structured and reliable way.
+The name reflects the purpose of the system:
+
+To help warehouse teams navigate, control, and manage inventory and custody operations in a structured and professional way.
+
+---
+
+## Author
+
+Developed by **Mina Adly**
+
+Warehouse Manager and Flutter developer building practical software solutions based on real warehouse and inventory management experience.
