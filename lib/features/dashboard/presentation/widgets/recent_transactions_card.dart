@@ -89,7 +89,7 @@ class _RecentTransactionItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$typeLabel • ${transaction.toolName} • ${transaction.quantity} ${transaction.unit}',
+                  '$typeLabel • ${transaction.toolName} • ${transaction.quantity} ${transaction.unit}${_getProofSuffix()}',
                   style: AppTextStyles.caption,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -106,5 +106,28 @@ class _RecentTransactionItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getProofSuffix() {
+    final hasImage =
+        transaction.imagePath != null &&
+        transaction.imagePath!.trim().isNotEmpty;
+
+    final hasNote =
+        transaction.note != null && transaction.note!.trim().isNotEmpty;
+
+    if (hasImage && hasNote) {
+      return ' • Photo + Note';
+    }
+
+    if (hasImage) {
+      return ' • Photo';
+    }
+
+    if (hasNote) {
+      return ' • Note';
+    }
+
+    return '';
   }
 }

@@ -15,6 +15,7 @@ class TransactionsTableHeader extends StatelessWidget {
           TransactionsTableHeaderCell(title: 'Worker', flex: 3),
           TransactionsTableHeaderCell(title: 'Tool', flex: 3),
           TransactionsTableHeaderCell(title: 'Qty', flex: 1),
+          TransactionsTableHeaderCell(title: 'Proof', flex: 1),
           TransactionsTableHeaderCell(title: 'Date', flex: 2),
         ],
       ),

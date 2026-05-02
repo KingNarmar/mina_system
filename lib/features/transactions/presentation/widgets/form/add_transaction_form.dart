@@ -12,6 +12,7 @@ import 'package:mina_system/features/transactions/presentation/cubit/transaction
 import 'package:mina_system/features/transactions/presentation/functions/transaction_form_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_form_validators.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
+import 'package:mina_system/features/transactions/presentation/widgets/form/transaction_image_picker_field.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
@@ -27,14 +28,25 @@ class AddTransactionForm extends StatefulWidget {
 class _AddTransactionFormState extends State<AddTransactionForm> {
   final _formKey = GlobalKey<FormState>();
   final _quantityController = TextEditingController();
+  final _noteController = TextEditingController();
 
   String? _selectedType;
   WorkerModel? _selectedWorker;
   ToolModel? _selectedTool;
+  String? _selectedImagePath;
+
+  bool get _isIssueSelected {
+    if (_selectedType == null) {
+      return false;
+    }
+
+    return getTransactionTypeFromLabel(_selectedType!) == TransactionType.issue;
+  }
 
   @override
   void dispose() {
     _quantityController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -126,6 +138,21 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   );
                 },
               ),
+              const SizedBox(height: 12),
+              TransactionImagePickerField(
+                imagePath: _selectedImagePath,
+                isRequired: _isIssueSelected,
+                onImageSelected: (imagePath) {
+                  setState(() {
+                    _selectedImagePath = imagePath;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              CustomTextFormField(
+                hint: 'Note (optional)',
+                controller: _noteController,
+              ),
               const SizedBox(height: 20),
               MainButton(text: 'Save Transaction', onPressed: _onSavePressed),
             ],
@@ -167,6 +194,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final selectedWorker = _selectedWorker!;
     final selectedTool = _selectedTool!;
 
+    final cleanNote = _noteController.text.trim();
+
     final transaction = TransactionModel(
       transactionCode: context
           .read<TransactionsCubit>()
@@ -179,6 +208,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       unit: selectedTool.unit,
       quantity: double.parse(_quantityController.text.trim()),
       dateTime: DateTime.now(),
+      imagePath: _selectedImagePath,
+      note: cleanNote.isEmpty ? null : cleanNote,
     );
 
     widget.onSave(transaction);

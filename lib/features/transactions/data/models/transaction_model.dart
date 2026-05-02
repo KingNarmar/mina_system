@@ -11,6 +11,8 @@ class TransactionModel {
     required this.unit,
     required this.quantity,
     required this.dateTime,
+    this.imagePath,
+    this.note,
   });
 
   final String transactionCode;
@@ -22,6 +24,8 @@ class TransactionModel {
   final String unit;
   final double quantity;
   final DateTime dateTime;
+  final String? imagePath;
+  final String? note;
 
   bool get isIssue => type == TransactionType.issue;
   bool get isReturn => type == TransactionType.returnTool;
@@ -40,6 +44,8 @@ class TransactionModel {
     String? unit,
     double? quantity,
     DateTime? dateTime,
+    String? imagePath,
+    String? note,
   }) {
     return TransactionModel(
       transactionCode: transactionCode ?? this.transactionCode,
@@ -51,6 +57,8 @@ class TransactionModel {
       unit: unit ?? this.unit,
       quantity: quantity ?? this.quantity,
       dateTime: dateTime ?? this.dateTime,
+      imagePath: imagePath ?? this.imagePath,
+      note: note ?? this.note,
     );
   }
 }
