@@ -57,6 +57,34 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     return '$prefix${nextNumber.toString().padLeft(3, '0')}';
   }
 
+  double getWorkerToolBalance({
+    required String workerHrCode,
+    required String toolCode,
+  }) {
+    var balance = 0.0;
+
+    for (final transaction in state.transactions) {
+      final isSameWorker =
+          _normalizeText(transaction.workerHrCode) ==
+          _normalizeText(workerHrCode);
+
+      final isSameTool =
+          _normalizeText(transaction.toolCode) == _normalizeText(toolCode);
+
+      if (!isSameWorker || !isSameTool) {
+        continue;
+      }
+
+      if (transaction.isIssue) {
+        balance += transaction.quantity;
+      } else {
+        balance -= transaction.quantity;
+      }
+    }
+
+    return balance < 0 ? 0 : balance;
+  }
+
   int getReturnedTodayCount() {
     final now = DateTime.now();
 

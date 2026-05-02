@@ -118,7 +118,12 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 hint: 'Quantity',
                 controller: _quantityController,
                 keyboardType: TextInputType.number,
-                validator: validateTransactionQuantity,
+                validator: (value) {
+                  return validateTransactionQuantity(
+                    value,
+                    maxReturnQuantity: _getMaxReturnQuantity(context),
+                  );
+                },
               ),
               const SizedBox(height: 20),
               MainButton(text: 'Save Transaction', onPressed: _onSavePressed),
@@ -126,6 +131,24 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
           ),
         ),
       ),
+    );
+  }
+
+  double? _getMaxReturnQuantity(BuildContext context) {
+    if (_selectedType != 'Return') {
+      return null;
+    }
+
+    final selectedWorker = _selectedWorker;
+    final selectedTool = _selectedTool;
+
+    if (selectedWorker == null || selectedTool == null) {
+      return null;
+    }
+
+    return context.read<TransactionsCubit>().getWorkerToolBalance(
+      workerHrCode: selectedWorker.hrCode,
+      toolCode: selectedTool.toolCode,
     );
   }
 

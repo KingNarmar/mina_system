@@ -22,7 +22,10 @@ String? validateRequiredTransactionSelection<T>(T? value) {
   return null;
 }
 
-String? validateTransactionQuantity(String? value) {
+String? validateTransactionQuantity(
+  String? value, {
+  double? maxReturnQuantity,
+}) {
   if (value == null || value.trim().isEmpty) {
     return 'This field is required';
   }
@@ -35,6 +38,14 @@ String? validateTransactionQuantity(String? value) {
 
   if (quantity <= 0) {
     return 'Quantity must be greater than zero';
+  }
+
+  if (maxReturnQuantity != null && maxReturnQuantity <= 0) {
+    return 'This worker does not have this tool in custody';
+  }
+
+  if (maxReturnQuantity != null && quantity > maxReturnQuantity) {
+    return 'Return quantity cannot exceed current balance';
   }
 
   return null;

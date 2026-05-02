@@ -4,6 +4,7 @@ import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/dashboard_stat_card.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
 class DashboardStatsGrid extends StatelessWidget {
@@ -20,6 +21,7 @@ class DashboardStatsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final workers = context.watch<WorkersCubit>().state.workers;
     final tools = context.watch<ToolsCubit>().state.tools;
+    final transactionsCubit = context.watch<TransactionsCubit>();
 
     final totalWorkers = workers.length;
     final totalTools = tools.length;
@@ -30,6 +32,8 @@ class DashboardStatsGrid extends StatelessWidget {
           (total, worker) => total + worker.activeCustodyCount,
         ) +
         tools.fold<int>(0, (total, tool) => total + tool.activeCustodyCount);
+
+    final returnedToday = transactionsCubit.getReturnedTodayCount();
 
     return GridView.count(
       crossAxisCount: crossAxisCount,
@@ -57,9 +61,9 @@ class DashboardStatsGrid extends StatelessWidget {
           icon: Icons.assignment_outlined,
           iconColor: AppColors.error,
         ),
-        const DashboardStatCard(
+        DashboardStatCard(
           title: 'Returned Today',
-          value: '--',
+          value: returnedToday.toString(),
           icon: Icons.check_circle_outline,
           iconColor: AppColors.accent,
         ),
