@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 
@@ -9,6 +10,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
           transactions: [],
           filteredTransactions: [],
           searchQuery: '',
+          custodyBalanceSearchQuery: '',
         ),
       );
 
@@ -24,6 +26,33 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         filteredTransactions: filteredTransactions,
       ),
     );
+  }
+
+  void searchCustodyBalances(String query) {
+    emit(state.copyWith(custodyBalanceSearchQuery: query));
+  }
+
+  List<CustodyBalanceModel> getFilteredCustodyBalances() {
+    final balances = getCustodyBalances();
+    final searchQuery = _normalizeText(state.custodyBalanceSearchQuery);
+
+    if (searchQuery.isEmpty) {
+      return balances;
+    }
+
+    return balances.where((balance) {
+      final workerHrCode = _normalizeText(balance.workerHrCode);
+      final workerName = _normalizeText(balance.workerName);
+      final toolCode = _normalizeText(balance.toolCode);
+      final toolName = _normalizeText(balance.toolName);
+      final unit = _normalizeText(balance.unit);
+
+      return workerHrCode.contains(searchQuery) ||
+          workerName.contains(searchQuery) ||
+          toolCode.contains(searchQuery) ||
+          toolName.contains(searchQuery) ||
+          unit.contains(searchQuery);
+    }).toList();
   }
 
   void addTransaction(TransactionModel transaction) {
@@ -83,6 +112,51 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     }
 
     return balance < 0 ? 0 : balance;
+  }
+
+  List<CustodyBalanceModel> getCustodyBalances() {
+    final balancesMap = <String, CustodyBalanceModel>{};
+
+    for (final transaction in state.transactions) {
+      final key = '${transaction.workerHrCode}_${transaction.toolCode}';
+
+      final currentBalance = balancesMap[key];
+
+      final quantityChange = transaction.isIssue
+          ? transaction.quantity
+          : -transaction.quantity;
+
+      if (currentBalance == null) {
+        balancesMap[key] = CustodyBalanceModel(
+          workerHrCode: transaction.workerHrCode,
+          workerName: transaction.workerName,
+          toolCode: transaction.toolCode,
+          toolName: transaction.toolName,
+          unit: transaction.unit,
+          balanceQuantity: quantityChange,
+        );
+        continue;
+      }
+
+      balancesMap[key] = CustodyBalanceModel(
+        workerHrCode: currentBalance.workerHrCode,
+        workerName: currentBalance.workerName,
+        toolCode: currentBalance.toolCode,
+        toolName: currentBalance.toolName,
+        unit: currentBalance.unit,
+        balanceQuantity: currentBalance.balanceQuantity + quantityChange,
+      );
+    }
+
+    final balances = balancesMap.values.where((balance) {
+      return balance.balanceQuantity > 0;
+    }).toList();
+
+    balances.sort((first, second) {
+      return first.workerName.compareTo(second.workerName);
+    });
+
+    return balances;
   }
 
   int getReturnedTodayCount() {
