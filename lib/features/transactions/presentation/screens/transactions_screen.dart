@@ -8,6 +8,8 @@ import 'package:mina_system/features/transactions/presentation/widgets/custody_b
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/layouts/custody_balance_mobile_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/layouts/transactions_desktop_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/layouts/transactions_mobile_layout.dart';
+import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/layouts/tool_custody_summary_desktop_layout.dart';
+import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/layouts/tool_custody_summary_mobile_layout.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({super.key});
@@ -26,17 +28,20 @@ class _TransactionsView extends StatelessWidget {
     return BlocBuilder<TransactionsCubit, TransactionsState>(
       builder: (context, state) {
         final transactions = state.filteredTransactions;
-        final selectedFilter = state.typeFilter;
-        final custodyBalances = context
-            .read<TransactionsCubit>()
-            .getFilteredCustodyBalances();
+
+        final transactionsCubit = context.read<TransactionsCubit>();
+
+        final custodyBalances = transactionsCubit.getFilteredCustodyBalances();
+
+        final toolSummaries = transactionsCubit
+            .getFilteredToolCustodySummaries();
 
         return LayoutBuilder(
           builder: (context, constraints) {
             final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
             return DefaultTabController(
-              length: 2,
+              length: 3,
               child: Scaffold(
                 backgroundColor: AppColors.background,
                 body: Column(
@@ -44,12 +49,15 @@ class _TransactionsView extends StatelessWidget {
                     Container(
                       color: AppColors.card,
                       child: const TabBar(
+                        isScrollable: true,
+                        tabAlignment: TabAlignment.start,
                         labelColor: AppColors.accent,
                         unselectedLabelColor: AppColors.textSecondary,
                         indicatorColor: AppColors.accent,
                         tabs: [
                           Tab(text: 'Transactions'),
                           Tab(text: 'Custody Balance'),
+                          Tab(text: 'Tool Summary'),
                         ],
                       ),
                     ),
@@ -59,12 +67,12 @@ class _TransactionsView extends StatelessWidget {
                           if (isMobile)
                             TransactionsMobileLayout(
                               transactions: transactions,
-                              selectedFilter: selectedFilter,
+                              selectedFilter: state.typeFilter,
                             )
                           else
                             TransactionsDesktopLayout(
                               transactions: transactions,
-                              selectedFilter: selectedFilter,
+                              selectedFilter: state.typeFilter,
                             ),
                           if (isMobile)
                             CustodyBalanceMobileLayout(
@@ -73,6 +81,14 @@ class _TransactionsView extends StatelessWidget {
                           else
                             CustodyBalanceDesktopLayout(
                               balances: custodyBalances,
+                            ),
+                          if (isMobile)
+                            ToolCustodySummaryMobileLayout(
+                              summaries: toolSummaries,
+                            )
+                          else
+                            ToolCustodySummaryDesktopLayout(
+                              summaries: toolSummaries,
                             ),
                         ],
                       ),

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
+import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 
@@ -11,6 +12,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
           filteredTransactions: [],
           searchQuery: '',
           custodyBalanceSearchQuery: '',
+          toolSummarySearchQuery: '',
           typeFilter: TransactionTypeFilter.all,
         ),
       );
@@ -67,6 +69,29 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       return workerHrCode.contains(searchQuery) ||
           workerName.contains(searchQuery) ||
           toolCode.contains(searchQuery) ||
+          toolName.contains(searchQuery) ||
+          unit.contains(searchQuery);
+    }).toList();
+  }
+
+  void searchToolSummaries(String query) {
+    emit(state.copyWith(toolSummarySearchQuery: query));
+  }
+
+  List<ToolCustodySummaryModel> getFilteredToolCustodySummaries() {
+    final summaries = getToolCustodySummaries();
+    final searchQuery = _normalizeText(state.toolSummarySearchQuery);
+
+    if (searchQuery.isEmpty) {
+      return summaries;
+    }
+
+    return summaries.where((summary) {
+      final toolCode = _normalizeText(summary.toolCode);
+      final toolName = _normalizeText(summary.toolName);
+      final unit = _normalizeText(summary.unit);
+
+      return toolCode.contains(searchQuery) ||
           toolName.contains(searchQuery) ||
           unit.contains(searchQuery);
     }).toList();
@@ -174,6 +199,62 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     });
 
     return balances;
+  }
+
+  List<ToolCustodySummaryModel> getToolCustodySummaries() {
+    final summariesMap = <String, ToolCustodySummaryModel>{};
+
+    for (final transaction in state.transactions) {
+      final key = transaction.toolCode;
+      final currentSummary = summariesMap[key];
+
+      final summary =
+          currentSummary ??
+          ToolCustodySummaryModel(
+            toolCode: transaction.toolCode,
+            toolName: transaction.toolName,
+            unit: transaction.unit,
+            issuedQuantity: 0,
+            returnedQuantity: 0,
+            lostQuantity: 0,
+            damagedQuantity: 0,
+            openCustodyQuantity: 0,
+            totalMovements: 0,
+          );
+
+      summariesMap[key] = summary.copyWith(
+        issuedQuantity: transaction.isIssue
+            ? summary.issuedQuantity + transaction.quantity
+            : summary.issuedQuantity,
+        returnedQuantity: transaction.isReturn
+            ? summary.returnedQuantity + transaction.quantity
+            : summary.returnedQuantity,
+        lostQuantity: transaction.isLost
+            ? summary.lostQuantity + transaction.quantity
+            : summary.lostQuantity,
+        damagedQuantity: transaction.isDamaged
+            ? summary.damagedQuantity + transaction.quantity
+            : summary.damagedQuantity,
+        openCustodyQuantity: transaction.isIssue
+            ? summary.openCustodyQuantity + transaction.quantity
+            : summary.openCustodyQuantity - transaction.quantity,
+        totalMovements: summary.totalMovements + 1,
+      );
+    }
+
+    final summaries = summariesMap.values.map((summary) {
+      return summary.copyWith(
+        openCustodyQuantity: summary.openCustodyQuantity < 0
+            ? 0
+            : summary.openCustodyQuantity,
+      );
+    }).toList();
+
+    summaries.sort((first, second) {
+      return first.toolName.compareTo(second.toolName);
+    });
+
+    return summaries;
   }
 
   int getClosedTodayCount() {

@@ -14,6 +14,7 @@ class TransactionsState {
     required this.filteredTransactions,
     required this.searchQuery,
     required this.custodyBalanceSearchQuery,
+    required this.toolSummarySearchQuery,
     required this.typeFilter,
   });
 
@@ -21,6 +22,7 @@ class TransactionsState {
   final List<TransactionModel> filteredTransactions;
   final String searchQuery;
   final String custodyBalanceSearchQuery;
+  final String toolSummarySearchQuery;
   final TransactionTypeFilter typeFilter;
 
   TransactionsState copyWith({
@@ -28,6 +30,7 @@ class TransactionsState {
     List<TransactionModel>? filteredTransactions,
     String? searchQuery,
     String? custodyBalanceSearchQuery,
+    String? toolSummarySearchQuery,
     TransactionTypeFilter? typeFilter,
   }) {
     return TransactionsState(
@@ -36,6 +39,8 @@ class TransactionsState {
       searchQuery: searchQuery ?? this.searchQuery,
       custodyBalanceSearchQuery:
           custodyBalanceSearchQuery ?? this.custodyBalanceSearchQuery,
+      toolSummarySearchQuery:
+          toolSummarySearchQuery ?? this.toolSummarySearchQuery,
       typeFilter: typeFilter ?? this.typeFilter,
     );
   }
