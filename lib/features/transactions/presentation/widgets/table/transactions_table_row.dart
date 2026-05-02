@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/table/transactions_table_cell.dart';
+import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 
 class TransactionsTableRow extends StatelessWidget {
   const TransactionsTableRow({super.key, required this.transaction});
@@ -12,8 +13,8 @@ class TransactionsTableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = transaction.isIssue ? 'Issue' : 'Return';
-    final typeColor = transaction.isIssue ? AppColors.error : AppColors.accent;
+  final typeLabel = getTransactionTypeLabel(transaction.type);
+final typeColor = getTransactionTypeColor(transaction.type);
 
     return Column(
       children: [

@@ -4,6 +4,8 @@ enum TransactionTypeFilter {
   all,
   issue,
   returnTool,
+  lost,
+  damaged,
 }
 
 class TransactionsState {

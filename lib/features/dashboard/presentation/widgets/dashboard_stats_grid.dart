@@ -33,7 +33,7 @@ class DashboardStatsGrid extends StatelessWidget {
         ) +
         tools.fold<int>(0, (total, tool) => total + tool.activeCustodyCount);
 
-    final returnedToday = transactionsCubit.getReturnedTodayCount();
+    final closedToday = transactionsCubit.getClosedTodayCount();
 
     return GridView.count(
       crossAxisCount: crossAxisCount,
@@ -62,8 +62,8 @@ class DashboardStatsGrid extends StatelessWidget {
           iconColor: AppColors.error,
         ),
         DashboardStatCard(
-          title: 'Returned Today',
-          value: returnedToday.toString(),
+          title: 'Closed Today',
+          value: closedToday.toString(),
           icon: Icons.check_circle_outline,
           iconColor: AppColors.accent,
         ),

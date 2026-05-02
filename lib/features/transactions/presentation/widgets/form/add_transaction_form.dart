@@ -11,6 +11,7 @@ import 'package:mina_system/features/transactions/data/models/transaction_model.
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_form_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_form_validators.dart';
+import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
@@ -61,7 +62,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               CustomDropdownFormField(
                 hint: 'Transaction Type',
                 value: _selectedType,
-                items: const ['Issue', 'Return'],
+                items: transactionTypeLabels,
                 validator: validateRequiredTransactionDropdown,
                 onChanged: (value) {
                   setState(() {
@@ -135,7 +136,13 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   }
 
   double? _getMaxReturnQuantity(BuildContext context) {
-    if (_selectedType != 'Return') {
+    if (_selectedType == null) {
+      return null;
+    }
+
+    final selectedTransactionType = getTransactionTypeFromLabel(_selectedType!);
+
+    if (!isClosingTransactionType(selectedTransactionType)) {
       return null;
     }
 
@@ -164,9 +171,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       transactionCode: context
           .read<TransactionsCubit>()
           .generateNextTransactionCode(),
-      type: _selectedType == 'Issue'
-          ? TransactionType.issue
-          : TransactionType.returnTool,
+      type: getTransactionTypeFromLabel(_selectedType!),
       workerHrCode: selectedWorker.hrCode,
       workerName: selectedWorker.name,
       toolCode: selectedTool.toolCode,

@@ -1,7 +1,4 @@
-enum TransactionType {
-  issue,
-  returnTool,
-}
+enum TransactionType { issue, returnTool, lost, damaged }
 
 class TransactionModel {
   const TransactionModel({
@@ -28,6 +25,10 @@ class TransactionModel {
 
   bool get isIssue => type == TransactionType.issue;
   bool get isReturn => type == TransactionType.returnTool;
+  bool get isLost => type == TransactionType.lost;
+  bool get isDamaged => type == TransactionType.damaged;
+
+  bool get isClosingTransaction => !isIssue;
 
   TransactionModel copyWith({
     String? transactionCode,

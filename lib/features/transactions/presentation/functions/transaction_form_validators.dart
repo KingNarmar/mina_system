@@ -45,7 +45,7 @@ String? validateTransactionQuantity(
   }
 
   if (maxReturnQuantity != null && quantity > maxReturnQuantity) {
-    return 'Return quantity cannot exceed current balance';
+    return 'Quantity cannot exceed current balance';
   }
 
   return null;

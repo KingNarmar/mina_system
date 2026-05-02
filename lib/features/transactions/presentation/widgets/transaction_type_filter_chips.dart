@@ -48,6 +48,10 @@ class TransactionTypeFilterChips extends StatelessWidget {
         return 'Issue';
       case TransactionTypeFilter.returnTool:
         return 'Return';
+      case TransactionTypeFilter.lost:
+        return 'Lost';
+      case TransactionTypeFilter.damaged:
+        return 'Damaged';
     }
   }
 }

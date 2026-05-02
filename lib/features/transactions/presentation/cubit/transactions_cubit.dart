@@ -123,7 +123,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
 
       if (transaction.isIssue) {
         balance += transaction.quantity;
-      } else {
+      } else if (transaction.isClosingTransaction) {
         balance -= transaction.quantity;
       }
     }
@@ -176,7 +176,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     return balances;
   }
 
-  int getReturnedTodayCount() {
+  int getClosedTodayCount() {
     final now = DateTime.now();
 
     return state.transactions.where((transaction) {
@@ -184,7 +184,10 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       final isSameMonth = transaction.dateTime.month == now.month;
       final isSameDay = transaction.dateTime.day == now.day;
 
-      return transaction.isReturn && isSameYear && isSameMonth && isSameDay;
+      return transaction.isClosingTransaction &&
+          isSameYear &&
+          isSameMonth &&
+          isSameDay;
     }).length;
   }
 
@@ -225,7 +228,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       final toolCode = _normalizeText(transaction.toolCode);
       final toolName = _normalizeText(transaction.toolName);
       final unit = _normalizeText(transaction.unit);
-      final type = transaction.isIssue ? 'issue' : 'return';
+      final type = _getTransactionTypeLabel(transaction);
 
       return transactionCode.contains(searchQuery) ||
           workerHrCode.contains(searchQuery) ||
@@ -248,7 +251,31 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         return transaction.isIssue;
       case TransactionTypeFilter.returnTool:
         return transaction.isReturn;
+      case TransactionTypeFilter.lost:
+        return transaction.isLost;
+      case TransactionTypeFilter.damaged:
+        return transaction.isDamaged;
     }
+  }
+
+  String _getTransactionTypeLabel(TransactionModel transaction) {
+    if (transaction.isIssue) {
+      return 'issue';
+    }
+
+    if (transaction.isReturn) {
+      return 'return';
+    }
+
+    if (transaction.isLost) {
+      return 'lost';
+    }
+
+    if (transaction.isDamaged) {
+      return 'damaged';
+    }
+
+    return '';
   }
 
   String _normalizeText(String value) {
