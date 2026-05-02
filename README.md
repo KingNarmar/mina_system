@@ -116,7 +116,7 @@ The goal is to make the system usable by different users in different environmen
 
 | Desktop | Tablet | Mobile |
 |---|---|---|
-| <img src="screen_shot/dashboard_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/dashboard_screen_tablet_layout.png" width="100%"/> | <img src="screen_shot/dashboard_screen_mobile_layout.png" width="100%"/> |
+| <img src="screen_shot/dashboard_screen_desktop_layout.png" width="100%"/> | <img src="screen_shot/dashboard_screen_taplet_layout.png" width="100%"/> | <img src="screen_shot/dashboard_screen_mobile_layout.png" width="100%"/> |
 
 ---
 
