@@ -156,6 +156,22 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     return balance < 0 ? 0 : balance;
   }
 
+  bool hasWorkerTransactions(String workerHrCode) {
+    final normalizedWorkerHrCode = _normalizeText(workerHrCode);
+
+    return state.transactions.any((transaction) {
+      return _normalizeText(transaction.workerHrCode) == normalizedWorkerHrCode;
+    });
+  }
+
+  bool hasToolTransactions(String toolCode) {
+    final normalizedToolCode = _normalizeText(toolCode);
+
+    return state.transactions.any((transaction) {
+      return _normalizeText(transaction.toolCode) == normalizedToolCode;
+    });
+  }
+
   List<CustodyBalanceModel> getCustodyBalances() {
     final balancesMap = <String, CustodyBalanceModel>{};
 
