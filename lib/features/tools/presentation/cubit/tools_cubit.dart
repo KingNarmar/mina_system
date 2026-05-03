@@ -12,36 +12,7 @@ class ToolsCubit extends Cubit<ToolsState> {
         ),
       );
 
-  static const List<ToolModel> _initialTools = [
-    ToolModel(
-      toolCode: 'TOOL-001',
-      toolName: 'Grinding Machine',
-      unit: 'Each',
-      category: 'Power Tools',
-      activeCustodyCount: 3,
-    ),
-    ToolModel(
-      toolCode: 'TOOL-002',
-      toolName: 'Welding Holder',
-      unit: 'Each',
-      category: 'Welding Tools',
-      activeCustodyCount: 5,
-    ),
-    ToolModel(
-      toolCode: 'TOOL-003',
-      toolName: 'Cutting Disc',
-      unit: 'Each',
-      category: 'Consumables',
-      activeCustodyCount: 12,
-    ),
-    ToolModel(
-      toolCode: 'TOOL-004',
-      toolName: 'Measuring Tape',
-      unit: 'MTR',
-      category: 'Measuring Tools',
-      activeCustodyCount: 2,
-    ),
-  ];
+  static const List<ToolModel> _initialTools = [];
 
   void searchTools(String query) {
     final filteredTools = _filterTools(tools: state.tools, query: query);

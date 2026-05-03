@@ -12,36 +12,7 @@ class WorkersCubit extends Cubit<WorkersState> {
         ),
       );
 
-  static const List<WorkerModel> _initialWorkers = [
-    WorkerModel(
-      name: 'Ahmed Ali',
-      hrCode: 'HR-001',
-      department: 'Warehouse',
-      jobTitle: 'Storekeeper',
-      activeCustodyCount: 6,
-    ),
-    WorkerModel(
-      name: 'Mohamed Samir',
-      hrCode: 'HR-002',
-      department: 'Fabrication',
-      jobTitle: 'Welder',
-      activeCustodyCount: 3,
-    ),
-    WorkerModel(
-      name: 'Khaled Hassan',
-      hrCode: 'HR-003',
-      department: 'Mechanical',
-      jobTitle: 'Mechanic',
-      activeCustodyCount: 4,
-    ),
-    WorkerModel(
-      name: 'Sayed Mahmoud',
-      hrCode: 'HR-004',
-      department: 'Electrical',
-      jobTitle: 'Electrician',
-      activeCustodyCount: 2,
-    ),
-  ];
+  static const List<WorkerModel> _initialWorkers = [];
 
   void searchWorkers(String query) {
     final filteredWorkers = _filterWorkers(
