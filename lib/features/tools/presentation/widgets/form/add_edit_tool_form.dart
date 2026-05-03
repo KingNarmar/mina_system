@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
@@ -8,7 +9,6 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.da
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_form_validators.dart';
-import 'package:gap/gap.dart';
 
 class AddEditToolForm extends StatefulWidget {
   const AddEditToolForm({
@@ -160,9 +160,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
       toolName: _toolNameController.text.trim(),
       unit: _selectedUnit!.trim(),
       category: _selectedCategory!.trim(),
-      activeCustodyCount: widget.initialTool?.activeCustodyCount ?? 0,
     );
-
     widget.onSave(tool);
     Navigator.pop(context);
   }

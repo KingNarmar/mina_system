@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_info_row.dart';
-import 'package:gap/gap.dart';
 
 class WorkerCard extends StatelessWidget {
   const WorkerCard({
@@ -68,10 +68,6 @@ class WorkerCard extends StatelessWidget {
             WorkerInfoRow(label: 'HR Code', value: worker.hrCode),
             WorkerInfoRow(label: 'Department', value: worker.department),
             WorkerInfoRow(label: 'Job Title', value: worker.jobTitle),
-            WorkerInfoRow(
-              label: 'Active Custody',
-              value: worker.activeCustodyCount.toString(),
-            ),
           ],
         ),
       ),

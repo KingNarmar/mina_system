@@ -14,7 +14,6 @@ class WorkersTableHeader extends StatelessWidget {
           WorkersTableHeaderCell(title: 'HR Code', flex: 2),
           WorkersTableHeaderCell(title: 'Department', flex: 2),
           WorkersTableHeaderCell(title: 'Job Title', flex: 2),
-          WorkersTableHeaderCell(title: 'Active Custody', flex: 2),
           WorkersTableHeaderCell(title: 'Actions', flex: 2),
         ],
       ),

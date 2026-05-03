@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:gap/gap.dart';
 
 class AppTopBar extends StatelessWidget {
   const AppTopBar({super.key, required this.title});
@@ -25,6 +25,8 @@ class AppTopBar extends StatelessWidget {
           const Gap(16),
           const CircleAvatar(
             radius: 18,
+            backgroundColor: AppColors.border,
+            foregroundColor: AppColors.textPrimary,
             child: Icon(Icons.person_outline, size: 20),
           ),
         ],

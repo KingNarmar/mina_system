@@ -113,7 +113,7 @@ class _TransactionProofPreview extends StatelessWidget {
       );
     }
 
-    return const Text('-');
+    return const Text('-', style: AppTextStyles.caption);
   }
 }
 

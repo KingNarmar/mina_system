@@ -46,9 +46,7 @@ class WorkersCubit extends Cubit<WorkersState> {
 
     final updatedWorkers = state.workers.map((worker) {
       if (_isSameHrCode(worker.hrCode, currentHrCode)) {
-        return updatedWorker.copyWith(
-          activeCustodyCount: worker.activeCustodyCount,
-        );
+        return updatedWorker;
       }
 
       return worker;
@@ -83,21 +81,7 @@ class WorkersCubit extends Cubit<WorkersState> {
     });
   }
 
-  void updateWorkerCustodyCount({required String hrCode, required int change}) {
-    final updatedWorkers = state.workers.map((worker) {
-      if (_isSameHrCode(worker.hrCode, hrCode)) {
-        final updatedCount = worker.activeCustodyCount + change;
-
-        return worker.copyWith(
-          activeCustodyCount: updatedCount < 0 ? 0 : updatedCount,
-        );
-      }
-
-      return worker;
-    }).toList();
-
-    emitUpdatedWorkers(updatedWorkers);
-  }
+  
 
   void emitUpdatedWorkers(List<WorkerModel> workers) {
     emit(

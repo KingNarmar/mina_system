@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/auth/presentation/widgets/login_form.dart';
-import 'package:gap/gap.dart';
 
 class LoginDesktopLayout extends StatelessWidget {
   const LoginDesktopLayout({super.key});
@@ -36,7 +36,7 @@ class LoginDesktopLayout extends StatelessWidget {
                   ),
                   const Gap(16),
                   Text(
-                    'A smart custody and inventory management platform for modern warehouses.',
+                    'A smart tool custody tracking platform for modern warehouses.',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.onPrimary.withValues(alpha: 0.7),
                     ),

@@ -14,7 +14,6 @@ class ToolsTableHeader extends StatelessWidget {
           ToolsTableHeaderCell(title: 'Tool Name', flex: 3),
           ToolsTableHeaderCell(title: 'Unit', flex: 1),
           ToolsTableHeaderCell(title: 'Category', flex: 2),
-          ToolsTableHeaderCell(title: 'Active Custody', flex: 2),
           ToolsTableHeaderCell(title: 'Actions', flex: 2),
         ],
       ),

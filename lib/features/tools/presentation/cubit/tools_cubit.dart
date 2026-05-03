@@ -48,9 +48,7 @@ class ToolsCubit extends Cubit<ToolsState> {
 
     final updatedTools = state.tools.map((tool) {
       if (_isSameValue(tool.toolCode, currentToolCode)) {
-        return updatedTool.copyWith(
-          activeCustodyCount: tool.activeCustodyCount,
-        );
+        return updatedTool;
       }
 
       return tool;
@@ -128,21 +126,7 @@ class ToolsCubit extends Cubit<ToolsState> {
     return '$prefix${nextNumber.toString().padLeft(3, '0')}';
   }
 
-  void updateToolCustodyCount({required String toolCode, required int change}) {
-    final updatedTools = state.tools.map((tool) {
-      if (_isSameValue(tool.toolCode, toolCode)) {
-        final updatedCount = tool.activeCustodyCount + change;
-
-        return tool.copyWith(
-          activeCustodyCount: updatedCount < 0 ? 0 : updatedCount,
-        );
-      }
-
-      return tool;
-    }).toList();
-
-    emitUpdatedTools(updatedTools);
-  }
+ 
 
   void emitUpdatedTools(List<ToolModel> tools) {
     emit(

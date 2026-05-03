@@ -71,19 +71,7 @@ void _saveTransaction({
   required BuildContext context,
   required TransactionModel transaction,
 }) {
-  final change = transaction.isIssue ? 1 : -1;
-
   context.read<TransactionsCubit>().addTransaction(transaction);
-
-  context.read<WorkersCubit>().updateWorkerCustodyCount(
-    hrCode: transaction.workerHrCode,
-    change: change,
-  );
-
-  context.read<ToolsCubit>().updateToolCustodyCount(
-    toolCode: transaction.toolCode,
-    change: change,
-  );
 
   showTransactionMessage(context, 'Transaction added successfully');
 }

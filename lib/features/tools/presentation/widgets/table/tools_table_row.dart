@@ -27,10 +27,6 @@ class ToolsTableRow extends StatelessWidget {
               ToolsTableBodyCell(value: tool.toolName, flex: 3),
               ToolsTableBodyCell(value: tool.unit, flex: 1),
               ToolsTableBodyCell(value: tool.category, flex: 2),
-              ToolsTableBodyCell(
-                value: tool.activeCustodyCount.toString(),
-                flex: 2,
-              ),
               Expanded(
                 flex: 2,
                 child: Row(

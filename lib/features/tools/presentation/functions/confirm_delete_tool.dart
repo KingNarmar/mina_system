@@ -25,14 +25,6 @@ void confirmDeleteTool({
             onPressed: () {
               Navigator.pop(dialogContext);
 
-              if (tool.activeCustodyCount > 0) {
-                showToolMessage(
-                  context,
-                  'Cannot delete tool because it has active custody',
-                );
-                return;
-              }
-
               context.read<ToolsCubit>().deleteTool(tool);
               showToolMessage(context, 'Tool deleted successfully');
             },
