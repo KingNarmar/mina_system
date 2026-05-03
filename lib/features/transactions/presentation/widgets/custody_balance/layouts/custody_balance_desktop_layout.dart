@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/custody_balance_search_field.dart';
@@ -30,13 +31,21 @@ class CustodyBalanceDesktopLayout extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableWidth,
-                  child: CustodyBalanceTable(balances: balances),
+              if (balances.isEmpty)
+                const AppEmptyState(
+                  icon: Icons.assignment_outlined,
+                  title: 'No open custody balances',
+                  message:
+                      'Open custody balances will appear here after tools are issued and not yet returned, lost, or damaged.',
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: CustodyBalanceTable(balances: balances),
+                  ),
                 ),
-              ),
             ],
           ),
         );

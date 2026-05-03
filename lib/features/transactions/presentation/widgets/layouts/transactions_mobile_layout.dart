@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
@@ -8,7 +9,6 @@ import 'package:mina_system/features/transactions/presentation/functions/show_tr
 import 'package:mina_system/features/transactions/presentation/widgets/card/transaction_card.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_search_field.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_type_filter_chips.dart';
-import 'package:mina_system/features/transactions/presentation/widgets/transactions_empty_state.dart';
 
 class TransactionsMobileLayout extends StatelessWidget {
   const TransactionsMobileLayout({
@@ -53,8 +53,11 @@ class TransactionsMobileLayout extends StatelessWidget {
           }
 
           if (transactions.isEmpty) {
-            return const TransactionsEmptyState(
-              message: 'No transactions found',
+            return const AppEmptyState(
+              icon: Icons.swap_horiz_outlined,
+              title: 'No transactions found',
+              message:
+                  'Add your first custody transaction to start tracking issued and closed tools.',
             );
           }
 

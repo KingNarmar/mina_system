@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/card/tool_custody_summary_card.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/tool_custody_summary_search_field.dart';
-import 'package:mina_system/features/transactions/presentation/widgets/transactions_empty_state.dart';
 
 class ToolCustodySummaryMobileLayout extends StatelessWidget {
   const ToolCustodySummaryMobileLayout({super.key, required this.summaries});
@@ -32,9 +32,11 @@ class ToolCustodySummaryMobileLayout extends StatelessWidget {
           }
 
           if (summaries.isEmpty) {
-            return const TransactionsEmptyState(
-              message: 'No tool custody summary found',
-              icon: Icons.build_outlined,
+            return const AppEmptyState(
+              icon: Icons.summarize_outlined,
+              title: 'No tool summary found',
+              message:
+                  'Tool summaries will appear here after custody transactions are recorded.',
             );
           }
 

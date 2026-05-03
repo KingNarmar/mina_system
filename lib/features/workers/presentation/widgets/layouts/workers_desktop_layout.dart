@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
+import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
-import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
-import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
 
 class WorkersDesktopLayout extends StatelessWidget {
   const WorkersDesktopLayout({super.key, required this.workers});
@@ -41,18 +42,25 @@ class WorkersDesktopLayout extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: WorkersTable(
-              workers: workers,
-              onEdit: (worker) {
-                showWorkerDialog(context, worker: worker);
-              },
-              onDelete: (worker) {
-                confirmDeleteWorker(context, worker);
-              },
+          if (workers.isEmpty)
+            const AppEmptyState(
+              icon: Icons.people_outline,
+              title: 'No workers found',
+              message: 'Add your first worker to start tracking tool custody.',
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: WorkersTable(
+                workers: workers,
+                onEdit: (worker) {
+                  showWorkerDialog(context, worker: worker);
+                },
+                onDelete: (worker) {
+                  confirmDeleteWorker(context, worker);
+                },
+              ),
             ),
-          ),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/tool_custody_summary_search_field.dart';
@@ -28,13 +29,21 @@ class ToolCustodySummaryDesktopLayout extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableWidth,
-                  child: ToolCustodySummaryTable(summaries: summaries),
+              if (summaries.isEmpty)
+                const AppEmptyState(
+                  icon: Icons.summarize_outlined,
+                  title: 'No tool summary found',
+                  message:
+                      'Tool summaries will appear here after custody transactions are recorded.',
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: ToolCustodySummaryTable(summaries: summaries),
+                  ),
                 ),
-              ),
             ],
           ),
         );

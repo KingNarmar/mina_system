@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/functions/confirm_delete_tool.dart';
@@ -41,18 +42,26 @@ class ToolsDesktopLayout extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ToolsTable(
-              tools: tools,
-              onEdit: (tool) {
-                showToolDialog(context, tool: tool);
-              },
-              onDelete: (tool) {
-                confirmDeleteTool(context: context, tool: tool);
-              },
+          if (tools.isEmpty)
+            const AppEmptyState(
+              icon: Icons.build_outlined,
+              title: 'No tools found',
+              message:
+                  'Add your first tool type to start recording custody transactions.',
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: ToolsTable(
+                tools: tools,
+                onEdit: (tool) {
+                  showToolDialog(context, tool: tool);
+                },
+                onDelete: (tool) {
+                  confirmDeleteTool(context: context, tool: tool);
+                },
+              ),
             ),
-          ),
         ],
       ),
     );

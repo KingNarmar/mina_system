@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
@@ -67,13 +68,21 @@ class TransactionsDesktopLayout extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableWidth,
-                  child: TransactionsTable(transactions: transactions),
+              if (transactions.isEmpty)
+                const AppEmptyState(
+                  icon: Icons.swap_horiz_outlined,
+                  title: 'No transactions found',
+                  message:
+                      'Add your first custody transaction to start tracking issued and closed tools.',
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: TransactionsTable(transactions: transactions),
+                  ),
                 ),
-              ),
             ],
           ),
         );
