@@ -7,6 +7,7 @@ import 'package:mina_system/features/tools/presentation/functions/confirm_delete
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tools_table.dart';
+import 'package:gap/gap.dart';
 
 class ToolsDesktopLayout extends StatelessWidget {
   const ToolsDesktopLayout({super.key, required this.tools});
@@ -28,7 +29,7 @@ class ToolsDesktopLayout extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const Gap(16),
               SizedBox(
                 height: 52,
                 child: ElevatedButton.icon(
@@ -41,7 +42,7 @@ class ToolsDesktopLayout extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const Gap(16),
           if (tools.isEmpty)
             const AppEmptyState(
               icon: Icons.build_outlined,

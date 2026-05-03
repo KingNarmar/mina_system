@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/card/tool_custody_summary_info_row.dart';
+import 'package:gap/gap.dart';
 
 class ToolCustodySummaryCard extends StatelessWidget {
   const ToolCustodySummaryCard({super.key, required this.summary});
@@ -33,7 +34,7 @@ class ToolCustodySummaryCard extends StatelessWidget {
                     color: AppColors.accent,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const Gap(12),
                 Expanded(
                   child: Text(
                     summary.toolName,
@@ -45,7 +46,7 @@ class ToolCustodySummaryCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             ToolCustodySummaryInfoRow(
               label: 'Tool Code',
               value: summary.toolCode,

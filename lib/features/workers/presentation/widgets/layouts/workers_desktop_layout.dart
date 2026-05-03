@@ -7,6 +7,7 @@ import 'package:mina_system/features/workers/presentation/functions/confirm_dele
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
+import 'package:gap/gap.dart';
 
 class WorkersDesktopLayout extends StatelessWidget {
   const WorkersDesktopLayout({super.key, required this.workers});
@@ -28,7 +29,7 @@ class WorkersDesktopLayout extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const Gap(16),
               SizedBox(
                 height: 52,
                 child: ElevatedButton.icon(
@@ -41,7 +42,7 @@ class WorkersDesktopLayout extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const Gap(16),
           if (workers.isEmpty)
             const AppEmptyState(
               icon: Icons.people_outline,

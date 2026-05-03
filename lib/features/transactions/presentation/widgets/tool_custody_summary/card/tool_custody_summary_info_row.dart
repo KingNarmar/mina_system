@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:gap/gap.dart';
 
 class ToolCustodySummaryInfoRow extends StatelessWidget {
   const ToolCustodySummaryInfoRow({
@@ -19,7 +20,7 @@ class ToolCustodySummaryInfoRow extends StatelessWidget {
       child: Row(
         children: [
           Text('$label:', style: AppTextStyles.caption),
-          const SizedBox(width: 8),
+          const Gap(8),
           Expanded(
             child: Text(
               value,

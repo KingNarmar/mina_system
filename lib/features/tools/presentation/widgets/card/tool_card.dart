@@ -3,6 +3,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_info_row.dart';
+import 'package:gap/gap.dart';
 
 class ToolCard extends StatelessWidget {
   const ToolCard({super.key, required this.tool, this.onEdit, this.onDelete});
@@ -34,7 +35,7 @@ class ToolCard extends StatelessWidget {
                     color: AppColors.accent,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const Gap(12),
                 Expanded(
                   child: Text(
                     tool.toolName,
@@ -58,7 +59,7 @@ class ToolCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             ToolInfoRow(label: 'Tool Code', value: tool.toolCode),
             ToolInfoRow(label: 'Unit', value: tool.unit),
             ToolInfoRow(label: 'Category', value: tool.category),

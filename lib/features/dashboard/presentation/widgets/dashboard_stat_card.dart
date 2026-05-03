@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:gap/gap.dart';
 
 class DashboardStatCard extends StatelessWidget {
   const DashboardStatCard({
@@ -38,7 +39,7 @@ class DashboardStatCard extends StatelessWidget {
               ),
               child: Icon(icon, color: iconColor),
             ),
-            const SizedBox(width: 16),
+            const Gap(16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +48,7 @@ class DashboardStatCard extends StatelessWidget {
                     value,
                     style: AppTextStyles.heading.copyWith(fontSize: 22),
                   ),
-                  const SizedBox(height: 4),
+                  const Gap(4),
                   Text(
                     title,
                     style: AppTextStyles.caption,

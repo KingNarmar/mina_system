@@ -10,6 +10,7 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
+import 'package:gap/gap.dart';
 
 class JobTitlesTab extends StatefulWidget {
   const JobTitlesTab({super.key});
@@ -51,7 +52,7 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                     });
                   },
                 ),
-                const SizedBox(height: 12),
+                const Gap(12),
                 LookupAddRow(
                   hint: 'Job Title',
                   controller: _jobTitleController,
@@ -68,7 +69,7 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                     }
                   },
                 ),
-                const SizedBox(height: 20),
+                const Gap(20),
                 if (_selectedDepartment == null)
                   const EmptyLookupMessage(
                     message: 'Select a department to view its job titles',

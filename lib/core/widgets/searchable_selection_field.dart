@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
+import 'package:gap/gap.dart';
 
 class SearchableSelectionField<T> extends StatelessWidget {
   const SearchableSelectionField({
@@ -148,14 +149,14 @@ class _SearchableSelectionBottomSheetState<T>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.hint, style: AppTextStyles.title),
-            const SizedBox(height: 16),
+            const Gap(16),
             CustomTextFormField(
               hint: 'Search...',
               controller: _searchController,
               icon: const Icon(Icons.search),
               onChanged: _onSearchChanged,
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             Expanded(
               child: _filteredItems.isEmpty
                   ? Center(

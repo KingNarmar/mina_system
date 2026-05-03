@@ -8,6 +8,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.da
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/functions/worker_form_validators.dart';
+import 'package:gap/gap.dart';
 
 class AddWorkerForm extends StatefulWidget {
   const AddWorkerForm({
@@ -82,13 +83,13 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                     _isEditMode ? 'Edit Worker' : 'Add Worker',
                     style: AppTextStyles.title,
                   ),
-                  const SizedBox(height: 20),
+                  const Gap(20),
                   CustomTextFormField(
                     hint: 'Worker Name',
                     controller: _nameController,
                     validator: WorkerFormValidators.requiredWorkerTextValidator,
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   CustomTextFormField(
                     hint: 'HR Code',
                     controller: _hrCodeController,
@@ -98,7 +99,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                       initialHrCode: widget.initialWorker?.hrCode,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   CustomDropdownFormField(
                     hint: 'Department',
                     value: _selectedDepartment,
@@ -112,7 +113,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                       });
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   CustomDropdownFormField(
                     hint: _selectedDepartment == null
                         ? 'Select Department First'
@@ -127,7 +128,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                       });
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const Gap(20),
                   MainButton(
                     text: _isEditMode ? 'Update Worker' : 'Save Worker',
                     onPressed: _onSavePressed,

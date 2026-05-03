@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:gap/gap.dart';
 
 class ReportPreviewPlaceholder extends StatelessWidget {
   const ReportPreviewPlaceholder({super.key});
@@ -18,12 +19,12 @@ class ReportPreviewPlaceholder extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Preview', style: AppTextStyles.title),
-          SizedBox(height: 12),
+          Gap(12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.visibility_outlined, color: AppColors.textSecondary),
-              SizedBox(width: 12),
+              Gap(12),
               Expanded(
                 child: Text(
                   'Report results preview will appear here after connecting the filters to the custody transactions data.',

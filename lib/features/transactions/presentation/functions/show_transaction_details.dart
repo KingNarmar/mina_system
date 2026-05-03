@@ -8,6 +8,7 @@ import 'package:mina_system/features/transactions/presentation/functions/format_
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
+import 'package:gap/gap.dart';
 
 void showTransactionDetails(
   BuildContext context,
@@ -59,7 +60,7 @@ class _TransactionDetailsContent extends StatelessWidget {
                 color: typeColor,
               ),
             ),
-            const SizedBox(width: 12),
+            const Gap(12),
             Expanded(
               child: Text(
                 transaction.transactionCode,
@@ -82,7 +83,7 @@ class _TransactionDetailsContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const Gap(20),
         _TransactionDetailsRow(
           label: 'Worker',
           value: '${transaction.workerName} (${transaction.workerHrCode})',
@@ -99,7 +100,7 @@ class _TransactionDetailsContent extends StatelessWidget {
           label: 'Date',
           value: formatTransactionDate(transaction.dateTime),
         ),
-        const SizedBox(height: 16),
+        const Gap(16),
         Text(
           'Photo',
           style: AppTextStyles.body.copyWith(
@@ -107,12 +108,12 @@ class _TransactionDetailsContent extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 8),
+        const Gap(8),
         if (hasImage)
           _TransactionImagePreview(imagePath: transaction.imagePath!)
         else
           const _EmptyDetailsBox(text: 'No photo attached'),
-        const SizedBox(height: 16),
+        const Gap(16),
         Text(
           'Note',
           style: AppTextStyles.body.copyWith(
@@ -120,7 +121,7 @@ class _TransactionDetailsContent extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 8),
+        const Gap(8),
         if (hasNote)
           Container(
             width: double.infinity,
@@ -136,7 +137,7 @@ class _TransactionDetailsContent extends StatelessWidget {
           )
         else
           const _EmptyDetailsBox(text: 'No note added'),
-        const SizedBox(height: 20),
+        const Gap(20),
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
@@ -165,7 +166,7 @@ class _TransactionDetailsRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(width: 80, child: Text(label, style: AppTextStyles.caption)),
-          const SizedBox(width: 8),
+          const Gap(8),
           Expanded(
             child: Text(
               value,

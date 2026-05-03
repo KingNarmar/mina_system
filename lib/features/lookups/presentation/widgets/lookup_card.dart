@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:gap/gap.dart';
 
 class LookupCard extends StatelessWidget {
   const LookupCard({super.key, required this.title, required this.child});
@@ -23,7 +24,7 @@ class LookupCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: AppTextStyles.title),
-            const SizedBox(height: 20),
+            const Gap(20),
             child,
           ],
         ),

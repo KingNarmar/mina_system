@@ -6,6 +6,7 @@ import 'package:mina_system/features/transactions/presentation/functions/format_
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/card/transaction_info_row.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
+import 'package:gap/gap.dart';
 
 class TransactionCard extends StatelessWidget {
   const TransactionCard({super.key, required this.transaction});
@@ -40,7 +41,7 @@ class TransactionCard extends StatelessWidget {
                     backgroundColor: typeColor.withValues(alpha: 0.12),
                     child: Icon(getTransactionTypeIcon(transaction.type)),
                   ),
-                  const SizedBox(width: 12),
+                  const Gap(12),
                   Expanded(
                     child: Text(
                       transaction.transactionCode,
@@ -69,7 +70,7 @@ class TransactionCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const Gap(16),
               TransactionInfoRow(
                 label: 'Worker',
                 value:

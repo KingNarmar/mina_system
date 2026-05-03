@@ -9,6 +9,7 @@ import 'package:mina_system/core/validators/app_validators.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/core/widgets/password_text_form_field.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_state.dart';
 
@@ -73,7 +74,9 @@ class _LoginFormState extends State<LoginForm> {
                     onPressed: () {},
                     child: Text(
                       'Forgot password?',
-                      style: AppTextStyles.caption.copyWith(color: Colors.blue),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.accent,
+                      ),
                     ),
                   ),
                 ],

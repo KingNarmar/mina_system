@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/auth/presentation/widgets/login_form.dart';
+import 'package:gap/gap.dart';
 
 class LoginDesktopLayout extends StatelessWidget {
   const LoginDesktopLayout({super.key});
@@ -22,17 +23,23 @@ class LoginDesktopLayout extends StatelessWidget {
                 children: [
                   Text(
                     'M.I.N.A System',
-                    style: AppTextStyles.heading.copyWith(color: Colors.white),
+                    style: AppTextStyles.heading.copyWith(
+                      color: AppColors.onPrimary,
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   Text(
                     'Materials Inventory Navigation Assistant',
-                    style: AppTextStyles.title.copyWith(color: Colors.white),
+                    style: AppTextStyles.title.copyWith(
+                      color: AppColors.onPrimary,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const Gap(16),
                   Text(
                     'A smart custody and inventory management platform for modern warehouses.',
-                    style: AppTextStyles.body.copyWith(color: Colors.white70),
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.onPrimary.withValues(alpha: 0.7),
+                    ),
                   ),
                 ],
               ),

@@ -9,7 +9,7 @@ void showTransactionImagePreview(BuildContext context, String imagePath) {
     context: context,
     builder: (_) {
       return Dialog.fullscreen(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.overlayDark,
         child: Stack(
           children: [
             Center(
@@ -24,7 +24,11 @@ void showTransactionImagePreview(BuildContext context, String imagePath) {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  icon: const Icon(
+                    Icons.close,
+                    color: AppColors.onPrimary,
+                    size: 30,
+                  ),
                 ),
               ),
             ),

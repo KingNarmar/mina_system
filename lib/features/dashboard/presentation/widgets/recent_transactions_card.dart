@@ -6,6 +6,7 @@ import 'package:mina_system/features/transactions/data/models/transaction_model.
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
+import 'package:gap/gap.dart';
 
 class RecentTransactionsCard extends StatelessWidget {
   const RecentTransactionsCard({super.key});
@@ -32,7 +33,7 @@ class RecentTransactionsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Recent Transactions', style: AppTextStyles.title),
-            const SizedBox(height: 16),
+            const Gap(16),
             if (transactions.isEmpty)
               Text(
                 'No recent transactions yet',
@@ -73,7 +74,7 @@ class _RecentTransactionItem extends StatelessWidget {
               color: typeColor,
             ),
           ),
-          const SizedBox(width: 12),
+          const Gap(12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +88,7 @@ class _RecentTransactionItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const Gap(2),
                 Text(
                   '$typeLabel • ${transaction.toolName} • ${transaction.quantity} ${transaction.unit}${_getProofSuffix()}',
                   style: AppTextStyles.caption,
@@ -97,7 +98,7 @@ class _RecentTransactionItem extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const Gap(12),
           Text(
             formatTransactionDate(transaction.dateTime),
             style: AppTextStyles.caption,

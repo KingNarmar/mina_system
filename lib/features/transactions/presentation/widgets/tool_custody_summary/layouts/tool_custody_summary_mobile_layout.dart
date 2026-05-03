@@ -6,6 +6,7 @@ import 'package:mina_system/features/transactions/data/models/tool_custody_summa
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/card/tool_custody_summary_card.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/tool_custody_summary_search_field.dart';
+import 'package:gap/gap.dart';
 
 class ToolCustodySummaryMobileLayout extends StatelessWidget {
   const ToolCustodySummaryMobileLayout({super.key, required this.summaries});
@@ -20,7 +21,7 @@ class ToolCustodySummaryMobileLayout extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
         itemCount: summaries.isEmpty ? 2 : summaries.length + 1,
         separatorBuilder: (context, index) {
-          return const SizedBox(height: 12);
+          return const Gap(12);
         },
         itemBuilder: (context, index) {
           if (index == 0) {

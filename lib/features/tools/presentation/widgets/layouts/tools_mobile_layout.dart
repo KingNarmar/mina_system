@@ -8,6 +8,7 @@ import 'package:mina_system/features/tools/presentation/functions/confirm_delete
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_card.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
+import 'package:gap/gap.dart';
 
 class ToolsMobileLayout extends StatelessWidget {
   const ToolsMobileLayout({super.key, required this.tools});
@@ -22,7 +23,7 @@ class ToolsMobileLayout extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
         itemCount: tools.isEmpty ? 2 : tools.length + 1,
         separatorBuilder: (context, index) {
-          return const SizedBox(height: 12);
+          return const Gap(12);
         },
         itemBuilder: (context, index) {
           if (index == 0) {

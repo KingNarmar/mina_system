@@ -6,6 +6,7 @@ import 'package:mina_system/features/transactions/data/models/custody_balance_mo
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/card/custody_balance_card.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/custody_balance_search_field.dart';
+import 'package:gap/gap.dart';
 
 class CustodyBalanceMobileLayout extends StatelessWidget {
   const CustodyBalanceMobileLayout({super.key, required this.balances});
@@ -20,7 +21,7 @@ class CustodyBalanceMobileLayout extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
         itemCount: balances.isEmpty ? 2 : balances.length + 1,
         separatorBuilder: (context, index) {
-          return const SizedBox(height: 12);
+          return const Gap(12);
         },
         itemBuilder: (context, index) {
           if (index == 0) {

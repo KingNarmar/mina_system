@@ -26,7 +26,7 @@ class TransactionTypeFilterChips extends StatelessWidget {
           label: Text(
             _getLabel(filter),
             style: AppTextStyles.caption.copyWith(
-              color: isSelected ? Colors.white : AppColors.textPrimary,
+              color: isSelected ? AppColors.onPrimary : AppColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),

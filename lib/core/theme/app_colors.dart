@@ -10,4 +10,8 @@ abstract class AppColors {
   static const Color border = Color(0xFFE5E7EB);
   static const Color error = Color(0xFFDC2626);
   static const Color dark = Color(0xFF1E293B);
+
+  static const Color onPrimary = Color(0xFFFFFFFF);
+  static const Color transparent = Color(0x00000000);
+  static const Color overlayDark = Color(0xFF000000);
 }

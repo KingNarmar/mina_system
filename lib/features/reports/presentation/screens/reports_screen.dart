@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/functions/show_report_builder.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_option_card.dart';
+import 'package:gap/gap.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -58,12 +59,12 @@ class ReportsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Reports Center', style: AppTextStyles.heading),
-              const SizedBox(height: 8),
+              const Gap(8),
               const Text(
                 'Generate custody tracking reports based on workers, tools, transactions, and custody status.',
                 style: AppTextStyles.body,
               ),
-              const SizedBox(height: 24),
+              const Gap(24),
               if (isMobile)
                 const _ReportsList(reports: _reports)
               else

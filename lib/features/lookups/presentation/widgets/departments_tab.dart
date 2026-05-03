@@ -9,6 +9,7 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
+import 'package:gap/gap.dart';
 
 class DepartmentsTab extends StatefulWidget {
   const DepartmentsTab({super.key});
@@ -51,7 +52,7 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                     }
                   },
                 ),
-                const SizedBox(height: 20),
+                const Gap(20),
                 if (state.departments.isEmpty)
                   const EmptyLookupMessage(message: 'No departments found')
                 else

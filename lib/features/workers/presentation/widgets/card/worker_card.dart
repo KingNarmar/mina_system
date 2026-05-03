@@ -3,6 +3,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_info_row.dart';
+import 'package:gap/gap.dart';
 
 class WorkerCard extends StatelessWidget {
   const WorkerCard({
@@ -39,7 +40,7 @@ class WorkerCard extends StatelessWidget {
                     color: AppColors.accent,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const Gap(12),
                 Expanded(
                   child: Text(
                     worker.name,
@@ -63,7 +64,7 @@ class WorkerCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             WorkerInfoRow(label: 'HR Code', value: worker.hrCode),
             WorkerInfoRow(label: 'Department', value: worker.department),
             WorkerInfoRow(label: 'Job Title', value: worker.jobTitle),

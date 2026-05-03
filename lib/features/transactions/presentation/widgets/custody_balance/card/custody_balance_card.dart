@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/card/custody_balance_info_row.dart';
+import 'package:gap/gap.dart';
 
 class CustodyBalanceCard extends StatelessWidget {
   const CustodyBalanceCard({super.key, required this.balance});
@@ -33,7 +34,7 @@ class CustodyBalanceCard extends StatelessWidget {
                     color: AppColors.accent,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const Gap(12),
                 Expanded(
                   child: Text(
                     balance.workerName,
@@ -45,7 +46,7 @@ class CustodyBalanceCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             CustodyBalanceInfoRow(
               label: 'HR Code',
               value: balance.workerHrCode,

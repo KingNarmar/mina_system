@@ -10,6 +10,7 @@ import 'package:mina_system/features/transactions/presentation/functions/show_tr
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_search_field.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_type_filter_chips.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transactions_table.dart';
+import 'package:gap/gap.dart';
 
 class TransactionsDesktopLayout extends StatelessWidget {
   const TransactionsDesktopLayout({
@@ -42,7 +43,7 @@ class TransactionsDesktopLayout extends StatelessWidget {
                       },
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const Gap(16),
                   SizedBox(
                     height: 52,
                     child: ElevatedButton.icon(
@@ -55,7 +56,7 @@ class TransactionsDesktopLayout extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               Align(
                 alignment: Alignment.centerLeft,
                 child: TransactionTypeFilterChips(
@@ -67,7 +68,7 @@ class TransactionsDesktopLayout extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
+              const Gap(16),
               if (transactions.isEmpty)
                 const AppEmptyState(
                   icon: Icons.swap_horiz_outlined,

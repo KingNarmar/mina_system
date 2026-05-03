@@ -8,6 +8,7 @@ import 'package:mina_system/features/workers/presentation/functions/confirm_dele
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_card.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
+import 'package:gap/gap.dart';
 
 class WorkersMobileLayout extends StatelessWidget {
   const WorkersMobileLayout({super.key, required this.workers});
@@ -22,7 +23,7 @@ class WorkersMobileLayout extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
         itemCount: workers.isEmpty ? 2 : workers.length + 1,
         separatorBuilder: (context, index) {
-          return const SizedBox(height: 12);
+          return const Gap(12);
         },
         itemBuilder: (context, index) {
           if (index == 0) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
+import 'package:gap/gap.dart';
 
 class ReportFilterSection extends StatelessWidget {
   const ReportFilterSection({super.key, required this.reportType});
@@ -16,7 +17,7 @@ class ReportFilterSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Filters', style: AppTextStyles.title),
-        const SizedBox(height: 12),
+        const Gap(12),
         ...filters.map((filter) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -160,9 +161,9 @@ class _ReportFilterTile extends StatelessWidget {
       child: Row(
         children: [
           Icon(filter.icon, color: AppColors.accent),
-          const SizedBox(width: 12),
+          const Gap(12),
           Expanded(child: Text(filter.title, style: AppTextStyles.body)),
-          const SizedBox(width: 12),
+          const Gap(12),
           Text(
             filter.value,
             style: AppTextStyles.caption.copyWith(

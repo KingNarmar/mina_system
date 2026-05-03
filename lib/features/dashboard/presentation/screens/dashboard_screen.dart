@@ -3,6 +3,7 @@ import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/dashboard_stats_grid.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/quick_action_card.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/recent_transactions_card.dart';
+import 'package:gap/gap.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -25,7 +26,7 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DashboardStatsGrid(crossAxisCount: crossAxisCount, width: width),
-              const SizedBox(height: 24),
+              const Gap(24),
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
@@ -34,7 +35,7 @@ class DashboardScreen extends StatelessWidget {
                     return const Column(
                       children: [
                         RecentTransactionsCard(),
-                        SizedBox(height: 24),
+                        Gap(24),
                         QuickActionsCard(),
                       ],
                     );
@@ -44,7 +45,7 @@ class DashboardScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(flex: 2, child: RecentTransactionsCard()),
-                      SizedBox(width: 24),
+                      Gap(24),
                       Expanded(flex: 1, child: QuickActionsCard()),
                     ],
                   );

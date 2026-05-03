@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:gap/gap.dart';
 
 class QuickActionsCard extends StatelessWidget {
   const QuickActionsCard({super.key});
@@ -47,7 +48,7 @@ class QuickActionsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Quick Actions', style: AppTextStyles.title),
-            const SizedBox(height: 16),
+            const Gap(16),
             LayoutBuilder(
               builder: (context, constraints) {
                 final isMobile = constraints.maxWidth < 420;
@@ -95,7 +96,7 @@ class _QuickActionButton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(action.icon, color: action.color, size: 22),
-            const SizedBox(height: 12),
+            const Gap(12),
             Text(
               action.title,
               style: AppTextStyles.body.copyWith(

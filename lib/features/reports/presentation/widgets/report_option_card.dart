@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
+import 'package:gap/gap.dart';
 
 class ReportOptionCard extends StatelessWidget {
   const ReportOptionCard({
@@ -39,15 +40,15 @@ class ReportOptionCard extends StatelessWidget {
                 ),
                 child: Icon(report.icon, color: AppColors.accent, size: 28),
               ),
-              const SizedBox(width: 16),
+              const Gap(16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(report.title, style: AppTextStyles.title),
-                    const SizedBox(height: 8),
+                    const Gap(8),
                     Text(report.description, style: AppTextStyles.body),
-                    const SizedBox(height: 16),
+                    const Gap(16),
                     Text(
                       'Configure report',
                       style: AppTextStyles.body.copyWith(

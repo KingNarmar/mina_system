@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:gap/gap.dart';
 
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
@@ -24,7 +25,7 @@ class AppEmptyState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 56, color: AppColors.textSecondary),
-              const SizedBox(height: 16),
+              const Gap(16),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -33,7 +34,7 @@ class AppEmptyState extends StatelessWidget {
                   color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
+              const Gap(8),
               Text(
                 message,
                 textAlign: TextAlign.center,

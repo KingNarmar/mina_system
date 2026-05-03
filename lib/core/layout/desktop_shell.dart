@@ -3,6 +3,7 @@ import 'package:mina_system/core/layout/app_nav_items.dart';
 import 'package:mina_system/core/layout/app_top_bar.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:gap/gap.dart';
 
 class DesktopShell extends StatefulWidget {
   const DesktopShell({super.key});
@@ -61,9 +62,9 @@ class _DesktopSidebar extends StatelessWidget {
         children: [
           Text(
             'M.I.N.A System',
-            style: AppTextStyles.title.copyWith(color: Colors.white),
+            style: AppTextStyles.title.copyWith(color: AppColors.onPrimary),
           ),
-          const SizedBox(height: 32),
+          const Gap(32),
           ...List.generate(AppNavItems.items.length, (index) {
             final item = AppNavItems.items[index];
             final isSelected = selectedIndex == index;
@@ -80,18 +81,18 @@ class _DesktopSidebar extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.white.withValues(alpha: 0.12)
-                        : Colors.transparent,
+                        ? AppColors.onPrimary.withValues(alpha: 0.12)
+                        : AppColors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(item.icon, color: Colors.white, size: 20),
-                      const SizedBox(width: 12),
+                      Icon(item.icon, color: AppColors.onPrimary, size: 20),
+                      const Gap(12),
                       Text(
                         item.title,
                         style: AppTextStyles.body.copyWith(
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.w400,

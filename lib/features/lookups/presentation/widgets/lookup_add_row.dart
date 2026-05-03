@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
+import 'package:gap/gap.dart';
 
 class LookupAddRow extends StatelessWidget {
   const LookupAddRow({
@@ -20,7 +21,7 @@ class LookupAddRow extends StatelessWidget {
         Expanded(
           child: CustomTextFormField(hint: hint, controller: controller),
         ),
-        const SizedBox(width: 12),
+        const Gap(12),
         SizedBox(
           height: 52,
           child: ElevatedButton.icon(

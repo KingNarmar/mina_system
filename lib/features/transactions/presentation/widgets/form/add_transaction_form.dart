@@ -15,6 +15,7 @@ import 'package:mina_system/features/transactions/presentation/functions/transac
 import 'package:mina_system/features/transactions/presentation/widgets/form/transaction_image_picker_field.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+import 'package:gap/gap.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key, required this.onSave});
@@ -70,7 +71,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Add Transaction', style: AppTextStyles.title),
-              const SizedBox(height: 20),
+              const Gap(20),
               CustomDropdownFormField(
                 hint: 'Transaction Type',
                 value: _selectedType,
@@ -82,7 +83,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               SearchableSelectionField<WorkerModel>(
                 hint: 'Search Worker by HR Code or Name',
                 items: workers,
@@ -104,7 +105,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               SearchableSelectionField<ToolModel>(
                 hint: 'Search Tool by Code or Name',
                 items: tools,
@@ -126,7 +127,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               CustomTextFormField(
                 hint: 'Quantity',
                 controller: _quantityController,
@@ -138,7 +139,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   );
                 },
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               TransactionImagePickerField(
                 imagePath: _selectedImagePath,
                 isRequired: _isIssueSelected,
@@ -148,12 +149,12 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               CustomTextFormField(
                 hint: 'Note (optional)',
                 controller: _noteController,
               ),
-              const SizedBox(height: 20),
+              const Gap(20),
               MainButton(text: 'Save Transaction', onPressed: _onSavePressed),
             ],
           ),

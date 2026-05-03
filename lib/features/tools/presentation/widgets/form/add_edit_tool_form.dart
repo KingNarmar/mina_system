@@ -8,6 +8,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.da
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_form_validators.dart';
+import 'package:gap/gap.dart';
 
 class AddEditToolForm extends StatefulWidget {
   const AddEditToolForm({
@@ -86,7 +87,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                     _isEditMode ? 'Edit Tool' : 'Add Tool',
                     style: AppTextStyles.title,
                   ),
-                  const SizedBox(height: 20),
+                  const Gap(20),
                   CustomTextFormField(
                     hint: 'Tool Code',
                     controller: _toolCodeController,
@@ -99,7 +100,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   CustomTextFormField(
                     hint: 'Tool Name',
                     controller: _toolNameController,
@@ -111,7 +112,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   CustomDropdownFormField(
                     hint: 'Unit',
                     value: _selectedUnit,
@@ -123,7 +124,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                       });
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const Gap(12),
                   CustomDropdownFormField(
                     hint: 'Category',
                     value: _selectedCategory,
@@ -135,7 +136,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                       });
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const Gap(20),
                   MainButton(
                     text: _isEditMode ? 'Update Tool' : 'Save Tool',
                     onPressed: _onSavePressed,

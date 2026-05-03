@@ -9,6 +9,7 @@ import 'package:mina_system/features/transactions/presentation/functions/show_tr
 import 'package:mina_system/features/transactions/presentation/widgets/card/transaction_card.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_search_field.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_type_filter_chips.dart';
+import 'package:gap/gap.dart';
 
 class TransactionsMobileLayout extends StatelessWidget {
   const TransactionsMobileLayout({
@@ -27,7 +28,7 @@ class TransactionsMobileLayout extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
         itemCount: transactions.isEmpty ? 2 : transactions.length + 1,
         separatorBuilder: (context, index) {
-          return const SizedBox(height: 12);
+          return const Gap(12);
         },
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -39,7 +40,7 @@ class TransactionsMobileLayout extends StatelessWidget {
                     context.read<TransactionsCubit>().searchTransactions(value);
                   },
                 ),
-                const SizedBox(height: 12),
+                const Gap(12),
                 TransactionTypeFilterChips(
                   selectedFilter: selectedFilter,
                   onChanged: (filter) {
