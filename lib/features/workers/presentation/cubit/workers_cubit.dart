@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
+import 'package:mina_system/features/workers/presentation/functions/worker_helpers.dart';
 
 class WorkersCubit extends Cubit<WorkersState> {
   WorkersCubit()
@@ -15,10 +16,7 @@ class WorkersCubit extends Cubit<WorkersState> {
   static const List<WorkerModel> _initialWorkers = [];
 
   void searchWorkers(String query) {
-    final filteredWorkers = _filterWorkers(
-      workers: state.workers,
-      query: query,
-    );
+    final filteredWorkers = filterWorkers(workers: state.workers, query: query);
 
     emit(state.copyWith(searchQuery: query, filteredWorkers: filteredWorkers));
   }
@@ -45,7 +43,7 @@ class WorkersCubit extends Cubit<WorkersState> {
     }
 
     final updatedWorkers = state.workers.map((worker) {
-      if (_isSameHrCode(worker.hrCode, currentHrCode)) {
+      if (isSameHrCode(worker.hrCode, currentHrCode)) {
         return updatedWorker;
       }
 
@@ -57,72 +55,29 @@ class WorkersCubit extends Cubit<WorkersState> {
 
   void deleteWorker(WorkerModel worker) {
     final updatedWorkers = state.workers.where((item) {
-      return !_isSameHrCode(item.hrCode, worker.hrCode);
+      return !isSameHrCode(item.hrCode, worker.hrCode);
     }).toList();
 
     emitUpdatedWorkers(updatedWorkers);
   }
 
   bool isHrCodeAlreadyUsed(String hrCode, {String? ignoredHrCode}) {
-    final normalizedHrCode = _normalizeText(hrCode);
-    final normalizedIgnoredHrCode = ignoredHrCode == null
-        ? null
-        : _normalizeText(ignoredHrCode);
-
-    return state.workers.any((worker) {
-      final existingHrCode = _normalizeText(worker.hrCode);
-
-      if (normalizedIgnoredHrCode != null &&
-          existingHrCode == normalizedIgnoredHrCode) {
-        return false;
-      }
-
-      return existingHrCode == normalizedHrCode;
-    });
+    return checkIsHrCodeAlreadyUsed(
+      workers: state.workers,
+      hrCode: hrCode,
+      ignoredHrCode: ignoredHrCode,
+    );
   }
-
-  
 
   void emitUpdatedWorkers(List<WorkerModel> workers) {
     emit(
       state.copyWith(
         workers: workers,
-        filteredWorkers: _filterWorkers(
+        filteredWorkers: filterWorkers(
           workers: workers,
           query: state.searchQuery,
         ),
       ),
     );
-  }
-
-  List<WorkerModel> _filterWorkers({
-    required List<WorkerModel> workers,
-    required String query,
-  }) {
-    final searchQuery = _normalizeText(query);
-
-    if (searchQuery.isEmpty) {
-      return workers;
-    }
-
-    return workers.where((worker) {
-      final name = _normalizeText(worker.name);
-      final hrCode = _normalizeText(worker.hrCode);
-      final department = _normalizeText(worker.department);
-      final jobTitle = _normalizeText(worker.jobTitle);
-
-      return name.contains(searchQuery) ||
-          hrCode.contains(searchQuery) ||
-          department.contains(searchQuery) ||
-          jobTitle.contains(searchQuery);
-    }).toList();
-  }
-
-  bool _isSameHrCode(String firstHrCode, String secondHrCode) {
-    return _normalizeText(firstHrCode) == _normalizeText(secondHrCode);
-  }
-
-  String _normalizeText(String value) {
-    return value.trim().toLowerCase();
   }
 }

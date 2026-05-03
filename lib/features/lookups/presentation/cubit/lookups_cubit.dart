@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
+import 'package:mina_system/features/lookups/presentation/functions/lookup_helpers.dart';
 
 class LookupsCubit extends Cubit<LookupsState> {
   LookupsCubit()
@@ -92,7 +93,7 @@ class LookupsCubit extends Cubit<LookupsState> {
       return;
     }
 
-    if (_containsValue(state.departments, cleanDepartment)) {
+    if (containsValue(state.departments, cleanDepartment)) {
       return;
     }
 
@@ -113,7 +114,7 @@ class LookupsCubit extends Cubit<LookupsState> {
 
   void deleteDepartment(String department) {
     final updatedDepartments = state.departments.where((item) {
-      return !_isSameValue(item, department);
+      return !isSameValue(item, department);
     }).toList();
 
     final updatedJobTitlesByDepartment = Map<String, List<String>>.from(
@@ -138,7 +139,7 @@ class LookupsCubit extends Cubit<LookupsState> {
 
     final currentJobTitles = state.jobTitlesByDepartment[cleanDepartment] ?? [];
 
-    if (_containsValue(currentJobTitles, cleanJobTitle)) {
+    if (containsValue(currentJobTitles, cleanJobTitle)) {
       return;
     }
 
@@ -158,7 +159,7 @@ class LookupsCubit extends Cubit<LookupsState> {
     final currentJobTitles = state.jobTitlesByDepartment[department] ?? [];
 
     final updatedJobTitles = currentJobTitles.where((item) {
-      return !_isSameValue(item, jobTitle);
+      return !isSameValue(item, jobTitle);
     }).toList();
 
     final updatedJobTitlesByDepartment = Map<String, List<String>>.from(
@@ -177,7 +178,7 @@ class LookupsCubit extends Cubit<LookupsState> {
       return;
     }
 
-    if (_containsValue(state.toolUnits, cleanUnit)) {
+    if (containsValue(state.toolUnits, cleanUnit)) {
       return;
     }
 
@@ -188,7 +189,7 @@ class LookupsCubit extends Cubit<LookupsState> {
 
   void deleteToolUnit(String unit) {
     final updatedToolUnits = state.toolUnits.where((item) {
-      return !_isSameValue(item, unit);
+      return !isSameValue(item, unit);
     }).toList();
 
     emit(state.copyWith(toolUnits: updatedToolUnits));
@@ -201,7 +202,7 @@ class LookupsCubit extends Cubit<LookupsState> {
       return;
     }
 
-    if (_containsValue(state.toolCategories, cleanCategory)) {
+    if (containsValue(state.toolCategories, cleanCategory)) {
       return;
     }
 
@@ -213,21 +214,9 @@ class LookupsCubit extends Cubit<LookupsState> {
 
   void deleteToolCategory(String category) {
     final updatedToolCategories = state.toolCategories.where((item) {
-      return !_isSameValue(item, category);
+      return !isSameValue(item, category);
     }).toList();
 
     emit(state.copyWith(toolCategories: updatedToolCategories));
-  }
-
-  bool _containsValue(List<String> values, String value) {
-    return values.any((item) => _isSameValue(item, value));
-  }
-
-  bool _isSameValue(String firstValue, String secondValue) {
-    return _normalizeText(firstValue) == _normalizeText(secondValue);
-  }
-
-  String _normalizeText(String value) {
-    return value.trim().toLowerCase();
   }
 }
