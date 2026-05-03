@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
-import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
+import 'package:mina_system/features/reports/presentation/functions/show_report_builder.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_option_card.dart';
 
 class ReportsScreen extends StatelessWidget {
@@ -10,30 +10,35 @@ class ReportsScreen extends StatelessWidget {
 
   static const List<ReportOptionModel> _reports = [
     ReportOptionModel(
+      type: ReportType.workerCustody,
       title: 'Worker Custody Report',
       description:
           'View all open custody balances and movements for a selected worker.',
       icon: Icons.person_search_outlined,
     ),
     ReportOptionModel(
+      type: ReportType.toolHistory,
       title: 'Tool History Report',
       description:
           'Track the full custody movement history for a selected tool type.',
       icon: Icons.history_outlined,
     ),
     ReportOptionModel(
+      type: ReportType.transactions,
       title: 'Transactions Report',
       description:
           'Review custody transactions by worker, tool, type, and date range.',
       icon: Icons.receipt_long_outlined,
     ),
     ReportOptionModel(
+      type: ReportType.lostDamaged,
       title: 'Lost & Damaged Report',
       description:
           'Review tools closed as lost or damaged with notes and proof images.',
       icon: Icons.report_problem_outlined,
     ),
     ReportOptionModel(
+      type: ReportType.toolSummary,
       title: 'Tool Summary Report',
       description:
           'Summarize issued, returned, lost, damaged, and open custody quantities.',
@@ -84,7 +89,7 @@ class _ReportsList extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 16),
           child: ReportOptionCard(
             report: report,
-            onTap: () => _showComingNextMessage(context, report),
+            onTap: () => showReportBuilder(context, report: report),
           ),
         );
       }).toList(),
@@ -117,18 +122,9 @@ class _ReportsGrid extends StatelessWidget {
 
         return ReportOptionCard(
           report: report,
-          onTap: () => _showComingNextMessage(context, report),
+          onTap: () => showReportBuilder(context, report: report),
         );
       },
     );
   }
-}
-
-void _showComingNextMessage(BuildContext context, ReportOptionModel report) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      backgroundColor: AppColors.primary,
-      content: Text('${report.title} filters coming next.'),
-    ),
-  );
 }
