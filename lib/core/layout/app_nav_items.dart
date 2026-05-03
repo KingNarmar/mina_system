@@ -18,11 +18,7 @@ abstract class AppNavItems {
       icon: Icons.people_outline,
       page: WorkersScreen(),
     ),
-    AppNavItem(
-      title: 'Tools',
-      icon: Icons.build_outlined,
-      page: ToolsScreen(),
-    ),
+    AppNavItem(title: 'Tools', icon: Icons.build_outlined, page: ToolsScreen()),
     AppNavItem(
       title: 'Transactions',
       icon: Icons.swap_horiz_outlined,

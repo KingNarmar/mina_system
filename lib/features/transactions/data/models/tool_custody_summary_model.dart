@@ -40,8 +40,7 @@ class ToolCustodySummaryModel {
       returnedQuantity: returnedQuantity ?? this.returnedQuantity,
       lostQuantity: lostQuantity ?? this.lostQuantity,
       damagedQuantity: damagedQuantity ?? this.damagedQuantity,
-      openCustodyQuantity:
-          openCustodyQuantity ?? this.openCustodyQuantity,
+      openCustodyQuantity: openCustodyQuantity ?? this.openCustodyQuantity,
       totalMovements: totalMovements ?? this.totalMovements,
     );
   }

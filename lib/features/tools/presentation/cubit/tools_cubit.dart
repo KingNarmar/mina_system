@@ -157,24 +157,21 @@ class ToolsCubit extends Cubit<ToolsState> {
     return '$prefix${nextNumber.toString().padLeft(3, '0')}';
   }
 
-void updateToolCustodyCount({
-  required String toolCode,
-  required int change,
-}) {
-  final updatedTools = state.tools.map((tool) {
-    if (_isSameValue(tool.toolCode, toolCode)) {
-      final updatedCount = tool.activeCustodyCount + change;
+  void updateToolCustodyCount({required String toolCode, required int change}) {
+    final updatedTools = state.tools.map((tool) {
+      if (_isSameValue(tool.toolCode, toolCode)) {
+        final updatedCount = tool.activeCustodyCount + change;
 
-      return tool.copyWith(
-        activeCustodyCount: updatedCount < 0 ? 0 : updatedCount,
-      );
-    }
+        return tool.copyWith(
+          activeCustodyCount: updatedCount < 0 ? 0 : updatedCount,
+        );
+      }
 
-    return tool;
-  }).toList();
+      return tool;
+    }).toList();
 
-  emitUpdatedTools(updatedTools);
-}
+    emitUpdatedTools(updatedTools);
+  }
 
   void emitUpdatedTools(List<ToolModel> tools) {
     emit(

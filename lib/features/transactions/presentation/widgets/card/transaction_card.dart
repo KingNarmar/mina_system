@@ -6,6 +6,7 @@ import 'package:mina_system/features/transactions/presentation/functions/format_
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/card/transaction_info_row.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
+
 class TransactionCard extends StatelessWidget {
   const TransactionCard({super.key, required this.transaction});
 
@@ -17,9 +18,10 @@ class TransactionCard extends StatelessWidget {
     final typeColor = getTransactionTypeColor(transaction.type);
 
     return InkWell(
-       borderRadius: BorderRadius.circular(16),
-  onTap: () {
-    showTransactionDetails(context, transaction);},
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        showTransactionDetails(context, transaction);
+      },
       child: Card(
         elevation: 0,
         color: AppColors.card,
@@ -70,7 +72,8 @@ class TransactionCard extends StatelessWidget {
               const SizedBox(height: 16),
               TransactionInfoRow(
                 label: 'Worker',
-                value: '${transaction.workerName} (${transaction.workerHrCode})',
+                value:
+                    '${transaction.workerName} (${transaction.workerHrCode})',
               ),
               TransactionInfoRow(
                 label: 'Tool',
@@ -87,7 +90,8 @@ class TransactionCard extends StatelessWidget {
               if (transaction.imagePath != null &&
                   transaction.imagePath!.trim().isNotEmpty)
                 const TransactionInfoRow(label: 'Photo', value: 'Attached'),
-              if (transaction.note != null && transaction.note!.trim().isNotEmpty)
+              if (transaction.note != null &&
+                  transaction.note!.trim().isNotEmpty)
                 TransactionInfoRow(label: 'Note', value: transaction.note!),
             ],
           ),

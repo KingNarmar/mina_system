@@ -1,12 +1,6 @@
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 
-enum TransactionTypeFilter {
-  all,
-  issue,
-  returnTool,
-  lost,
-  damaged,
-}
+enum TransactionTypeFilter { all, issue, returnTool, lost, damaged }
 
 class TransactionsState {
   const TransactionsState({

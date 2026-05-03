@@ -26,12 +26,7 @@ class DashboardStatsGrid extends StatelessWidget {
     final totalWorkers = workers.length;
     final totalTools = tools.length;
 
-    final openCustodies =
-        workers.fold<int>(
-          0,
-          (total, worker) => total + worker.activeCustodyCount,
-        ) +
-        tools.fold<int>(0, (total, tool) => total + tool.activeCustodyCount);
+    final openCustodies = transactionsCubit.getCustodyBalances().length;
 
     final closedToday = transactionsCubit.getClosedTodayCount();
 
