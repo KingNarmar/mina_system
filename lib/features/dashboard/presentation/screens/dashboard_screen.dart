@@ -9,47 +9,51 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
 
-    final crossAxisCount = width < AppBreakpoints.tablet
-        ? 1
-        : width < AppBreakpoints.desktop
-        ? 2
-        : 4;
+        final crossAxisCount = width < AppBreakpoints.tablet
+            ? 1
+            : width < AppBreakpoints.desktop
+            ? 2
+            : 4;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DashboardStatsGrid(crossAxisCount: crossAxisCount, width: width),
-          const SizedBox(height: 24),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DashboardStatsGrid(crossAxisCount: crossAxisCount, width: width),
+              const SizedBox(height: 24),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
-              if (isMobile) {
-                return const Column(
-                  children: [
-                    RecentTransactionsCard(),
-                    SizedBox(height: 24),
-                    QuickActionsCard(),
-                  ],
-                );
-              }
+                  if (isMobile) {
+                    return const Column(
+                      children: [
+                        RecentTransactionsCard(),
+                        SizedBox(height: 24),
+                        QuickActionsCard(),
+                      ],
+                    );
+                  }
 
-              return const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 2, child: RecentTransactionsCard()),
-                  SizedBox(width: 24),
-                  Expanded(flex: 1, child: QuickActionsCard()),
-                ],
-              );
-            },
+                  return const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 2, child: RecentTransactionsCard()),
+                      SizedBox(width: 24),
+                      Expanded(flex: 1, child: QuickActionsCard()),
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

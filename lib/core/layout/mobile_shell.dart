@@ -17,6 +17,7 @@ class _MobileShellState extends State<MobileShell> {
       body: SafeArea(child: AppNavItems.items[_selectedIndex].page),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         onDestinationSelected: (value) {
           setState(() {
             _selectedIndex = value;
@@ -35,10 +36,17 @@ class _MobileShellState extends State<MobileShell> {
   }
 
   String _getMobileLabel(String title) {
-    if (title == 'Transactions') {
-      return 'TRX';
+    switch (title) {
+      case 'Dashboard':
+        return 'Home';
+      case 'Transactions':
+        return 'TRX';
+      case 'Reports':
+        return 'Reports';
+      case 'Lookups':
+        return 'Setup';
+      default:
+        return title;
     }
-
-    return title;
   }
 }
