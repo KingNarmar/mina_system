@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/models/create_company_request.dart';
 import '../../data/repo/current_context_repo.dart';
 import 'current_context_state.dart';
 
@@ -34,6 +35,23 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       }
 
       emit(const CurrentContextFailure('Unable to load company context.'));
+    }
+  }
+
+  Future<void> createCompany({required String companyName}) async {
+    emit(const CurrentContextLoading());
+
+    try {
+      await _repo.createCompany(CreateCompanyRequest(companyName: companyName));
+
+      await loadCurrentContext();
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('CreateCompany error: $error');
+        debugPrint('CreateCompany stackTrace: $stackTrace');
+      }
+
+      emit(const CurrentContextFailure('Unable to create company.'));
     }
   }
 }

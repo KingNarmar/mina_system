@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/company_model.dart';
+import '../models/create_company_request.dart';
 import '../models/profile_model.dart';
 
 class CurrentContextRepo {
@@ -51,5 +52,14 @@ class CurrentContextRepo {
     }
 
     return companies;
+  }
+
+  Future<String> createCompany(CreateCompanyRequest request) async {
+    final companyId = await _supabase.rpc(
+      'create_company_with_defaults',
+      params: request.toJson(),
+    );
+
+    return companyId as String;
   }
 }
