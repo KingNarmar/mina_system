@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_filter_section.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_preview_placeholder.dart';
-import 'package:gap/gap.dart';
 
-class ReportBuilderPanel extends StatelessWidget {
+class ReportBuilderPanel extends StatefulWidget {
   const ReportBuilderPanel({super.key, required this.report});
 
   final ReportOptionModel report;
+
+  @override
+  State<ReportBuilderPanel> createState() => _ReportBuilderPanelState();
+}
+
+class _ReportBuilderPanelState extends State<ReportBuilderPanel> {
+  ReportFilterModel _filters = const ReportFilterModel();
 
   @override
   Widget build(BuildContext context) {
@@ -21,17 +29,30 @@ class ReportBuilderPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ReportBuilderHeader(report: report),
+            _ReportBuilderHeader(report: widget.report),
             const Gap(24),
-            ReportFilterSection(reportType: report.type),
+            ReportFilterSection(
+              reportType: widget.report.type,
+              filters: _filters,
+              onChanged: _onFiltersChanged,
+            ),
             const Gap(24),
-            ReportPreviewPlaceholder(reportType: report.type),
+            ReportPreviewPlaceholder(
+              reportType: widget.report.type,
+              filters: _filters,
+            ),
             const Gap(24),
-            _ReportBuilderActions(report: report),
+            _ReportBuilderActions(report: widget.report),
           ],
         ),
       ),
     );
+  }
+
+  void _onFiltersChanged(ReportFilterModel filters) {
+    setState(() {
+      _filters = filters;
+    });
   }
 }
 

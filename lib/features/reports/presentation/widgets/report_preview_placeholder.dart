@@ -3,26 +3,33 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
+import 'package:mina_system/features/reports/presentation/functions/report_filter_helpers.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
+import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
+import 'package:mina_system/features/transactions/presentation/functions/tool_summary_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 
 class ReportPreviewPlaceholder extends StatelessWidget {
-  const ReportPreviewPlaceholder({super.key, required this.reportType});
+  const ReportPreviewPlaceholder({
+    super.key,
+    required this.reportType,
+    required this.filters,
+  });
 
   final ReportType reportType;
+  final ReportFilterModel filters;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionsCubit, TransactionsState>(
       builder: (context, state) {
-        final transactionsCubit = context.read<TransactionsCubit>();
-
         return Container(
           decoration: BoxDecoration(
             color: AppColors.card,
@@ -35,7 +42,7 @@ class ReportPreviewPlaceholder extends StatelessWidget {
             children: [
               const Text('Preview', style: AppTextStyles.title),
               const Gap(12),
-              _buildPreviewContent(transactionsCubit),
+              _buildPreviewContent(state.transactions),
             ],
           ),
         );
@@ -43,32 +50,66 @@ class ReportPreviewPlaceholder extends StatelessWidget {
     );
   }
 
-  Widget _buildPreviewContent(TransactionsCubit transactionsCubit) {
+  Widget _buildPreviewContent(List<TransactionModel> transactions) {
     switch (reportType) {
       case ReportType.workerCustody:
+        final filteredTransactions = applyReportTransactionFilters(
+          transactions: transactions,
+          filters: filters,
+        );
+
         return _WorkerCustodyPreview(
-          balances: transactionsCubit.getCustodyBalances(),
+          balances: calculateCustodyBalances(filteredTransactions),
         );
+
       case ReportType.toolHistory:
-        return _TransactionListPreview(
-          transactions: transactionsCubit.state.transactions,
-          emptyMessage: 'No tool history transactions found yet.',
+        final filteredTransactions = applyReportTransactionFilters(
+          transactions: transactions,
+          filters: filters,
         );
+
+        return _TransactionListPreview(
+          transactions: filteredTransactions,
+          emptyMessage: filters.hasFilters
+              ? 'No matching tool history transactions found.'
+              : 'No tool history transactions found yet.',
+        );
+
       case ReportType.transactions:
-        return _TransactionListPreview(
-          transactions: transactionsCubit.state.transactions,
-          emptyMessage: 'No transactions found yet.',
+        final filteredTransactions = applyReportTransactionFilters(
+          transactions: transactions,
+          filters: filters,
         );
+
+        return _TransactionListPreview(
+          transactions: filteredTransactions,
+          emptyMessage: filters.hasFilters
+              ? 'No matching transactions found for the selected filters.'
+              : 'No transactions found yet.',
+        );
+
       case ReportType.lostDamaged:
-        return _TransactionListPreview(
-          transactions: transactionsCubit.state.transactions.where((item) {
-            return item.isLost || item.isDamaged;
-          }).toList(),
-          emptyMessage: 'No lost or damaged transactions found yet.',
+        final filteredTransactions = applyReportTransactionFilters(
+          transactions: transactions,
+          filters: filters,
+          lostDamagedOnly: true,
         );
+
+        return _TransactionListPreview(
+          transactions: filteredTransactions,
+          emptyMessage: filters.hasFilters
+              ? 'No matching lost or damaged transactions found.'
+              : 'No lost or damaged transactions found yet.',
+        );
+
       case ReportType.toolSummary:
+        final filteredTransactions = applyReportTransactionFilters(
+          transactions: transactions,
+          filters: filters,
+        );
+
         return _ToolSummaryPreview(
-          summaries: transactionsCubit.getToolCustodySummaries(),
+          summaries: calculateToolCustodySummaries(filteredTransactions),
         );
     }
   }
@@ -84,7 +125,7 @@ class _WorkerCustodyPreview extends StatelessWidget {
     if (balances.isEmpty) {
       return const _ReportEmptyPreview(
         icon: Icons.assignment_outlined,
-        message: 'No open custody balances found yet.',
+        message: 'No open custody balances found for the selected filters.',
       );
     }
 
@@ -120,13 +161,23 @@ class _ToolSummaryPreview extends StatelessWidget {
     if (summaries.isEmpty) {
       return const _ReportEmptyPreview(
         icon: Icons.summarize_outlined,
-        message: 'No tool summary data found yet.',
+        message: 'No tool summary data found for the selected filters.',
       );
     }
 
     final openCustodyTotal = summaries.fold<double>(
       0,
       (total, item) => total + item.openCustodyQuantity,
+    );
+
+    final lostTotal = summaries.fold<double>(
+      0,
+      (total, item) => total + item.lostQuantity,
+    );
+
+    final damagedTotal = summaries.fold<double>(
+      0,
+      (total, item) => total + item.damagedQuantity,
     );
 
     return Column(
@@ -140,13 +191,23 @@ class _ToolSummaryPreview extends StatelessWidget {
           label: 'Total open custody quantity',
           value: openCustodyTotal.toStringAsFixed(2),
         ),
+        const Gap(8),
+        _ReportMetricRow(
+          label: 'Total lost quantity',
+          value: lostTotal.toStringAsFixed(2),
+        ),
+        const Gap(8),
+        _ReportMetricRow(
+          label: 'Total damaged quantity',
+          value: damagedTotal.toStringAsFixed(2),
+        ),
         const Gap(12),
         ...summaries.take(5).map((summary) {
           return _PreviewTile(
             icon: Icons.build_outlined,
             title: summary.toolName,
             subtitle:
-                'Issued: ${summary.issuedQuantity} • Returned: ${summary.returnedQuantity} • Open: ${summary.openCustodyQuantity}',
+                'Issued: ${summary.issuedQuantity} • Returned: ${summary.returnedQuantity} • Lost: ${summary.lostQuantity} • Damaged: ${summary.damagedQuantity} • Open: ${summary.openCustodyQuantity}',
           );
         }),
         if (summaries.length > 5)
