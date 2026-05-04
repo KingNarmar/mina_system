@@ -25,7 +25,7 @@ class ReportBuilderPanel extends StatelessWidget {
             const Gap(24),
             ReportFilterSection(reportType: report.type),
             const Gap(24),
-            const ReportPreviewPlaceholder(),
+            ReportPreviewPlaceholder(reportType: report.type),
             const Gap(24),
             _ReportBuilderActions(report: report),
           ],
