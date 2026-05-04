@@ -35,35 +35,33 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> register({
-  required String fullName,
-  required String email,
-  required String password,
-}) async {
-  emit(AuthLoading());
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    emit(AuthLoading());
 
-  try {
-    final response = await _supabase.auth.signUp(
-      email: email.trim(),
-      password: password.trim(),
-      data: {
-        'full_name': fullName.trim(),
-      },
-    );
+    try {
+      final response = await _supabase.auth.signUp(
+        email: email.trim(),
+        password: password.trim(),
+        data: {'full_name': fullName.trim()},
+      );
 
-    if (response.user == null) {
-      emit(AuthFailure('Registration failed. Please try again.'));
-      return;
+      if (response.user == null) {
+        emit(AuthFailure('Registration failed. Please try again.'));
+        return;
+      }
+
+      emit(
+        AuthRegisterSuccess(
+          requiresEmailConfirmation: response.session == null,
+        ),
+      );
+    } on AuthException catch (error) {
+      emit(AuthFailure(error.message));
+    } catch (_) {
+      emit(AuthFailure('Something went wrong. Please try again.'));
     }
-
-    emit(
-      AuthRegisterSuccess(
-        requiresEmailConfirmation: response.session == null,
-      ),
-    );
-  } on AuthException catch (error) {
-    emit(AuthFailure(error.message));
-  } catch (_) {
-    emit(AuthFailure('Something went wrong. Please try again.'));
   }
-}
 }

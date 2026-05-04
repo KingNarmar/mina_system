@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
+import 'package:mina_system/features/company_settings/presentation/screens/company_settings_screen.dart';
 import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:mina_system/features/lookups/presentation/screens/lookups_screen.dart';
 import 'package:mina_system/features/reports/presentation/screens/reports_screen.dart';
@@ -34,6 +35,11 @@ abstract class AppNavItems {
       title: 'Lookups',
       icon: Icons.tune_outlined,
       page: LookupsScreen(),
+    ),
+    AppNavItem(
+      title: 'Settings',
+      icon: Icons.settings_outlined,
+      page: CompanySettingsScreen(),
     ),
   ];
 }

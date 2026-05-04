@@ -19,4 +19,16 @@ class CompanyModel {
       role: role,
     );
   }
+
+  CompanyModel copyWith({
+    String? id,
+    String? name,
+    String? role,
+  }) {
+    return CompanyModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      role: role ?? this.role,
+    );
+  }
 }

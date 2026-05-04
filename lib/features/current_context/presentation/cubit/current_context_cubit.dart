@@ -54,4 +54,36 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       emit(const CurrentContextFailure('Unable to create company.'));
     }
   }
+
+  void updateCurrentCompanyName(String companyName) {
+    final currentState = state;
+
+    if (currentState is! CurrentContextLoaded) {
+      return;
+    }
+
+    final currentCompany = currentState.currentCompany;
+
+    if (currentCompany == null) {
+      return;
+    }
+
+    final updatedCurrentCompany = currentCompany.copyWith(name: companyName);
+
+    final updatedCompanies = currentState.companies.map((company) {
+      if (company.id == currentCompany.id) {
+        return company.copyWith(name: companyName);
+      }
+
+      return company;
+    }).toList();
+
+    emit(
+      CurrentContextLoaded(
+        profile: currentState.profile,
+        companies: updatedCompanies,
+        currentCompany: updatedCurrentCompany,
+      ),
+    );
+  }
 }
