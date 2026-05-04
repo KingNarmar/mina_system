@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppTopBar extends StatelessWidget {
@@ -32,7 +35,43 @@ class AppTopBar extends StatelessWidget {
         children: [
           Text(title, style: AppTextStyles.title),
           const Spacer(),
-          const Text('Demo Company', style: AppTextStyles.body),
+          BlocBuilder<CurrentContextCubit, CurrentContextState>(
+            builder: (context, state) {
+              if (state is CurrentContextLoading) {
+                return const Text(
+                  'Loading company...',
+                  style: AppTextStyles.body,
+                );
+              }
+
+              if (state is CurrentContextLoaded) {
+                if (state.currentCompany != null) {
+                  return Text(
+                    state.currentCompany!.name,
+                    style: AppTextStyles.body,
+                  );
+                }
+
+                if (state.hasMultipleCompanies) {
+                  return const Text(
+                    'Select Company',
+                    style: AppTextStyles.body,
+                  );
+                }
+
+                return const Text('No Company', style: AppTextStyles.body);
+              }
+
+              if (state is CurrentContextFailure) {
+                return const Text(
+                  'Company unavailable',
+                  style: AppTextStyles.body,
+                );
+              }
+
+              return const Text('M.I.N.A System', style: AppTextStyles.body);
+            },
+          ),
           const Gap(16),
           const CircleAvatar(
             radius: 18,

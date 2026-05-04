@@ -4,6 +4,7 @@ import 'package:mina_system/core/layout/desktop_shell.dart';
 import 'package:mina_system/core/layout/mobile_shell.dart';
 import 'package:mina_system/core/layout/tablet_shell.dart';
 import 'package:mina_system/core/responsive/responsive_layout.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
@@ -16,6 +17,9 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (_) => CurrentContextCubit()..loadCurrentContext(),
+        ),
         BlocProvider(create: (_) => WorkersCubit()),
         BlocProvider(create: (_) => LookupsCubit()),
         BlocProvider(create: (_) => ToolsCubit()),
