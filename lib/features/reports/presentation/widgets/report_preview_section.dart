@@ -16,8 +16,8 @@ import 'package:mina_system/features/transactions/presentation/functions/format_
 import 'package:mina_system/features/transactions/presentation/functions/tool_summary_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 
-class ReportPreviewPlaceholder extends StatelessWidget {
-  const ReportPreviewPlaceholder({
+class ReportPreviewSection extends StatelessWidget {
+  const ReportPreviewSection({
     super.key,
     required this.reportType,
     required this.filters,
