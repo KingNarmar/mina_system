@@ -28,10 +28,12 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         ),
       );
     } catch (error, stackTrace) {
-      debugPrint('CurrentContext error: $error');
-      debugPrint('CurrentContext stackTrace: $stackTrace');
+      if (kDebugMode) {
+        debugPrint('CurrentContext error: $error');
+        debugPrint('CurrentContext stackTrace: $stackTrace');
+      }
 
-      emit(CurrentContextFailure(error.toString()));
+      emit(const CurrentContextFailure('Unable to load company context.'));
     }
   }
 }
