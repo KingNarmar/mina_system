@@ -1,8 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_state.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit() : super(AuthInitial());
+  AuthCubit({SupabaseClient? supabaseClient})
+    : _supabase = supabaseClient ?? Supabase.instance.client,
+      super(AuthInitial());
+
+  final SupabaseClient _supabase;
 
   Future<void> login({
     required String emailOrUsername,
@@ -10,12 +15,22 @@ class AuthCubit extends Cubit<AuthState> {
   }) async {
     emit(AuthLoading());
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final response = await _supabase.auth.signInWithPassword(
+        email: emailOrUsername.trim(),
+        password: password.trim(),
+      );
 
-    if (emailOrUsername == 'admin' && password == '123456') {
+      if (response.session == null || response.user == null) {
+        emit(AuthFailure('Login failed. Please try again.'));
+        return;
+      }
+
       emit(AuthSuccess());
-    } else {
-      emit(AuthFailure('Invalid email or password'));
+    } on AuthException catch (error) {
+      emit(AuthFailure(error.message));
+    } catch (_) {
+      emit(AuthFailure('Something went wrong. Please try again.'));
     }
   }
 }

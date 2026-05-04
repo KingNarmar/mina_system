@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/layout/app_shell.dart';
 import 'package:mina_system/features/auth/presentation/screens/login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class Routes {
   static const String login = '/';
@@ -8,6 +9,20 @@ abstract class Routes {
 
   static final router = GoRouter(
     initialLocation: login,
+    redirect: (context, state) {
+      final isLoggedIn = Supabase.instance.client.auth.currentSession != null;
+      final isGoingToLogin = state.matchedLocation == login;
+
+      if (!isLoggedIn && !isGoingToLogin) {
+        return login;
+      }
+
+      if (isLoggedIn && isGoingToLogin) {
+        return dashboard;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(path: login, builder: (context, state) => const LoginScreen()),
       GoRoute(path: dashboard, builder: (context, state) => const AppShell()),
