@@ -237,31 +237,70 @@ Fields supported:
 
 ---
 
-# Upcoming Phases
-
 # Phase B — Lookups Supabase Integration
+
+## Lookups Status: Done
 
 Goal:
 
 Replace local/static lookups with Supabase-backed lookups.
 
-Current Lookups:
+Implemented:
 
-- Departments
-- Job Titles
-- Tool Units
-- Tool Categories
-
-Required:
+- Real Supabase-backed lookup tables:
+  - `departments`
+  - `job_titles`
+  - `tool_units`
+  - `tool_categories`
+- SQL grants and RLS policies for:
+  - SELECT
+  - INSERT
+  - UPDATE
+  - DELETE
+- `DepartmentModel`
+- `JobTitleModel`
+- `ToolUnitModel`
+- `ToolCategoryModel`
+- `LookupsRepo`
+- Read lookups by `company_id`
+- Load lookups after `CurrentContextLoaded`
+- Loading state in Lookups screen
+- Error banner in Lookups screen
+- Add Department
+- Delete Department
+- Prevent deleting Department when it has Job Titles
+- Add Job Title
+- Delete Job Title
+- Add Tool Unit
+- Delete Tool Unit
+- Add Tool Category
+- Delete Tool Category
+- Duplicate prevention inside the same company
+- Strong lookup name normalization:
+  - ignores case
+  - ignores spaces
+  - ignores symbols like `-` and `_`
+- Tested Add/Delete/Duplicate prevention for:
+  - Departments
+  - Job Titles
+  - Tool Units
+  - Tool Categories
+- `flutter analyze` has no errors
+- Changes committed and pushed to GitHub
 
 ## Departments
+
+Implemented:
 
 - Read departments by `company_id`
 - Add department
 - Delete department
 - Prevent duplicate department names inside the same company
+- Prevent deleting department when it has linked job titles
 
 ## Job Titles
+
+Implemented:
 
 - Read job titles by department/company
 - Add job title
@@ -270,6 +309,8 @@ Required:
 
 ## Tool Units
 
+Implemented:
+
 - Read units by company
 - Add unit
 - Delete unit
@@ -277,19 +318,28 @@ Required:
 
 ## Tool Categories
 
+Implemented:
+
 - Read categories by company
 - Add category
 - Delete category
 - Prevent duplicate categories inside company
 
-Rules:
+Rules applied:
 
-- Keep the existing UI as much as possible.
-- Add loading/error states.
-- Use `currentCompanyId`.
-- Add grants and RLS policies before testing.
+- Kept the existing UI as much as possible.
+- Added loading/error states.
+- Used `currentCompanyId`.
+- Added grants and RLS policies before testing.
+- Tested real Supabase persistence by closing/reopening Lookups.
+- Tested duplicate prevention with different writing styles, such as:
+  - `TEMP-UNIT`
+  - `temp unit`
+  - `temp_unit`
 
 ---
+
+# Upcoming Phases
 
 # Phase C — Workers Supabase Integration
 
@@ -299,16 +349,20 @@ Replace local workers state with Supabase data.
 
 Required:
 
-- Worker model mapped to real Supabase columns
-- Workers repo
-- Workers cubit loading/error states
-- Add worker
-- Update worker
-- Delete worker
-- Search workers
-- HR Code unique inside company
-- Department and Job Title from Lookups
-- Prevent deleting worker if they have open custody later
+- Check real Supabase columns for workers table.
+- Check workers RLS / grants / constraints.
+- Worker model mapped to real Supabase columns.
+- Workers repo.
+- Workers cubit loading/error states.
+- Read workers by `company_id`.
+- Add worker.
+- Update worker.
+- Delete worker.
+- Search workers.
+- HR Code unique inside company.
+- Department and Job Title from Lookups.
+- Prevent duplicate workers inside same company where needed.
+- Prevent deleting worker if they have open custody later.
 
 Important fields:
 
@@ -317,6 +371,17 @@ Important fields:
 - Department
 - Job Title
 - Company ID
+
+Rules:
+
+- Keep existing Workers UI as much as possible.
+- Use real Supabase data.
+- Use `currentCompanyId`.
+- Use lookup models/data for Department and Job Title.
+- Add loading and error states.
+- Test add/update/delete/search.
+- Run `flutter analyze`.
+- Commit and push.
 
 ---
 
@@ -328,17 +393,18 @@ Replace local tools state with Supabase data.
 
 Required:
 
-- Tool model mapped to real Supabase columns
-- Tools repo
-- Tools cubit loading/error states
-- Add tool
-- Update tool
-- Delete tool
-- Search tools
-- Generate tool code
-- Prevent duplicate tool name/code inside company
-- Unit and Category from Lookups
-- Prevent deleting tool if used in open custody later
+- Tool model mapped to real Supabase columns.
+- Tools repo.
+- Tools cubit loading/error states.
+- Read tools by `company_id`.
+- Add tool.
+- Update tool.
+- Delete tool.
+- Search tools.
+- Generate tool code.
+- Prevent duplicate tool name/code inside company.
+- Unit and Category from Lookups.
+- Prevent deleting tool if used in open custody later.
 
 Important fields:
 
@@ -347,6 +413,17 @@ Important fields:
 - Unit
 - Category
 - Company ID
+
+Rules:
+
+- Keep existing Tools UI as much as possible.
+- Use real Supabase data.
+- Use `currentCompanyId`.
+- Use lookup models/data for Unit and Category.
+- Add loading and error states.
+- Test add/update/delete/search.
+- Run `flutter analyze`.
+- Commit and push.
 
 ---
 
@@ -365,23 +442,23 @@ Transaction types:
 
 Required:
 
-- Transactions linked to company
-- Transactions linked to worker
-- Transactions linked to tool
-- Created by current profile
-- Auto-generate transaction code
-- Calculate worker-tool balance
-- Prevent return quantity greater than current balance
-- Search/filter transactions
-- Custody balance
-- Tool summary
-- Closed today count
+- Transactions linked to company.
+- Transactions linked to worker.
+- Transactions linked to tool.
+- Created by current profile.
+- Auto-generate transaction code.
+- Calculate worker-tool balance.
+- Prevent return quantity greater than current balance.
+- Search/filter transactions.
+- Custody balance.
+- Tool summary.
+- Closed today count.
 
 Future:
 
-- Add images for issue/return/damage evidence
-- Save images in Supabase Storage
-- Store only cloud paths in database
+- Add images for issue/return/damage evidence.
+- Save images in Supabase Storage.
+- Store only cloud paths in database.
 
 ---
 
@@ -437,7 +514,7 @@ Report behavior:
 - Respect `show_company_logo`
 - Respect `show_company_details`
 - Respect `show_document_control`
-- Respect footer and responsibility statements
+- Respect footer and responsibility statements.
 
 Important:
 
@@ -456,11 +533,11 @@ Multiple companies → Placeholder
 
 Needed:
 
-- Select Company screen
-- Save selected company locally/session state
-- Allow switching company from TopBar later
-- Make all screens reload based on selected company
-- Ensure role changes with selected company
+- Select Company screen.
+- Save selected company locally/session state.
+- Allow switching company from TopBar later.
+- Make all screens reload based on selected company.
+- Ensure role changes with selected company.
 
 ---
 
@@ -583,19 +660,20 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Phase B — Lookups Supabase Integration
+Phase C — Workers Supabase Integration
 ```
 
 Start with:
 
 ```text
-Step 46.1 — Check real Supabase columns for lookup tables
-Step 46.2 — Add SQL grants and RLS policies
-Step 46.3 — Create lookup models
-Step 46.4 — Create LookupsRepo
-Step 46.5 — Refactor LookupsCubit / LookupsState
-Step 46.6 — Connect existing Lookups UI to Supabase
-Step 46.7 — Test add/delete and duplicate prevention
-Step 46.8 — flutter analyze
-Step 46.9 — Commit / Push
+Step 47.1 — Check real Supabase columns for workers table
+Step 47.2 — Check workers RLS / grants / constraints
+Step 47.3 — Create Worker Supabase model
+Step 47.4 — Create WorkersRepo
+Step 47.5 — Refactor WorkersState
+Step 47.6 — Refactor WorkersCubit
+Step 47.7 — Connect Workers UI to Supabase
+Step 47.8 — Test add/update/delete/search workers
+Step 47.9 — flutter analyze
+Step 47.10 — Commit / Push
 ```
