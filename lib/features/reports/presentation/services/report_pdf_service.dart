@@ -58,6 +58,8 @@ class ReportPdfService {
               reportType: reportType,
               transactions: filteredTransactions,
             ),
+            pw.SizedBox(height: 24),
+            _buildFooter(reportSettings),
           ];
         },
       ),
@@ -306,6 +308,27 @@ class ReportPdfService {
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellAlignment: pw.Alignment.centerLeft,
       cellPadding: const pw.EdgeInsets.all(6),
+    );
+  }
+
+  pw.Widget _buildFooter(CompanyReportSettingsModel reportSettings) {
+    final footerText = reportSettings.reportFooterText?.trim();
+
+    if (footerText == null || footerText.isEmpty) {
+      return pw.SizedBox();
+    }
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.only(top: 10),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+      ),
+      child: pw.Text(
+        footerText,
+        textAlign: pw.TextAlign.center,
+        style: const pw.TextStyle(fontSize: 9, color: PdfColors.blueGrey600),
+      ),
     );
   }
 
