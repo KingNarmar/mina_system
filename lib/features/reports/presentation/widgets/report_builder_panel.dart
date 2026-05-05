@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
+import 'package:mina_system/features/reports/presentation/functions/show_report_pdf_preview.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_filter_section.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_preview_section.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 
 class ReportBuilderPanel extends StatefulWidget {
   const ReportBuilderPanel({super.key, required this.report});
@@ -42,7 +45,7 @@ class _ReportBuilderPanelState extends State<ReportBuilderPanel> {
               filters: _filters,
             ),
             const Gap(24),
-            _ReportBuilderActions(report: widget.report),
+            _ReportBuilderActions(report: widget.report, filters: _filters),
           ],
         ),
       ),
@@ -96,9 +99,10 @@ class _ReportBuilderHeader extends StatelessWidget {
 }
 
 class _ReportBuilderActions extends StatelessWidget {
-  const _ReportBuilderActions({required this.report});
+  const _ReportBuilderActions({required this.report, required this.filters});
 
   final ReportOptionModel report;
+  final ReportFilterModel filters;
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +117,21 @@ class _ReportBuilderActions extends StatelessWidget {
         const Gap(12),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: null,
+            onPressed: () {
+              final transactions = context
+                  .read<TransactionsCubit>()
+                  .state
+                  .transactions;
+
+              showReportPdfPreview(
+                context,
+                reportType: report.type,
+                filters: filters,
+                transactions: transactions,
+              );
+            },
             icon: const Icon(Icons.picture_as_pdf_outlined),
-            label: const Text('PDF Coming Soon'),
+            label: const Text('Preview PDF'),
           ),
         ),
       ],
