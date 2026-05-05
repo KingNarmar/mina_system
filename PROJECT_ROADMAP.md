@@ -8,7 +8,7 @@
 
 ## Project Vision
 
-Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, and reports for companies and warehouses.
+Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, and reports for companies and warehouses.
 
 The system is being built as a real multi-company SaaS/product, not a local demo.
 
@@ -59,6 +59,8 @@ Follow this pattern for each feature:
 - Transactions should not be deleted from the system.
 - Transaction editing should not be exposed as a normal UI action.
 - Transaction corrections should be handled by new corrective transactions or future approval/void workflows.
+- Colors should be centralized inside `AppColors`.
+- Do not use direct widget-level colors like `Colors.green` or `Colors.orange` unless they are first added to `AppColors`.
 
 ---
 
@@ -760,15 +762,59 @@ Pending / Future Enhancements:
 
 ---
 
-# Upcoming Phases
-
 # Phase F — Dashboard Supabase Data
+
+## Dashboard Status: Done
 
 Goal:
 
-Dashboard should show real company data instead of static dummy values.
+Replace static/dummy Dashboard data with real Supabase-backed company data.
 
-Required stats:
+Implemented:
+
+- Reviewed real Dashboard files from GitHub:
+  - `dashboard_screen.dart`
+  - `dashboard_stats_grid.dart`
+  - `dashboard_stat_card.dart`
+  - `quick_action_card.dart`
+  - `recent_transactions_card.dart`
+- Created `DashboardSummaryModel`.
+- Created `DashboardRepo`.
+- Created `DashboardState`.
+- Created `DashboardCubit`.
+- Added `DashboardCubit` to `AppShell`.
+- Fixed `AppShell` provider scope by moving the `BlocListener` into `_AppShellView`.
+- Loaded dashboard summary after `CurrentContextLoaded`.
+- Dashboard summary now reads real data by `company_id`.
+- Total Workers now comes from Supabase `workers`.
+- Total Tools now comes from Supabase `tools`.
+- Open Custodies now comes from real transactions.
+- Closed Today now comes from real closing transactions:
+  - Return
+  - Lost
+  - Damaged
+- Fixed Closed Today timezone handling by converting transaction dates to local time before comparison.
+- Recent Transactions now comes from real Supabase transactions.
+- Dashboard Stats Grid now accepts real values.
+- Dashboard Stats Grid is self-connected to `DashboardCubit`.
+- Recent Transactions Card now accepts real transaction data.
+- Recent Transactions Card is self-connected to `DashboardCubit`.
+- Dashboard refreshes after adding any new transaction.
+- Added `AppColors.success`.
+- Added `AppColors.warning`.
+- Removed direct widget-level colors for Dashboard stat cards.
+- Kept the existing Dashboard UI as much as possible.
+- Desktop Dashboard tested.
+- Tablet Dashboard tested.
+- Mobile Dashboard tested.
+- Recent Transactions displays correctly across desktop/tablet/mobile.
+- Closed Today updates after Return/Lost/Damaged transactions.
+- Open Custodies updates after Issue/Return.
+- `flutter analyze` completed successfully with no issues.
+- Dashboard screenshots were intentionally updated and pushed.
+- Changes committed and pushed to GitHub.
+
+Dashboard real stats:
 
 - Total Workers
 - Total Tools
@@ -776,35 +822,97 @@ Required stats:
 - Closed Today
 - Recent Transactions
 
+Rules applied:
+
+- Dashboard uses `currentCompanyId`.
+- No static dummy values for Dashboard stats.
+- Dashboard data comes from Supabase.
+- Dashboard refreshes after transaction creation.
+- Colors are centralized in `AppColors`.
+- Kept UI changes minimal.
+
+Pending / Future Enhancements:
+
+- Add Dashboard loading skeletons or shimmer if needed.
+- Add Dashboard empty states with better visual design if needed.
+- Add trends/percentages later.
+- Add role-based Dashboard cards later.
+- Add dashboard date filters later if needed.
+
+---
+
+# Maintenance Checkpoint — Flutter SDK Upgrade
+
+## Flutter Upgrade Status: Pending
+
+Goal:
+
+Upgrade Flutter SDK safely after the project reached a stable checkpoint.
+
+Reason:
+
+The project now has the following completed and pushed:
+
+- Auth
+- Current Context
+- Company Settings
+- Lookups
+- Workers
+- Tools
+- Transactions / Custody Core
+- Dashboard Supabase Data
+
+This is a safe point to upgrade Flutter before starting Reports/PDF work.
+
 Required:
 
-- Check current Dashboard files.
-- Identify static/dummy dashboard data.
-- Create/update Dashboard models.
-- Create DashboardRepo.
-- Create/refactor DashboardCubit and DashboardState.
-- Load dashboard data by `currentCompanyId`.
-- Use real Workers count from Supabase.
-- Use real Tools count from Supabase.
-- Use real Transactions data from Supabase.
-- Calculate Open Custodies from real transactions.
-- Calculate Closed Today from real transactions.
-- Show Recent Transactions from real transactions.
-- Add loading state.
-- Add error state.
-- Keep existing dashboard UI as much as possible.
+- Confirm current Flutter version.
+- Confirm current Flutter channel.
+- Prefer stable channel.
+- Run `flutter upgrade`.
+- Run `flutter doctor`.
+- Run `flutter pub get`.
+- Run `dart format lib`.
 - Run `flutter analyze`.
-- Test dashboard values after adding transactions.
-- Commit and push.
+- Run the app on Windows.
+- Test:
+  - Login
+  - Dashboard
+  - Workers
+  - Tools
+  - Transactions
+  - Company Settings
+- Fix any new warnings or breaking changes.
+- Commit upgrade separately.
+- Push upgrade separately.
+
+Suggested steps:
+
+```bash
+flutter --version
+flutter channel
+flutter upgrade
+flutter doctor
+flutter pub get
+dart format lib
+flutter analyze
+```
+
+Commit message:
+
+```text
+Upgrade Flutter SDK and verify project
+```
 
 Rules:
 
-- Dashboard must use `currentCompanyId`.
-- No static dummy data.
-- Loading states and empty states required.
-- Dashboard must react correctly after Issue / Return / Lost / Damaged transactions.
+- Flutter upgrade must be a separate commit.
+- Do not mix Flutter upgrade with feature work.
+- Do not start Reports/PDF before verifying the app after upgrade.
 
 ---
+
+# Upcoming Phases
 
 # Phase G — Reports / PDF
 
@@ -830,6 +938,8 @@ PDF must use:
 - Worker data
 - Tool data
 - Transactions data
+- Transaction snapshots
+- Supabase Storage assets
 
 Report behavior:
 
@@ -837,12 +947,35 @@ Report behavior:
 - Respect `show_company_details`
 - Respect `show_document_control`
 - Respect footer and responsibility statements.
+- Use real transaction data.
+- Use real custody balances.
+- Use real worker/tool data.
+- Use company document templates.
+- Generate clean professional PDF output.
 
 Important:
 
 - Do not use local file paths for logos.
 - Use Supabase Storage path and signed/downloaded asset as needed.
 - Reports should rely on real transactions and snapshots.
+- PDF generation must work across target platforms as much as possible.
+
+Required:
+
+- Review current Reports files.
+- Check existing PDF/report generation code.
+- Create/update Reports models.
+- Create ReportsRepo if needed.
+- Connect reports to Supabase data.
+- Load company profile/report settings/document templates.
+- Load worker/tool/transaction data.
+- Generate Worker Custody Report.
+- Generate Tool Custody Report.
+- Generate Issue/Return/Lost/Damaged reports.
+- Add PDF preview/download/export behavior.
+- Test generated reports.
+- Run `flutter analyze`.
+- Commit and push.
 
 ---
 
@@ -995,21 +1128,20 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Phase F — Dashboard Supabase Data
+Maintenance Checkpoint — Flutter SDK Upgrade
 ```
 
 Start with:
 
 ```text
-Step 50.1 — Review real Dashboard files from GitHub
-Step 50.2 — Identify static dashboard data and required real stats
-Step 50.3 — Create/update Dashboard models
-Step 50.4 — Create DashboardRepo
-Step 50.5 — Create/refactor DashboardState
-Step 50.6 — Create/refactor DashboardCubit
-Step 50.7 — Load dashboard after CurrentContextLoaded
-Step 50.8 — Connect Dashboard UI to real Supabase data
-Step 50.9 — Test dashboard after Issue/Return/Lost/Damaged transactions
-Step 50.10 — flutter analyze
-Step 50.11 — Commit / Push
+Step 51.1 — Confirm current Flutter version and channel
+Step 51.2 — Run flutter upgrade
+Step 51.3 — Run flutter doctor
+Step 51.4 — Run flutter pub get
+Step 51.5 — Run dart format lib
+Step 51.6 — Run flutter analyze
+Step 51.7 — Test app on Windows
+Step 51.8 — Fix any upgrade warnings/errors
+Step 51.9 — Commit / Push Flutter upgrade
+Step 51.10 — Continue Phase G — Reports / PDF
 ```
