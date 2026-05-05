@@ -2,14 +2,16 @@
 
 ## Project Name
 
-**Mina System**  
+**Mina System**
+
 **Materials Inventory Navigation Assistant**
 
 ## Project Vision
 
 Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, and reports for companies and warehouses.
 
-The system is being built as a real multi-company SaaS/product, not a local demo.  
+The system is being built as a real multi-company SaaS/product, not a local demo.
+
 Every company must have isolated data using `currentCompanyId`.
 
 ---
@@ -59,9 +61,7 @@ Follow this pattern for each feature:
 
 # Current Project Status
 
-## Auth
-
-Status: Done
+## Auth Status: Done
 
 - Login is working.
 - Register is working.
@@ -71,18 +71,12 @@ Status: Done
 Flow:
 
 ```text
-Register
-→ Confirm Email
-→ Login
-→ Create Company if no company exists
-→ Dashboard
+Register → Confirm Email → Login → Create Company if no company exists → Dashboard
 ```
 
 ---
 
-## Current Context
-
-Status: Done
+## Current Context Status: Done
 
 Current Context is responsible for loading:
 
@@ -119,9 +113,7 @@ Multiple companies → Select Company placeholder
 
 ---
 
-## Create Company Flow
-
-Status: Done
+## Create Company Flow Status: Done
 
 Implemented:
 
@@ -135,9 +127,7 @@ Implemented:
 
 # Company Settings
 
-## Company Profile
-
-Status: Done
+## Company Profile Status: Done
 
 Implemented:
 
@@ -162,9 +152,7 @@ Fields:
 
 ---
 
-## Company Logo Upload
-
-Status: Done
+## Company Logo Upload Status: Done
 
 Implemented:
 
@@ -189,9 +177,7 @@ Allowed image types:
 
 ---
 
-## Report Settings
-
-Status: Done
+## Report Settings Status: Done
 
 Implemented:
 
@@ -214,37 +200,26 @@ Fields:
 
 ---
 
-## Document Templates
+## Document Templates Status: Done
 
-Status: In Progress
-
-Already done:
+Implemented:
 
 - `CompanyDocumentTemplateModel`
 - `documentTemplates` added to `CompanySettingsState`
 - `getCompanyDocumentTemplates` added to `CompanySettingsRepo`
 - `updateCompanyDocumentTemplate` added to `CompanySettingsRepo`
 - `updateCompanyDocumentTemplate` added to `CompanySettingsCubit`
-- `flutter analyze` has no errors after these changes
+- SQL grants and RLS policies for `company_document_templates`
+- Document Templates UI inside Company Settings
+- Replaced Document Templates placeholder with real UI
+- Read document templates by company
+- Update document template fields
+- Show success SnackBar after update
+- Tested update flow successfully
+- `flutter analyze` has no errors after implementation
+- Changes committed and pushed to GitHub
 
-Next step:
-
-```text
-Step 45.5 — SQL permissions for company_document_templates
-```
-
-Needed SQL:
-
-- SELECT for active company members
-- UPDATE for owner/admin only
-
-Then:
-
-```text
-Step 45.6 — Create Document Templates UI
-```
-
-Fields to support:
+Fields supported:
 
 - Report Type
 - Document Title
@@ -266,7 +241,9 @@ Fields to support:
 
 # Phase B — Lookups Supabase Integration
 
-Goal: Replace local/static lookups with Supabase-backed lookups.
+Goal:
+
+Replace local/static lookups with Supabase-backed lookups.
 
 Current Lookups:
 
@@ -316,7 +293,9 @@ Rules:
 
 # Phase C — Workers Supabase Integration
 
-Goal: Replace local workers state with Supabase data.
+Goal:
+
+Replace local workers state with Supabase data.
 
 Required:
 
@@ -343,7 +322,9 @@ Important fields:
 
 # Phase D — Tools Supabase Integration
 
-Goal: Replace local tools state with Supabase data.
+Goal:
+
+Replace local tools state with Supabase data.
 
 Required:
 
@@ -371,7 +352,9 @@ Important fields:
 
 # Phase E — Transactions / Custody
 
-Goal: Build real custody transaction flow.
+Goal:
+
+Build real custody transaction flow.
 
 Transaction types:
 
@@ -404,7 +387,9 @@ Future:
 
 # Phase F — Dashboard Supabase Data
 
-Goal: Dashboard should show real company data.
+Goal:
+
+Dashboard should show real company data.
 
 Required stats:
 
@@ -424,7 +409,9 @@ Rules:
 
 # Phase G — Reports / PDF
 
-Goal: Generate professional PDF reports using real data and company settings.
+Goal:
+
+Generate professional PDF reports using real data and company settings.
 
 Reports:
 
@@ -508,11 +495,15 @@ UI behavior:
 - Backend RLS remains the real source of security.
 
 ---
+
 # Phase J — Multi-Platform Production Release
 
-Goal: Prepare Mina System to be used by real companies across mobile, tablet, and desktop environments.
+Goal:
 
-The app must not be limited to Android only.  
+Prepare Mina System to be used by real companies across mobile, tablet, and desktop environments.
+
+The app must not be limited to Android only.
+
 Because the target users are companies and warehouses, the system should support different work environments:
 
 - Mobile phones for quick access and field usage.
@@ -521,9 +512,7 @@ Because the target users are companies and warehouses, the system should support
 
 ## Target Platforms
 
-### Android
-
-Status: Required
+### Android Status: Required
 
 - Prepare Android release build.
 - Configure app signing.
@@ -531,9 +520,7 @@ Status: Required
 - Test responsive UI on phones and tablets.
 - Test Supabase auth redirects on Android.
 
-### iOS
-
-Status: Required
+### iOS Status: Required
 
 - Prepare iOS release build.
 - Configure Apple Developer account requirements.
@@ -542,9 +529,7 @@ Status: Required
 - Test responsive UI on iPhone and iPad.
 - Test Supabase auth redirects/deep links on iOS.
 
-### Desktop
-
-Status: Required
+### Desktop Status: Required
 
 Desktop support is important because many company users may prefer to manage warehouse data, reports, and settings from a computer.
 
@@ -598,20 +583,19 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Step 45.5 — SQL permissions for company_document_templates
-```
-
-Then:
-
-```text
-Step 45.6 — Document Templates UI
-Step 45.7 — Replace placeholder in Company Settings
-Step 45.8 — Test Document Template update
-Step 45.9 — Commit / Push
-```
-
-After finishing Company Settings completely, continue with:
-
-```text
 Phase B — Lookups Supabase Integration
+```
+
+Start with:
+
+```text
+Step 46.1 — Check real Supabase columns for lookup tables
+Step 46.2 — Add SQL grants and RLS policies
+Step 46.3 — Create lookup models
+Step 46.4 — Create LookupsRepo
+Step 46.5 — Refactor LookupsCubit / LookupsState
+Step 46.6 — Connect existing Lookups UI to Supabase
+Step 46.7 — Test add/delete and duplicate prevention
+Step 46.8 — flutter analyze
+Step 46.9 — Commit / Push
 ```
