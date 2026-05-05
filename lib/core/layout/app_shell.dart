@@ -55,6 +55,7 @@ class AppShell extends StatelessWidget {
           }
 
           context.read<LookupsCubit>().loadLookups(companyId: companyId);
+          context.read<WorkersCubit>().loadWorkers(companyId: companyId);
         },
         child: const CurrentContextGate(
           child: ResponsiveLayout(

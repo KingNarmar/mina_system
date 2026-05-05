@@ -20,7 +20,7 @@ void confirmDeleteWorker(BuildContext context, WorkerModel worker) {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(dialogContext);
 
               final hasTransactions = context
@@ -35,8 +35,20 @@ void confirmDeleteWorker(BuildContext context, WorkerModel worker) {
                 return;
               }
 
-              context.read<WorkersCubit>().deleteWorker(worker);
-              showWorkerSuccessMessage(context, 'Worker deleted successfully');
+              final isDeleted = await context.read<WorkersCubit>().deleteWorker(
+                worker: worker,
+              );
+
+              if (!context.mounted) {
+                return;
+              }
+
+              showWorkerSuccessMessage(
+                context,
+                isDeleted
+                    ? 'Worker deleted successfully'
+                    : 'Worker was not deleted',
+              );
             },
             child: const Text('Delete'),
           ),

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
-import 'package:mina_system/features/workers/presentation/widgets/add_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_message.dart';
+import 'package:mina_system/features/workers/presentation/widgets/add_worker_form.dart';
 
 void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
   showModalBottomSheet(
@@ -22,7 +23,11 @@ void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
           initialWorker: worker,
           isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
           onSave: (savedWorker) {
-            _saveWorker(context, worker, savedWorker);
+            return _saveWorker(
+              context: context,
+              originalWorker: worker,
+              savedWorker: savedWorker,
+            );
           },
         ),
       );
@@ -46,7 +51,11 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
                   .read<WorkersCubit>()
                   .isHrCodeAlreadyUsed,
               onSave: (savedWorker) {
-                _saveWorker(context, worker, savedWorker);
+                return _saveWorker(
+                  context: context,
+                  originalWorker: worker,
+                  savedWorker: savedWorker,
+                );
               },
             ),
           ),
@@ -56,21 +65,47 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
   );
 }
 
-void _saveWorker(
-  BuildContext context,
-  WorkerModel? originalWorker,
-  WorkerModel savedWorker,
-) {
+Future<bool> _saveWorker({
+  required BuildContext context,
+  required WorkerModel? originalWorker,
+  required WorkerModel savedWorker,
+}) async {
+  final companyId = context.requireCurrentCompanyId();
+
   if (originalWorker == null) {
-    context.read<WorkersCubit>().addWorker(savedWorker);
-    showWorkerSuccessMessage(context, 'Worker added successfully');
-    return;
+    final profileId = context.requireCurrentProfileId();
+
+    final isAdded = await context.read<WorkersCubit>().addWorker(
+      companyId: companyId,
+      createdByProfileId: profileId,
+      worker: savedWorker,
+    );
+
+    if (!context.mounted) {
+      return false;
+    }
+
+    showWorkerSuccessMessage(
+      context,
+      isAdded ? 'Worker added successfully' : 'Worker was not added',
+    );
+
+    return isAdded;
   }
 
-  context.read<WorkersCubit>().updateWorker(
-    currentHrCode: originalWorker.hrCode,
+  final isUpdated = await context.read<WorkersCubit>().updateWorker(
+    companyId: companyId,
     updatedWorker: savedWorker,
   );
 
-  showWorkerSuccessMessage(context, 'Worker updated successfully');
+  if (!context.mounted) {
+    return false;
+  }
+
+  showWorkerSuccessMessage(
+    context,
+    isUpdated ? 'Worker updated successfully' : 'Worker was not updated',
+  );
+
+  return isUpdated;
 }

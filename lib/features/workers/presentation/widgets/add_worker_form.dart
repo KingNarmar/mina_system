@@ -18,7 +18,7 @@ class AddWorkerForm extends StatefulWidget {
     this.isHrCodeAlreadyUsed,
   });
 
-  final ValueChanged<WorkerModel> onSave;
+  final Future<bool> Function(WorkerModel worker) onSave;
   final WorkerModel? initialWorker;
   final HrCodeValidator? isHrCodeAlreadyUsed;
 
@@ -28,7 +28,6 @@ class AddWorkerForm extends StatefulWidget {
 
 class _AddWorkerFormState extends State<AddWorkerForm> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _hrCodeController = TextEditingController();
 
@@ -65,6 +64,7 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
         final filteredJobTitles = lookupsState.getJobTitlesByDepartment(
           _selectedDepartment,
         );
+
         return Padding(
           padding: EdgeInsets.fromLTRB(
             20,
@@ -142,18 +142,61 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
     );
   }
 
-  void _onSavePressed() {
+  Future<void> _onSavePressed() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final lookupsState = context.read<LookupsCubit>().state;
+
+    final departmentModel = lookupsState.departmentModels.where((department) {
+      return _isSameLookupName(department.name, _selectedDepartment ?? '');
+    }).firstOrNull;
+
+    final jobTitleModel = lookupsState.jobTitleModels.where((jobTitle) {
+      final isSameDepartment = jobTitle.departmentId == departmentModel?.id;
+      final isSameJobTitle = _isSameLookupName(
+        jobTitle.name,
+        _selectedJobTitle ?? '',
+      );
+
+      return isSameDepartment && isSameJobTitle;
+    }).firstOrNull;
+
     final worker = WorkerModel(
+      id: widget.initialWorker?.id,
+      companyId: widget.initialWorker?.companyId,
+      workerCode: widget.initialWorker?.workerCode,
       name: _nameController.text.trim(),
       hrCode: _hrCodeController.text.trim(),
       department: _selectedDepartment!.trim(),
       jobTitle: _selectedJobTitle!.trim(),
+      departmentId: departmentModel?.id,
+      jobTitleId: jobTitleModel?.id,
+      phone: widget.initialWorker?.phone,
+      email: widget.initialWorker?.email,
+      status: widget.initialWorker?.status ?? 'active',
+      notes: widget.initialWorker?.notes,
+      createdByProfileId: widget.initialWorker?.createdByProfileId,
+      createdAt: widget.initialWorker?.createdAt,
+      updatedAt: widget.initialWorker?.updatedAt,
     );
-    widget.onSave(worker);
+
+    final isSaved = await widget.onSave(worker);
+
+    if (!mounted || !isSaved) {
+      return;
+    }
+
     Navigator.pop(context);
+  }
+
+  bool _isSameLookupName(String firstValue, String secondValue) {
+    return _normalizeLookupName(firstValue) ==
+        _normalizeLookupName(secondValue);
+  }
+
+  String _normalizeLookupName(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
   }
 }
