@@ -6,6 +6,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/company_logo_card.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
@@ -62,14 +63,12 @@ class _CompanySettingsView extends StatelessWidget {
                   const Gap(24),
                   CompanyProfileForm(
                     profile: profile,
-                    isSaving: state.isSaving,
+                    isSaving: state.isUpdatingProfile,
                   ),
                   const Gap(16),
-                  _CompanySettingsPlaceholderCard(
-                    title: 'Company Logo',
-                    description: profile.logoPath == null
-                        ? 'No logo uploaded yet. Logo upload will use Supabase Storage bucket: company-assets.'
-                        : 'Logo path: ${profile.logoPath}',
+                  CompanyLogoCard(
+                    profile: profile,
+                    isSaving: state.isUploadingLogo,
                   ),
                   const Gap(16),
                   const _CompanySettingsPlaceholderCard(

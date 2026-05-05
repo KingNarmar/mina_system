@@ -38,12 +38,17 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       return;
     }
 
-    emit(currentState.copyWith(isSaving: true));
+    emit(currentState.copyWith(action: CompanySettingsAction.updatingProfile));
 
     try {
       final updatedProfile = await _repo.updateCompanyProfile(profile: profile);
 
-      emit(CompanySettingsLoaded(profile: updatedProfile));
+      emit(
+        CompanySettingsLoaded(
+          profile: updatedProfile,
+          action: CompanySettingsAction.none,
+        ),
+      );
     } catch (error, stackTrace) {
       if (kDebugMode) {
         debugPrint('UpdateCompanyProfile error: $error');
@@ -51,6 +56,44 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       }
 
       emit(const CompanySettingsFailure('Unable to update company profile.'));
+    }
+  }
+
+  Future<void> uploadCompanyLogo({
+    required String companyId,
+    required Uint8List bytes,
+    required String fileExtension,
+    required String contentType,
+  }) async {
+    final currentState = state;
+
+    if (currentState is! CompanySettingsLoaded) {
+      return;
+    }
+
+    emit(currentState.copyWith(action: CompanySettingsAction.uploadingLogo));
+
+    try {
+      final updatedProfile = await _repo.uploadCompanyLogo(
+        companyId: companyId,
+        bytes: bytes,
+        fileExtension: fileExtension,
+        contentType: contentType,
+      );
+
+      emit(
+        CompanySettingsLoaded(
+          profile: updatedProfile,
+          action: CompanySettingsAction.none,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('UploadCompanyLogo error: $error');
+        debugPrint('UploadCompanyLogo stackTrace: $stackTrace');
+      }
+
+      emit(const CompanySettingsFailure('Unable to upload company logo.'));
     }
   }
 }

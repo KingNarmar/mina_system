@@ -96,9 +96,9 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
     return BlocListener<CompanySettingsCubit, CompanySettingsState>(
       listenWhen: (previous, current) {
         return previous is CompanySettingsLoaded &&
-            previous.isSaving &&
+            previous.isUpdatingProfile &&
             current is CompanySettingsLoaded &&
-            !current.isSaving;
+            !current.isUpdatingProfile;
       },
       listener: (context, state) {
         final loadedState = state as CompanySettingsLoaded;
