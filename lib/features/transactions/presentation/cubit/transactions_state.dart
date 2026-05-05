@@ -10,6 +10,9 @@ class TransactionsState {
     required this.custodyBalanceSearchQuery,
     required this.toolSummarySearchQuery,
     required this.typeFilter,
+    this.isLoading = false,
+    this.isSubmitting = false,
+    this.errorMessage,
   });
 
   final List<TransactionModel> transactions;
@@ -18,6 +21,9 @@ class TransactionsState {
   final String custodyBalanceSearchQuery;
   final String toolSummarySearchQuery;
   final TransactionTypeFilter typeFilter;
+  final bool isLoading;
+  final bool isSubmitting;
+  final String? errorMessage;
 
   TransactionsState copyWith({
     List<TransactionModel>? transactions,
@@ -26,6 +32,10 @@ class TransactionsState {
     String? custodyBalanceSearchQuery,
     String? toolSummarySearchQuery,
     TransactionTypeFilter? typeFilter,
+    bool? isLoading,
+    bool? isSubmitting,
+    String? errorMessage,
+    bool clearErrorMessage = false,
   }) {
     return TransactionsState(
       transactions: transactions ?? this.transactions,
@@ -36,6 +46,11 @@ class TransactionsState {
       toolSummarySearchQuery:
           toolSummarySearchQuery ?? this.toolSummarySearchQuery,
       typeFilter: typeFilter ?? this.typeFilter,
+      isLoading: isLoading ?? this.isLoading,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      errorMessage: clearErrorMessage
+          ? null
+          : errorMessage ?? this.errorMessage,
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
@@ -9,6 +7,7 @@ import 'package:mina_system/features/transactions/presentation/functions/show_tr
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/table/transactions_table_cell.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TransactionsTableRow extends StatelessWidget {
   const TransactionsTableRow({super.key, required this.transaction});
@@ -91,13 +90,7 @@ class _TransactionProofPreview extends StatelessWidget {
     if (hasImage) {
       return Align(
         alignment: Alignment.centerLeft,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () {
-            showTransactionImagePreview(context, imagePath);
-          },
-          child: _TransactionThumbnail(imagePath: imagePath),
-        ),
+        child: _TransactionThumbnail(imagePath: imagePath),
       );
     }
 
@@ -124,46 +117,71 @@ class _TransactionThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isNetworkImage =
-        imagePath.startsWith('http://') || imagePath.startsWith('https://');
+    return FutureBuilder<String>(
+      future: _resolveTransactionImageUrl(imagePath),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _ThumbnailFallback(icon: Icons.image_outlined);
+        }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: 44,
-        height: 36,
-        child: isNetworkImage
-            ? Image.network(
-                imagePath,
+        final imageUrl = snapshot.data;
+
+        if (imageUrl == null || imageUrl.trim().isEmpty) {
+          return const _ThumbnailFallback(icon: Icons.broken_image_outlined);
+        }
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () {
+            showTransactionImagePreview(context, imageUrl);
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 44,
+              height: 36,
+              child: Image.network(
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return const _ThumbnailFallback();
-                },
-              )
-            : Image.file(
-                File(imagePath),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const _ThumbnailFallback();
+                  return const _ThumbnailFallback(
+                    icon: Icons.broken_image_outlined,
+                  );
                 },
               ),
-      ),
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  Future<String> _resolveTransactionImageUrl(String path) async {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
+    return Supabase.instance.client.storage
+        .from('transaction-proofs')
+        .createSignedUrl(path, 60 * 60);
   }
 }
 
 class _ThumbnailFallback extends StatelessWidget {
-  const _ThumbnailFallback();
+  const _ThumbnailFallback({required this.icon});
+
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.border,
-      child: const Icon(
-        Icons.broken_image_outlined,
-        size: 18,
-        color: AppColors.textSecondary,
+      width: 44,
+      height: 36,
+      decoration: BoxDecoration(
+        color: AppColors.border,
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: Icon(icon, size: 18, color: AppColors.textSecondary),
     );
   }
 }

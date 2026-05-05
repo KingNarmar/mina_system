@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
@@ -8,7 +7,7 @@ import 'package:mina_system/features/transactions/presentation/functions/format_
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
-import 'package:gap/gap.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void showTransactionDetails(
   BuildContext context,
@@ -189,39 +188,49 @@ class _TransactionImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isNetworkImage =
-        imagePath.startsWith('http://') || imagePath.startsWith('https://');
+    return FutureBuilder<String>(
+      future: _resolveTransactionImageUrl(imagePath),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _EmptyDetailsBox(text: 'Loading image...');
+        }
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        showTransactionImagePreview(context, imagePath);
+        final imageUrl = snapshot.data;
+
+        if (imageUrl == null || imageUrl.trim().isEmpty) {
+          return const _EmptyDetailsBox(text: 'Unable to load image');
+        }
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            showTransactionImagePreview(context, imageUrl);
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              imageUrl,
+              width: double.infinity,
+              height: 240,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return const _EmptyDetailsBox(text: 'Unable to load image');
+              },
+            ),
+          ),
+        );
       },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: isNetworkImage
-            ? Image.network(
-                imagePath,
-                width: double.infinity,
-                height: 240,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const _EmptyDetailsBox(text: 'Unable to load image');
-                },
-              )
-            : Image.file(
-                File(imagePath),
-                width: double.infinity,
-                height: 240,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const _EmptyDetailsBox(
-                    text: 'Unable to load local image',
-                  );
-                },
-              ),
-      ),
     );
+  }
+
+  Future<String> _resolveTransactionImageUrl(String path) async {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
+    return Supabase.instance.client.storage
+        .from('transaction-proofs')
+        .createSignedUrl(path, 60 * 60);
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
+import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/tool_summary_calculator.dart';
@@ -9,8 +10,9 @@ import 'package:mina_system/features/transactions/presentation/functions/transac
 import 'package:mina_system/features/transactions/presentation/functions/transaction_filters.dart';
 
 class TransactionsCubit extends Cubit<TransactionsState> {
-  TransactionsCubit()
-    : super(
+  TransactionsCubit({TransactionsRepo? transactionsRepo})
+    : _transactionsRepo = transactionsRepo ?? TransactionsRepo(),
+      super(
         const TransactionsState(
           transactions: [],
           filteredTransactions: [],
@@ -20,6 +22,22 @@ class TransactionsCubit extends Cubit<TransactionsState> {
           typeFilter: TransactionTypeFilter.all,
         ),
       );
+
+  final TransactionsRepo _transactionsRepo;
+
+  Future<void> loadTransactions({required String companyId}) async {
+    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+
+    try {
+      final transactions = await _transactionsRepo.getTransactions(
+        companyId: companyId,
+      );
+
+      emitUpdatedTransactions(transactions, isLoading: false);
+    } catch (error) {
+      emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+    }
+  }
 
   void searchTransactions(String query) {
     final filteredTransactions = filterTransactions(
@@ -69,11 +87,179 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     return filterToolCustodySummaries(summaries, state.toolSummarySearchQuery);
   }
 
-  void addTransaction(TransactionModel transaction) {
-    final updatedTransactions = List<TransactionModel>.from(state.transactions)
-      ..insert(0, transaction);
+  Future<bool> addTransaction(
+    TransactionModel transaction, {
+    String? companyId,
+    String? createdByProfileId,
+  }) async {
+    if (companyId == null || companyId.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Company ID was not found'));
+      return false;
+    }
 
-    emitUpdatedTransactions(updatedTransactions);
+    if (createdByProfileId == null || createdByProfileId.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Profile ID was not found'));
+      return false;
+    }
+
+    if (transaction.workerId == null || transaction.workerId!.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Worker ID was not found'));
+      return false;
+    }
+
+    if (transaction.toolId == null || transaction.toolId!.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Tool ID was not found'));
+      return false;
+    }
+
+    if (transaction.quantity <= 0) {
+      emit(state.copyWith(errorMessage: 'Quantity must be greater than zero'));
+      return false;
+    }
+
+    if (!_hasRequiredProofImage(transaction)) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Proof image is required for this transaction type',
+        ),
+      );
+      return false;
+    }
+
+    if (!_hasRequiredNote(transaction)) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Note is required for lost or damaged transactions',
+        ),
+      );
+      return false;
+    }
+
+    if (transaction.isClosingTransaction) {
+      final currentBalance = getWorkerToolBalance(
+        workerHrCode: transaction.workerHrCode,
+        toolCode: transaction.toolCode,
+      );
+
+      if (transaction.quantity > currentBalance) {
+        emit(
+          state.copyWith(
+            errorMessage:
+                'Quantity cannot be greater than current custody balance',
+          ),
+        );
+        return false;
+      }
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final transactionCode = await _transactionsRepo
+          .generateNextTransactionCode(companyId: companyId);
+
+      final transactionToInsert = _applyApprovalRules(
+        transaction.copyWith(
+          companyId: companyId,
+          transactionCode: transactionCode,
+          createdByProfileId: createdByProfileId,
+        ),
+      );
+
+      final addedTransaction = await _transactionsRepo.addTransaction(
+        transaction: transactionToInsert,
+      );
+
+      emitUpdatedTransactions([
+        addedTransaction,
+        ...state.transactions,
+      ], isSubmitting: false);
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
+
+  Future<bool> updateTransaction({
+    required TransactionModel updatedTransaction,
+    String? companyId,
+  }) async {
+    final transactionId = updatedTransaction.id;
+
+    if (companyId == null || companyId.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Company ID was not found'));
+      return false;
+    }
+
+    if (transactionId == null || transactionId.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Transaction ID was not found'));
+      return false;
+    }
+
+    if (updatedTransaction.workerId == null ||
+        updatedTransaction.workerId!.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Worker ID was not found'));
+      return false;
+    }
+
+    if (updatedTransaction.toolId == null ||
+        updatedTransaction.toolId!.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Tool ID was not found'));
+      return false;
+    }
+
+    if (updatedTransaction.quantity <= 0) {
+      emit(state.copyWith(errorMessage: 'Quantity must be greater than zero'));
+      return false;
+    }
+
+    if (!_hasRequiredProofImage(updatedTransaction)) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Proof image is required for this transaction type',
+        ),
+      );
+      return false;
+    }
+
+    if (!_hasRequiredNote(updatedTransaction)) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Note is required for lost or damaged transactions',
+        ),
+      );
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final transactionToUpdate = _applyApprovalRules(
+        updatedTransaction.copyWith(companyId: companyId),
+      );
+
+      final savedTransaction = await _transactionsRepo.updateTransaction(
+        transactionId: transactionId,
+        transaction: transactionToUpdate,
+      );
+
+      final updatedTransactions = state.transactions.map((transaction) {
+        if (transaction.id == transactionId) {
+          return savedTransaction;
+        }
+
+        return transaction;
+      }).toList();
+
+      emitUpdatedTransactions(updatedTransactions, isSubmitting: false);
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
   }
 
   String generateNextTransactionCode() {
@@ -111,7 +297,11 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     return calculateClosedTodayCount(state.transactions);
   }
 
-  void emitUpdatedTransactions(List<TransactionModel> transactions) {
+  void emitUpdatedTransactions(
+    List<TransactionModel> transactions, {
+    bool? isLoading,
+    bool? isSubmitting,
+  }) {
     emit(
       state.copyWith(
         transactions: transactions,
@@ -120,7 +310,46 @@ class TransactionsCubit extends Cubit<TransactionsState> {
           query: state.searchQuery,
           typeFilter: state.typeFilter,
         ),
+        isLoading: isLoading,
+        isSubmitting: isSubmitting,
+        clearErrorMessage: true,
       ),
     );
+  }
+
+  TransactionModel _applyApprovalRules(TransactionModel transaction) {
+    if (transaction.isLost || transaction.isDamaged) {
+      return transaction.copyWith(
+        approvalRequired: true,
+        approvalStatus: transaction.approvalStatus == 'not_required'
+            ? 'pending'
+            : transaction.approvalStatus,
+      );
+    }
+
+    return transaction.copyWith(
+      approvalRequired: false,
+      approvalStatus: 'not_required',
+    );
+  }
+
+  bool _hasRequiredProofImage(TransactionModel transaction) {
+    if (!transaction.isIssue && !transaction.isDamaged) {
+      return true;
+    }
+
+    final imagePath = transaction.imagePath;
+
+    return imagePath != null && imagePath.trim().isNotEmpty;
+  }
+
+  bool _hasRequiredNote(TransactionModel transaction) {
+    if (!transaction.isLost && !transaction.isDamaged) {
+      return true;
+    }
+
+    final note = transaction.note;
+
+    return note != null && note.trim().isNotEmpty;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/layouts/custody_balance_desktop_layout.dart';
@@ -36,70 +37,117 @@ class _TransactionsView extends StatelessWidget {
         final toolSummaries = transactionsCubit
             .getFilteredToolCustodySummaries();
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
+        return Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
-            return DefaultTabController(
-              length: 3,
-              child: Scaffold(
-                backgroundColor: AppColors.background,
-                body: Column(
-                  children: [
-                    Container(
-                      color: AppColors.card,
-                      child: const TabBar(
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: AppColors.accent,
-                        unselectedLabelColor: AppColors.textSecondary,
-                        indicatorColor: AppColors.accent,
-                        tabs: [
-                          Tab(text: 'Transactions'),
-                          Tab(text: 'Custody Balance'),
-                          Tab(text: 'Tool Summary'),
-                        ],
-                      ),
+                return DefaultTabController(
+                  length: 3,
+                  child: Scaffold(
+                    backgroundColor: AppColors.background,
+                    body: Column(
+                      children: [
+                        Container(
+                          color: AppColors.card,
+                          child: const TabBar(
+                            isScrollable: true,
+                            tabAlignment: TabAlignment.start,
+                            labelColor: AppColors.accent,
+                            unselectedLabelColor: AppColors.textSecondary,
+                            indicatorColor: AppColors.accent,
+                            tabs: [
+                              Tab(text: 'Transactions'),
+                              Tab(text: 'Custody Balance'),
+                              Tab(text: 'Tool Summary'),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              if (isMobile)
+                                TransactionsMobileLayout(
+                                  transactions: transactions,
+                                  selectedFilter: state.typeFilter,
+                                )
+                              else
+                                TransactionsDesktopLayout(
+                                  transactions: transactions,
+                                  selectedFilter: state.typeFilter,
+                                ),
+                              if (isMobile)
+                                CustodyBalanceMobileLayout(
+                                  balances: custodyBalances,
+                                )
+                              else
+                                CustodyBalanceDesktopLayout(
+                                  balances: custodyBalances,
+                                ),
+                              if (isMobile)
+                                ToolCustodySummaryMobileLayout(
+                                  summaries: toolSummaries,
+                                )
+                              else
+                                ToolCustodySummaryDesktopLayout(
+                                  summaries: toolSummaries,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
-                          if (isMobile)
-                            TransactionsMobileLayout(
-                              transactions: transactions,
-                              selectedFilter: state.typeFilter,
-                            )
-                          else
-                            TransactionsDesktopLayout(
-                              transactions: transactions,
-                              selectedFilter: state.typeFilter,
-                            ),
-                          if (isMobile)
-                            CustodyBalanceMobileLayout(
-                              balances: custodyBalances,
-                            )
-                          else
-                            CustodyBalanceDesktopLayout(
-                              balances: custodyBalances,
-                            ),
-                          if (isMobile)
-                            ToolCustodySummaryMobileLayout(
-                              summaries: toolSummaries,
-                            )
-                          else
-                            ToolCustodySummaryDesktopLayout(
-                              summaries: toolSummaries,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+                );
+              },
+            ),
+            if (state.errorMessage != null)
+              _TransactionsErrorBanner(message: state.errorMessage!),
+            if (state.isLoading || state.isSubmitting)
+              const _TransactionsLoadingOverlay(),
+          ],
         );
       },
+    );
+  }
+}
+
+class _TransactionsErrorBanner extends StatelessWidget {
+  const _TransactionsErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 12,
+      left: 16,
+      right: 16,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.error.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+        ),
+        child: Text(
+          message,
+          style: AppTextStyles.caption.copyWith(color: AppColors.error),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransactionsLoadingOverlay extends StatelessWidget {
+  const _TransactionsLoadingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: AppColors.background.withValues(alpha: 0.72),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 }

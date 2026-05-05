@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
@@ -15,7 +16,6 @@ import 'package:mina_system/features/transactions/presentation/functions/transac
 import 'package:mina_system/features/transactions/presentation/widgets/form/transaction_image_picker_field.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
-import 'package:gap/gap.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key, required this.onSave});
@@ -36,12 +36,26 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   ToolModel? _selectedTool;
   String? _selectedImagePath;
 
-  bool get _isIssueSelected {
-    if (_selectedType == null) {
-      return false;
+  TransactionType? get _selectedTransactionType {
+    final selectedType = _selectedType;
+
+    if (selectedType == null) {
+      return null;
     }
 
-    return getTransactionTypeFromLabel(_selectedType!) == TransactionType.issue;
+    return getTransactionTypeFromLabel(selectedType);
+  }
+
+  bool get _isProofImageRequired {
+    final type = _selectedTransactionType;
+
+    return type == TransactionType.issue || type == TransactionType.damaged;
+  }
+
+  bool get _isNoteRequired {
+    final type = _selectedTransactionType;
+
+    return type == TransactionType.lost || type == TransactionType.damaged;
   }
 
   @override
@@ -142,7 +156,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               const Gap(12),
               TransactionImagePickerField(
                 imagePath: _selectedImagePath,
-                isRequired: _isIssueSelected,
+                isRequired: _isProofImageRequired,
                 onImageSelected: (imagePath) {
                   setState(() {
                     _selectedImagePath = imagePath;
@@ -151,8 +165,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               ),
               const Gap(12),
               CustomTextFormField(
-                hint: 'Note (optional)',
+                hint: _isNoteRequired ? 'Note *' : 'Note (optional)',
                 controller: _noteController,
+                validator: _validateNote,
               ),
               const Gap(20),
               MainButton(text: 'Save Transaction', onPressed: _onSavePressed),
@@ -164,11 +179,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   }
 
   double? _getMaxReturnQuantity(BuildContext context) {
-    if (_selectedType == null) {
+    final selectedTransactionType = _selectedTransactionType;
+
+    if (selectedTransactionType == null) {
       return null;
     }
-
-    final selectedTransactionType = getTransactionTypeFromLabel(_selectedType!);
 
     if (!isClosingTransactionType(selectedTransactionType)) {
       return null;
@@ -187,6 +202,18 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     );
   }
 
+  String? _validateNote(String? value) {
+    if (!_isNoteRequired) {
+      return null;
+    }
+
+    if (value == null || value.trim().isEmpty) {
+      return 'Note is required for lost or damaged transactions';
+    }
+
+    return null;
+  }
+
   void _onSavePressed() {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -194,19 +221,23 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
     final selectedWorker = _selectedWorker!;
     final selectedTool = _selectedTool!;
-
     final cleanNote = _noteController.text.trim();
 
     final transaction = TransactionModel(
       transactionCode: context
           .read<TransactionsCubit>()
           .generateNextTransactionCode(),
-      type: getTransactionTypeFromLabel(_selectedType!),
+      type: _selectedTransactionType!,
+      workerId: selectedWorker.id,
       workerHrCode: selectedWorker.hrCode,
       workerName: selectedWorker.name,
+      workerDepartment: selectedWorker.department,
+      workerJobTitle: selectedWorker.jobTitle,
+      toolId: selectedTool.id,
       toolCode: selectedTool.toolCode,
       toolName: selectedTool.toolName,
       unit: selectedTool.unit,
+      toolCategory: selectedTool.category,
       quantity: double.parse(_quantityController.text.trim()),
       dateTime: DateTime.now(),
       imagePath: _selectedImagePath,
@@ -214,6 +245,5 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     );
 
     widget.onSave(transaction);
-    Navigator.pop(context);
   }
 }
