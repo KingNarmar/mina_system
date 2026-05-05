@@ -139,7 +139,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                   const Gap(20),
                   MainButton(
                     text: _isEditMode ? 'Update Tool' : 'Save Tool',
-                    onPressed: _onSavePressed,
+                    onPressed: () => _onSavePressed(lookupsState),
                   ),
                 ],
               ),
@@ -150,18 +150,44 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
     );
   }
 
-  void _onSavePressed() {
+  void _onSavePressed(LookupsState lookupsState) {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final selectedUnitName = _selectedUnit!.trim();
+    final selectedCategoryName = _selectedCategory!.trim();
+
+    final selectedUnitModel = lookupsState.toolUnitModels
+        .where((unit) => unit.name == selectedUnitName)
+        .firstOrNull;
+
+    final selectedCategoryModel = lookupsState.toolCategoryModels
+        .where((category) => category.name == selectedCategoryName)
+        .firstOrNull;
+
+    if (selectedUnitModel == null || selectedCategoryModel == null) {
+      return;
+    }
+
+    final initialTool = widget.initialTool;
+
     final tool = ToolModel(
+      id: initialTool?.id,
+      companyId: initialTool?.companyId,
       toolCode: _toolCodeController.text.trim(),
       toolName: _toolNameController.text.trim(),
-      unit: _selectedUnit!.trim(),
-      category: _selectedCategory!.trim(),
+      unit: selectedUnitModel.name,
+      category: selectedCategoryModel.name,
+      unitId: selectedUnitModel.id,
+      categoryId: selectedCategoryModel.id,
+      description: initialTool?.description,
+      status: initialTool?.status ?? 'active',
+      createdByProfileId: initialTool?.createdByProfileId,
+      createdAt: initialTool?.createdAt,
+      updatedAt: initialTool?.updatedAt,
     );
+
     widget.onSave(tool);
-    Navigator.pop(context);
   }
 }
