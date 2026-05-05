@@ -17,13 +17,7 @@ class CompanySettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final companyId = context.requireCurrentCompanyId();
-
-    return BlocProvider(
-      create: (_) =>
-          CompanySettingsCubit()..loadCompanyProfile(companyId: companyId),
-      child: const _CompanySettingsView(),
-    );
+    return const _CompanySettingsView();
   }
 }
 

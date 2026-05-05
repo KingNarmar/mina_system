@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
+import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/functions/show_report_pdf_preview.dart';
@@ -122,12 +124,31 @@ class _ReportBuilderActions extends StatelessWidget {
                   .read<TransactionsCubit>()
                   .state
                   .transactions;
+              final companySettingsState = context
+                  .read<CompanySettingsCubit>()
+                  .state;
 
+              if (companySettingsState is! CompanySettingsLoaded) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Company settings are still loading. Please try again.',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+
+                return;
+              }
               showReportPdfPreview(
                 context,
                 reportType: report.type,
                 filters: filters,
                 transactions: transactions,
+                companyProfile: companySettingsState.profile,
+                reportSettings: companySettingsState.reportSettings,
               );
             },
             icon: const Icon(Icons.picture_as_pdf_outlined),

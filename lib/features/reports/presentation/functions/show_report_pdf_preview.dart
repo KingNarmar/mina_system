@@ -3,6 +3,8 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
+import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/services/report_pdf_service.dart';
@@ -14,6 +16,8 @@ void showReportPdfPreview(
   required ReportType reportType,
   required ReportFilterModel filters,
   required List<TransactionModel> transactions,
+  required CompanyProfileModel companyProfile,
+  required CompanyReportSettingsModel reportSettings,
 }) {
   final width = MediaQuery.sizeOf(context).width;
   final height = MediaQuery.sizeOf(context).height;
@@ -23,6 +27,8 @@ void showReportPdfPreview(
     reportType: reportType,
     filters: filters,
     transactions: transactions,
+    companyProfile: companyProfile,
+    reportSettings: reportSettings,
   );
 
   if (isMobile) {
@@ -57,12 +63,15 @@ class _ReportPdfPreview extends StatelessWidget {
     required this.reportType,
     required this.filters,
     required this.transactions,
+    required this.companyProfile,
+    required this.reportSettings,
   });
 
   final ReportType reportType;
   final ReportFilterModel filters;
   final List<TransactionModel> transactions;
-
+  final CompanyProfileModel companyProfile;
+  final CompanyReportSettingsModel reportSettings;
   @override
   Widget build(BuildContext context) {
     final pdfService = ReportPdfService();
@@ -104,6 +113,8 @@ class _ReportPdfPreview extends StatelessWidget {
                   reportType: reportType,
                   filters: filters,
                   transactions: transactions,
+                  companyProfile: companyProfile,
+                  reportSettings: reportSettings,
                 );
               },
             ),
