@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
@@ -10,7 +11,6 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
-import 'package:gap/gap.dart';
 
 class JobTitlesTab extends StatefulWidget {
   const JobTitlesTab({super.key});
@@ -56,8 +56,8 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                 LookupAddRow(
                   hint: 'Job Title',
                   controller: _jobTitleController,
-                  onAdd: () {
-                    final isAdded = addJobTitleLookup(
+                  onAdd: () async {
+                    final isAdded = await addJobTitleLookup(
                       context: context,
                       department: _selectedDepartment,
                       jobTitle: _jobTitleController.text,
@@ -88,8 +88,8 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                           context: context,
                           title: 'Delete Job Title',
                           message: 'Are you sure you want to delete $jobTitle?',
-                          onConfirm: () {
-                            deleteJobTitleLookup(
+                          onConfirm: () async {
+                            await deleteJobTitleLookup(
                               context: context,
                               department: _selectedDepartment!,
                               jobTitle: jobTitle,

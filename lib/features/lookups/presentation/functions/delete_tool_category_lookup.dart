@@ -4,12 +4,14 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.da
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 
-void deleteToolCategoryLookup({
+Future<bool> deleteToolCategoryLookup({
   required BuildContext context,
   required String category,
-}) {
+}) async {
+  final cleanCategory = category.trim();
+
   final isCategoryUsed = context.read<ToolsCubit>().state.tools.any((tool) {
-    return tool.category.trim().toLowerCase() == category.trim().toLowerCase();
+    return _isSameLookupName(tool.category, cleanCategory);
   });
 
   if (isCategoryUsed) {
@@ -17,10 +19,30 @@ void deleteToolCategoryLookup({
       context,
       'Cannot delete category because it is used by tools',
     );
-    return;
+    return false;
   }
 
-  context.read<LookupsCubit>().deleteToolCategory(category);
+  final isDeleted = await context.read<LookupsCubit>().deleteToolCategory(
+    category: cleanCategory,
+  );
 
-  showLookupMessage(context, 'Category deleted successfully');
+  if (!context.mounted) {
+    return false;
+  }
+
+  if (isDeleted) {
+    showLookupMessage(context, 'Category deleted successfully');
+  } else {
+    showLookupMessage(context, 'Category was not deleted');
+  }
+
+  return isDeleted;
+}
+
+bool _isSameLookupName(String firstValue, String secondValue) {
+  return _normalizeLookupName(firstValue) == _normalizeLookupName(secondValue);
+}
+
+String _normalizeLookupName(String value) {
+  return value.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
 }

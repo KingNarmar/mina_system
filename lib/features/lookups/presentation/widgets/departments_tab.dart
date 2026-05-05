@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/add_department_lookup.dart';
@@ -9,7 +10,6 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
-import 'package:gap/gap.dart';
 
 class DepartmentsTab extends StatefulWidget {
   const DepartmentsTab({super.key});
@@ -40,8 +40,8 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                 LookupAddRow(
                   hint: 'Department Name',
                   controller: _departmentController,
-                  onAdd: () {
-                    final isAdded = addDepartmentLookup(
+                  onAdd: () async {
+                    final isAdded = await addDepartmentLookup(
                       context: context,
                       department: _departmentController.text,
                       departments: state.departments,
@@ -66,8 +66,8 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                           title: 'Delete Department',
                           message:
                               'Are you sure you want to delete $department?',
-                          onConfirm: () {
-                            deleteDepartmentLookup(
+                          onConfirm: () async {
+                            await deleteDepartmentLookup(
                               context: context,
                               department: department,
                             );

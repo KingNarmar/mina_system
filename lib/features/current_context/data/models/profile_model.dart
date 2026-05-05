@@ -1,9 +1,5 @@
 class ProfileModel {
-  const ProfileModel({
-    required this.id,
-    this.fullName,
-    this.email,
-  });
+  const ProfileModel({required this.id, this.fullName, this.email});
 
   final String id;
   final String? fullName;

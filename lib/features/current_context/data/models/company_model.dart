@@ -1,9 +1,5 @@
 class CompanyModel {
-  const CompanyModel({
-    required this.id,
-    required this.name,
-    this.role,
-  });
+  const CompanyModel({required this.id, required this.name, this.role});
 
   final String id;
   final String name;
@@ -20,11 +16,7 @@ class CompanyModel {
     );
   }
 
-  CompanyModel copyWith({
-    String? id,
-    String? name,
-    String? role,
-  }) {
+  CompanyModel copyWith({String? id, String? name, String? role}) {
     return CompanyModel(
       id: id ?? this.id,
       name: name ?? this.name,

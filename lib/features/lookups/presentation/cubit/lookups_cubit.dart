@@ -1,10 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/features/lookups/data/models/department_model.dart';
+import 'package:mina_system/features/lookups/data/models/job_title_model.dart';
+import 'package:mina_system/features/lookups/data/models/tool_category_model.dart';
+import 'package:mina_system/features/lookups/data/models/tool_unit_model.dart';
+import 'package:mina_system/features/lookups/data/repo/lookups_repo.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/lookup_helpers.dart';
 
 class LookupsCubit extends Cubit<LookupsState> {
-  LookupsCubit()
-    : super(
+  LookupsCubit({LookupsRepo? lookupsRepo})
+    : _lookupsRepo = lookupsRepo ?? LookupsRepo(),
+      super(
         const LookupsState(
           departments: _initialDepartments,
           jobTitlesByDepartment: _initialJobTitlesByDepartment,
@@ -12,6 +18,8 @@ class LookupsCubit extends Cubit<LookupsState> {
           toolCategories: _initialToolCategories,
         ),
       );
+
+  final LookupsRepo _lookupsRepo;
 
   static const List<String> _initialDepartments = [
     'Fabrication',
@@ -86,137 +94,464 @@ class LookupsCubit extends Cubit<LookupsState> {
     'Lifting Tools',
     'Electrical Tools',
   ];
-  void addDepartment(String department) {
+
+  Future<void> loadLookups({required String companyId}) async {
+    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+
+    try {
+      final departments = await _lookupsRepo.getDepartments(
+        companyId: companyId,
+      );
+
+      final jobTitles = await _lookupsRepo.getJobTitles(companyId: companyId);
+
+      final toolUnits = await _lookupsRepo.getToolUnits(companyId: companyId);
+
+      final toolCategories = await _lookupsRepo.getToolCategories(
+        companyId: companyId,
+      );
+
+      emit(
+        _buildStateFromModels(
+          departments: departments,
+          jobTitles: jobTitles,
+          toolUnits: toolUnits,
+          toolCategories: toolCategories,
+        ),
+      );
+    } catch (error) {
+      emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+    }
+  }
+
+  Future<bool> addDepartment({
+    required String companyId,
+    required String department,
+  }) async {
     final cleanDepartment = department.trim();
 
     if (cleanDepartment.isEmpty) {
-      return;
+      return false;
     }
 
-    if (containsValue(state.departments, cleanDepartment)) {
-      return;
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final isDuplicated = await _lookupsRepo.departmentNameExists(
+        companyId: companyId,
+        name: cleanDepartment,
+      );
+
+      if (isDuplicated) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: 'Department already exists',
+          ),
+        );
+        return false;
+      }
+
+      final addedDepartment = await _lookupsRepo.addDepartment(
+        companyId: companyId,
+        name: cleanDepartment,
+      );
+
+      emit(
+        _buildStateFromModels(
+          departments: [...state.departmentModels, addedDepartment],
+          jobTitles: state.jobTitleModels,
+          toolUnits: state.toolUnitModels,
+          toolCategories: state.toolCategoryModels,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
     }
-
-    final updatedDepartments = List<String>.from(state.departments)
-      ..add(cleanDepartment);
-
-    final updatedJobTitlesByDepartment = Map<String, List<String>>.from(
-      state.jobTitlesByDepartment,
-    )..putIfAbsent(cleanDepartment, () => []);
-
-    emit(
-      state.copyWith(
-        departments: updatedDepartments,
-        jobTitlesByDepartment: updatedJobTitlesByDepartment,
-      ),
-    );
   }
 
-  void deleteDepartment(String department) {
-    final updatedDepartments = state.departments.where((item) {
-      return !isSameValue(item, department);
-    }).toList();
+  Future<bool> deleteDepartment({required String departmentId}) async {
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
-    final updatedJobTitlesByDepartment = Map<String, List<String>>.from(
-      state.jobTitlesByDepartment,
-    )..remove(department);
+    try {
+      await _lookupsRepo.deleteDepartment(departmentId: departmentId);
 
-    emit(
-      state.copyWith(
-        departments: updatedDepartments,
-        jobTitlesByDepartment: updatedJobTitlesByDepartment,
-      ),
-    );
+      final updatedDepartments = state.departmentModels.where((department) {
+        return department.id != departmentId;
+      }).toList();
+
+      final updatedJobTitles = state.jobTitleModels.where((jobTitle) {
+        return jobTitle.departmentId != departmentId;
+      }).toList();
+
+      emit(
+        _buildStateFromModels(
+          departments: updatedDepartments,
+          jobTitles: updatedJobTitles,
+          toolUnits: state.toolUnitModels,
+          toolCategories: state.toolCategoryModels,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
   }
 
-  void addJobTitle({required String department, required String jobTitle}) {
+  Future<bool> addJobTitle({
+    required String companyId,
+    required String department,
+    required String jobTitle,
+  }) async {
     final cleanDepartment = department.trim();
     final cleanJobTitle = jobTitle.trim();
 
     if (cleanDepartment.isEmpty || cleanJobTitle.isEmpty) {
-      return;
+      return false;
     }
 
-    final currentJobTitles = state.jobTitlesByDepartment[cleanDepartment] ?? [];
+    final departmentModel = state.departmentModels
+        .where((item) => isSameValue(item.name, cleanDepartment))
+        .firstOrNull;
 
-    if (containsValue(currentJobTitles, cleanJobTitle)) {
-      return;
+    if (departmentModel == null) {
+      emit(state.copyWith(errorMessage: 'Department was not found'));
+      return false;
     }
 
-    final updatedJobTitlesByDepartment = Map<String, List<String>>.from(
-      state.jobTitlesByDepartment,
-    );
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
-    updatedJobTitlesByDepartment[cleanDepartment] = [
-      ...currentJobTitles,
-      cleanJobTitle,
-    ];
+    try {
+      final isDuplicated = await _lookupsRepo.jobTitleNameExists(
+        companyId: companyId,
+        departmentId: departmentModel.id,
+        name: cleanJobTitle,
+      );
 
-    emit(state.copyWith(jobTitlesByDepartment: updatedJobTitlesByDepartment));
+      if (isDuplicated) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: 'Job title already exists',
+          ),
+        );
+        return false;
+      }
+
+      final addedJobTitle = await _lookupsRepo.addJobTitle(
+        companyId: companyId,
+        departmentId: departmentModel.id,
+        name: cleanJobTitle,
+      );
+
+      emit(
+        _buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: [...state.jobTitleModels, addedJobTitle],
+          toolUnits: state.toolUnitModels,
+          toolCategories: state.toolCategoryModels,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
   }
 
-  void deleteJobTitle({required String department, required String jobTitle}) {
-    final currentJobTitles = state.jobTitlesByDepartment[department] ?? [];
+  Future<bool> deleteJobTitle({
+    required String department,
+    required String jobTitle,
+  }) async {
+    final cleanDepartment = department.trim();
+    final cleanJobTitle = jobTitle.trim();
 
-    final updatedJobTitles = currentJobTitles.where((item) {
-      return !isSameValue(item, jobTitle);
-    }).toList();
+    if (cleanDepartment.isEmpty || cleanJobTitle.isEmpty) {
+      return false;
+    }
 
-    final updatedJobTitlesByDepartment = Map<String, List<String>>.from(
-      state.jobTitlesByDepartment,
-    );
+    final departmentModel = state.departmentModels
+        .where((item) => isSameValue(item.name, cleanDepartment))
+        .firstOrNull;
 
-    updatedJobTitlesByDepartment[department] = updatedJobTitles;
+    if (departmentModel == null) {
+      emit(state.copyWith(errorMessage: 'Department was not found'));
+      return false;
+    }
 
-    emit(state.copyWith(jobTitlesByDepartment: updatedJobTitlesByDepartment));
+    final jobTitleModel = state.jobTitleModels.where((item) {
+      final isSameDepartment = item.departmentId == departmentModel.id;
+      final isSameJobTitle = isSameValue(item.name, cleanJobTitle);
+
+      return isSameDepartment && isSameJobTitle;
+    }).firstOrNull;
+
+    if (jobTitleModel == null) {
+      emit(state.copyWith(errorMessage: 'Job title was not found'));
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      await _lookupsRepo.deleteJobTitle(jobTitleId: jobTitleModel.id);
+
+      final updatedJobTitles = state.jobTitleModels.where((item) {
+        return item.id != jobTitleModel.id;
+      }).toList();
+
+      emit(
+        _buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: updatedJobTitles,
+          toolUnits: state.toolUnitModels,
+          toolCategories: state.toolCategoryModels,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
   }
 
-  void addToolUnit(String unit) {
+  Future<bool> addToolUnit({
+    required String companyId,
+    required String unit,
+  }) async {
     final cleanUnit = unit.trim();
 
     if (cleanUnit.isEmpty) {
-      return;
+      return false;
     }
 
-    if (containsValue(state.toolUnits, cleanUnit)) {
-      return;
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final isDuplicated = await _lookupsRepo.toolUnitNameExists(
+        companyId: companyId,
+        name: cleanUnit,
+      );
+
+      if (isDuplicated) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: 'Tool unit already exists',
+          ),
+        );
+        return false;
+      }
+
+      final addedToolUnit = await _lookupsRepo.addToolUnit(
+        companyId: companyId,
+        name: cleanUnit,
+      );
+
+      emit(
+        _buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: state.jobTitleModels,
+          toolUnits: [...state.toolUnitModels, addedToolUnit],
+          toolCategories: state.toolCategoryModels,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
+
+  Future<bool> deleteToolUnit({required String unit}) async {
+    final cleanUnit = unit.trim();
+
+    if (cleanUnit.isEmpty) {
+      return false;
     }
 
-    final updatedToolUnits = List<String>.from(state.toolUnits)..add(cleanUnit);
+    final toolUnitModel = state.toolUnitModels
+        .where((item) => isSameValue(item.name, cleanUnit))
+        .firstOrNull;
 
-    emit(state.copyWith(toolUnits: updatedToolUnits));
+    if (toolUnitModel == null) {
+      emit(state.copyWith(errorMessage: 'Tool unit was not found'));
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      await _lookupsRepo.deleteToolUnit(toolUnitId: toolUnitModel.id);
+
+      final updatedToolUnits = state.toolUnitModels.where((item) {
+        return item.id != toolUnitModel.id;
+      }).toList();
+
+      emit(
+        _buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: state.jobTitleModels,
+          toolUnits: updatedToolUnits,
+          toolCategories: state.toolCategoryModels,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
   }
 
-  void deleteToolUnit(String unit) {
-    final updatedToolUnits = state.toolUnits.where((item) {
-      return !isSameValue(item, unit);
-    }).toList();
-
-    emit(state.copyWith(toolUnits: updatedToolUnits));
-  }
-
-  void addToolCategory(String category) {
+  Future<bool> addToolCategory({
+    required String companyId,
+    required String category,
+  }) async {
     final cleanCategory = category.trim();
 
     if (cleanCategory.isEmpty) {
-      return;
+      return false;
     }
 
-    if (containsValue(state.toolCategories, cleanCategory)) {
-      return;
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final isDuplicated = await _lookupsRepo.toolCategoryNameExists(
+        companyId: companyId,
+        name: cleanCategory,
+      );
+
+      if (isDuplicated) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: 'Tool category already exists',
+          ),
+        );
+        return false;
+      }
+
+      final addedToolCategory = await _lookupsRepo.addToolCategory(
+        companyId: companyId,
+        name: cleanCategory,
+      );
+
+      emit(
+        _buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: state.jobTitleModels,
+          toolUnits: state.toolUnitModels,
+          toolCategories: [...state.toolCategoryModels, addedToolCategory],
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
     }
-
-    final updatedToolCategories = List<String>.from(state.toolCategories)
-      ..add(cleanCategory);
-
-    emit(state.copyWith(toolCategories: updatedToolCategories));
   }
 
-  void deleteToolCategory(String category) {
-    final updatedToolCategories = state.toolCategories.where((item) {
-      return !isSameValue(item, category);
+  Future<bool> deleteToolCategory({required String category}) async {
+    final cleanCategory = category.trim();
+
+    if (cleanCategory.isEmpty) {
+      return false;
+    }
+
+    final toolCategoryModel = state.toolCategoryModels
+        .where((item) => isSameValue(item.name, cleanCategory))
+        .firstOrNull;
+
+    if (toolCategoryModel == null) {
+      emit(state.copyWith(errorMessage: 'Tool category was not found'));
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      await _lookupsRepo.deleteToolCategory(
+        toolCategoryId: toolCategoryModel.id,
+      );
+
+      final updatedToolCategories = state.toolCategoryModels.where((item) {
+        return item.id != toolCategoryModel.id;
+      }).toList();
+
+      emit(
+        _buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: state.jobTitleModels,
+          toolUnits: state.toolUnitModels,
+          toolCategories: updatedToolCategories,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
+
+  LookupsState _buildStateFromModels({
+    required List<DepartmentModel> departments,
+    required List<JobTitleModel> jobTitles,
+    required List<ToolUnitModel> toolUnits,
+    required List<ToolCategoryModel> toolCategories,
+    bool isLoading = false,
+    bool isSubmitting = false,
+    String? errorMessage,
+  }) {
+    final departmentNames = departments.map((department) {
+      return department.name;
     }).toList();
 
-    emit(state.copyWith(toolCategories: updatedToolCategories));
+    final jobTitlesByDepartment = <String, List<String>>{};
+
+    for (final department in departments) {
+      final departmentJobTitles = jobTitles
+          .where((jobTitle) {
+            return jobTitle.departmentId == department.id;
+          })
+          .map((jobTitle) {
+            return jobTitle.name;
+          })
+          .toList();
+
+      jobTitlesByDepartment[department.name] = departmentJobTitles;
+    }
+
+    final toolUnitNames = toolUnits.map((toolUnit) {
+      return toolUnit.name;
+    }).toList();
+
+    final toolCategoryNames = toolCategories.map((toolCategory) {
+      return toolCategory.name;
+    }).toList();
+
+    return LookupsState(
+      departments: departmentNames,
+      jobTitlesByDepartment: jobTitlesByDepartment,
+      toolUnits: toolUnitNames,
+      toolCategories: toolCategoryNames,
+      departmentModels: departments,
+      jobTitleModels: jobTitles,
+      toolUnitModels: toolUnits,
+      toolCategoryModels: toolCategories,
+      isLoading: isLoading,
+      isSubmitting: isSubmitting,
+      errorMessage: errorMessage,
+    );
   }
 }

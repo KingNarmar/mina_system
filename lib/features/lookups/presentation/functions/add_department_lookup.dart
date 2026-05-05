@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 
-bool addDepartmentLookup({
+Future<bool> addDepartmentLookup({
   required BuildContext context,
   required String department,
   required List<String> departments,
-}) {
+}) async {
   final cleanDepartment = department.trim();
 
   if (cleanDepartment.isEmpty) {
@@ -15,18 +16,22 @@ bool addDepartmentLookup({
     return false;
   }
 
-  final isDuplicated = departments.any((item) {
-    return item.trim().toLowerCase() == cleanDepartment.toLowerCase();
-  });
+  final companyId = context.requireCurrentCompanyId();
 
-  if (isDuplicated) {
-    showLookupMessage(context, 'Department already exists');
+  final isAdded = await context.read<LookupsCubit>().addDepartment(
+    companyId: companyId,
+    department: cleanDepartment,
+  );
+
+  if (!context.mounted) {
     return false;
   }
 
-  context.read<LookupsCubit>().addDepartment(cleanDepartment);
+  if (isAdded) {
+    showLookupMessage(context, 'Department added successfully');
+  } else {
+    showLookupMessage(context, 'Department was not added');
+  }
 
-  showLookupMessage(context, 'Department added successfully');
-
-  return true;
+  return isAdded;
 }

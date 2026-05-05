@@ -7,9 +7,7 @@ class AuthLoading extends AuthState {}
 class AuthSuccess extends AuthState {}
 
 class AuthRegisterSuccess extends AuthState {
-  AuthRegisterSuccess({
-    required this.requiresEmailConfirmation,
-  });
+  AuthRegisterSuccess({required this.requiresEmailConfirmation});
 
   final bool requiresEmailConfirmation;
 }

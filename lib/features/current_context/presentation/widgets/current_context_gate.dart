@@ -8,10 +8,7 @@ import 'package:mina_system/features/current_context/presentation/cubit/current_
 import 'package:mina_system/features/current_context/presentation/screens/create_company_screen.dart';
 
 class CurrentContextGate extends StatelessWidget {
-  const CurrentContextGate({
-    super.key,
-    required this.child,
-  });
+  const CurrentContextGate({super.key, required this.child});
 
   final Widget child;
 
@@ -52,17 +49,13 @@ class _CurrentContextLoadingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
 
 class _CurrentContextFailureView extends StatelessWidget {
-  const _CurrentContextFailureView({
-    required this.message,
-  });
+  const _CurrentContextFailureView({required this.message});
 
   final String message;
 

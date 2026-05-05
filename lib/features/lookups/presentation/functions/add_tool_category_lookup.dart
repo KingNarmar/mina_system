@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 
-bool addToolCategoryLookup({
+Future<bool> addToolCategoryLookup({
   required BuildContext context,
   required String category,
   required List<String> categories,
-}) {
+}) async {
   final cleanCategory = category.trim();
 
   if (cleanCategory.isEmpty) {
@@ -15,18 +16,22 @@ bool addToolCategoryLookup({
     return false;
   }
 
-  final isDuplicated = categories.any((item) {
-    return item.trim().toLowerCase() == cleanCategory.toLowerCase();
-  });
+  final companyId = context.requireCurrentCompanyId();
 
-  if (isDuplicated) {
-    showLookupMessage(context, 'Category already exists');
+  final isAdded = await context.read<LookupsCubit>().addToolCategory(
+    companyId: companyId,
+    category: cleanCategory,
+  );
+
+  if (!context.mounted) {
     return false;
   }
 
-  context.read<LookupsCubit>().addToolCategory(cleanCategory);
+  if (isAdded) {
+    showLookupMessage(context, 'Category added successfully');
+  } else {
+    showLookupMessage(context, 'Category was not added');
+  }
 
-  showLookupMessage(context, 'Category added successfully');
-
-  return true;
+  return isAdded;
 }

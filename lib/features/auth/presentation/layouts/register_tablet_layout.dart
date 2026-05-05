@@ -11,10 +11,7 @@ class RegisterTabletLayout extends StatelessWidget {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.all(32),
-            child: SizedBox(
-              width: 420,
-              child: RegisterForm(),
-            ),
+            child: SizedBox(width: 420, child: RegisterForm()),
           ),
         ),
       ),

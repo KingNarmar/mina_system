@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/add_tool_category_lookup.dart';
@@ -9,7 +10,6 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
-import 'package:gap/gap.dart';
 
 class ToolCategoriesTab extends StatefulWidget {
   const ToolCategoriesTab({super.key});
@@ -40,8 +40,8 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                 LookupAddRow(
                   hint: 'Category Name',
                   controller: _categoryController,
-                  onAdd: () {
-                    final isAdded = addToolCategoryLookup(
+                  onAdd: () async {
+                    final isAdded = await addToolCategoryLookup(
                       context: context,
                       category: _categoryController.text,
                       categories: state.toolCategories,
@@ -65,8 +65,8 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                           context: context,
                           title: 'Delete Tool Category',
                           message: 'Are you sure you want to delete $category?',
-                          onConfirm: () {
-                            deleteToolCategoryLookup(
+                          onConfirm: () async {
+                            await deleteToolCategoryLookup(
                               context: context,
                               category: category,
                             );

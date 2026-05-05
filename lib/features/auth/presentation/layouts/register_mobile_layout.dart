@@ -9,10 +9,7 @@ class RegisterMobileLayout extends StatelessWidget {
     return const Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: RegisterForm(),
-          ),
+          child: Padding(padding: EdgeInsets.all(20), child: RegisterForm()),
         ),
       ),
     );

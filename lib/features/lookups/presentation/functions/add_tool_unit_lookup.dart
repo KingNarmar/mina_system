@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 
-bool addToolUnitLookup({
+Future<bool> addToolUnitLookup({
   required BuildContext context,
   required String unit,
   required List<String> units,
-}) {
+}) async {
   final cleanUnit = unit.trim();
 
   if (cleanUnit.isEmpty) {
@@ -15,18 +16,22 @@ bool addToolUnitLookup({
     return false;
   }
 
-  final isDuplicated = units.any((item) {
-    return item.trim().toLowerCase() == cleanUnit.toLowerCase();
-  });
+  final companyId = context.requireCurrentCompanyId();
 
-  if (isDuplicated) {
-    showLookupMessage(context, 'Unit already exists');
+  final isAdded = await context.read<LookupsCubit>().addToolUnit(
+    companyId: companyId,
+    unit: cleanUnit,
+  );
+
+  if (!context.mounted) {
     return false;
   }
 
-  context.read<LookupsCubit>().addToolUnit(cleanUnit);
+  if (isAdded) {
+    showLookupMessage(context, 'Unit added successfully');
+  } else {
+    showLookupMessage(context, 'Unit was not added');
+  }
 
-  showLookupMessage(context, 'Unit added successfully');
-
-  return true;
+  return isAdded;
 }

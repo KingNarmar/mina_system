@@ -46,12 +46,7 @@ class RegisterDesktopLayout extends StatelessWidget {
             ),
           ),
           const Expanded(
-            child: Center(
-              child: SizedBox(
-                width: 420,
-                child: RegisterForm(),
-              ),
-            ),
+            child: Center(child: SizedBox(width: 420, child: RegisterForm())),
           ),
         ],
       ),

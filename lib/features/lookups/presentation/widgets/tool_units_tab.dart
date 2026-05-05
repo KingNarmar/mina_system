@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/functions/add_tool_unit_lookup.dart';
@@ -9,7 +10,6 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
-import 'package:gap/gap.dart';
 
 class ToolUnitsTab extends StatefulWidget {
   const ToolUnitsTab({super.key});
@@ -40,8 +40,8 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                 LookupAddRow(
                   hint: 'Unit Name',
                   controller: _unitController,
-                  onAdd: () {
-                    final isAdded = addToolUnitLookup(
+                  onAdd: () async {
+                    final isAdded = await addToolUnitLookup(
                       context: context,
                       unit: _unitController.text,
                       units: state.toolUnits,
@@ -65,8 +65,11 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                           context: context,
                           title: 'Delete Tool Unit',
                           message: 'Are you sure you want to delete $unit?',
-                          onConfirm: () {
-                            deleteToolUnitLookup(context: context, unit: unit);
+                          onConfirm: () async {
+                            await deleteToolUnitLookup(
+                              context: context,
+                              unit: unit,
+                            );
                           },
                         );
                       },

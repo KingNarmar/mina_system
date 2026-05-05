@@ -24,8 +24,7 @@ class CompanyReportSettingsForm extends StatefulWidget {
       _CompanyReportSettingsFormState();
 }
 
-class _CompanyReportSettingsFormState
-    extends State<CompanyReportSettingsForm> {
+class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _timezoneController;
@@ -249,10 +248,7 @@ class _ReportSettingSwitch extends StatelessWidget {
 }
 
 class _MultilineTextField extends StatelessWidget {
-  const _MultilineTextField({
-    required this.label,
-    required this.controller,
-  });
+  const _MultilineTextField({required this.label, required this.controller});
 
   final String label;
   final TextEditingController controller;

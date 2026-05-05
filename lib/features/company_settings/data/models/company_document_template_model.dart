@@ -48,8 +48,7 @@ class CompanyDocumentTemplateModel {
       approvedByTitle: json['approved_by_title'] as String?,
       workerSignatureLabel: json['worker_signature_label'] as String?,
       managerSignatureLabel: json['manager_signature_label'] as String?,
-      storekeeperSignatureLabel:
-          json['storekeeper_signature_label'] as String?,
+      storekeeperSignatureLabel: json['storekeeper_signature_label'] as String?,
       isActive: json['is_active'] as bool,
     );
   }
@@ -100,8 +99,7 @@ class CompanyDocumentTemplateModel {
       preparedByTitle: preparedByTitle ?? this.preparedByTitle,
       checkedByTitle: checkedByTitle ?? this.checkedByTitle,
       approvedByTitle: approvedByTitle ?? this.approvedByTitle,
-      workerSignatureLabel:
-          workerSignatureLabel ?? this.workerSignatureLabel,
+      workerSignatureLabel: workerSignatureLabel ?? this.workerSignatureLabel,
       managerSignatureLabel:
           managerSignatureLabel ?? this.managerSignatureLabel,
       storekeeperSignatureLabel:

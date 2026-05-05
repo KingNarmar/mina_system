@@ -53,18 +53,16 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
             if (documentTemplates.isEmpty)
               const _EmptyDocumentTemplatesView()
             else
-              ...documentTemplates.map(
-                (template) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _DocumentTemplateCard(
-                      key: ValueKey(template.id),
-                      documentTemplate: template,
-                      isSaving: isSaving,
-                    ),
-                  );
-                },
-              ),
+              ...documentTemplates.map((template) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _DocumentTemplateCard(
+                    key: ValueKey(template.id),
+                    documentTemplate: template,
+                    isSaving: isSaving,
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -148,7 +146,9 @@ class _DocumentTemplateCardState extends State<_DocumentTemplateCard> {
 
   @override
   Widget build(BuildContext context) {
-    final reportTypeTitle = _formatReportType(widget.documentTemplate.reportType);
+    final reportTypeTitle = _formatReportType(
+      widget.documentTemplate.reportType,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -334,9 +334,7 @@ class _DocumentTemplateCardState extends State<_DocumentTemplateCard> {
       preparedByTitle: _emptyToNull(_preparedByTitleController.text),
       checkedByTitle: _emptyToNull(_checkedByTitleController.text),
       approvedByTitle: _emptyToNull(_approvedByTitleController.text),
-      workerSignatureLabel: _emptyToNull(
-        _workerSignatureLabelController.text,
-      ),
+      workerSignatureLabel: _emptyToNull(_workerSignatureLabelController.text),
       managerSignatureLabel: _emptyToNull(
         _managerSignatureLabelController.text,
       ),
@@ -347,8 +345,8 @@ class _DocumentTemplateCardState extends State<_DocumentTemplateCard> {
     );
 
     context.read<CompanySettingsCubit>().updateCompanyDocumentTemplate(
-          documentTemplate: updatedTemplate,
-        );
+      documentTemplate: updatedTemplate,
+    );
   }
 
   String? _emptyToNull(String value) {
@@ -373,8 +371,9 @@ class _DocumentTemplateCardState extends State<_DocumentTemplateCard> {
         .split(' ')
         .where((word) => word.trim().isNotEmpty)
         .map((word) {
-      final lowerWord = word.toLowerCase();
-      return '${lowerWord[0].toUpperCase()}${lowerWord.substring(1)}';
-    }).join(' ');
+          final lowerWord = word.toLowerCase();
+          return '${lowerWord[0].toUpperCase()}${lowerWord.substring(1)}';
+        })
+        .join(' ');
   }
 }

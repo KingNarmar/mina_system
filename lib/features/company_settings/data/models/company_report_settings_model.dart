@@ -56,10 +56,10 @@ class CompanyReportSettingsModel {
       'show_document_control': showDocumentControl,
       'show_generated_by': showGeneratedBy,
       'report_footer_text': reportFooterText?.trim(),
-      'custody_responsibility_statement':
-          custodyResponsibilityStatement?.trim(),
-      'loss_damage_responsibility_statement':
-          lossDamageResponsibilityStatement?.trim(),
+      'custody_responsibility_statement': custodyResponsibilityStatement
+          ?.trim(),
+      'loss_damage_responsibility_statement': lossDamageResponsibilityStatement
+          ?.trim(),
     };
   }
 
@@ -85,16 +85,14 @@ class CompanyReportSettingsModel {
       timeFormat: timeFormat ?? this.timeFormat,
       showCompanyLogo: showCompanyLogo ?? this.showCompanyLogo,
       showCompanyDetails: showCompanyDetails ?? this.showCompanyDetails,
-      showDocumentControl:
-          showDocumentControl ?? this.showDocumentControl,
+      showDocumentControl: showDocumentControl ?? this.showDocumentControl,
       showGeneratedBy: showGeneratedBy ?? this.showGeneratedBy,
       reportFooterText: reportFooterText ?? this.reportFooterText,
       custodyResponsibilityStatement:
-          custodyResponsibilityStatement ??
-              this.custodyResponsibilityStatement,
+          custodyResponsibilityStatement ?? this.custodyResponsibilityStatement,
       lossDamageResponsibilityStatement:
           lossDamageResponsibilityStatement ??
-              this.lossDamageResponsibilityStatement,
+          this.lossDamageResponsibilityStatement,
     );
   }
 }
