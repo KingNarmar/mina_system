@@ -8,6 +8,7 @@ import 'package:mina_system/features/company_settings/presentation/cubit/company
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_logo_card.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
@@ -71,10 +72,9 @@ class _CompanySettingsView extends StatelessWidget {
                     isSaving: state.isUploadingLogo,
                   ),
                   const Gap(16),
-                  const _CompanySettingsPlaceholderCard(
-                    title: 'Report Settings',
-                    description:
-                        'Report header, footer, and default report settings will be configured here.',
+                  CompanyReportSettingsForm(
+                    reportSettings: state.reportSettings,
+                    isSaving: state.isUpdatingReportSettings,
                   ),
                   const Gap(16),
                   const _CompanySettingsPlaceholderCard(

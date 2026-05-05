@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/company_profile_model.dart';
+import '../models/company_report_settings_model.dart';
 
 class CompanySettingsRepo {
   CompanySettingsRepo({SupabaseClient? supabaseClient})
@@ -22,6 +23,18 @@ class CompanySettingsRepo {
     return CompanyProfileModel.fromJson(data);
   }
 
+  Future<CompanyReportSettingsModel> getCompanyReportSettings({
+    required String companyId,
+  }) async {
+    final data = await _supabase
+        .from('company_report_settings')
+        .select()
+        .eq('company_id', companyId)
+        .single();
+
+    return CompanyReportSettingsModel.fromJson(data);
+  }
+
   Future<CompanyProfileModel> updateCompanyProfile({
     required CompanyProfileModel profile,
   }) async {
@@ -33,6 +46,19 @@ class CompanySettingsRepo {
         .single();
 
     return CompanyProfileModel.fromJson(data);
+  }
+
+  Future<CompanyReportSettingsModel> updateCompanyReportSettings({
+    required CompanyReportSettingsModel reportSettings,
+  }) async {
+    final data = await _supabase
+        .from('company_report_settings')
+        .update(reportSettings.toUpdateJson())
+        .eq('id', reportSettings.id)
+        .select()
+        .single();
+
+    return CompanyReportSettingsModel.fromJson(data);
   }
 
   Future<CompanyProfileModel> uploadCompanyLogo({

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/company_profile_model.dart';
+import '../../data/models/company_report_settings_model.dart';
 import '../../data/repo/company_settings_repo.dart';
 import 'company_settings_state.dart';
 
@@ -17,8 +18,13 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
 
     try {
       final profile = await _repo.getCompanyProfile(companyId: companyId);
+      final reportSettings = await _repo.getCompanyReportSettings(
+        companyId: companyId,
+      );
 
-      emit(CompanySettingsLoaded(profile: profile));
+      emit(
+        CompanySettingsLoaded(profile: profile, reportSettings: reportSettings),
+      );
     } catch (error, stackTrace) {
       if (kDebugMode) {
         debugPrint('LoadCompanyProfile error: $error');
@@ -46,6 +52,7 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       emit(
         CompanySettingsLoaded(
           profile: updatedProfile,
+          reportSettings: currentState.reportSettings,
           action: CompanySettingsAction.none,
         ),
       );
@@ -56,6 +63,43 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       }
 
       emit(const CompanySettingsFailure('Unable to update company profile.'));
+    }
+  }
+
+  Future<void> updateCompanyReportSettings({
+    required CompanyReportSettingsModel reportSettings,
+  }) async {
+    final currentState = state;
+
+    if (currentState is! CompanySettingsLoaded) {
+      return;
+    }
+
+    emit(
+      currentState.copyWith(
+        action: CompanySettingsAction.updatingReportSettings,
+      ),
+    );
+
+    try {
+      final updatedReportSettings = await _repo.updateCompanyReportSettings(
+        reportSettings: reportSettings,
+      );
+
+      emit(
+        CompanySettingsLoaded(
+          profile: currentState.profile,
+          reportSettings: updatedReportSettings,
+          action: CompanySettingsAction.none,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('UpdateCompanyReportSettings error: $error');
+        debugPrint('UpdateCompanyReportSettings stackTrace: $stackTrace');
+      }
+
+      emit(const CompanySettingsFailure('Unable to update report settings.'));
     }
   }
 
@@ -84,6 +128,7 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       emit(
         CompanySettingsLoaded(
           profile: updatedProfile,
+          reportSettings: currentState.reportSettings,
           action: CompanySettingsAction.none,
         ),
       );
