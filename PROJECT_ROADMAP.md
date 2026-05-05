@@ -339,51 +339,101 @@ Rules applied:
 
 ---
 
-# Upcoming Phases
-
 # Phase C — Workers Supabase Integration
+
+## Workers Status: Done
 
 Goal:
 
 Replace local workers state with Supabase data.
 
-Required:
+Implemented:
 
-- Check real Supabase columns for workers table.
-- Check workers RLS / grants / constraints.
-- Worker model mapped to real Supabase columns.
-- Workers repo.
-- Workers cubit loading/error states.
+- Checked real Supabase columns for `workers`.
+- Checked workers RLS / grants / constraints.
+- Added DELETE grant and DELETE RLS policy for `workers`.
+- Updated `WorkerModel` to support Supabase columns:
+  - `id`
+  - `company_id`
+  - `worker_code`
+  - `hr_code`
+  - `full_name`
+  - `department_id`
+  - `job_title_id`
+  - `phone`
+  - `email`
+  - `status`
+  - `notes`
+  - `created_by_profile_id`
+  - `created_at`
+  - `updated_at`
+- Kept UI-friendly fields:
+  - `name`
+  - `hrCode`
+  - `department`
+  - `jobTitle`
+- Created `WorkersRepo`.
 - Read workers by `company_id`.
-- Add worker.
-- Update worker.
-- Delete worker.
-- Search workers.
-- HR Code unique inside company.
-- Department and Job Title from Lookups.
-- Prevent duplicate workers inside same company where needed.
-- Prevent deleting worker if they have open custody later.
+- Added worker.
+- Updated worker.
+- Deleted worker.
+- Generated `worker_code` automatically.
+- Prevented duplicate `hr_code` inside the same company.
+- Used real Department and Job Title IDs from Lookups.
+- Loaded workers after `CurrentContextLoaded`.
+- Added loading state in Workers screen.
+- Added error banner in Workers screen.
+- Connected Add Worker form to Supabase.
+- Connected Update Worker form to Supabase.
+- Connected Delete Worker action to Supabase.
+- Search workers by existing search logic.
+- Tested reading workers from Supabase.
+- Tested Add Worker.
+- Tested duplicate HR Code prevention.
+- Tested Search Worker.
+- Tested Update Worker.
+- Tested Delete Worker.
+- `flutter analyze` has no errors.
+- Changes committed and pushed to GitHub.
 
-Important fields:
+Database rules confirmed:
 
-- Worker name
+- `workers.company_id` references `companies(id)`.
+- `workers.department_id` references `departments`.
+- `workers.job_title_id` is constrained to match the selected department.
+- `hr_code` is unique inside the same company.
+- `worker_code` is unique inside the same company.
+- Department and Job Title deletion is protected by `ON DELETE RESTRICT` when workers depend on them.
+
+Fields supported:
+
+- Worker Code
 - HR Code
+- Worker Name
 - Department
 - Job Title
+- Phone
+- Email
+- Status
+- Notes
+- Created By Profile
 - Company ID
 
-Rules:
+Rules applied:
 
-- Keep existing Workers UI as much as possible.
-- Use real Supabase data.
-- Use `currentCompanyId`.
-- Use lookup models/data for Department and Job Title.
-- Add loading and error states.
-- Test add/update/delete/search.
-- Run `flutter analyze`.
-- Commit and push.
+- Kept the existing Workers UI as much as possible.
+- Used real Supabase data.
+- Used `currentCompanyId`.
+- Used `currentProfileId` for `created_by_profile_id`.
+- Used lookup models/data for Department and Job Title.
+- Added loading and error states.
+- Tested add/update/delete/search.
+- Ran `flutter analyze`.
+- Committed and pushed.
 
 ---
+
+# Upcoming Phases
 
 # Phase D — Tools Supabase Integration
 
@@ -393,6 +443,8 @@ Replace local tools state with Supabase data.
 
 Required:
 
+- Check real Supabase columns for tools table.
+- Check tools RLS / grants / constraints.
 - Tool model mapped to real Supabase columns.
 - Tools repo.
 - Tools cubit loading/error states.
@@ -660,20 +712,20 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Phase C — Workers Supabase Integration
+Phase D — Tools Supabase Integration
 ```
 
 Start with:
 
 ```text
-Step 47.1 — Check real Supabase columns for workers table
-Step 47.2 — Check workers RLS / grants / constraints
-Step 47.3 — Create Worker Supabase model
-Step 47.4 — Create WorkersRepo
-Step 47.5 — Refactor WorkersState
-Step 47.6 — Refactor WorkersCubit
-Step 47.7 — Connect Workers UI to Supabase
-Step 47.8 — Test add/update/delete/search workers
-Step 47.9 — flutter analyze
-Step 47.10 — Commit / Push
+Step 48.1 — Check real Supabase columns for tools table
+Step 48.2 — Check tools RLS / grants / constraints
+Step 48.3 — Create Tool Supabase model
+Step 48.4 — Create ToolsRepo
+Step 48.5 — Refactor ToolsState
+Step 48.6 — Refactor ToolsCubit
+Step 48.7 — Connect Tools UI to Supabase
+Step 48.8 — Test add/update/delete/search tools
+Step 48.9 — flutter analyze
+Step 48.10 — Commit / Push
 ```
