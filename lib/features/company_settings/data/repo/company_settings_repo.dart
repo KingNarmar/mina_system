@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/company_document_template_model.dart';
 import '../models/company_profile_model.dart';
 import '../models/company_report_settings_model.dart';
 
@@ -35,6 +36,20 @@ class CompanySettingsRepo {
     return CompanyReportSettingsModel.fromJson(data);
   }
 
+  Future<List<CompanyDocumentTemplateModel>> getCompanyDocumentTemplates({
+    required String companyId,
+  }) async {
+    final data = await _supabase
+        .from('company_document_templates')
+        .select()
+        .eq('company_id', companyId)
+        .order('report_type');
+
+    return data.map<CompanyDocumentTemplateModel>((item) {
+      return CompanyDocumentTemplateModel.fromJson(item);
+    }).toList();
+  }
+
   Future<CompanyProfileModel> updateCompanyProfile({
     required CompanyProfileModel profile,
   }) async {
@@ -59,6 +74,19 @@ class CompanySettingsRepo {
         .single();
 
     return CompanyReportSettingsModel.fromJson(data);
+  }
+
+  Future<CompanyDocumentTemplateModel> updateCompanyDocumentTemplate({
+    required CompanyDocumentTemplateModel documentTemplate,
+  }) async {
+    final data = await _supabase
+        .from('company_document_templates')
+        .update(documentTemplate.toUpdateJson())
+        .eq('id', documentTemplate.id)
+        .select()
+        .single();
+
+    return CompanyDocumentTemplateModel.fromJson(data);
   }
 
   Future<CompanyProfileModel> uploadCompanyLogo({

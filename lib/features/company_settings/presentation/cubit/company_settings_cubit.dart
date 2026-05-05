@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/models/company_document_template_model.dart';
 import '../../data/models/company_profile_model.dart';
 import '../../data/models/company_report_settings_model.dart';
 import '../../data/repo/company_settings_repo.dart';
@@ -21,9 +22,16 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       final reportSettings = await _repo.getCompanyReportSettings(
         companyId: companyId,
       );
+      final documentTemplates = await _repo.getCompanyDocumentTemplates(
+        companyId: companyId,
+      );
 
       emit(
-        CompanySettingsLoaded(profile: profile, reportSettings: reportSettings),
+        CompanySettingsLoaded(
+          profile: profile,
+          reportSettings: reportSettings,
+          documentTemplates: documentTemplates,
+        ),
       );
     } catch (error, stackTrace) {
       if (kDebugMode) {
@@ -53,6 +61,7 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         CompanySettingsLoaded(
           profile: updatedProfile,
           reportSettings: currentState.reportSettings,
+          documentTemplates: currentState.documentTemplates,
           action: CompanySettingsAction.none,
         ),
       );
@@ -90,6 +99,7 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         CompanySettingsLoaded(
           profile: currentState.profile,
           reportSettings: updatedReportSettings,
+          documentTemplates: currentState.documentTemplates,
           action: CompanySettingsAction.none,
         ),
       );
@@ -100,6 +110,54 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       }
 
       emit(const CompanySettingsFailure('Unable to update report settings.'));
+    }
+  }
+
+  Future<void> updateCompanyDocumentTemplate({
+    required CompanyDocumentTemplateModel documentTemplate,
+  }) async {
+    final currentState = state;
+
+    if (currentState is! CompanySettingsLoaded) {
+      return;
+    }
+
+    emit(
+      currentState.copyWith(
+        action: CompanySettingsAction.updatingDocumentTemplate,
+      ),
+    );
+
+    try {
+      final updatedDocumentTemplate = await _repo.updateCompanyDocumentTemplate(
+        documentTemplate: documentTemplate,
+      );
+
+      final updatedDocumentTemplates = currentState.documentTemplates.map((
+        item,
+      ) {
+        if (item.id == updatedDocumentTemplate.id) {
+          return updatedDocumentTemplate;
+        }
+
+        return item;
+      }).toList();
+
+      emit(
+        CompanySettingsLoaded(
+          profile: currentState.profile,
+          reportSettings: currentState.reportSettings,
+          documentTemplates: updatedDocumentTemplates,
+          action: CompanySettingsAction.none,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('UpdateCompanyDocumentTemplate error: $error');
+        debugPrint('UpdateCompanyDocumentTemplate stackTrace: $stackTrace');
+      }
+
+      emit(const CompanySettingsFailure('Unable to update document template.'));
     }
   }
 
@@ -129,6 +187,7 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         CompanySettingsLoaded(
           profile: updatedProfile,
           reportSettings: currentState.reportSettings,
+          documentTemplates: currentState.documentTemplates,
           action: CompanySettingsAction.none,
         ),
       );

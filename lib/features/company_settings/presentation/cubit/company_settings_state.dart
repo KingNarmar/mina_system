@@ -1,3 +1,4 @@
+import '../../data/models/company_document_template_model.dart';
 import '../../data/models/company_profile_model.dart';
 import '../../data/models/company_report_settings_model.dart';
 
@@ -6,6 +7,7 @@ enum CompanySettingsAction {
   updatingProfile,
   uploadingLogo,
   updatingReportSettings,
+  updatingDocumentTemplate,
 }
 
 abstract class CompanySettingsState {
@@ -24,11 +26,13 @@ class CompanySettingsLoaded extends CompanySettingsState {
   const CompanySettingsLoaded({
     required this.profile,
     required this.reportSettings,
+    required this.documentTemplates,
     this.action = CompanySettingsAction.none,
   });
 
   final CompanyProfileModel profile;
   final CompanyReportSettingsModel reportSettings;
+  final List<CompanyDocumentTemplateModel> documentTemplates;
   final CompanySettingsAction action;
 
   bool get isSaving => action != CompanySettingsAction.none;
@@ -40,14 +44,19 @@ class CompanySettingsLoaded extends CompanySettingsState {
   bool get isUpdatingReportSettings =>
       action == CompanySettingsAction.updatingReportSettings;
 
+  bool get isUpdatingDocumentTemplate =>
+      action == CompanySettingsAction.updatingDocumentTemplate;
+
   CompanySettingsLoaded copyWith({
     CompanyProfileModel? profile,
     CompanyReportSettingsModel? reportSettings,
+    List<CompanyDocumentTemplateModel>? documentTemplates,
     CompanySettingsAction? action,
   }) {
     return CompanySettingsLoaded(
       profile: profile ?? this.profile,
       reportSettings: reportSettings ?? this.reportSettings,
+      documentTemplates: documentTemplates ?? this.documentTemplates,
       action: action ?? this.action,
     );
   }
