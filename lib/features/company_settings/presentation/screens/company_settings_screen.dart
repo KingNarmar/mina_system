@@ -6,6 +6,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/company_document_templates_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_logo_card.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
@@ -77,10 +78,9 @@ class _CompanySettingsView extends StatelessWidget {
                     isSaving: state.isUpdatingReportSettings,
                   ),
                   const Gap(16),
-                  const _CompanySettingsPlaceholderCard(
-                    title: 'Document Templates',
-                    description:
-                        'Document code, issue number, revision number, and effective date will be managed here.',
+                  CompanyDocumentTemplatesForm(
+                    documentTemplates: state.documentTemplates,
+                    isSaving: state.isUpdatingDocumentTemplate,
                   ),
                 ],
               ),
@@ -146,36 +146,6 @@ class _CompanySettingsFailureView extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _CompanySettingsPlaceholderCard extends StatelessWidget {
-  const _CompanySettingsPlaceholderCard({
-    required this.title,
-    required this.description,
-  });
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: AppTextStyles.title),
-          const Gap(8),
-          Text(description, style: AppTextStyles.body),
-        ],
       ),
     );
   }
