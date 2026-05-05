@@ -63,6 +63,8 @@ Follow this pattern for each feature:
 
 ## Auth Status: Done
 
+Implemented:
+
 - Login is working.
 - Register is working.
 - Email confirmation is working.
@@ -117,11 +119,11 @@ Multiple companies → Select Company placeholder
 
 Implemented:
 
-- Create Company screen
-- RPC call to `create_company_with_defaults`
-- Company created with defaults
-- Dashboard opens after creation
-- Company name appears in TopBar
+- Create Company screen.
+- RPC call to `create_company_with_defaults`.
+- Company created with defaults.
+- Dashboard opens after creation.
+- Company name appears in TopBar.
 
 ---
 
@@ -131,9 +133,9 @@ Implemented:
 
 Implemented:
 
-- Read company profile from `companies`
-- Update company profile
-- Update TopBar company name without reloading the dashboard
+- Read company profile from `companies`.
+- Update company profile.
+- Update TopBar company name without reloading the dashboard.
 
 Fields:
 
@@ -156,11 +158,11 @@ Fields:
 
 Implemented:
 
-- Pick image using `file_picker`
-- Upload image to Supabase Storage bucket: `company-assets`
-- Save `logo_path` in `companies`
-- Delete old logo after successful new upload
-- Show success SnackBar
+- Pick image using `file_picker`.
+- Upload image to Supabase Storage bucket: `company-assets`.
+- Save `logo_path` in `companies`.
+- Delete old logo after successful new upload.
+- Show success SnackBar.
 
 Storage path format:
 
@@ -181,9 +183,9 @@ Allowed image types:
 
 Implemented:
 
-- Read `company_report_settings`
-- Update report settings
-- Show success SnackBar
+- Read `company_report_settings`.
+- Update report settings.
+- Show success SnackBar.
 
 Fields:
 
@@ -433,51 +435,113 @@ Rules applied:
 
 ---
 
-# Upcoming Phases
-
 # Phase D — Tools Supabase Integration
+
+## Tools Status: Done
 
 Goal:
 
 Replace local tools state with Supabase data.
 
-Required:
+Implemented:
 
-- Check real Supabase columns for tools table.
-- Check tools RLS / grants / constraints.
-- Tool model mapped to real Supabase columns.
-- Tools repo.
-- Tools cubit loading/error states.
+- Checked real Supabase columns for `tools`, `tool_units`, and `tool_categories`.
+- Checked tools RLS / grants / constraints / indexes / enum values.
+- Confirmed `tool_status` enum values:
+  - `active`
+  - `inactive`
+  - `discontinued`
+- Fixed `tools` table grants for authenticated CRUD access.
+- Removed unsafe/unneeded `anon` access from `tools`.
+- Added DELETE RLS policy for `tools`.
+- Confirmed tools RLS policies for:
+  - SELECT
+  - INSERT
+  - UPDATE
+  - DELETE
+- Updated `ToolModel` to support Supabase columns:
+  - `id`
+  - `company_id`
+  - `tool_code`
+  - `tool_name`
+  - `unit_id`
+  - `category_id`
+  - `description`
+  - `status`
+  - `created_by_profile_id`
+  - `created_at`
+  - `updated_at`
+- Kept UI-friendly fields:
+  - `toolName`
+  - `unit`
+  - `category`
+- Created `ToolsRepo`.
 - Read tools by `company_id`.
-- Add tool.
-- Update tool.
-- Delete tool.
-- Search tools.
-- Generate tool code.
-- Prevent duplicate tool name/code inside company.
-- Unit and Category from Lookups.
-- Prevent deleting tool if used in open custody later.
+- Read related Unit and Category names through Supabase relationships.
+- Added tool.
+- Updated tool.
+- Deleted tool.
+- Generated `tool_code` automatically.
+- Prevented duplicate `tool_name` inside the same company.
+- Prevented duplicate `tool_code` inside the same company.
+- Used real Tool Unit and Tool Category IDs from Lookups.
+- Loaded tools after `CurrentContextLoaded`.
+- Added loading state in Tools screen.
+- Added submitting state in Tools screen.
+- Added error banner in Tools screen.
+- Connected Add Tool form to Supabase.
+- Connected Update Tool form to Supabase.
+- Connected Delete Tool action to Supabase and waits for success before showing success message.
+- Search tools by existing search logic.
+- Kept existing desktop/mobile Tools UI as much as possible.
+- Tested reading tools from Supabase.
+- Tested Add Tool.
+- Tested duplicate Tool Name prevention.
+- Tested Update Tool.
+- Tested Delete Tool.
+- Ran `flutter analyze` successfully with no issues.
+- Changes committed and pushed to GitHub.
 
-Important fields:
+Database rules confirmed:
+
+- `tools.company_id` references `companies(id)`.
+- `tools.unit_id` is constrained to match a valid `tool_units` record for the same company.
+- `tools.category_id` is constrained to match a valid `tool_categories` record for the same company.
+- `tool_code` is unique inside the same company.
+- `tool_name` has a normalized unique index inside the same company.
+- Tool Unit and Tool Category deletion is protected by foreign key constraints when tools depend on them.
+
+Fields supported:
 
 - Tool Code
 - Tool Name
 - Unit
 - Category
+- Description
+- Status
+- Created By Profile
 - Company ID
 
-Rules:
+Rules applied:
 
-- Keep existing Tools UI as much as possible.
-- Use real Supabase data.
-- Use `currentCompanyId`.
-- Use lookup models/data for Unit and Category.
-- Add loading and error states.
-- Test add/update/delete/search.
-- Run `flutter analyze`.
-- Commit and push.
+- Kept the existing Tools UI as much as possible.
+- Used real Supabase data.
+- Used `currentCompanyId`.
+- Used `currentProfileId` for `created_by_profile_id`.
+- Used lookup models/data for Tool Unit and Tool Category.
+- Added loading and error states.
+- Tested add/update/delete/search.
+- Ran `flutter analyze`.
+- Committed and pushed.
+
+Note:
+
+- Current delete protection checks existing local transaction state.
+- Real open custody protection must be finalized during Phase E when transactions/custody become Supabase-backed.
 
 ---
+
+# Upcoming Phases
 
 # Phase E — Transactions / Custody
 
@@ -494,6 +558,8 @@ Transaction types:
 
 Required:
 
+- Check real Supabase columns for transaction/custody-related tables.
+- Check transactions RLS / grants / constraints.
 - Transactions linked to company.
 - Transactions linked to worker.
 - Transactions linked to tool.
@@ -505,6 +571,7 @@ Required:
 - Custody balance.
 - Tool summary.
 - Closed today count.
+- Prevent deleting tools that are used in open custody.
 
 Future:
 
@@ -712,20 +779,21 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Phase D — Tools Supabase Integration
+Phase E — Transactions / Custody
 ```
 
 Start with:
 
 ```text
-Step 48.1 — Check real Supabase columns for tools table
-Step 48.2 — Check tools RLS / grants / constraints
-Step 48.3 — Create Tool Supabase model
-Step 48.4 — Create ToolsRepo
-Step 48.5 — Refactor ToolsState
-Step 48.6 — Refactor ToolsCubit
-Step 48.7 — Connect Tools UI to Supabase
-Step 48.8 — Test add/update/delete/search tools
-Step 48.9 — flutter analyze
-Step 48.10 — Commit / Push
+Step 49.1 — Check real Supabase columns for transaction/custody-related tables
+Step 49.2 — Check transactions RLS / grants / constraints
+Step 49.3 — Create/update Transaction Supabase model
+Step 49.4 — Create TransactionsRepo
+Step 49.5 — Refactor TransactionsState
+Step 49.6 — Refactor TransactionsCubit
+Step 49.7 — Connect Transactions UI to Supabase
+Step 49.8 — Add worker-tool balance logic
+Step 49.9 — Test issue/return/lost/damaged/search transactions
+Step 49.10 — flutter analyze
+Step 49.11 — Commit / Push
 ```
