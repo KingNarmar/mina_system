@@ -1,50 +1,126 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_state.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
-import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
+import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
-import 'package:gap/gap.dart';
 
 class RecentTransactionsCard extends StatelessWidget {
-  const RecentTransactionsCard({super.key});
+  const RecentTransactionsCard({super.key, this.transactions});
+
+  final List<TransactionModel>? transactions;
 
   @override
   Widget build(BuildContext context) {
-    final transactions = context
-        .watch<TransactionsCubit>()
-        .state
-        .transactions
-        .take(4)
-        .toList();
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        final resolvedTransactions =
+            transactions ?? state.summary.recentTransactions;
 
-    return Card(
-      elevation: 0,
-      color: AppColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
-      ),
+        return Card(
+          elevation: 0,
+          color: AppColors.card,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Recent Transactions', style: AppTextStyles.title),
+                const Gap(14),
+                if (resolvedTransactions.isEmpty)
+                  const _EmptyRecentTransactions()
+                else
+                  Column(
+                    children: resolvedTransactions.map((transaction) {
+                      return _RecentTransactionTile(transaction: transaction);
+                    }).toList(),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RecentTransactionTile extends StatelessWidget {
+  const _RecentTransactionTile({required this.transaction});
+
+  final TransactionModel transaction;
+
+  @override
+  Widget build(BuildContext context) {
+    final typeColor = getTransactionTypeColor(transaction.type);
+    final typeLabel = getTransactionTypeLabel(transaction.type);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        showTransactionDetails(context, transaction);
+      },
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            const Text('Recent Transactions', style: AppTextStyles.title),
-            const Gap(16),
-            if (transactions.isEmpty)
-              Text(
-                'No recent transactions yet',
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              )
-            else
-              ...transactions.map((transaction) {
-                return _RecentTransactionItem(transaction: transaction);
-              }),
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: typeColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                getTransactionTypeIcon(transaction.type),
+                color: typeColor,
+                size: 22,
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${transaction.transactionCode} • $typeLabel',
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Gap(4),
+                  Text(
+                    '${transaction.workerName} • ${transaction.toolName}',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Gap(4),
+                  Text(
+                    '${formatQuantity(transaction.quantity)} ${transaction.unit} • ${formatTransactionDate(transaction.dateTime)}',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -52,83 +128,22 @@ class RecentTransactionsCard extends StatelessWidget {
   }
 }
 
-class _RecentTransactionItem extends StatelessWidget {
-  const _RecentTransactionItem({required this.transaction});
-
-  final TransactionModel transaction;
+class _EmptyRecentTransactions extends StatelessWidget {
+  const _EmptyRecentTransactions();
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = getTransactionTypeLabel(transaction.type);
-    final typeColor = getTransactionTypeColor(transaction.type);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: typeColor.withValues(alpha: 0.12),
-            child: Icon(
-              getTransactionTypeIcon(transaction.type),
-              size: 18,
-              color: typeColor,
-            ),
-          ),
-          const Gap(12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.workerName,
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const Gap(2),
-                Text(
-                  '$typeLabel • ${transaction.toolName} • ${transaction.quantity} ${transaction.unit}${_getProofSuffix()}',
-                  style: AppTextStyles.caption,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const Gap(12),
-          Text(
-            formatTransactionDate(transaction.dateTime),
-            style: AppTextStyles.caption,
-            maxLines: 1,
-          ),
-        ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.border.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        'No recent transactions yet',
+        style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
       ),
     );
-  }
-
-  String _getProofSuffix() {
-    final hasImage =
-        transaction.imagePath != null &&
-        transaction.imagePath!.trim().isNotEmpty;
-
-    final hasNote =
-        transaction.note != null && transaction.note!.trim().isNotEmpty;
-
-    if (hasImage && hasNote) {
-      return ' • Photo + Note';
-    }
-
-    if (hasImage) {
-      return ' • Photo';
-    }
-
-    if (hasNote) {
-      return ' • Note';
-    }
-
-    return '';
   }
 }

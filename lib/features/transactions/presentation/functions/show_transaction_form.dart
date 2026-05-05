@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
@@ -85,9 +86,22 @@ Future<void> _saveTransaction({
   final companyId = context.currentCompanyId;
   final profileId = context.currentProfileId;
   final transactionsCubit = context.read<TransactionsCubit>();
+  final dashboardCubit = context.read<DashboardCubit>();
 
   final navigator = Navigator.of(popContext);
   final messenger = ScaffoldMessenger.of(context);
+
+  if (companyId == null || companyId.isEmpty) {
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Company ID was not found'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    return;
+  }
 
   final isSaved = await transactionsCubit.addTransaction(
     transaction,
@@ -98,6 +112,8 @@ Future<void> _saveTransaction({
   if (!isSaved) {
     return;
   }
+
+  await dashboardCubit.loadDashboardSummary(companyId: companyId);
 
   navigator.pop();
   messenger

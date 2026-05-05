@@ -2,67 +2,85 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_state.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/dashboard_stat_card.dart';
-import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
-import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
-import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
 class DashboardStatsGrid extends StatelessWidget {
   const DashboardStatsGrid({
     super.key,
-    required this.crossAxisCount,
-    required this.width,
+    this.totalWorkers,
+    this.totalTools,
+    this.openCustodies,
+    this.closedToday,
+    this.crossAxisCount,
+    this.width,
   });
 
-  final int crossAxisCount;
-  final double width;
+  final int? totalWorkers;
+  final int? totalTools;
+  final int? openCustodies;
+  final int? closedToday;
+
+  /// Kept for compatibility with the current DashboardScreen.
+  final int? crossAxisCount;
+
+  /// Kept for compatibility with the current DashboardScreen.
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
-    final workers = context.watch<WorkersCubit>().state.workers;
-    final tools = context.watch<ToolsCubit>().state.tools;
-    final transactionsCubit = context.watch<TransactionsCubit>();
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        final summary = state.summary;
 
-    final totalWorkers = workers.length;
-    final totalTools = tools.length;
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final effectiveWidth = width ?? constraints.maxWidth;
 
-    final openCustodies = transactionsCubit.getCustodyBalances().length;
+            final effectiveCrossAxisCount =
+                crossAxisCount ??
+                (effectiveWidth < AppBreakpoints.tablet ? 1 : 4);
 
-    final closedToday = transactionsCubit.getClosedTodayCount();
-
-    return GridView.count(
-      crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: width < AppBreakpoints.tablet ? 2.55 : 2.8,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        DashboardStatCard(
-          title: 'Total Workers',
-          value: totalWorkers.toString(),
-          icon: Icons.people_outline,
-          iconColor: AppColors.accent,
-        ),
-        DashboardStatCard(
-          title: 'Total Tools',
-          value: totalTools.toString(),
-          icon: Icons.build_outlined,
-          iconColor: AppColors.accent,
-        ),
-        DashboardStatCard(
-          title: 'Open Custodies',
-          value: openCustodies.toString(),
-          icon: Icons.assignment_outlined,
-          iconColor: AppColors.error,
-        ),
-        DashboardStatCard(
-          title: 'Closed Today',
-          value: closedToday.toString(),
-          icon: Icons.check_circle_outline,
-          iconColor: AppColors.accent,
-        ),
-      ],
+            return GridView.count(
+              crossAxisCount: effectiveCrossAxisCount,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: effectiveWidth < AppBreakpoints.tablet
+                  ? 3.2
+                  : 1.65,
+              children: [
+                DashboardStatCard(
+                  title: 'Total Workers',
+                  value: (totalWorkers ?? summary.totalWorkers).toString(),
+                  icon: Icons.groups_outlined,
+                  color: AppColors.accent,
+                ),
+                DashboardStatCard(
+                  title: 'Total Tools',
+                  value: (totalTools ?? summary.totalTools).toString(),
+                  icon: Icons.handyman_outlined,
+                  color: AppColors.success,
+                ),
+                DashboardStatCard(
+                  title: 'Open Custodies',
+                  value: (openCustodies ?? summary.openCustodies).toString(),
+                  icon: Icons.inventory_2_outlined,
+                  color: AppColors.warning,
+                ),
+                DashboardStatCard(
+                  title: 'Closed Today',
+                  value: (closedToday ?? summary.closedToday).toString(),
+                  icon: Icons.task_alt_outlined,
+                  color: AppColors.error,
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -14,4 +14,7 @@ abstract class AppColors {
   static const Color onPrimary = Color(0xFFFFFFFF);
   static const Color transparent = Color(0x00000000);
   static const Color overlayDark = Color(0xFF000000);
+
+  static const Color success = Color(0xFF16A34A);
+  static const Color warning = Color(0xFFF59E0B);
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_state.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/dashboard_stats_grid.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/quick_action_card.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/recent_transactions_card.dart';
-import 'package:gap/gap.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -25,18 +28,37 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DashboardStatsGrid(crossAxisCount: crossAxisCount, width: width),
+              BlocBuilder<DashboardCubit, DashboardState>(
+                builder: (context, state) {
+                  final summary = state.summary;
+
+                  return DashboardStatsGrid(
+                    crossAxisCount: crossAxisCount,
+                    width: constraints.maxWidth,
+                    totalWorkers: summary.totalWorkers,
+                    totalTools: summary.totalTools,
+                    openCustodies: summary.openCustodies,
+                    closedToday: summary.closedToday,
+                  );
+                },
+              ),
               const Gap(24),
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
                   if (isMobile) {
-                    return const Column(
+                    return Column(
                       children: [
-                        RecentTransactionsCard(),
-                        Gap(24),
-                        QuickActionsCard(),
+                        BlocBuilder<DashboardCubit, DashboardState>(
+                          builder: (context, state) {
+                            return RecentTransactionsCard(
+                              transactions: state.summary.recentTransactions,
+                            );
+                          },
+                        ),
+                        const Gap(24),
+                        const QuickActionsCard(),
                       ],
                     );
                   }

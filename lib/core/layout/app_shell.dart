@@ -7,6 +7,7 @@ import 'package:mina_system/core/responsive/responsive_layout.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/widgets/current_context_gate.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
@@ -26,47 +27,60 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => LookupsCubit()),
         BlocProvider(create: (_) => ToolsCubit()),
         BlocProvider(create: (_) => TransactionsCubit()),
+        BlocProvider(create: (_) => DashboardCubit()),
       ],
-      child: BlocListener<CurrentContextCubit, CurrentContextState>(
-        listenWhen: (previous, current) {
-          if (current is! CurrentContextLoaded) {
-            return false;
-          }
+      child: const _AppShellView(),
+    );
+  }
+}
 
-          if (current.currentCompany == null) {
-            return false;
-          }
+class _AppShellView extends StatelessWidget {
+  const _AppShellView();
 
-          if (previous is CurrentContextLoaded) {
-            return previous.currentCompany?.id != current.currentCompany?.id;
-          }
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<CurrentContextCubit, CurrentContextState>(
+      listenWhen: (previous, current) {
+        if (current is! CurrentContextLoaded) {
+          return false;
+        }
 
-          return true;
-        },
-        listener: (context, state) {
-          if (state is! CurrentContextLoaded) {
-            return;
-          }
+        if (current.currentCompany == null) {
+          return false;
+        }
 
-          final companyId = state.currentCompany?.id;
+        if (previous is CurrentContextLoaded) {
+          return previous.currentCompany?.id != current.currentCompany?.id;
+        }
 
-          if (companyId == null) {
-            return;
-          }
+        return true;
+      },
+      listener: (context, state) {
+        if (state is! CurrentContextLoaded) {
+          return;
+        }
 
-          context.read<LookupsCubit>().loadLookups(companyId: companyId);
-          context.read<WorkersCubit>().loadWorkers(companyId: companyId);
-          context.read<ToolsCubit>().loadTools(companyId: companyId);
-          context.read<TransactionsCubit>().loadTransactions(
-            companyId: companyId,
-          );
-        },
-        child: const CurrentContextGate(
-          child: ResponsiveLayout(
-            mobile: MobileShell(),
-            tablet: TabletShell(),
-            desktop: DesktopShell(),
-          ),
+        final companyId = state.currentCompany?.id;
+
+        if (companyId == null) {
+          return;
+        }
+
+        context.read<LookupsCubit>().loadLookups(companyId: companyId);
+        context.read<WorkersCubit>().loadWorkers(companyId: companyId);
+        context.read<ToolsCubit>().loadTools(companyId: companyId);
+        context.read<TransactionsCubit>().loadTransactions(
+          companyId: companyId,
+        );
+        context.read<DashboardCubit>().loadDashboardSummary(
+          companyId: companyId,
+        );
+      },
+      child: const CurrentContextGate(
+        child: ResponsiveLayout(
+          mobile: MobileShell(),
+          tablet: TabletShell(),
+          desktop: DesktopShell(),
         ),
       ),
     );
