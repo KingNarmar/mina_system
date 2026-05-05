@@ -56,6 +56,9 @@ Follow this pattern for each feature:
   - Add safe RLS policies.
 - Storage files must be saved in Supabase Storage.
 - Database should store file paths only, not local file paths.
+- Transactions should not be deleted from the system.
+- Transaction editing should not be exposed as a normal UI action.
+- Transaction corrections should be handled by new corrective transactions or future approval/void workflows.
 
 ---
 
@@ -536,18 +539,18 @@ Rules applied:
 
 Note:
 
-- Current delete protection checks existing local transaction state.
-- Real open custody protection must be finalized during Phase E when transactions/custody become Supabase-backed.
+- Tool deletion protection now depends on loaded transaction state.
+- A stronger database-level open-custody delete protection can be added later if required.
 
 ---
 
-# Upcoming Phases
+# Phase E — Transactions / Custody Core Supabase Integration
 
-# Phase E — Transactions / Custody
+## Transactions Core Status: Done
 
 Goal:
 
-Build real custody transaction flow.
+Replace local transactions state with Supabase-backed transaction records and build the real custody movement flow.
 
 Transaction types:
 
@@ -556,36 +559,214 @@ Transaction types:
 - Lost
 - Damaged
 
-Required:
+Implemented:
 
-- Check real Supabase columns for transaction/custody-related tables.
-- Check transactions RLS / grants / constraints.
-- Transactions linked to company.
-- Transactions linked to worker.
-- Transactions linked to tool.
-- Created by current profile.
-- Auto-generate transaction code.
-- Calculate worker-tool balance.
-- Prevent return quantity greater than current balance.
-- Search/filter transactions.
-- Custody balance.
-- Tool summary.
-- Closed today count.
-- Prevent deleting tools that are used in open custody.
+- Checked real Supabase columns for transaction/custody-related tables:
+  - `transactions`
+  - `custody_acknowledgements`
+  - `custody_acknowledgement_items`
+- Confirmed transaction table columns:
+  - `id`
+  - `company_id`
+  - `transaction_code`
+  - `transaction_type`
+  - `worker_id`
+  - `worker_hr_code_snapshot`
+  - `worker_name_snapshot`
+  - `worker_department_snapshot`
+  - `worker_job_title_snapshot`
+  - `tool_id`
+  - `tool_code_snapshot`
+  - `tool_name_snapshot`
+  - `tool_unit_snapshot`
+  - `tool_category_snapshot`
+  - `quantity`
+  - `proof_image_path`
+  - `note`
+  - `approval_required`
+  - `approval_status`
+  - `created_by_profile_id`
+  - `created_at`
+  - `updated_at`
+- Checked enum values:
+  - `transaction_kind`: `issue`, `return`, `lost`, `damaged`
+  - `approval_status`: `not_required`, `pending`, `approved`, `rejected`
+  - `report_status`: `signed`, `voided`
+- Checked transactions RLS / grants / constraints.
+- Fixed `transactions` grants for authenticated:
+  - SELECT
+  - INSERT
+  - UPDATE
+- No DELETE grant was added for transactions.
+- Confirmed RLS policies:
+  - Members can read transactions.
+  - Owner/admin/warehouse users can insert transactions.
+  - Owner/admin/warehouse users can update only `not_required` or `pending` transactions.
+- Confirmed database constraints:
+  - Quantity must be greater than zero.
+  - Issue requires proof image.
+  - Damaged requires proof image.
+  - Lost requires note.
+  - Damaged requires note.
+  - Lost/Damaged require approval flow.
+  - `proof_image_path` must not be a local path.
+  - `proof_image_path` must start with `{companyId}/`.
+- Confirmed Storage bucket:
+  - `transaction-proofs`
+- Confirmed Storage policies:
+  - Company members can read transaction proofs.
+  - Owner/admin/warehouse users can upload transaction proofs.
+- Updated `TransactionModel` to support Supabase columns.
+- Kept UI-friendly fields for current screens:
+  - `transactionCode`
+  - `type`
+  - `workerHrCode`
+  - `workerName`
+  - `toolCode`
+  - `toolName`
+  - `unit`
+  - `quantity`
+  - `dateTime`
+  - `imagePath`
+  - `note`
+- Added Supabase fields:
+  - `id`
+  - `companyId`
+  - `workerId`
+  - `workerDepartment`
+  - `workerJobTitle`
+  - `toolId`
+  - `toolCategory`
+  - `approvalRequired`
+  - `approvalStatus`
+  - `createdByProfileId`
+  - `updatedAt`
+- Created `TransactionsRepo`.
+- Read transactions by `company_id`.
+- Add transaction to Supabase.
+- Update transaction capability exists at repo/cubit level for future controlled flows.
+- Auto-generate transaction code from Supabase records.
+- Upload proof images to Supabase Storage bucket `transaction-proofs`.
+- Store only cloud storage paths in `transactions.proof_image_path`.
+- Storage path format:
 
-Future:
+```text
+{companyId}/transactions/{transactionCode}/proof-{timestamp}.{extension}
+```
 
-- Add images for issue/return/damage evidence.
-- Save images in Supabase Storage.
-- Store only cloud paths in database.
+- Added `TransactionsState` loading/submitting/error fields.
+- Refactored `TransactionsCubit` to use Supabase.
+- Loaded transactions after `CurrentContextLoaded`.
+- Connected Add Transaction form to Supabase.
+- Add Transaction form now sends:
+  - `worker_id`
+  - worker snapshots
+  - `tool_id`
+  - tool snapshots
+  - quantity
+  - proof image path
+  - note
+  - created by profile
+  - company ID
+- Added loading overlay in Transactions screen.
+- Added error banner in Transactions screen.
+- Fixed transaction proof image display in details dialog.
+- Fixed transaction proof thumbnail display in desktop table.
+- Fullscreen proof image preview now uses resolved signed URL.
+- Search/filter transactions still works.
+- Custody Balance is calculated from real Supabase transactions.
+- Tool Summary is calculated from real Supabase transactions.
+- Closed Today count is calculated from real Supabase transactions.
+- Tested Issue transaction.
+- Tested proof image upload.
+- Tested proof image display in details.
+- Tested proof image thumbnail in table.
+- Tested Return transaction.
+- Tested Return quantity cannot exceed balance.
+- Tested Lost without note validation.
+- Tested Lost with note:
+  - `approval_required = true`
+  - `approval_status = pending`
+- Tested Damaged without image validation.
+- Tested Damaged with image and note:
+  - `approval_required = true`
+  - `approval_status = pending`
+- `flutter analyze` completed successfully with no issues.
+- Changes committed and pushed to GitHub.
+
+Business rules confirmed:
+
+- Transactions should not be deleted.
+- Normal edit/delete buttons should not be shown for transactions.
+- Corrections should be done by corrective transactions or a future controlled approval/void workflow.
+- Issue and Return are normal custody movement records.
+- Lost and Damaged enter pending approval flow.
+- Images must be stored in Supabase Storage, not as local file paths.
+
+Database rules confirmed:
+
+- `transactions.company_id` references `companies(id)`.
+- `transactions.worker_id` is linked to `workers`.
+- `transactions.tool_id` is linked to `tools`.
+- `transaction_code` is unique inside the same company.
+- `proof_image_path` cannot be a local file path.
+- `issue` and `damaged` require proof images.
+- `lost` and `damaged` require note.
+- `lost` and `damaged` require approval flow.
+
+Fields supported:
+
+- Transaction Code
+- Transaction Type
+- Worker
+- Worker HR Code Snapshot
+- Worker Name Snapshot
+- Worker Department Snapshot
+- Worker Job Title Snapshot
+- Tool
+- Tool Code Snapshot
+- Tool Name Snapshot
+- Tool Unit Snapshot
+- Tool Category Snapshot
+- Quantity
+- Proof Image
+- Note
+- Approval Required
+- Approval Status
+- Created By Profile
+- Company ID
+
+Rules applied:
+
+- Kept the existing Transactions UI as much as possible.
+- Used real Supabase data.
+- Used `currentCompanyId`.
+- Used `currentProfileId`.
+- Used real Worker IDs and Tool IDs.
+- Used snapshots to preserve historical transaction data.
+- Added loading and error states.
+- Tested issue/return/lost/damaged/search/balance/summary.
+- Ran `flutter analyze`.
+- Committed and pushed.
+
+Pending / Future Enhancements:
+
+- Build approval UI for Lost/Damaged transactions.
+- Add controlled Approve/Reject workflow.
+- Add Void/Correction workflow if needed.
+- Generate custody acknowledgement PDFs from real transactions.
+- Use `custody_acknowledgements` and `custody_acknowledgement_items` in reports/signature flow.
+- Add database-level open-custody protection for deleting tools/workers if needed.
 
 ---
+
+# Upcoming Phases
 
 # Phase F — Dashboard Supabase Data
 
 Goal:
 
-Dashboard should show real company data.
+Dashboard should show real company data instead of static dummy values.
 
 Required stats:
 
@@ -595,11 +776,33 @@ Required stats:
 - Closed Today
 - Recent Transactions
 
+Required:
+
+- Check current Dashboard files.
+- Identify static/dummy dashboard data.
+- Create/update Dashboard models.
+- Create DashboardRepo.
+- Create/refactor DashboardCubit and DashboardState.
+- Load dashboard data by `currentCompanyId`.
+- Use real Workers count from Supabase.
+- Use real Tools count from Supabase.
+- Use real Transactions data from Supabase.
+- Calculate Open Custodies from real transactions.
+- Calculate Closed Today from real transactions.
+- Show Recent Transactions from real transactions.
+- Add loading state.
+- Add error state.
+- Keep existing dashboard UI as much as possible.
+- Run `flutter analyze`.
+- Test dashboard values after adding transactions.
+- Commit and push.
+
 Rules:
 
 - Dashboard must use `currentCompanyId`.
 - No static dummy data.
 - Loading states and empty states required.
+- Dashboard must react correctly after Issue / Return / Lost / Damaged transactions.
 
 ---
 
@@ -639,6 +842,7 @@ Important:
 
 - Do not use local file paths for logos.
 - Use Supabase Storage path and signed/downloaded asset as needed.
+- Reports should rely on real transactions and snapshots.
 
 ---
 
@@ -666,6 +870,7 @@ Current roles expected:
 
 - owner
 - admin
+- warehouse_user
 - member
 
 Required:
@@ -680,6 +885,17 @@ Can manage:
 - Tools
 - Transactions
 - Reports
+- Approvals
+
+## Warehouse User
+
+Can manage:
+
+- Workers
+- Tools
+- Transactions
+- Custody operations
+- Upload transaction proofs
 
 ## Member
 
@@ -779,21 +995,21 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Phase E — Transactions / Custody
+Phase F — Dashboard Supabase Data
 ```
 
 Start with:
 
 ```text
-Step 49.1 — Check real Supabase columns for transaction/custody-related tables
-Step 49.2 — Check transactions RLS / grants / constraints
-Step 49.3 — Create/update Transaction Supabase model
-Step 49.4 — Create TransactionsRepo
-Step 49.5 — Refactor TransactionsState
-Step 49.6 — Refactor TransactionsCubit
-Step 49.7 — Connect Transactions UI to Supabase
-Step 49.8 — Add worker-tool balance logic
-Step 49.9 — Test issue/return/lost/damaged/search transactions
-Step 49.10 — flutter analyze
-Step 49.11 — Commit / Push
+Step 50.1 — Review real Dashboard files from GitHub
+Step 50.2 — Identify static dashboard data and required real stats
+Step 50.3 — Create/update Dashboard models
+Step 50.4 — Create DashboardRepo
+Step 50.5 — Create/refactor DashboardState
+Step 50.6 — Create/refactor DashboardCubit
+Step 50.7 — Load dashboard after CurrentContextLoaded
+Step 50.8 — Connect Dashboard UI to real Supabase data
+Step 50.9 — Test dashboard after Issue/Return/Lost/Damaged transactions
+Step 50.10 — flutter analyze
+Step 50.11 — Commit / Push
 ```
