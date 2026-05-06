@@ -8,7 +8,7 @@
 
 ## Project Vision
 
-Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, and reports for companies and warehouses.
+Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, and professional PDF reports for companies and warehouses.
 
 The system is being built as a real multi-company SaaS/product, not a local demo.
 
@@ -27,6 +27,7 @@ Every company must have isolated data using `currentCompanyId`.
 - Do not rely only on README because it may be outdated.
 - After each completed feature:
   - Test
+  - Run `dart format lib`
   - Run `flutter analyze`
   - Commit
   - Push
@@ -37,11 +38,11 @@ Every company must have isolated data using `currentCompanyId`.
 Follow this pattern for each feature:
 
 1. Model
-2. Repository
-3. Cubit / State
+2. Repository / Service
+3. Cubit / State when needed
 4. UI
-5. SQL Grants
-6. RLS Policies
+5. SQL Grants when needed
+6. RLS Policies when needed
 7. Test
 8. Commit / Push
 
@@ -141,6 +142,7 @@ Implemented:
 - Read company profile from `companies`.
 - Update company profile.
 - Update TopBar company name without reloading the dashboard.
+- Company profile is now used inside PDF report headers.
 
 Fields:
 
@@ -156,6 +158,7 @@ Fields:
 - Phone
 - Email
 - Website
+- Logo Path
 
 ---
 
@@ -168,6 +171,8 @@ Implemented:
 - Save `logo_path` in `companies`.
 - Delete old logo after successful new upload.
 - Show success SnackBar.
+- Company logo is now used inside generated PDF reports.
+- PDF logo refresh works without restarting the app after changing the logo.
 
 Storage path format:
 
@@ -191,6 +196,7 @@ Implemented:
 - Read `company_report_settings`.
 - Update report settings.
 - Show success SnackBar.
+- Report settings are now used inside PDF reports.
 
 Fields:
 
@@ -204,6 +210,22 @@ Fields:
 - Report Footer Text
 - Custody Responsibility Statement
 - Loss / Damage Responsibility Statement
+
+PDF behavior already connected:
+
+- `showCompanyLogo`
+- `showCompanyDetails`
+- `showGeneratedBy`
+- `showDocumentControl`
+- `reportFooterText`
+- `custodyResponsibilityStatement`
+- `lossDamageResponsibilityStatement`
+
+Pending / Future Enhancements:
+
+- Apply `dateFormat` to PDF dates.
+- Apply `timeFormat` to PDF timestamps.
+- Apply `defaultTimezone` to report generation dates/times.
 
 ---
 
@@ -223,8 +245,14 @@ Implemented:
 - Update document template fields
 - Show success SnackBar after update
 - Tested update flow successfully
-- `flutter analyze` has no errors after implementation
-- Changes committed and pushed to GitHub
+- Document templates are now used inside PDF Document Control section.
+- Robust PDF template matching added to handle values like:
+  - `worker_custody`
+  - `worker_custody_report`
+  - `Worker Custody Report`
+  - matching document titles
+- `flutter analyze` has no errors after implementation.
+- Changes committed and pushed to GitHub.
 
 Fields supported:
 
@@ -241,6 +269,24 @@ Fields supported:
 - Manager Signature Label
 - Storekeeper Signature Label
 - Is Active
+
+PDF behavior already connected:
+
+- Document Code
+- Document Title
+- Issue No.
+- Revision
+- Effective Date
+- Report Type
+- Prepared By
+- Approved By
+
+Pending / Next Use:
+
+- Use `workerSignatureLabel`
+- Use `managerSignatureLabel`
+- Use `storekeeperSignatureLabel`
+- Add PDF Signature Section after Responsibility Statement and before Footer Text.
 
 ---
 
@@ -843,7 +889,7 @@ Pending / Future Enhancements:
 
 # Maintenance Checkpoint — Flutter SDK Upgrade
 
-## Flutter Upgrade Status: Pending
+## Flutter Upgrade Status: Done
 
 Goal:
 
@@ -851,7 +897,7 @@ Upgrade Flutter SDK safely after the project reached a stable checkpoint.
 
 Reason:
 
-The project now has the following completed and pushed:
+The project had reached a safe checkpoint with the following completed and pushed:
 
 - Auth
 - Current Context
@@ -862,41 +908,30 @@ The project now has the following completed and pushed:
 - Transactions / Custody Core
 - Dashboard Supabase Data
 
-This is a safe point to upgrade Flutter before starting Reports/PDF work.
+Completed:
 
-Required:
-
-- Confirm current Flutter version.
-- Confirm current Flutter channel.
-- Prefer stable channel.
-- Run `flutter upgrade`.
-- Run `flutter doctor`.
-- Run `flutter pub get`.
-- Run `dart format lib`.
-- Run `flutter analyze`.
-- Run the app on Windows.
-- Test:
+- Confirmed current Flutter version and channel.
+- Upgraded Flutter SDK.
+- Flutter after upgrade: `3.41.9`.
+- Channel: `stable`.
+- Ran `flutter doctor`.
+- Result: `No issues found`.
+- Ran `flutter pub get`.
+- Ran `dart format lib`.
+- Result: `Formatted 191 files (0 changed)`.
+- Ran `flutter analyze`.
+- Result: `No issues found`.
+- Ran the app on Windows.
+- Tested:
   - Login
   - Dashboard
   - Workers
   - Tools
   - Transactions
   - Company Settings
-- Fix any new warnings or breaking changes.
-- Commit upgrade separately.
-- Push upgrade separately.
-
-Suggested steps:
-
-```bash
-flutter --version
-flutter channel
-flutter upgrade
-flutter doctor
-flutter pub get
-dart format lib
-flutter analyze
-```
+- No upgrade warnings/errors needed fixing.
+- Flutter upgrade was committed separately.
+- Changes pushed to GitHub.
 
 Commit message:
 
@@ -904,23 +939,23 @@ Commit message:
 Upgrade Flutter SDK and verify project
 ```
 
-Rules:
+Rules applied:
 
-- Flutter upgrade must be a separate commit.
-- Do not mix Flutter upgrade with feature work.
-- Do not start Reports/PDF before verifying the app after upgrade.
+- Flutter upgrade was a separate commit.
+- Flutter upgrade was not mixed with feature work.
+- Reports/PDF work started only after app verification.
 
 ---
 
-# Upcoming Phases
-
 # Phase G — Reports / PDF
+
+## Reports / PDF Status: In Progress
 
 Goal:
 
 Generate professional PDF reports using real data and company settings.
 
-Reports:
+Reports planned:
 
 - Worker Custody Report
 - Tool Custody Report
@@ -960,22 +995,151 @@ Important:
 - Reports should rely on real transactions and snapshots.
 - PDF generation must work across target platforms as much as possible.
 
-Required:
+Implemented so far:
 
-- Review current Reports files.
-- Check existing PDF/report generation code.
-- Create/update Reports models.
-- Create ReportsRepo if needed.
-- Connect reports to Supabase data.
-- Load company profile/report settings/document templates.
-- Load worker/tool/transaction data.
-- Generate Worker Custody Report.
-- Generate Tool Custody Report.
-- Generate Issue/Return/Lost/Damaged reports.
-- Add PDF preview/download/export behavior.
-- Test generated reports.
-- Run `flutter analyze`.
-- Commit and push.
+- Reviewed current Reports files from GitHub:
+  - `reports_screen.dart`
+  - `show_report_builder.dart`
+  - `report_option_model.dart`
+  - `report_filter_model.dart`
+  - `report_option_card.dart`
+  - `report_builder_panel.dart`
+  - `report_filter_section.dart`
+  - `report_preview_section.dart`
+  - `report_filter_helpers.dart`
+- Confirmed Reports screen already had:
+  - Worker Custody Report
+  - Tool History Report
+  - Transactions Report
+  - Lost & Damaged Report
+  - Tool Summary Report
+- Confirmed filter UI already existed for:
+  - Worker
+  - Tool
+  - Transaction Type
+  - Date From
+  - Date To
+- Confirmed preview UI already used real transactions and calculators.
+- Added PDF dependencies:
+  - `pdf`
+  - `printing`
+- Generated platform plugin registrant updates for `printing`.
+- Created `ReportPdfService`.
+- Created `show_report_pdf_preview.dart`.
+- Connected Reports UI button from `PDF Coming Soon` to `Preview PDF`.
+- Added `PdfPreview` with print/share support.
+- Tested PDF Preview on Windows.
+- Made `CompanySettingsCubit` global inside `AppShell`.
+- Removed duplicated local `CompanySettingsCubit` provider from `CompanySettingsScreen`.
+- Fixed company logo refresh issue without app restart.
+- Passed company profile, report settings, and document templates to PDF generation.
+- Loaded company logo bytes from Supabase Storage bucket `company-assets`.
+- Added company header to PDF reports:
+  - Company logo
+  - Company trade/name
+  - Legal name
+  - Address
+  - Phone
+  - Email
+  - Website
+- Added report title and generated date.
+- Added Filters section.
+- Added real data tables for:
+  - Worker Custody Report
+  - Tool Summary Report
+  - Tool History / Transactions / Lost & Damaged reports using transaction list table
+- Added footer text from `reportFooterText`.
+- Added Responsibility Statement section:
+  - Worker Custody Report uses `custodyResponsibilityStatement`
+  - Lost & Damaged Report uses `lossDamageResponsibilityStatement`
+- Added Document Control section controlled by `showDocumentControl`.
+- Document Control uses active `CompanyDocumentTemplateModel` values:
+  - Document Code
+  - Document Title
+  - Issue No.
+  - Revision
+  - Effective Date
+  - Report Type
+  - Prepared By
+  - Approved By
+- Improved Document Template matching for PDF reports so it supports:
+  - `worker_custody`
+  - `worker_custody_report`
+  - `Worker Custody Report`
+  - Matching document titles
+- Verified Document Control appears above Filters.
+- Verified this PDF order:
+
+```text
+Company Header
+Report Title / Generated Date
+Document Control
+Filters
+Report Data Table
+Responsibility Statement
+Footer Text
+```
+
+Tested:
+
+- PDF Preview opens on Windows.
+- Company logo appears in PDF.
+- Changing company logo updates the next PDF without app restart.
+- Footer text appears in PDF.
+- Responsibility Statement appears in Worker Custody / Lost & Damaged reports.
+- Document Control appears above Filters when enabled and an active template exists.
+- `flutter analyze` has no errors after implemented report changes.
+- Report PDF changes were committed and pushed in multiple small commits.
+
+Important files:
+
+```text
+lib/features/reports/presentation/widgets/report_builder_panel.dart
+lib/features/reports/presentation/functions/show_report_pdf_preview.dart
+lib/features/reports/presentation/services/report_pdf_service.dart
+lib/features/reports/presentation/widgets/report_filter_section.dart
+lib/features/reports/presentation/widgets/report_preview_section.dart
+lib/features/reports/presentation/functions/report_filter_helpers.dart
+lib/features/company_settings/presentation/cubit/company_settings_cubit.dart
+lib/features/company_settings/presentation/cubit/company_settings_state.dart
+lib/features/company_settings/data/models/company_profile_model.dart
+lib/features/company_settings/data/models/company_report_settings_model.dart
+lib/features/company_settings/data/models/company_document_template_model.dart
+```
+
+Current PDF section order should remain:
+
+```text
+Company Header
+Report Title / Generated Date
+Document Control
+Filters
+Report Data Table
+Responsibility Statement
+Footer Text
+```
+
+Pending / Next Recommended Step:
+
+- Add Signature Section at the end of PDF reports.
+- Use document template labels:
+  - `workerSignatureLabel`
+  - `managerSignatureLabel`
+  - `storekeeperSignatureLabel`
+- Signature Section should appear after Responsibility Statement and before Footer Text.
+- Keep Document Control at the top because it defines the report document/version, not the report result content.
+
+Future Phase G Enhancements:
+
+- Add PDF signature section.
+- Add better PDF table layouts for long reports.
+- Add page numbers.
+- Add approval status filters or approval-specific reports.
+- Add Worker Acknowledgment Report using `custody_acknowledgements` and `custody_acknowledgement_items`.
+- Add export/download flow if needed beyond `PdfPreview` printing/sharing.
+- Improve date formatting based on `company_report_settings.dateFormat`.
+- Improve time formatting based on `company_report_settings.timeFormat`.
+- Improve timezone handling based on `company_report_settings.defaultTimezone`.
 
 ---
 
@@ -1128,20 +1292,34 @@ The exact release order can change based on business/customer needs, but the pro
 Continue from:
 
 ```text
-Maintenance Checkpoint — Flutter SDK Upgrade
+Phase G — Reports / PDF
 ```
 
-Start with:
+Start the new chat with:
 
 ```text
-Step 51.1 — Confirm current Flutter version and channel
-Step 51.2 — Run flutter upgrade
-Step 51.3 — Run flutter doctor
-Step 51.4 — Run flutter pub get
-Step 51.5 — Run dart format lib
-Step 51.6 — Run flutter analyze
-Step 51.7 — Test app on Windows
-Step 51.8 — Fix any upgrade warnings/errors
-Step 51.9 — Commit / Push Flutter upgrade
-Step 51.10 — Continue Phase G — Reports / PDF
+Step 52.19 — Add Signature Section to PDF Reports
+```
+
+Before starting, review the real GitHub repo first, especially:
+
+```text
+PROJECT_ROADMAP.md
+lib/features/reports/presentation/services/report_pdf_service.dart
+lib/features/reports/presentation/functions/show_report_pdf_preview.dart
+lib/features/reports/presentation/widgets/report_builder_panel.dart
+lib/features/company_settings/data/models/company_document_template_model.dart
+```
+
+Next implementation target:
+
+```text
+Add Signature Section after Responsibility Statement and before Footer Text.
+
+Use:
+- workerSignatureLabel
+- managerSignatureLabel
+- storekeeperSignatureLabel
+
+from the active CompanyDocumentTemplateModel.
 ```
