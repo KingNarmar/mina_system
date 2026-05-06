@@ -80,6 +80,10 @@ class ReportPdfService {
               reportType: reportType,
               reportSettings: reportSettings,
             ),
+            if (documentTemplate != null) ...[
+              pw.SizedBox(height: 20),
+              _buildSignatureSection(documentTemplate),
+            ],
             pw.SizedBox(height: 24),
             _buildFooter(reportSettings),
           ];
@@ -496,6 +500,99 @@ class ReportPdfService {
     );
   }
 
+  pw.Widget _buildSignatureSection(
+    CompanyDocumentTemplateModel documentTemplate,
+  ) {
+    final signatureLabels = <String>[
+      _getSignatureLabel(
+        label: documentTemplate.workerSignatureLabel,
+        fallback: 'Worker Signature',
+      ),
+      _getSignatureLabel(
+        label: documentTemplate.managerSignatureLabel,
+        fallback: 'Manager Signature',
+      ),
+      _getSignatureLabel(
+        label: documentTemplate.storekeeperSignatureLabel,
+        fallback: 'Storekeeper Signature',
+      ),
+    ];
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.grey300),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Signatures',
+            style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blueGrey900,
+            ),
+          ),
+          pw.SizedBox(height: 18),
+          pw.Table(
+            columnWidths: const {
+              0: pw.FlexColumnWidth(1),
+              1: pw.FlexColumnWidth(1),
+              2: pw.FlexColumnWidth(1),
+            },
+            children: [
+              pw.TableRow(
+                children: signatureLabels.map(_buildSignatureBox).toList(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildSignatureBox(String label) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(right: 10),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blueGrey900,
+            ),
+          ),
+          pw.SizedBox(height: 28),
+          pw.Container(height: 1, color: PdfColors.grey500),
+          pw.SizedBox(height: 5),
+          pw.Text(
+            'Signature',
+            style: const pw.TextStyle(
+              fontSize: 7,
+              color: PdfColors.blueGrey500,
+            ),
+          ),
+          pw.SizedBox(height: 16),
+          pw.Container(height: 1, color: PdfColors.grey500),
+          pw.SizedBox(height: 5),
+          pw.Text(
+            'Date',
+            style: const pw.TextStyle(
+              fontSize: 7,
+              color: PdfColors.blueGrey500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   pw.Widget _buildFooter(CompanyReportSettingsModel reportSettings) {
     final footerText = reportSettings.reportFooterText?.trim();
 
@@ -647,6 +744,19 @@ class ReportPdfService {
 
   String _normalizeTemplateText(String value) {
     return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+  }
+
+  String _getSignatureLabel({
+    required String? label,
+    required String fallback,
+  }) {
+    final trimmedLabel = label?.trim();
+
+    if (trimmedLabel == null || trimmedLabel.isEmpty) {
+      return fallback;
+    }
+
+    return trimmedLabel;
   }
 
   Future<Uint8List?> _loadCompanyLogoBytes({
