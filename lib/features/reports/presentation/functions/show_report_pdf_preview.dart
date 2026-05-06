@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
@@ -18,6 +19,7 @@ void showReportPdfPreview(
   required List<TransactionModel> transactions,
   required CompanyProfileModel companyProfile,
   required CompanyReportSettingsModel reportSettings,
+  required List<CompanyDocumentTemplateModel> documentTemplates,
 }) {
   final width = MediaQuery.sizeOf(context).width;
   final height = MediaQuery.sizeOf(context).height;
@@ -29,6 +31,7 @@ void showReportPdfPreview(
     transactions: transactions,
     companyProfile: companyProfile,
     reportSettings: reportSettings,
+    documentTemplates: documentTemplates,
   );
 
   if (isMobile) {
@@ -65,6 +68,7 @@ class _ReportPdfPreview extends StatelessWidget {
     required this.transactions,
     required this.companyProfile,
     required this.reportSettings,
+    required this.documentTemplates,
   });
 
   final ReportType reportType;
@@ -72,6 +76,8 @@ class _ReportPdfPreview extends StatelessWidget {
   final List<TransactionModel> transactions;
   final CompanyProfileModel companyProfile;
   final CompanyReportSettingsModel reportSettings;
+  final List<CompanyDocumentTemplateModel> documentTemplates;
+
   @override
   Widget build(BuildContext context) {
     final pdfService = ReportPdfService();
@@ -115,6 +121,7 @@ class _ReportPdfPreview extends StatelessWidget {
                   transactions: transactions,
                   companyProfile: companyProfile,
                   reportSettings: reportSettings,
+                  documentTemplates: documentTemplates,
                 );
               },
             ),

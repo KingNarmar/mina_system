@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
@@ -19,12 +20,14 @@ class ReportPdfService {
   final SupabaseClient _supabase;
 
   static const String _companyAssetsBucket = 'company-assets';
+
   Future<Uint8List> buildReportPdf({
     required ReportType reportType,
     required ReportFilterModel filters,
     required List<TransactionModel> transactions,
     required CompanyProfileModel companyProfile,
     required CompanyReportSettingsModel reportSettings,
+    required List<CompanyDocumentTemplateModel> documentTemplates,
   }) async {
     final pdf = pw.Document();
 
@@ -32,6 +35,14 @@ class ReportPdfService {
       companyProfile: companyProfile,
       reportSettings: reportSettings,
     );
+
+    final documentTemplate = _findDocumentTemplate(
+      reportType: reportType,
+      documentTemplates: documentTemplates,
+    );
+
+    final shouldShowDocumentControl =
+        reportSettings.showDocumentControl && documentTemplate != null;
 
     final filteredTransactions = applyReportTransactionFilters(
       transactions: transactions,
@@ -51,6 +62,13 @@ class ReportPdfService {
               reportSettings: reportSettings,
               logoBytes: logoBytes,
             ),
+            if (shouldShowDocumentControl) ...[
+              pw.SizedBox(height: 16),
+              _buildDocumentControl(
+                reportSettings: reportSettings,
+                documentTemplate: documentTemplate,
+              ),
+            ],
             pw.SizedBox(height: 16),
             _buildFiltersSummary(filters),
             pw.SizedBox(height: 20),
@@ -170,6 +188,121 @@ class ReportPdfService {
           ],
         ),
       ],
+    );
+  }
+
+  pw.Widget _buildDocumentControl({
+    required CompanyReportSettingsModel reportSettings,
+    required CompanyDocumentTemplateModel? documentTemplate,
+  }) {
+    if (!reportSettings.showDocumentControl || documentTemplate == null) {
+      return pw.SizedBox();
+    }
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.grey300),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Document Control',
+            style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blueGrey900,
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          pw.Table(
+            columnWidths: const {
+              0: pw.FlexColumnWidth(1.2),
+              1: pw.FlexColumnWidth(1.8),
+              2: pw.FlexColumnWidth(1),
+              3: pw.FlexColumnWidth(1),
+            },
+            children: [
+              pw.TableRow(
+                children: [
+                  _buildDocumentControlCell(
+                    label: 'Document Code',
+                    value: documentTemplate.documentCode,
+                  ),
+                  _buildDocumentControlCell(
+                    label: 'Document Title',
+                    value: documentTemplate.documentTitle,
+                  ),
+                  _buildDocumentControlCell(
+                    label: 'Issue No.',
+                    value: documentTemplate.issueNo,
+                  ),
+                  _buildDocumentControlCell(
+                    label: 'Revision',
+                    value: documentTemplate.revisionNo,
+                  ),
+                ],
+              ),
+              pw.TableRow(
+                children: [
+                  _buildDocumentControlCell(
+                    label: 'Effective Date',
+                    value: _formatDate(documentTemplate.effectiveDate),
+                  ),
+                  _buildDocumentControlCell(
+                    label: 'Report Type',
+                    value: _formatTemplateReportType(
+                      documentTemplate.reportType,
+                    ),
+                  ),
+                  _buildDocumentControlCell(
+                    label: 'Prepared By',
+                    value: documentTemplate.preparedByTitle ?? '-',
+                  ),
+                  _buildDocumentControlCell(
+                    label: 'Approved By',
+                    value: documentTemplate.approvedByTitle ?? '-',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildDocumentControlCell({
+    required String label,
+    required String value,
+  }) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(right: 8, bottom: 6),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: const pw.TextStyle(
+              fontSize: 7,
+              color: PdfColors.blueGrey500,
+            ),
+          ),
+          pw.SizedBox(height: 2),
+          pw.Text(
+            value.trim().isEmpty ? '-' : value.trim(),
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blueGrey900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -396,6 +529,40 @@ class ReportPdfService {
     );
   }
 
+  CompanyDocumentTemplateModel? _findDocumentTemplate({
+    required ReportType reportType,
+    required List<CompanyDocumentTemplateModel> documentTemplates,
+  }) {
+    final expectedReportType = _getTemplateReportType(reportType);
+
+    for (final template in documentTemplates) {
+      if (!template.isActive) {
+        continue;
+      }
+
+      if (template.reportType.trim().toLowerCase() == expectedReportType) {
+        return template;
+      }
+    }
+
+    return null;
+  }
+
+  String _getTemplateReportType(ReportType reportType) {
+    switch (reportType) {
+      case ReportType.workerCustody:
+        return 'worker_custody';
+      case ReportType.toolHistory:
+        return 'tool_history';
+      case ReportType.transactions:
+        return 'transactions';
+      case ReportType.lostDamaged:
+        return 'lost_damaged';
+      case ReportType.toolSummary:
+        return 'tool_summary';
+    }
+  }
+
   String? _getResponsibilityStatement({
     required ReportType reportType,
     required CompanyReportSettingsModel reportSettings,
@@ -440,6 +607,18 @@ class ReportPdfService {
       case TransactionType.damaged:
         return 'Damaged';
     }
+  }
+
+  String _formatTemplateReportType(String value) {
+    return value
+        .replaceAll('_', ' ')
+        .split(' ')
+        .where((word) => word.trim().isNotEmpty)
+        .map((word) {
+          final lowerWord = word.toLowerCase();
+          return '${lowerWord[0].toUpperCase()}${lowerWord.substring(1)}';
+        })
+        .join(' ');
   }
 
   String _formatDate(DateTime date) {

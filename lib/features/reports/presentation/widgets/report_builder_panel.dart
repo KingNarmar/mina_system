@@ -124,6 +124,7 @@ class _ReportBuilderActions extends StatelessWidget {
                   .read<TransactionsCubit>()
                   .state
                   .transactions;
+
               final companySettingsState = context
                   .read<CompanySettingsCubit>()
                   .state;
@@ -142,6 +143,7 @@ class _ReportBuilderActions extends StatelessWidget {
 
                 return;
               }
+
               showReportPdfPreview(
                 context,
                 reportType: report.type,
@@ -149,6 +151,7 @@ class _ReportBuilderActions extends StatelessWidget {
                 transactions: transactions,
                 companyProfile: companySettingsState.profile,
                 reportSettings: companySettingsState.reportSettings,
+                documentTemplates: companySettingsState.documentTemplates,
               );
             },
             icon: const Icon(Icons.picture_as_pdf_outlined),
