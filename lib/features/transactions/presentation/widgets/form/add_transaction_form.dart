@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
-import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
-import 'package:mina_system/core/widgets/searchable_selection_field.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
-import 'package:mina_system/features/transactions/presentation/functions/transaction_form_helpers.dart';
-import 'package:mina_system/features/transactions/presentation/functions/transaction_form_validators.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
-import 'package:mina_system/features/transactions/presentation/widgets/form/transaction_image_picker_field.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+
+import 'sections/transaction_details_section.dart';
+import 'sections/transaction_tool_selection.dart';
+import 'sections/transaction_type_picker.dart';
+import 'sections/transaction_worker_selection.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key, required this.onSave});
@@ -86,11 +85,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             children: [
               const Text('Add Transaction', style: AppTextStyles.title),
               const Gap(20),
-              CustomDropdownFormField(
-                hint: 'Transaction Type',
-                value: _selectedType,
-                items: transactionTypeLabels,
-                validator: validateRequiredTransactionDropdown,
+              TransactionTypePicker(
+                selectedType: _selectedType,
                 onChanged: (value) {
                   setState(() {
                     _selectedType = value;
@@ -98,76 +94,38 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 },
               ),
               const Gap(12),
-              SearchableSelectionField<WorkerModel>(
-                hint: 'Search Worker by HR Code or Name',
-                items: workers,
-                selectedItem: _selectedWorker,
-                itemLabelBuilder: buildWorkerOptionLabel,
-                validator: validateRequiredTransactionSelection,
-                searchMatcher: (worker, query) {
-                  final hrCode = worker.hrCode.trim().toLowerCase();
-                  final name = worker.name.trim().toLowerCase();
-                  final department = worker.department.trim().toLowerCase();
-
-                  return hrCode.contains(query) ||
-                      name.contains(query) ||
-                      department.contains(query);
-                },
-                onItemSelected: (worker) {
+              TransactionWorkerSelection(
+                workers: workers,
+                selectedWorker: _selectedWorker,
+                onSelected: (worker) {
                   setState(() {
                     _selectedWorker = worker;
                   });
                 },
               ),
               const Gap(12),
-              SearchableSelectionField<ToolModel>(
-                hint: 'Search Tool by Code or Name',
-                items: tools,
-                selectedItem: _selectedTool,
-                itemLabelBuilder: buildToolOptionLabel,
-                validator: validateRequiredTransactionSelection,
-                searchMatcher: (tool, query) {
-                  final toolCode = tool.toolCode.trim().toLowerCase();
-                  final toolName = tool.toolName.trim().toLowerCase();
-                  final category = tool.category.trim().toLowerCase();
-
-                  return toolCode.contains(query) ||
-                      toolName.contains(query) ||
-                      category.contains(query);
-                },
-                onItemSelected: (tool) {
+              TransactionToolSelection(
+                tools: tools,
+                selectedTool: _selectedTool,
+                onSelected: (tool) {
                   setState(() {
                     _selectedTool = tool;
                   });
                 },
               ),
               const Gap(12),
-              CustomTextFormField(
-                hint: 'Quantity',
-                controller: _quantityController,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  return validateTransactionQuantity(
-                    value,
-                    maxReturnQuantity: _getMaxReturnQuantity(context),
-                  );
-                },
-              ),
-              const Gap(12),
-              TransactionImagePickerField(
-                imagePath: _selectedImagePath,
-                isRequired: _isProofImageRequired,
+              TransactionDetailsSection(
+                quantityController: _quantityController,
+                noteController: _noteController,
+                selectedImagePath: _selectedImagePath,
+                isProofImageRequired: _isProofImageRequired,
+                isNoteRequired: _isNoteRequired,
+                maxReturnQuantity: _getMaxReturnQuantity(context),
                 onImageSelected: (imagePath) {
                   setState(() {
                     _selectedImagePath = imagePath;
                   });
                 },
-              ),
-              const Gap(12),
-              CustomTextFormField(
-                hint: _isNoteRequired ? 'Note *' : 'Note (optional)',
-                controller: _noteController,
-                validator: _validateNote,
               ),
               const Gap(20),
               MainButton(text: 'Save Transaction', onPressed: _onSavePressed),
@@ -200,18 +158,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       workerHrCode: selectedWorker.hrCode,
       toolCode: selectedTool.toolCode,
     );
-  }
-
-  String? _validateNote(String? value) {
-    if (!_isNoteRequired) {
-      return null;
-    }
-
-    if (value == null || value.trim().isEmpty) {
-      return 'Note is required for lost or damaged transactions';
-    }
-
-    return null;
   }
 
   void _onSavePressed() {

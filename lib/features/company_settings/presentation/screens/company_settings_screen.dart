@@ -7,9 +7,9 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_document_templates_form.dart';
-import 'package:mina_system/features/company_settings/presentation/widgets/company_logo_card.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/profile/company_logo_picker.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
@@ -62,7 +62,7 @@ class _CompanySettingsView extends StatelessWidget {
                     isSaving: state.isUpdatingProfile,
                   ),
                   const Gap(16),
-                  CompanyLogoCard(
+                  CompanyLogoPicker(
                     profile: profile,
                     isSaving: state.isUploadingLogo,
                   ),

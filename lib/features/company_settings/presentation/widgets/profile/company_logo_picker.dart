@@ -10,8 +10,8 @@ import 'package:mina_system/features/company_settings/presentation/cubit/company
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
-class CompanyLogoCard extends StatelessWidget {
-  const CompanyLogoCard({
+class CompanyLogoPicker extends StatelessWidget {
+  const CompanyLogoPicker({
     super.key,
     required this.profile,
     required this.isSaving,

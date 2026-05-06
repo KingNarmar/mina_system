@@ -9,6 +9,10 @@ import 'package:mina_system/features/company_settings/data/models/company_report
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 
+import 'report_settings/report_multiline_text_field.dart';
+import 'report_settings/report_setting_switch.dart';
+import 'report_settings/report_settings_form_helpers.dart';
+
 class CompanyReportSettingsForm extends StatefulWidget {
   const CompanyReportSettingsForm({
     super.key,
@@ -26,13 +30,7 @@ class CompanyReportSettingsForm extends StatefulWidget {
 
 class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
   final _formKey = GlobalKey<FormState>();
-
-  late final TextEditingController _timezoneController;
-  late final TextEditingController _dateFormatController;
-  late final TextEditingController _timeFormatController;
-  late final TextEditingController _footerTextController;
-  late final TextEditingController _custodyStatementController;
-  late final TextEditingController _lossDamageStatementController;
+  late final ReportSettingsControllers _controllers;
 
   late bool _showCompanyLogo;
   late bool _showCompanyDetails;
@@ -43,23 +41,25 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
   void initState() {
     super.initState();
 
-    _timezoneController = TextEditingController(
-      text: widget.reportSettings.defaultTimezone,
-    );
-    _dateFormatController = TextEditingController(
-      text: widget.reportSettings.dateFormat,
-    );
-    _timeFormatController = TextEditingController(
-      text: widget.reportSettings.timeFormat,
-    );
-    _footerTextController = TextEditingController(
-      text: widget.reportSettings.reportFooterText ?? '',
-    );
-    _custodyStatementController = TextEditingController(
-      text: widget.reportSettings.custodyResponsibilityStatement ?? '',
-    );
-    _lossDamageStatementController = TextEditingController(
-      text: widget.reportSettings.lossDamageResponsibilityStatement ?? '',
+    _controllers = ReportSettingsControllers(
+      timezoneController: TextEditingController(
+        text: widget.reportSettings.defaultTimezone,
+      ),
+      dateFormatController: TextEditingController(
+        text: widget.reportSettings.dateFormat,
+      ),
+      timeFormatController: TextEditingController(
+        text: widget.reportSettings.timeFormat,
+      ),
+      footerTextController: TextEditingController(
+        text: widget.reportSettings.reportFooterText ?? '',
+      ),
+      custodyStatementController: TextEditingController(
+        text: widget.reportSettings.custodyResponsibilityStatement ?? '',
+      ),
+      lossDamageStatementController: TextEditingController(
+        text: widget.reportSettings.lossDamageResponsibilityStatement ?? '',
+      ),
     );
 
     _showCompanyLogo = widget.reportSettings.showCompanyLogo;
@@ -70,12 +70,7 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
 
   @override
   void dispose() {
-    _timezoneController.dispose();
-    _dateFormatController.dispose();
-    _timeFormatController.dispose();
-    _footerTextController.dispose();
-    _custodyStatementController.dispose();
-    _lossDamageStatementController.dispose();
+    _controllers.dispose();
     super.dispose();
   }
 
@@ -114,44 +109,44 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
               const Gap(20),
               CustomTextFormField(
                 hint: 'Default Timezone',
-                controller: _timezoneController,
-                validator: _validateRequired,
+                controller: _controllers.timezoneController,
+                validator: ReportSettingsFormHelpers.validateRequired,
               ),
               const Gap(12),
               CustomTextFormField(
                 hint: 'Date Format',
-                controller: _dateFormatController,
-                validator: _validateRequired,
+                controller: _controllers.dateFormatController,
+                validator: ReportSettingsFormHelpers.validateRequired,
               ),
               const Gap(12),
               CustomTextFormField(
                 hint: 'Time Format',
-                controller: _timeFormatController,
-                validator: _validateRequired,
+                controller: _controllers.timeFormatController,
+                validator: ReportSettingsFormHelpers.validateRequired,
               ),
               const Gap(16),
-              _ReportSettingSwitch(
+              ReportSettingSwitch(
                 title: 'Show Company Logo',
                 value: _showCompanyLogo,
                 onChanged: (value) {
                   setState(() => _showCompanyLogo = value);
                 },
               ),
-              _ReportSettingSwitch(
+              ReportSettingSwitch(
                 title: 'Show Company Details',
                 value: _showCompanyDetails,
                 onChanged: (value) {
                   setState(() => _showCompanyDetails = value);
                 },
               ),
-              _ReportSettingSwitch(
+              ReportSettingSwitch(
                 title: 'Show Document Control',
                 value: _showDocumentControl,
                 onChanged: (value) {
                   setState(() => _showDocumentControl = value);
                 },
               ),
-              _ReportSettingSwitch(
+              ReportSettingSwitch(
                 title: 'Show Generated By',
                 value: _showGeneratedBy,
                 onChanged: (value) {
@@ -159,19 +154,19 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
                 },
               ),
               const Gap(16),
-              _MultilineTextField(
+              ReportMultilineTextField(
                 label: 'Report Footer Text',
-                controller: _footerTextController,
+                controller: _controllers.footerTextController,
               ),
               const Gap(12),
-              _MultilineTextField(
+              ReportMultilineTextField(
                 label: 'Custody Responsibility Statement',
-                controller: _custodyStatementController,
+                controller: _controllers.custodyStatementController,
               ),
               const Gap(12),
-              _MultilineTextField(
+              ReportMultilineTextField(
                 label: 'Loss / Damage Responsibility Statement',
-                controller: _lossDamageStatementController,
+                controller: _controllers.lossDamageStatementController,
               ),
               const Gap(20),
               Align(
@@ -192,92 +187,26 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
     );
   }
 
-  String? _validateRequired(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'This field is required';
-    }
-
-    return null;
-  }
-
   void _onSavePressed() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final updatedReportSettings = widget.reportSettings.copyWith(
-      defaultTimezone: _timezoneController.text,
-      dateFormat: _dateFormatController.text,
-      timeFormat: _timeFormatController.text,
+      defaultTimezone: _controllers.timezoneController.text,
+      dateFormat: _controllers.dateFormatController.text,
+      timeFormat: _controllers.timeFormatController.text,
       showCompanyLogo: _showCompanyLogo,
       showCompanyDetails: _showCompanyDetails,
       showDocumentControl: _showDocumentControl,
       showGeneratedBy: _showGeneratedBy,
-      reportFooterText: _footerTextController.text,
-      custodyResponsibilityStatement: _custodyStatementController.text,
-      lossDamageResponsibilityStatement: _lossDamageStatementController.text,
+      reportFooterText: _controllers.footerTextController.text,
+      custodyResponsibilityStatement: _controllers.custodyStatementController.text,
+      lossDamageResponsibilityStatement: _controllers.lossDamageStatementController.text,
     );
 
     context.read<CompanySettingsCubit>().updateCompanyReportSettings(
       reportSettings: updatedReportSettings,
-    );
-  }
-}
-
-class _ReportSettingSwitch extends StatelessWidget {
-  const _ReportSettingSwitch({
-    required this.title,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return SwitchListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(title, style: AppTextStyles.body),
-      value: value,
-      activeThumbColor: AppColors.accent,
-      onChanged: onChanged,
-    );
-  }
-}
-
-class _MultilineTextField extends StatelessWidget {
-  const _MultilineTextField({required this.label, required this.controller});
-
-  final String label;
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      minLines: 3,
-      maxLines: 5,
-      keyboardType: TextInputType.multiline,
-      onTapOutside: (event) {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      decoration: InputDecoration(
-        contentPadding: const EdgeInsets.all(16),
-        filled: true,
-        fillColor: AppColors.border,
-        hintText: label,
-        hintStyle: AppTextStyles.caption,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-      ),
     );
   }
 }
