@@ -533,14 +533,31 @@ class ReportPdfService {
     required ReportType reportType,
     required List<CompanyDocumentTemplateModel> documentTemplates,
   }) {
-    final expectedReportType = _getTemplateReportType(reportType);
+    final expectedType = _normalizeTemplateText(
+      _getTemplateReportType(reportType),
+    );
+    final expectedTitle = _normalizeTemplateText(_getReportTitle(reportType));
 
     for (final template in documentTemplates) {
       if (!template.isActive) {
         continue;
       }
 
-      if (template.reportType.trim().toLowerCase() == expectedReportType) {
+      final templateType = _normalizeTemplateText(template.reportType);
+      final templateTitle = _normalizeTemplateText(template.documentTitle);
+
+      final matchesType =
+          templateType == expectedType ||
+          templateType == expectedTitle ||
+          templateType.contains(expectedType) ||
+          expectedType.contains(templateType);
+
+      final matchesTitle =
+          templateTitle == expectedTitle ||
+          templateTitle.contains(expectedType) ||
+          expectedTitle.contains(templateTitle);
+
+      if (matchesType || matchesTitle) {
         return template;
       }
     }
@@ -626,6 +643,10 @@ class ReportPdfService {
     final day = date.day.toString().padLeft(2, '0');
 
     return '${date.year}-$month-$day';
+  }
+
+  String _normalizeTemplateText(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
   }
 
   Future<Uint8List?> _loadCompanyLogoBytes({
