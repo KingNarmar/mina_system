@@ -1119,15 +1119,29 @@ Responsibility Statement
 Footer Text
 ```
 
-Pending / Next Recommended Step:
+Latest Completed Step:
 
-- Add Signature Section at the end of PDF reports.
-- Use document template labels:
+- Added Signature Section to PDF reports.
+- Signature Section appears after Responsibility Statement and before Footer Text.
+- Signature Section uses document template labels:
   - `workerSignatureLabel`
   - `managerSignatureLabel`
   - `storekeeperSignatureLabel`
-- Signature Section should appear after Responsibility Statement and before Footer Text.
-- Keep Document Control at the top because it defines the report document/version, not the report result content.
+- Added safe fallback labels when template labels are empty:
+  - Worker Signature
+  - Manager Signature
+  - Storekeeper Signature
+- Verified PDF section order:
+
+```text
+Company Header
+Report Title / Generated Date
+Document Control
+Filters
+Report Data Table
+Responsibility Statement
+Signature Section
+Footer Text
 
 Future Phase G Enhancements:
 

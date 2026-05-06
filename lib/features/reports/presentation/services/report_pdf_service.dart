@@ -54,6 +54,7 @@ class ReportPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
+        footer: _buildPageNumberFooter,
         build: (context) {
           return [
             _buildHeader(
@@ -610,6 +611,23 @@ class ReportPdfService {
         footerText,
         textAlign: pw.TextAlign.center,
         style: const pw.TextStyle(fontSize: 9, color: PdfColors.blueGrey600),
+      ),
+    );
+  }
+
+  pw.Widget _buildPageNumberFooter(pw.Context context) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.only(top: 8),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+      ),
+      child: pw.Align(
+        alignment: pw.Alignment.centerRight,
+        child: pw.Text(
+          'Page ${context.pageNumber} of ${context.pagesCount}',
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.blueGrey500),
+        ),
       ),
     );
   }
