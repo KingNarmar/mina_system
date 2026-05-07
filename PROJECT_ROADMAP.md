@@ -10,7 +10,7 @@
 
 ## Project Vision
 
-Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, users, roles, invitations, approvals, settlements, audit logs, and professional PDF reports for companies and warehouses.
+Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, users, roles, invitations, approvals, settlements, audit logs, responsive layouts, and professional PDF reports for companies and warehouses.
 
 The system is being built as a real multi-company SaaS/product, not a local demo.
 
@@ -28,6 +28,12 @@ Every company must have isolated data using `currentCompanyId`.
 - Always review the real GitHub repo before continuing a new step.
 - Do not rely only on README because it may be outdated.
 - If a file becomes too large, refactor it into smaller focused files without changing working behavior.
+- Every new feature must be tested on:
+  - Windows
+  - Mobile portrait
+  - Mobile landscape
+  - Tablet portrait
+  - Tablet landscape
 - After each completed feature:
   - Test
   - Run `dart format lib`
@@ -72,6 +78,28 @@ Follow this pattern for each feature:
 - RLS must enforce role permissions at database level, not UI only.
 - Colors should be centralized inside `AppColors`.
 - Do not use direct widget-level colors like `Colors.green` or `Colors.orange` unless they are first added to `AppColors`.
+
+## Responsive / Adaptive Rules
+
+- Do not assume mobile is always portrait.
+- Do not assume tablet is always landscape.
+- Do not lock orientation as a shortcut unless there is a clear business reason.
+- Prefer adaptive layout based on available space.
+- Use:
+  - `MediaQuery.sizeOf(context)`
+  - `LayoutBuilder`
+  - `SafeArea`
+  - `SingleChildScrollView`
+  - `Flexible`
+  - `Expanded`
+  - `Wrap`
+  - `ResponsiveLayout`
+  - `AppBreakpoints`
+- Use `OrientationBuilder` only for small widget-level orientation changes when needed.
+- Every long form must be scrollable in landscape.
+- Dialogs must respect available screen height.
+- Tables must remain horizontally scrollable where needed.
+- Action buttons must wrap instead of overflowing.
 
 ---
 
@@ -145,7 +173,7 @@ Required future behavior:
 ```text
 Pending invitation exists → Accept Invitation screen
 Active membership exists → Select Company / Dashboard
-No invitation and no membership → Create Company screen
+No invitation and no membership → Create or Join Company screen
 ```
 
 ---
@@ -851,6 +879,45 @@ Rule:
 
 ---
 
+# Maintenance Checkpoint — Android Signed Document Opening
+
+## Status: Done
+
+Goal:
+
+Fix opening signed approval documents on Android emulator / Android devices.
+
+Problem:
+
+- `View Signed Document` worked on Windows.
+- On Android emulator, `url_launcher` could not open signed Supabase URLs correctly.
+- Android logs showed messages like:
+  - `component name for https://... is null`
+
+Implemented:
+
+- Added Android package visibility queries for:
+  - `https`
+  - `http`
+- Preserved Flutter engine `PROCESS_TEXT` query.
+- Updated signed document button to use `launchUrl` directly instead of relying on `canLaunchUrl`.
+- Signed approval documents now open correctly on Android.
+
+Files touched:
+
+```text
+android/app/src/main/AndroidManifest.xml
+lib/features/transactions/presentation/widgets/details/transaction_signed_document_button.dart
+```
+
+Testing:
+
+- Tested `View Signed Document` on Android emulator.
+- Signed Supabase approval document URL opens successfully.
+- `flutter analyze` has no errors.
+
+---
+
 # Phase G — Reports / PDF
 
 ## Reports / PDF Status: In Progress / Core Reports Implemented
@@ -1214,6 +1281,7 @@ Signed document behavior:
 - The user can open it later from Transaction Details.
 - The app generates a temporary signed URL.
 - The signed URL opens externally using `url_launcher`.
+- Android link opening is fixed through AndroidManifest `http/https` queries and direct `launchUrl`.
 
 ## Implemented PDF
 
@@ -1286,6 +1354,7 @@ Updated:
 
 ```text
 custody_balance_calculator.dart
+dashboard_repo.dart
 ```
 
 Now Lost/Damaged reduces custody balance only when:
@@ -1320,6 +1389,7 @@ Tested:
 - Lost/Damaged Approval PDF preview works.
 - PDF layout issue was fixed.
 - Dashboard updates after settlement.
+- Android signed document link opens correctly.
 - `flutter analyze` has no errors.
 - Changes were committed and pushed.
 
@@ -1336,6 +1406,7 @@ Step H.7 — Add Lost/Damaged Approval PDF report. ✅
 Step H.8 — Update custody balance logic to reduce only after settlement. ✅
 Step H.9 — Update Dashboard Closed Today logic after settlement rules. ✅
 Step H.10 — Test complete flow end-to-end. ✅
+Step H.11 — Fix signed document link opening on Android. ✅
 ```
 
 ## Pending / Future Enhancements
@@ -1564,9 +1635,191 @@ Planned:
 
 ---
 
-# Phase L — Company Users, Invitations & Role Management
+# Phase L — Responsive & Orientation Hardening
 
-## Status: Planned / High Priority
+## Status: Planned / Immediate Next Step
+
+Goal:
+
+Fix mobile and tablet layout issues when the user rotates the device between portrait and landscape.
+
+Current problem:
+
+Some mobile/tablet screens break, overflow, or become hard to use after rotation.
+
+The app already supports responsive layouts, but rotation testing must become a formal requirement before production release.
+
+## Required Behavior
+
+The app must work correctly in:
+
+```text
+Mobile Portrait
+Mobile Landscape
+Tablet Portrait
+Tablet Landscape
+Desktop
+```
+
+Rotation must not break:
+
+```text
+Dashboard
+Workers
+Tools
+Transactions
+Pending Approvals
+Reports
+Company Settings
+PDF Preview dialogs
+Transaction forms
+Worker forms
+Tool forms
+Lookup forms
+Document Templates
+```
+
+## Technical Rules
+
+Use adaptive/responsive layout rules based on available width and constraints.
+
+Preferred tools:
+
+```text
+MediaQuery.sizeOf(context)
+LayoutBuilder
+SafeArea
+SingleChildScrollView where needed
+Flexible / Expanded where needed
+Wrap instead of overflowing Row where needed
+ResponsiveLayout / AppBreakpoints
+```
+
+Use `OrientationBuilder` only for small widget-level layout changes when needed.
+
+Avoid:
+
+```text
+Hard-coded heights that break in landscape.
+Rows that overflow on narrow landscape layouts.
+Dialogs taller than the available screen height.
+Forms without scroll support.
+Assuming tablet is always landscape.
+Assuming mobile is always portrait.
+Locking orientation as a shortcut unless there is a clear business reason.
+```
+
+## Required Fix Areas
+
+Audit these screens first:
+
+```text
+Dashboard screen
+Workers desktop/tablet/mobile layouts
+Tools desktop/tablet/mobile layouts
+Transactions screen
+Pending Approvals layout
+Add Transaction form
+Add Worker form
+Add/Edit Tool form
+Reports builder / preview screen
+Company Settings screen
+Document Templates form
+Lookups screen
+PDF Preview modal/dialog
+```
+
+## Required Improvements
+
+- Ensure every long form is scrollable in landscape.
+- Ensure dialogs respect screen height.
+- Ensure cards/grids reflow correctly when height becomes small.
+- Ensure side navigation / rail does not cause content overflow.
+- Ensure tables remain horizontally scrollable where needed.
+- Ensure action buttons wrap instead of overflowing.
+- Ensure tablet portrait and tablet landscape are both tested.
+- Ensure mobile landscape does not cut off form fields or buttons.
+- Add responsive constraints for large dialogs.
+- Add `SafeArea` where content can be blocked by system UI.
+- Keep UI design unchanged as much as possible.
+
+## Manual Test Checklist
+
+Test every screen in:
+
+```text
+Mobile Portrait
+Mobile Landscape
+Tablet Portrait
+Tablet Landscape
+```
+
+Manual checks:
+
+```text
+Dashboard:
+- Stats cards do not overflow.
+- Recent transactions remain readable.
+- Quick Actions remain clickable.
+
+Workers:
+- Table/card layout does not overflow.
+- Add/Edit Worker form is scrollable.
+- Search/filter remains usable.
+
+Tools:
+- Table/card layout does not overflow.
+- Add/Edit Tool form is scrollable.
+- Buttons remain visible.
+
+Transactions:
+- Add Transaction form is scrollable.
+- Worker/tool autocomplete fields remain usable.
+- Proof image picker does not break layout.
+- Transaction table/card layout remains readable.
+
+Pending Approvals:
+- Action buttons wrap correctly.
+- Upload / Approve / Reject / Settle remain visible.
+- View Signed Document remains usable.
+
+Reports:
+- Report filters do not overflow.
+- PDF Preview opens correctly.
+- Preview dialog fits available space.
+
+Company Settings:
+- Company Profile form scrolls correctly.
+- Report Settings form scrolls correctly.
+- Document Templates form scrolls correctly.
+
+Lookups:
+- Add/Delete lookup forms remain usable.
+```
+
+## Implementation Steps
+
+```text
+Step L.1 — Run full mobile/tablet rotation audit.
+Step L.2 — List broken screens with screenshots.
+Step L.3 — Fix Dashboard rotation layout.
+Step L.4 — Fix Workers/Tools rotation layout.
+Step L.5 — Fix Transactions/Add Transaction rotation layout.
+Step L.6 — Fix Pending Approvals rotation layout.
+Step L.7 — Fix Reports/PDF Preview rotation layout.
+Step L.8 — Fix Company Settings/Document Templates rotation layout.
+Step L.9 — Fix Lookups rotation layout.
+Step L.10 — Run full manual rotation test.
+Step L.11 — Run dart format lib.
+Step L.12 — Run flutter analyze.
+Step L.13 — Commit and push.
+```
+
+---
+
+# Phase M — Company Users, Invitations & Role Management
+
+## Status: Planned / High Priority After Orientation Hardening
 
 Goal:
 
@@ -2007,27 +2260,27 @@ If user has no membership and no invitation:
 ## Implementation Steps
 
 ```text
-Step L.1 — Inspect current profiles / companies / company_members schema.
-Step L.2 — Design company_members and company_invitations schema.
-Step L.3 — Add SQL migration for invitations and member statuses.
-Step L.4 — Add/Update RLS policies for company member access.
-Step L.5 — Add secure Edge Function for inviting users.
-Step L.6 — Add secure Edge Function for accepting invitations.
-Step L.7 — Add Company Users models.
-Step L.8 — Add Company Users repo/service.
-Step L.9 — Add Company Users Cubit/State.
-Step L.10 — Add Company Users UI in Company Settings.
-Step L.11 — Add Invite User dialog.
-Step L.12 — Add Invitations tab.
-Step L.13 — Add Accept Invitation screen.
-Step L.14 — Update CurrentContextGate decision flow.
-Step L.15 — Add Create or Join Company screen.
-Step L.16 — Add accidental empty company archive/delete flow.
-Step L.17 — Add role-based UI visibility.
-Step L.18 — Add manual tests.
-Step L.19 — Run dart format lib.
-Step L.20 — Run flutter analyze.
-Step L.21 — Commit and push.
+Step M.1 — Inspect current profiles / companies / company_members schema.
+Step M.2 — Design company_members and company_invitations schema.
+Step M.3 — Add SQL migration for invitations and member statuses.
+Step M.4 — Add/Update RLS policies for company member access.
+Step M.5 — Add secure Edge Function for inviting users.
+Step M.6 — Add secure Edge Function for accepting invitations.
+Step M.7 — Add Company Users models.
+Step M.8 — Add Company Users repo/service.
+Step M.9 — Add Company Users Cubit/State.
+Step M.10 — Add Company Users UI in Company Settings.
+Step M.11 — Add Invite User dialog.
+Step M.12 — Add Invitations tab.
+Step M.13 — Add Accept Invitation screen.
+Step M.14 — Update CurrentContextGate decision flow.
+Step M.15 — Add Create or Join Company screen.
+Step M.16 — Add accidental empty company archive/delete flow.
+Step M.17 — Add role-based UI visibility.
+Step M.18 — Add manual tests.
+Step M.19 — Run dart format lib.
+Step M.20 — Run flutter analyze.
+Step M.21 — Commit and push.
 ```
 
 ## Manual Tests
@@ -2053,9 +2306,9 @@ Multiple company user sees company selector.
 
 ---
 
-# Phase M — Audit Trail & Activity Logs
+# Phase N — Audit Trail & Activity Logs
 
-## Status: Planned / High Priority After Phase L
+## Status: Planned / High Priority After Phase M
 
 Goal:
 
@@ -2191,7 +2444,7 @@ Rules:
 
 ---
 
-# Phase N — Future Product Enhancements
+# Phase O — Future Product Enhancements
 
 Planned:
 
@@ -2270,33 +2523,34 @@ Only do this as a separate maintenance commit.
 Next recommended development step:
 
 ```text
-Phase L — Company Users, Invitations & Role Management
+Phase L — Responsive & Orientation Hardening
 ```
 
 Start with:
 
 ```text
-Step L.1 — Inspect current profiles / companies / company_members schema.
+Step L.1 — Run full mobile/tablet rotation audit.
 ```
 
 Before writing any Flutter code:
 
 ```text
-1. Inspect Supabase tables:
-   - profiles
-   - companies
-   - company_members if exists
-   - existing role enum
-   - current helper functions like private.has_company_role
-2. Decide whether to extend existing company_members or create new invitation table only.
-3. Design company_invitations table.
-4. Design safe invitation acceptance flow.
-5. Design accidental empty company archive/delete flow.
+1. Test the app on mobile portrait.
+2. Rotate to mobile landscape and list broken screens.
+3. Test the app on tablet portrait.
+4. Rotate to tablet landscape and list broken screens.
+5. Capture screenshots for each broken screen.
+6. Fix screens one by one, starting with the worst overflow.
 ```
 
-After Step L.1:
+After Phase L:
 
-- Add SQL safely.
-- Add RLS.
-- Test database access.
-- Then move to Flutter models/repo/cubit/UI.
+```text
+Phase M — Company Users, Invitations & Role Management
+```
+
+Then:
+
+```text
+Phase N — Audit Trail & Activity Logs
+```
