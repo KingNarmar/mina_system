@@ -97,22 +97,78 @@ class ReportPdfFormatters {
   }
 
   static String _normalizeDateFormat(String? dateFormat) {
-    final cleanFormat = dateFormat?.trim().toLowerCase();
+    final cleanFormat = dateFormat
+        ?.trim()
+        .toLowerCase()
+        .replaceAll('\\', '/')
+        .replaceAll('.', '-')
+        .replaceAll(' ', '');
 
     if (cleanFormat == null || cleanFormat.isEmpty) {
       return 'yyyy-mm-dd';
     }
 
-    return cleanFormat
-        .replaceAll('yyyy', 'yyyy')
-        .replaceAll('yyy', 'yyyy')
-        .replaceAll('yy', 'yyyy')
-        .replaceAll('mm', 'mm')
-        .replaceAll('m', 'mm')
-        .replaceAll('dd', 'dd')
-        .replaceAll('d', 'dd')
-        .replaceAll('.', '-')
-        .replaceAll('\\', '/');
+    if (cleanFormat.contains('/')) {
+      return _normalizeDateFormatBySeparator(cleanFormat, '/');
+    }
+
+    if (cleanFormat.contains('-')) {
+      return _normalizeDateFormatBySeparator(cleanFormat, '-');
+    }
+
+    return 'yyyy-mm-dd';
+  }
+
+  static String _normalizeDateFormatBySeparator(
+    String value,
+    String separator,
+  ) {
+    final parts = value.split(separator);
+
+    if (parts.length != 3) {
+      return 'yyyy-mm-dd';
+    }
+
+    final normalizedParts = parts.map(_normalizeDateFormatPart).toList();
+
+    if (normalizedParts.contains(null)) {
+      return 'yyyy-mm-dd';
+    }
+
+    final normalizedFormat = normalizedParts.cast<String>().join(separator);
+
+    switch (normalizedFormat) {
+      case 'yyyy-mm-dd':
+      case 'yyyy/mm/dd':
+      case 'dd/mm/yyyy':
+      case 'mm/dd/yyyy':
+      case 'dd-mm-yyyy':
+        return normalizedFormat;
+
+      default:
+        return 'yyyy-mm-dd';
+    }
+  }
+
+  static String? _normalizeDateFormatPart(String value) {
+    switch (value) {
+      case 'yyyy':
+      case 'yyy':
+      case 'yy':
+      case 'y':
+        return 'yyyy';
+
+      case 'mm':
+      case 'm':
+        return 'mm';
+
+      case 'dd':
+      case 'd':
+        return 'dd';
+
+      default:
+        return null;
+    }
   }
 
   static String _formatYearMonthDay(DateTime date) {
