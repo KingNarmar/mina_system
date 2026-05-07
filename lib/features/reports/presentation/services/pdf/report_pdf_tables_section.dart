@@ -104,11 +104,21 @@ class ReportPdfTablesSection {
     }
 
     return pw.TableHelper.fromTextArray(
-      headers: const ['Code', 'Type', 'Worker', 'Tool', 'Qty', 'Unit', 'Date'],
+      headers: const [
+        'Code',
+        'Type',
+        'Approval',
+        'Worker',
+        'Tool',
+        'Qty',
+        'Unit',
+        'Date',
+      ],
       data: transactions.map((transaction) {
         return [
           transaction.transactionCode,
           ReportPdfFormatters.getTransactionTypeLabel(transaction.type),
+          ReportPdfFormatters.getApprovalStatusLabel(transaction),
           transaction.workerName,
           transaction.toolName,
           transaction.quantity.toStringAsFixed(2),
@@ -121,9 +131,9 @@ class ReportPdfTablesSection {
       }).toList(),
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellStyle: const pw.TextStyle(fontSize: 9),
+      cellStyle: const pw.TextStyle(fontSize: 8),
       cellAlignment: pw.Alignment.centerLeft,
-      cellPadding: const pw.EdgeInsets.all(6),
+      cellPadding: const pw.EdgeInsets.all(5),
     );
   }
 

@@ -45,6 +45,28 @@ class ReportPdfFormatters {
     }
   }
 
+  static String getApprovalStatusLabel(TransactionModel transaction) {
+    if (!transaction.approvalRequired) {
+      return 'N/A';
+    }
+
+    final status = transaction.approvalStatus.trim().toLowerCase();
+
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'not_required':
+      case '':
+        return 'N/A';
+      default:
+        return formatTemplateReportType(status);
+    }
+  }
+
   static String formatTemplateReportType(String value) {
     return value
         .replaceAll('_', ' ')
