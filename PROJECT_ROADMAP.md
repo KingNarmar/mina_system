@@ -27,6 +27,7 @@ Every company must have isolated data using `currentCompanyId`.
 - Do not change a working UI unless needed.
 - Always review the real GitHub repo before continuing a new step.
 - Do not rely only on README because it may be outdated.
+- If a file becomes too large, refactor it into smaller focused files without changing working behavior.
 - After each completed feature:
   - Test
   - Run `dart format lib`
@@ -642,16 +643,10 @@ Latest custody balance rule update:
 - Pending Lost/Damaged transactions no longer reduce worker custody balance.
 - Rejected Lost/Damaged transactions do not reduce worker custody balance.
 - Return transactions reduce custody balance immediately.
-- Lost/Damaged transactions should reduce worker custody balance only after final settlement/deduction is completed.
-- Current temporary logic has been adjusted away from immediate pending deduction.
-- Next phase must introduce explicit settlement fields and final settlement logic.
+- Lost/Damaged transactions reduce worker custody balance only after final settlement/deduction is completed.
 
 Pending / Future Enhancements:
 
-- Build full Lost/Damaged Approval + Settlement workflow.
-- Add controlled Approve/Reject workflow.
-- Add signed approval document upload.
-- Add settlement/deduction workflow.
 - Add Void/Correction workflow if needed.
 - Generate custody acknowledgement PDFs from real transactions.
 - Use `custody_acknowledgements` and `custody_acknowledgement_items` in reports/signature flow.
@@ -712,7 +707,7 @@ Dashboard real stats:
 
 Pending / Future Enhancements:
 
-- Update Closed Today logic after final Approval + Settlement workflow is implemented.
+- Update Closed Today logic after final Approval + Settlement workflow is fully implemented.
 - Add Dashboard loading skeletons or shimmer if needed.
 - Add Dashboard empty states with better visual design if needed.
 - Add trends/percentages later.
@@ -763,7 +758,7 @@ Upgrade Flutter SDK and verify project
 
 # Phase G — Reports / PDF
 
-## Reports / PDF Status: In Progress
+## Reports / PDF Status: In Progress / Core Reports Implemented
 
 Goal:
 
@@ -776,8 +771,8 @@ Reports available / planned:
 - Transactions Report
 - Lost & Damaged Report
 - Tool Summary Report
-- Worker Acknowledgment Report
 - Lost/Damaged Approval Report
+- Worker Acknowledgment Report
 - Future signed settlement report if needed
 
 PDF must use:
@@ -797,7 +792,8 @@ Implemented:
 - Added PDF dependencies:
   - `pdf`
   - `printing`
-- Generated platform plugin registrant updates for `printing`.
+- Added `url_launcher` dependency to open signed approval documents using temporary signed URLs.
+- Generated platform plugin registrant updates for PDF/printing related dependencies.
 - Created `ReportPdfService`.
 - Refactored PDF generation into smaller files under:
 
@@ -835,6 +831,7 @@ lib/features/reports/presentation/services/pdf/
 - Added Responsibility Statement section:
   - Worker Custody Report uses `custodyResponsibilityStatement`
   - Lost & Damaged Report uses `lossDamageResponsibilityStatement`
+  - Lost/Damaged Approval Report uses `lossDamageResponsibilityStatement`
 - Added Signature Section after Responsibility Statement and before Footer Text.
 - Signature Section uses document template labels:
   - `workerSignatureLabel`
@@ -852,10 +849,18 @@ lib/features/reports/presentation/services/pdf/
 - Added Approval Status Filter in Reports UI.
 - Connected Approval Status Filter to preview and PDF filtering.
 - Added Approval Status to PDF Filters section.
+- Added `lostDamagedApproval` report type.
+- Added Lost/Damaged Approval Report to Reports Center.
+- Added Lost/Damaged Approval Report PDF preview support.
+- Added Lost/Damaged Approval Report file name support.
+- Added Lost/Damaged Approval Report filter/preview/PDF support.
+- Added polished approval form layout for Lost/Damaged Approval Report.
+- Fixed initial `TooManyPagesException` by making the PDF layout lighter and split into smaller PDF widgets.
 - Tested long PDFs with page numbering.
 - Tested Date Format change in PDF.
 - Tested Approval column in transaction PDF table.
 - Tested Approval Status filter.
+- Tested Lost/Damaged Approval Report PDF preview.
 - `flutter analyze` has no errors after report changes.
 - Report PDF changes were committed and pushed in multiple small commits.
 
@@ -866,7 +871,7 @@ Company Header
 Report Title / Generated Date
 Document Control
 Filters
-Report Data Table
+Report Data / Approval Form
 Responsibility Statement
 Signature Section
 Footer Text
@@ -876,6 +881,7 @@ Page X of Y
 Important files:
 
 ```text
+lib/features/reports/data/models/report_option_model.dart
 lib/features/reports/presentation/widgets/report_builder_panel.dart
 lib/features/reports/presentation/functions/show_report_pdf_preview.dart
 lib/features/reports/presentation/services/report_pdf_service.dart
@@ -900,10 +906,9 @@ Pending / Future Enhancements:
   - Rejected
   - Not Required
 - Add better PDF table layouts for long reports if needed.
-- Add Lost/Damaged Approval Report for printing and signature.
-- Add signed approval document upload flow.
 - Add Worker Acknowledgment Report using `custody_acknowledgements` and `custody_acknowledgement_items`.
-- Add export/download flow if needed beyond `PdfPreview` printing/sharing.
+- Add optional settlement/deduction report if needed.
+- Add export/download history flow if needed beyond `PdfPreview` printing/sharing.
 - Improve time formatting based on `company_report_settings.timeFormat`.
 - Improve timezone handling based on `company_report_settings.defaultTimezone`.
 
@@ -911,7 +916,7 @@ Pending / Future Enhancements:
 
 # Phase H — Lost/Damaged Approval & Settlement Workflow
 
-## Status: Planned / Next Major Phase
+## Status: In Progress / Core Workflow Implemented
 
 Goal:
 
@@ -942,9 +947,9 @@ The correct business flow is:
    - Tool is removed from worker custody balance.
 ```
 
-Required database additions:
+## Implemented Database / Storage
 
-Add fields to `transactions`:
+Added fields to `transactions`:
 
 ```text
 approval_document_path
@@ -958,7 +963,13 @@ settled_by_profile_id
 settled_at
 ```
 
-Suggested settlement statuses:
+Added enum:
+
+```text
+transaction_settlement_status
+```
+
+Enum values:
 
 ```text
 not_required
@@ -966,29 +977,30 @@ pending_settlement
 settled
 ```
 
-Suggested storage:
-
-Either reuse:
-
-```text
-transaction-proofs
-```
-
-or create a dedicated bucket:
+Created private Supabase Storage bucket:
 
 ```text
 transaction-approval-documents
 ```
 
-Recommended storage path format:
+Signed approval document storage path format:
 
 ```text
 {companyId}/transactions/{transactionCode}/approval-document-{timestamp}.{extension}
 ```
 
-Required model updates:
+Rules:
 
-Update `TransactionModel` with:
+- `approval_document_path` stores only the Supabase Storage path.
+- Signed approval documents are opened using temporary signed URLs.
+- Local file paths must not be stored in the database.
+- Approval document uploads are restricted by RLS/storage policies.
+- Company members can read approval documents through safe storage policies.
+- Owner/Admin/Warehouse users can upload signed approval documents when allowed.
+
+## Implemented Model Updates
+
+Updated `TransactionModel` with:
 
 ```text
 approvalDocumentPath
@@ -1002,22 +1014,42 @@ settledByProfileId
 settledAt
 ```
 
-Required repository methods:
+Added helper getters:
 
-Add safe, controlled methods instead of exposing normal transaction edit:
+```text
+isLostOrDamaged
+isApprovalPending
+isApprovalApproved
+isApprovalRejected
+isSettlementNotRequired
+isPendingSettlement
+isSettled
+```
+
+## Implemented Repository Methods
+
+Added controlled methods in `TransactionsRepo`:
 
 ```dart
+uploadApprovalDocument(...)
+createApprovalDocumentSignedUrl(...)
 approveLostDamagedTransaction(...)
 rejectLostDamagedTransaction(...)
 settleApprovedLostDamagedTransaction(...)
-uploadApprovalDocument(...)
 ```
 
-Required Cubit methods:
+Rules:
 
-Add:
+- Normal transaction editing is not exposed as a general UI action.
+- Approval/Reject/Settlement are handled through controlled repo methods.
+- Signed document viewing uses `createSignedUrl` from the private `transaction-approval-documents` bucket.
+
+## Implemented Cubit Methods
+
+Added controlled methods in `TransactionsCubit`:
 
 ```dart
+uploadApprovalDocument(...)
 approveTransaction(...)
 rejectTransaction(...)
 settleTransaction(...)
@@ -1029,7 +1061,7 @@ Validation rules:
 Approve/Reject:
 - Only allowed for Lost/Damaged transactions.
 - Only allowed when approval_status = pending.
-- Signed approval document should be uploaded before approval if required by business rule.
+- Signed approval document must be uploaded before approval/rejection.
 
 Settle:
 - Only allowed for Lost/Damaged transactions.
@@ -1037,7 +1069,103 @@ Settle:
 - Only allowed when settlement_status = pending_settlement.
 ```
 
-Custody balance rules:
+## Implemented UI
+
+Added:
+
+```text
+Transactions → Pending Approvals
+```
+
+Pending Approvals supports:
+
+```text
+View
+Upload Signed / Replace Signed
+Approve
+Reject
+Settle
+```
+
+Pending Approvals fields:
+
+```text
+Transaction Code
+Worker
+Tool
+Type
+Quantity
+Approval Status
+Settlement Status
+Actions
+```
+
+Transaction Details now shows:
+
+```text
+Approval Status
+Settlement Status
+Signed Document status
+View Signed Document button
+Approval Decision Note
+Approval Decided At
+Settlement Note
+Settled At
+```
+
+Signed document behavior:
+
+- The file is stored in Supabase Storage.
+- The user can open it later from Transaction Details.
+- The app generates a temporary signed URL.
+- The signed URL opens externally using `url_launcher`.
+
+## Implemented PDF
+
+Added:
+
+```text
+Lost/Damaged Approval Report
+```
+
+Added:
+
+- `lostDamagedApproval` in `ReportType`
+- Reports Center card
+- Preview support
+- PDF generation support
+- PDF title support
+- PDF file name support
+- Filter support
+- Approval Status filter support
+- Responsibility Statement support
+- Signature Section support
+
+Lost/Damaged Approval Report includes:
+
+```text
+Company Header
+Document Control
+Filters
+Transaction Summary
+Worker Information
+Tool Information
+Incident Reason / Note
+Evidence & Documents
+Approval Decision box
+Responsibility Statement
+Signature Section
+Footer
+Page numbers
+```
+
+PDF fixes:
+
+- Initial layout was too heavy and caused `TooManyPagesException`.
+- The layout was fixed by making the approval form lighter and split into smaller PDF widgets.
+- Final preview tested successfully.
+
+## Implemented Custody Balance Rules
 
 ```text
 Issue:
@@ -1059,88 +1187,80 @@ Lost/Damaged Approved and Settled:
 - Reduces custody balance.
 ```
 
-Required UI:
-
-Add a controlled approval area, either:
+Updated:
 
 ```text
-Transactions → Pending Approvals
+custody_balance_calculator.dart
 ```
 
-or:
+Now Lost/Damaged reduces custody balance only when:
 
 ```text
-Approvals screen
+approval_status = approved
+settlement_status = settled
 ```
 
-Suggested table/card fields:
+This also affects:
+
+- Worker custody balance
+- Tool summary open custody quantity
+- Any dependent custody calculations
+
+## Tested End-to-End
+
+Tested:
+
+- Create Lost/Damaged transaction.
+- Transaction appears as Pending Approval.
+- Tool remains in worker custody.
+- Upload signed approval document.
+- View signed approval document from Transaction Details.
+- Approve transaction.
+- Tool remains in custody while Pending Settlement.
+- Settle transaction.
+- Tool is removed from custody balance only after settlement.
+- Reject transaction keeps tool in custody.
+- Lost/Damaged Approval PDF preview works.
+- PDF layout issue was fixed.
+- `flutter analyze` has no errors.
+- Changes were committed and pushed.
+
+## Completed Implementation Steps
 
 ```text
-Transaction Code
-Worker
-Tool
-Type
-Quantity
-Approval Status
-Settlement Status
-Created Date
-Actions
+Step H.1 — Add approval/settlement database fields and policies. ✅
+Step H.2 — Update TransactionModel with approval document and settlement fields. ✅
+Step H.3 — Update TransactionsRepo select/update methods. ✅
+Step H.4 — Add upload signed approval document logic. ✅
+Step H.5 — Add approve/reject/settle methods in TransactionsCubit. ✅
+Step H.6 — Add Pending Approvals UI. ✅
+Step H.7 — Add Lost/Damaged Approval PDF report. ✅
+Step H.8 — Update custody balance logic to reduce only after settlement. ✅
+Step H.10 — Test complete flow end-to-end. ✅
 ```
 
-Required actions:
+## Pending / Future Enhancements
 
 ```text
-Print Approval Report
-Upload Signed Document
-Approve
-Reject
-Settle / Mark as Deducted
-View Details
-```
-
-Required PDF:
-
-Add:
-
-```text
-Lost/Damaged Approval Report
-```
-
-Report should include:
-
-```text
-Company Header
-Document Control
-Transaction Details
-Worker Details
-Tool Details
-Quantity
-Type: Lost / Damaged
-Reason / Note
-Proof Image reference if needed
-Approval Status
-Settlement Status
-Responsibility Statement
-Signature Section:
-- Worker Signature
-- Manager Signature
-- Storekeeper Signature
-```
-
-Implementation steps:
-
-```text
-Step H.1 — Add approval/settlement database fields and policies.
-Step H.2 — Update TransactionModel with approval document and settlement fields.
-Step H.3 — Update TransactionsRepo select/update methods.
-Step H.4 — Add upload signed approval document logic.
-Step H.5 — Add approve/reject/settle methods in TransactionsCubit.
-Step H.6 — Add Pending Approvals UI.
-Step H.7 — Add Lost/Damaged Approval PDF report.
-Step H.8 — Update custody balance logic to reduce only after settlement.
 Step H.9 — Update Dashboard Closed Today logic after settlement rules.
-Step H.10 — Test complete flow end-to-end.
 ```
+
+Other future enhancements:
+
+- Add optional settlement/deduction report if needed.
+- Add role-based UI visibility for approval/settlement actions.
+- Add stronger audit/history if needed.
+- Improve signed document preview/download UX if needed.
+- Add database-level audit trail if needed.
+- Add role-based restrictions in UI:
+  - Warehouse user can create Lost/Damaged and upload signed documents.
+  - Owner/Admin can approve/reject/settle.
+- Add better settlement note input if needed.
+- Add dashboard counters for:
+  - Pending Approvals
+  - Pending Settlements
+  - Settled Lost/Damaged
+- Add notification flow later if needed.
 
 ---
 
@@ -1159,6 +1279,8 @@ Needed:
 - Allow switching company from TopBar later.
 - Make all screens reload based on selected company.
 - Ensure role changes with selected company.
+- Add better UX for companies list.
+- Add current company switching confirmation if there is unsaved work.
 
 ---
 
@@ -1224,6 +1346,9 @@ Pending:
 - Add role-based route protection.
 - Add stronger RLS role checks for approval/settlement actions.
 - Confirm owner/admin-only approval settlement policies.
+- Hide approval/reject/settle actions from unauthorized users.
+- Hide Company Settings from non-owner/admin users.
+- Add future user invitation flow.
 
 ---
 
@@ -1243,6 +1368,138 @@ Planned:
 - Company switching.
 - User invitation flow.
 - Role management UI.
-- Mobile polishing.
-- Tablet polishing.
-- App store / Play store preparation.
+- Audit logs.
+- Transaction correction flow.
+- Settlement/deduction report if business needs it.
+- Better signed document preview/download UI.
+- Mobile/tablet UI polish.
+- Better empty states.
+- Dashboard trends.
+- Search and filter improvements.
+- Bulk import workers/tools if needed.
+- Better reporting filters.
+- Report templates versioning.
+- Optional attachment history per transaction.
+- Optional storage cleanup strategy for replaced files.
+- Optional archived/inactive workers and tools improvements.
+- Optional company subscription/licensing flow.
+- Optional SaaS billing/tenant management flow.
+- Optional offline-first support if needed later.
+- Optional barcode/QR support for tools.
+- Optional QR-based worker/tool selection.
+- Optional approval notifications.
+- Optional email export/share flow.
+
+---
+
+# Refactor Backlog
+
+Some files have grown large during feature delivery and should be refactored carefully without changing working behavior.
+
+Rules for refactor:
+
+- Do not change working UI behavior.
+- Do not change business logic.
+- Do not change database queries unless needed.
+- Split large files into smaller focused widgets/services/functions.
+- Run `dart format lib`.
+- Run `flutter analyze`.
+- Test affected screens manually.
+- Commit refactor separately from feature work.
+
+Priority refactor candidates:
+
+```text
+lib/features/reports/presentation/services/pdf/report_pdf_tables_section.dart
+lib/features/transactions/data/repo/transactions_repo.dart
+lib/features/transactions/presentation/functions/show_transaction_details.dart
+lib/features/transactions/presentation/widgets/pending_approvals/pending_approvals_layout.dart
+lib/features/transactions/presentation/cubit/transactions_cubit.dart
+```
+
+Suggested refactor direction:
+
+## Reports PDF
+
+Move Lost/Damaged Approval PDF form into:
+
+```text
+lib/features/reports/presentation/services/pdf/lost_damaged_approval_pdf_section.dart
+```
+
+Keep `report_pdf_tables_section.dart` as a small router only.
+
+## Transaction Details
+
+Move approval document actions into:
+
+```text
+lib/features/transactions/presentation/widgets/details/approval_document_action.dart
+```
+
+Move image preview into:
+
+```text
+lib/features/transactions/presentation/widgets/details/transaction_image_preview.dart
+```
+
+## Pending Approvals
+
+Split:
+
+```text
+pending_approvals_layout.dart
+```
+
+into:
+
+```text
+pending_approvals_layout.dart
+pending_approvals_header.dart
+pending_approvals_table.dart
+pending_approvals_card.dart
+pending_approval_actions.dart
+pending_approval_status_chip.dart
+```
+
+## Transactions Repo
+
+Optional future split:
+
+```text
+transactions_repo.dart
+transaction_storage_service.dart
+transaction_approval_service.dart
+```
+
+Only do this when the current workflow is stable and committed.
+
+---
+
+# Immediate Next Step
+
+Next recommended development step:
+
+```text
+Step H.9 — Update Dashboard Closed Today logic after settlement rules.
+```
+
+Goal:
+
+Ensure Dashboard Closed Today count follows final settlement rules:
+
+```text
+Return → counts as closed immediately.
+Lost/Damaged → counts as closed only when settlement_status = settled.
+Pending approval → not closed.
+Approved but pending settlement → not closed.
+Rejected → not closed.
+```
+
+After Step H.9:
+
+- Test Dashboard stats.
+- Run `dart format lib`.
+- Run `flutter analyze`.
+- Commit.
+- Push.
