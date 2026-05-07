@@ -12,6 +12,8 @@ class ReportPdfFormatters {
         return 'Transactions Report';
       case ReportType.lostDamaged:
         return 'Lost & Damaged Report';
+      case ReportType.lostDamagedApproval:
+        return 'Lost/Damaged Approval Report';
       case ReportType.toolSummary:
         return 'Tool Summary Report';
     }
@@ -27,6 +29,8 @@ class ReportPdfFormatters {
         return 'transactions';
       case ReportType.lostDamaged:
         return 'lost_damaged';
+      case ReportType.lostDamagedApproval:
+        return 'lost_damaged_approval';
       case ReportType.toolSummary:
         return 'tool_summary';
     }
@@ -63,6 +67,23 @@ class ReportPdfFormatters {
         return 'Approved';
       case 'rejected':
         return 'Rejected';
+      case 'not_required':
+      case null:
+      case '':
+        return 'N/A';
+      default:
+        return formatTemplateReportType(status);
+    }
+  }
+
+  static String getSettlementStatusValueLabel(String? settlementStatus) {
+    final status = settlementStatus?.trim().toLowerCase();
+
+    switch (status) {
+      case 'pending_settlement':
+        return 'Pending Settlement';
+      case 'settled':
+        return 'Settled';
       case 'not_required':
       case null:
       case '':

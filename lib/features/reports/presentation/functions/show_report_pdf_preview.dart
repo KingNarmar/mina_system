@@ -142,6 +142,8 @@ class _ReportPdfPreview extends StatelessWidget {
         return 'Transactions Report';
       case ReportType.lostDamaged:
         return 'Lost & Damaged Report';
+      case ReportType.lostDamagedApproval:
+        return 'Lost/Damaged Approval Report';
       case ReportType.toolSummary:
         return 'Tool Summary Report';
     }
@@ -161,6 +163,8 @@ class _ReportPdfPreview extends StatelessWidget {
         return 'transactions-report-$date.pdf';
       case ReportType.lostDamaged:
         return 'lost-damaged-report-$date.pdf';
+      case ReportType.lostDamagedApproval:
+        return 'lost-damaged-approval-report-$date.pdf';
       case ReportType.toolSummary:
         return 'tool-summary-report-$date.pdf';
     }

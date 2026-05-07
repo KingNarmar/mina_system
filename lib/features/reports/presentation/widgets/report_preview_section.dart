@@ -102,6 +102,20 @@ class ReportPreviewSection extends StatelessWidget {
               : 'No lost or damaged transactions found yet.',
         );
 
+      case ReportType.lostDamagedApproval:
+        final filteredTransactions = applyReportTransactionFilters(
+          transactions: transactions,
+          filters: filters,
+          lostDamagedOnly: true,
+        );
+
+        return TransactionListPreview(
+          transactions: filteredTransactions,
+          emptyMessage: filters.hasFilters
+              ? 'No matching lost/damaged approval transactions found.'
+              : 'No lost/damaged approval transactions found yet.',
+        );
+
       case ReportType.toolSummary:
         final filteredTransactions = applyReportTransactionFilters(
           transactions: transactions,

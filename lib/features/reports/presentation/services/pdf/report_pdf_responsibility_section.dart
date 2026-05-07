@@ -61,6 +61,7 @@ class ReportPdfResponsibilitySection {
         return reportSettings.custodyResponsibilityStatement;
 
       case ReportType.lostDamaged:
+      case ReportType.lostDamagedApproval:
         return reportSettings.lossDamageResponsibilityStatement;
 
       case ReportType.toolHistory:

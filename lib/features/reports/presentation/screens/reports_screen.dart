@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/functions/show_report_builder.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_option_card.dart';
-import 'package:gap/gap.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -37,6 +37,13 @@ class ReportsScreen extends StatelessWidget {
       description:
           'Review tools closed as lost or damaged with notes and proof images.',
       icon: Icons.report_problem_outlined,
+    ),
+    ReportOptionModel(
+      type: ReportType.lostDamagedApproval,
+      title: 'Lost/Damaged Approval Report',
+      description:
+          'Print a formal approval document for lost or damaged tool cases before settlement.',
+      icon: Icons.verified_user_outlined,
     ),
     ReportOptionModel(
       type: ReportType.toolSummary,

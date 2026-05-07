@@ -6,6 +6,7 @@ class ReportFilterVisibility {
       case ReportType.workerCustody:
       case ReportType.transactions:
       case ReportType.lostDamaged:
+      case ReportType.lostDamagedApproval:
         return true;
       case ReportType.toolHistory:
       case ReportType.toolSummary:
@@ -18,6 +19,7 @@ class ReportFilterVisibility {
       case ReportType.toolHistory:
       case ReportType.transactions:
       case ReportType.lostDamaged:
+      case ReportType.lostDamagedApproval:
       case ReportType.toolSummary:
         return true;
       case ReportType.workerCustody:
@@ -30,6 +32,8 @@ class ReportFilterVisibility {
   }
 
   static bool shouldShowApprovalStatusFilter(ReportType type) {
-    return type == ReportType.transactions || type == ReportType.lostDamaged;
+    return type == ReportType.transactions ||
+        type == ReportType.lostDamaged ||
+        type == ReportType.lostDamagedApproval;
   }
 }

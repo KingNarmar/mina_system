@@ -54,7 +54,9 @@ class ReportPdfService {
     final filteredTransactions = applyReportTransactionFilters(
       transactions: transactions,
       filters: filters,
-      lostDamagedOnly: reportType == ReportType.lostDamaged,
+      lostDamagedOnly:
+          reportType == ReportType.lostDamaged ||
+          reportType == ReportType.lostDamagedApproval,
     );
 
     pdf.addPage(

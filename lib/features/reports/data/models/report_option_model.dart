@@ -5,6 +5,7 @@ enum ReportType {
   toolHistory,
   transactions,
   lostDamaged,
+  lostDamagedApproval,
   toolSummary,
 }
 
