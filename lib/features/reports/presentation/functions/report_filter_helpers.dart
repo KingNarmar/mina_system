@@ -28,6 +28,12 @@ List<TransactionModel> applyReportTransactionFilters({
       return false;
     }
 
+    if (filters.approvalStatus != null &&
+        _normalizeText(transaction.approvalStatus) !=
+            _normalizeText(filters.approvalStatus!)) {
+      return false;
+    }
+
     if (filters.dateFrom != null &&
         transaction.dateTime.isBefore(_startOfDay(filters.dateFrom!))) {
       return false;

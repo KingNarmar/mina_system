@@ -14,6 +14,7 @@ class ReportPdfFiltersSection {
       'Worker: ${filters.worker == null ? 'All' : '${filters.worker!.name} (${filters.worker!.hrCode})'}',
       'Tool: ${filters.tool == null ? 'All' : '${filters.tool!.toolName} (${filters.tool!.toolCode})'}',
       'Transaction Type: ${filters.transactionType == null ? 'All' : ReportPdfFormatters.getTransactionTypeLabel(filters.transactionType!)}',
+      'Approval Status: ${filters.approvalStatus == null ? 'All' : ReportPdfFormatters.getApprovalStatusValueLabel(filters.approvalStatus)}',
       'Date From: ${filters.dateFrom == null ? 'Not selected' : ReportPdfFormatters.formatDate(filters.dateFrom!, dateFormat: reportSettings.dateFormat)}',
       'Date To: ${filters.dateTo == null ? 'Not selected' : ReportPdfFormatters.formatDate(filters.dateTo!, dateFormat: reportSettings.dateFormat)}',
     ];

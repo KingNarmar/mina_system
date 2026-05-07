@@ -28,4 +28,8 @@ class ReportFilterVisibility {
   static bool shouldShowTypeFilter(ReportType type) {
     return type == ReportType.transactions;
   }
+
+  static bool shouldShowApprovalStatusFilter(ReportType type) {
+    return type == ReportType.transactions || type == ReportType.lostDamaged;
+  }
 }

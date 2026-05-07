@@ -50,7 +50,11 @@ class ReportPdfFormatters {
       return 'N/A';
     }
 
-    final status = transaction.approvalStatus.trim().toLowerCase();
+    return getApprovalStatusValueLabel(transaction.approvalStatus);
+  }
+
+  static String getApprovalStatusValueLabel(String? approvalStatus) {
+    final status = approvalStatus?.trim().toLowerCase();
 
     switch (status) {
       case 'pending':
@@ -60,6 +64,7 @@ class ReportPdfFormatters {
       case 'rejected':
         return 'Rejected';
       case 'not_required':
+      case null:
       case '':
         return 'N/A';
       default:

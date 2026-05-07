@@ -7,6 +7,7 @@ class ReportFilterModel {
     this.worker,
     this.tool,
     this.transactionType,
+    this.approvalStatus,
     this.dateFrom,
     this.dateTo,
   });
@@ -14,6 +15,7 @@ class ReportFilterModel {
   final WorkerModel? worker;
   final ToolModel? tool;
   final TransactionType? transactionType;
+  final String? approvalStatus;
   final DateTime? dateFrom;
   final DateTime? dateTo;
 
@@ -21,11 +23,13 @@ class ReportFilterModel {
     WorkerModel? worker,
     ToolModel? tool,
     TransactionType? transactionType,
+    String? approvalStatus,
     DateTime? dateFrom,
     DateTime? dateTo,
     bool clearWorker = false,
     bool clearTool = false,
     bool clearTransactionType = false,
+    bool clearApprovalStatus = false,
     bool clearDateFrom = false,
     bool clearDateTo = false,
   }) {
@@ -35,6 +39,9 @@ class ReportFilterModel {
       transactionType: clearTransactionType
           ? null
           : transactionType ?? this.transactionType,
+      approvalStatus: clearApprovalStatus
+          ? null
+          : approvalStatus ?? this.approvalStatus,
       dateFrom: clearDateFrom ? null : dateFrom ?? this.dateFrom,
       dateTo: clearDateTo ? null : dateTo ?? this.dateTo,
     );
@@ -44,6 +51,7 @@ class ReportFilterModel {
     return worker != null ||
         tool != null ||
         transactionType != null ||
+        approvalStatus != null ||
         dateFrom != null ||
         dateTo != null;
   }

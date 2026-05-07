@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 
+import 'filters/approval_status_report_filter.dart';
 import 'filters/date_filter_tile.dart';
 import 'filters/report_filter_visibility.dart';
 import 'filters/tool_report_filter.dart';
@@ -33,6 +34,8 @@ class ReportFilterSection extends StatelessWidget {
     final shouldShowType = ReportFilterVisibility.shouldShowTypeFilter(
       reportType,
     );
+    final shouldShowApprovalStatus =
+        ReportFilterVisibility.shouldShowApprovalStatusFilter(reportType);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,6 +62,10 @@ class ReportFilterSection extends StatelessWidget {
         ],
         if (shouldShowType) ...[
           TransactionTypeReportFilter(filters: filters, onChanged: onChanged),
+          const Gap(12),
+        ],
+        if (shouldShowApprovalStatus) ...[
+          ApprovalStatusReportFilter(filters: filters, onChanged: onChanged),
           const Gap(12),
         ],
         DateFilterTile(
