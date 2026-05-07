@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/layouts/custody_balance_desktop_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/layouts/custody_balance_mobile_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/layouts/transactions_desktop_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/layouts/transactions_mobile_layout.dart';
+import 'package:mina_system/features/transactions/presentation/widgets/pending_approvals/pending_approvals_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/layouts/tool_custody_summary_desktop_layout.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/layouts/tool_custody_summary_mobile_layout.dart';
 
@@ -37,6 +39,10 @@ class _TransactionsView extends StatelessWidget {
         final toolSummaries = transactionsCubit
             .getFilteredToolCustodySummaries();
 
+        final pendingApprovalTransactions = _getPendingApprovalTransactions(
+          state.transactions,
+        );
+
         return Stack(
           children: [
             LayoutBuilder(
@@ -44,7 +50,7 @@ class _TransactionsView extends StatelessWidget {
                 final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
                 return DefaultTabController(
-                  length: 3,
+                  length: 4,
                   child: Scaffold(
                     backgroundColor: AppColors.background,
                     body: Column(
@@ -59,6 +65,7 @@ class _TransactionsView extends StatelessWidget {
                             indicatorColor: AppColors.accent,
                             tabs: [
                               Tab(text: 'Transactions'),
+                              Tab(text: 'Pending Approvals'),
                               Tab(text: 'Custody Balance'),
                               Tab(text: 'Tool Summary'),
                             ],
@@ -77,6 +84,10 @@ class _TransactionsView extends StatelessWidget {
                                   transactions: transactions,
                                   selectedFilter: state.typeFilter,
                                 ),
+                              PendingApprovalsLayout(
+                                transactions: pendingApprovalTransactions,
+                                isMobile: isMobile,
+                              ),
                               if (isMobile)
                                 CustodyBalanceMobileLayout(
                                   balances: custodyBalances,
@@ -110,6 +121,22 @@ class _TransactionsView extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<TransactionModel> _getPendingApprovalTransactions(
+    List<TransactionModel> transactions,
+  ) {
+    return transactions.where((transaction) {
+      if (!transaction.isLostOrDamaged) {
+        return false;
+      }
+
+      if (transaction.isApprovalPending) {
+        return true;
+      }
+
+      return transaction.isApprovalApproved && transaction.isPendingSettlement;
+    }).toList();
   }
 }
 

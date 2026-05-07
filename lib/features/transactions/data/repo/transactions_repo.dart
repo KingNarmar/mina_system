@@ -11,36 +11,48 @@ class TransactionsRepo {
   final SupabaseClient _supabase;
 
   static const String _proofsBucket = 'transaction-proofs';
+  static const String _approvalDocumentsBucket =
+      'transaction-approval-documents';
+
+  static const String _transactionSelectColumns = '''
+    id,
+    company_id,
+    transaction_code,
+    transaction_type,
+    worker_id,
+    worker_hr_code_snapshot,
+    worker_name_snapshot,
+    worker_department_snapshot,
+    worker_job_title_snapshot,
+    tool_id,
+    tool_code_snapshot,
+    tool_name_snapshot,
+    tool_unit_snapshot,
+    tool_category_snapshot,
+    quantity,
+    proof_image_path,
+    note,
+    approval_required,
+    approval_status,
+    approval_document_path,
+    approval_decision_note,
+    approval_decided_by_profile_id,
+    approval_decided_at,
+    settlement_status,
+    settlement_note,
+    settled_by_profile_id,
+    settled_at,
+    created_by_profile_id,
+    created_at,
+    updated_at
+  ''';
 
   Future<List<TransactionModel>> getTransactions({
     required String companyId,
   }) async {
     final data = await _supabase
         .from('transactions')
-        .select('''
-          id,
-          company_id,
-          transaction_code,
-          transaction_type,
-          worker_id,
-          worker_hr_code_snapshot,
-          worker_name_snapshot,
-          worker_department_snapshot,
-          worker_job_title_snapshot,
-          tool_id,
-          tool_code_snapshot,
-          tool_name_snapshot,
-          tool_unit_snapshot,
-          tool_category_snapshot,
-          quantity,
-          proof_image_path,
-          note,
-          approval_required,
-          approval_status,
-          created_by_profile_id,
-          created_at,
-          updated_at
-        ''')
+        .select(_transactionSelectColumns)
         .eq('company_id', companyId)
         .order('created_at', ascending: false);
 
@@ -59,30 +71,7 @@ class TransactionsRepo {
     final data = await _supabase
         .from('transactions')
         .insert(transactionToInsert.toInsertJson())
-        .select('''
-          id,
-          company_id,
-          transaction_code,
-          transaction_type,
-          worker_id,
-          worker_hr_code_snapshot,
-          worker_name_snapshot,
-          worker_department_snapshot,
-          worker_job_title_snapshot,
-          tool_id,
-          tool_code_snapshot,
-          tool_name_snapshot,
-          tool_unit_snapshot,
-          tool_category_snapshot,
-          quantity,
-          proof_image_path,
-          note,
-          approval_required,
-          approval_status,
-          created_by_profile_id,
-          created_at,
-          updated_at
-        ''')
+        .select(_transactionSelectColumns)
         .single();
 
     return TransactionModel.fromJson(data);
@@ -100,30 +89,220 @@ class TransactionsRepo {
         .from('transactions')
         .update(transactionToUpdate.toUpdateJson())
         .eq('id', transactionId)
-        .select('''
-          id,
-          company_id,
-          transaction_code,
-          transaction_type,
-          worker_id,
-          worker_hr_code_snapshot,
-          worker_name_snapshot,
-          worker_department_snapshot,
-          worker_job_title_snapshot,
-          tool_id,
-          tool_code_snapshot,
-          tool_name_snapshot,
-          tool_unit_snapshot,
-          tool_category_snapshot,
-          quantity,
-          proof_image_path,
-          note,
-          approval_required,
-          approval_status,
-          created_by_profile_id,
-          created_at,
-          updated_at
-        ''')
+        .select(_transactionSelectColumns)
+        .single();
+
+    return TransactionModel.fromJson(data);
+  }
+
+  Future<TransactionModel> uploadApprovalDocument({
+    required TransactionModel transaction,
+    required String localDocumentPath,
+  }) async {
+    final transactionId = transaction.id;
+    final companyId = transaction.companyId;
+
+    if (transactionId == null || transactionId.trim().isEmpty) {
+      throw StateError('Transaction ID was not found.');
+    }
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (!transaction.isLostOrDamaged) {
+      throw StateError(
+        'Approval document can be uploaded only for lost or damaged transactions.',
+      );
+    }
+
+    if (!transaction.isApprovalPending) {
+      throw StateError(
+        'Approval document can be uploaded only while approval is pending.',
+      );
+    }
+
+    final uploadedPath = await _uploadApprovalDocumentFile(
+      companyId: companyId,
+      transactionCode: transaction.transactionCode,
+      localDocumentPath: localDocumentPath,
+    );
+
+    final data = await _supabase
+        .from('transactions')
+        .update({
+          'approval_document_path': uploadedPath,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
+        .select(_transactionSelectColumns)
+        .single();
+
+    return TransactionModel.fromJson(data);
+  }
+
+  Future<TransactionModel> approveLostDamagedTransaction({
+    required TransactionModel transaction,
+    required String decidedByProfileId,
+    String? decisionNote,
+  }) async {
+    final transactionId = transaction.id;
+    final companyId = transaction.companyId;
+
+    if (transactionId == null || transactionId.trim().isEmpty) {
+      throw StateError('Transaction ID was not found.');
+    }
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (decidedByProfileId.trim().isEmpty) {
+      throw StateError('Approver profile ID was not found.');
+    }
+
+    if (!transaction.isLostOrDamaged) {
+      throw StateError('Only lost or damaged transactions can be approved.');
+    }
+
+    if (!transaction.isApprovalPending) {
+      throw StateError('Only pending transactions can be approved.');
+    }
+
+    if (transaction.approvalDocumentPath == null ||
+        transaction.approvalDocumentPath!.trim().isEmpty) {
+      throw StateError(
+        'Signed approval document must be uploaded before approval.',
+      );
+    }
+
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final data = await _supabase
+        .from('transactions')
+        .update({
+          'approval_status': 'approved',
+          'approval_decision_note': _emptyToNull(decisionNote),
+          'approval_decided_by_profile_id': decidedByProfileId.trim(),
+          'approval_decided_at': now,
+          'settlement_status': 'pending_settlement',
+          'updated_at': now,
+        })
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
+        .select(_transactionSelectColumns)
+        .single();
+
+    return TransactionModel.fromJson(data);
+  }
+
+  Future<TransactionModel> rejectLostDamagedTransaction({
+    required TransactionModel transaction,
+    required String decidedByProfileId,
+    String? decisionNote,
+  }) async {
+    final transactionId = transaction.id;
+    final companyId = transaction.companyId;
+
+    if (transactionId == null || transactionId.trim().isEmpty) {
+      throw StateError('Transaction ID was not found.');
+    }
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (decidedByProfileId.trim().isEmpty) {
+      throw StateError('Rejector profile ID was not found.');
+    }
+
+    if (!transaction.isLostOrDamaged) {
+      throw StateError('Only lost or damaged transactions can be rejected.');
+    }
+
+    if (!transaction.isApprovalPending) {
+      throw StateError('Only pending transactions can be rejected.');
+    }
+
+    if (transaction.approvalDocumentPath == null ||
+        transaction.approvalDocumentPath!.trim().isEmpty) {
+      throw StateError(
+        'Signed approval document must be uploaded before rejection.',
+      );
+    }
+
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final data = await _supabase
+        .from('transactions')
+        .update({
+          'approval_status': 'rejected',
+          'approval_decision_note': _emptyToNull(decisionNote),
+          'approval_decided_by_profile_id': decidedByProfileId.trim(),
+          'approval_decided_at': now,
+          'settlement_status': 'not_required',
+          'settlement_note': null,
+          'settled_by_profile_id': null,
+          'settled_at': null,
+          'updated_at': now,
+        })
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
+        .select(_transactionSelectColumns)
+        .single();
+
+    return TransactionModel.fromJson(data);
+  }
+
+  Future<TransactionModel> settleApprovedLostDamagedTransaction({
+    required TransactionModel transaction,
+    required String settledByProfileId,
+    String? settlementNote,
+  }) async {
+    final transactionId = transaction.id;
+    final companyId = transaction.companyId;
+
+    if (transactionId == null || transactionId.trim().isEmpty) {
+      throw StateError('Transaction ID was not found.');
+    }
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (settledByProfileId.trim().isEmpty) {
+      throw StateError('Settlement profile ID was not found.');
+    }
+
+    if (!transaction.isLostOrDamaged) {
+      throw StateError('Only lost or damaged transactions can be settled.');
+    }
+
+    if (!transaction.isApprovalApproved) {
+      throw StateError(
+        'Only approved lost or damaged transactions can be settled.',
+      );
+    }
+
+    if (!transaction.isPendingSettlement) {
+      throw StateError('Only transactions pending settlement can be settled.');
+    }
+
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final data = await _supabase
+        .from('transactions')
+        .update({
+          'settlement_status': 'settled',
+          'settlement_note': _emptyToNull(settlementNote),
+          'settled_by_profile_id': settledByProfileId.trim(),
+          'settled_at': now,
+          'updated_at': now,
+        })
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
+        .select(_transactionSelectColumns)
         .single();
 
     return TransactionModel.fromJson(data);
@@ -222,8 +401,15 @@ class TransactionsRepo {
       throw StateError('Proof image file was not found.');
     }
 
-    final bytes = await file.readAsBytes();
     final extension = _getFileExtension(localImagePath);
+
+    _validateAllowedExtension(
+      extension: extension,
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
+      errorMessage: 'Proof image must be JPG, JPEG, PNG, or WEBP.',
+    );
+
+    final bytes = await file.readAsBytes();
     final contentType = _getContentType(extension);
 
     final filePath =
@@ -240,8 +426,54 @@ class TransactionsRepo {
     return filePath;
   }
 
+  Future<String> _uploadApprovalDocumentFile({
+    required String companyId,
+    required String transactionCode,
+    required String localDocumentPath,
+  }) async {
+    final file = File(localDocumentPath);
+
+    if (!file.existsSync()) {
+      throw StateError('Approval document file was not found.');
+    }
+
+    final extension = _getFileExtension(localDocumentPath);
+
+    _validateAllowedExtension(
+      extension: extension,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+      errorMessage: 'Approval document must be PDF, JPG, JPEG, PNG, or WEBP.',
+    );
+
+    final bytes = await file.readAsBytes();
+    final contentType = _getContentType(extension);
+
+    final filePath =
+        '$companyId/transactions/$transactionCode/approval-document-${DateTime.now().millisecondsSinceEpoch}.$extension';
+
+    await _supabase.storage
+        .from(_approvalDocumentsBucket)
+        .uploadBinary(
+          filePath,
+          bytes,
+          fileOptions: FileOptions(contentType: contentType, upsert: false),
+        );
+
+    return filePath;
+  }
+
   bool _isCloudStoragePath(String path, {required String companyId}) {
     return path.trim().startsWith('$companyId/');
+  }
+
+  void _validateAllowedExtension({
+    required String extension,
+    required List<String> allowedExtensions,
+    required String errorMessage,
+  }) {
+    if (!allowedExtensions.contains(extension.toLowerCase())) {
+      throw StateError(errorMessage);
+    }
   }
 
   String _getFileExtension(String path) {
@@ -257,6 +489,8 @@ class TransactionsRepo {
 
   String _getContentType(String extension) {
     switch (extension.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
       case 'png':
         return 'image/png';
       case 'webp':
@@ -293,5 +527,15 @@ class TransactionsRepo {
     }
 
     return int.tryParse(match.group(1) ?? '') ?? 0;
+  }
+
+  String? _emptyToNull(String? value) {
+    final trimmedValue = value?.trim();
+
+    if (trimmedValue == null || trimmedValue.isEmpty) {
+      return null;
+    }
+
+    return trimmedValue;
   }
 }

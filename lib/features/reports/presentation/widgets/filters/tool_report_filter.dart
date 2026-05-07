@@ -6,7 +6,11 @@ import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 
 class ToolReportFilter extends StatelessWidget {
-  const ToolReportFilter({super.key, required this.filters, required this.onChanged});
+  const ToolReportFilter({
+    super.key,
+    required this.filters,
+    required this.onChanged,
+  });
 
   final ReportFilterModel filters;
   final ValueChanged<ReportFilterModel> onChanged;

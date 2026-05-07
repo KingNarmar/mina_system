@@ -99,27 +99,54 @@ class _TransactionDetailsContent extends StatelessWidget {
           label: 'Date',
           value: formatTransactionDate(transaction.dateTime),
         ),
-        const Gap(16),
-        Text(
-          'Photo',
-          style: AppTextStyles.body.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
+        if (transaction.isLostOrDamaged) ...[
+          const Gap(10),
+          const _SectionTitle(title: 'Approval & Settlement'),
+          const Gap(8),
+          _TransactionDetailsRow(
+            label: 'Approval',
+            value: _formatStatus(transaction.approvalStatus),
           ),
-        ),
+          _TransactionDetailsRow(
+            label: 'Settlement',
+            value: _formatStatus(transaction.settlementStatus),
+          ),
+          _TransactionDetailsRow(
+            label: 'Document',
+            value: _hasText(transaction.approvalDocumentPath)
+                ? 'Signed document uploaded'
+                : 'No signed document uploaded',
+          ),
+          if (_hasText(transaction.approvalDecisionNote))
+            _TransactionDetailsRow(
+              label: 'Decision',
+              value: transaction.approvalDecisionNote!,
+            ),
+          if (transaction.approvalDecidedAt != null)
+            _TransactionDetailsRow(
+              label: 'Decided At',
+              value: formatTransactionDate(transaction.approvalDecidedAt!),
+            ),
+          if (_hasText(transaction.settlementNote))
+            _TransactionDetailsRow(
+              label: 'Settlement Note',
+              value: transaction.settlementNote!,
+            ),
+          if (transaction.settledAt != null)
+            _TransactionDetailsRow(
+              label: 'Settled At',
+              value: formatTransactionDate(transaction.settledAt!),
+            ),
+        ],
+        const Gap(16),
+        const _SectionTitle(title: 'Photo'),
         const Gap(8),
         if (hasImage)
           _TransactionImagePreview(imagePath: transaction.imagePath!)
         else
           const _EmptyDetailsBox(text: 'No photo attached'),
         const Gap(16),
-        Text(
-          'Note',
-          style: AppTextStyles.body.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        const _SectionTitle(title: 'Note'),
         const Gap(8),
         if (hasNote)
           Container(
@@ -149,6 +176,38 @@ class _TransactionDetailsContent extends StatelessWidget {
       ],
     );
   }
+
+  bool _hasText(String? value) {
+    return value != null && value.trim().isNotEmpty;
+  }
+
+  String _formatStatus(String value) {
+    return value
+        .trim()
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) {
+          return '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}';
+        })
+        .join(' ');
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: AppTextStyles.body.copyWith(
+        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
 }
 
 class _TransactionDetailsRow extends StatelessWidget {
@@ -164,7 +223,10 @@ class _TransactionDetailsRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text(label, style: AppTextStyles.caption)),
+          SizedBox(
+            width: 110,
+            child: Text(label, style: AppTextStyles.caption),
+          ),
           const Gap(8),
           Expanded(
             child: Text(

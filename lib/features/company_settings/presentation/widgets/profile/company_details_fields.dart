@@ -4,10 +4,7 @@ import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'company_profile_form_helpers.dart';
 
 class CompanyDetailsFields extends StatelessWidget {
-  const CompanyDetailsFields({
-    super.key,
-    required this.controllers,
-  });
+  const CompanyDetailsFields({super.key, required this.controllers});
 
   final CompanyProfileControllers controllers;
 
@@ -56,7 +53,10 @@ class CompanyDetailsFields extends StatelessWidget {
           keyboardType: TextInputType.streetAddress,
         ),
         const Gap(12),
-        CustomTextFormField(hint: 'City', controller: controllers.cityController),
+        CustomTextFormField(
+          hint: 'City',
+          controller: controllers.cityController,
+        ),
         const Gap(12),
         CustomTextFormField(
           hint: 'Country',

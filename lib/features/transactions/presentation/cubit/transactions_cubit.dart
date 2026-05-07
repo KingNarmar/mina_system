@@ -245,15 +245,186 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         transaction: transactionToUpdate,
       );
 
-      final updatedTransactions = state.transactions.map((transaction) {
-        if (transaction.id == transactionId) {
-          return savedTransaction;
-        }
+      _emitReplacedTransaction(savedTransaction, isSubmitting: false);
 
-        return transaction;
-      }).toList();
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
 
-      emitUpdatedTransactions(updatedTransactions, isSubmitting: false);
+  Future<bool> uploadApprovalDocument({
+    required TransactionModel transaction,
+    required String localDocumentPath,
+  }) async {
+    if (!_validateLostDamagedPendingTransaction(transaction)) {
+      return false;
+    }
+
+    if (localDocumentPath.trim().isEmpty) {
+      emit(
+        state.copyWith(errorMessage: 'Approval document path was not found'),
+      );
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final savedTransaction = await _transactionsRepo.uploadApprovalDocument(
+        transaction: transaction,
+        localDocumentPath: localDocumentPath,
+      );
+
+      _emitReplacedTransaction(savedTransaction, isSubmitting: false);
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
+
+  Future<bool> approveTransaction({
+    required TransactionModel transaction,
+    required String decidedByProfileId,
+    String? decisionNote,
+  }) async {
+    if (!_validateLostDamagedPendingTransaction(transaction)) {
+      return false;
+    }
+
+    if (!_validateProfileId(decidedByProfileId)) {
+      return false;
+    }
+
+    if (!_hasApprovalDocument(transaction)) {
+      emit(
+        state.copyWith(
+          errorMessage:
+              'Signed approval document must be uploaded before approval',
+        ),
+      );
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final savedTransaction = await _transactionsRepo
+          .approveLostDamagedTransaction(
+            transaction: transaction,
+            decidedByProfileId: decidedByProfileId,
+            decisionNote: decisionNote,
+          );
+
+      _emitReplacedTransaction(savedTransaction, isSubmitting: false);
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
+
+  Future<bool> rejectTransaction({
+    required TransactionModel transaction,
+    required String decidedByProfileId,
+    String? decisionNote,
+  }) async {
+    if (!_validateLostDamagedPendingTransaction(transaction)) {
+      return false;
+    }
+
+    if (!_validateProfileId(decidedByProfileId)) {
+      return false;
+    }
+
+    if (!_hasApprovalDocument(transaction)) {
+      emit(
+        state.copyWith(
+          errorMessage:
+              'Signed approval document must be uploaded before rejection',
+        ),
+      );
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final savedTransaction = await _transactionsRepo
+          .rejectLostDamagedTransaction(
+            transaction: transaction,
+            decidedByProfileId: decidedByProfileId,
+            decisionNote: decisionNote,
+          );
+
+      _emitReplacedTransaction(savedTransaction, isSubmitting: false);
+
+      return true;
+    } catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      return false;
+    }
+  }
+
+  Future<bool> settleTransaction({
+    required TransactionModel transaction,
+    required String settledByProfileId,
+    String? settlementNote,
+  }) async {
+    final transactionId = transaction.id;
+
+    if (transactionId == null || transactionId.trim().isEmpty) {
+      emit(state.copyWith(errorMessage: 'Transaction ID was not found'));
+      return false;
+    }
+
+    if (!transaction.isLostOrDamaged) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Only lost or damaged transactions can be settled',
+        ),
+      );
+      return false;
+    }
+
+    if (!transaction.isApprovalApproved) {
+      emit(
+        state.copyWith(
+          errorMessage:
+              'Only approved lost or damaged transactions can be settled',
+        ),
+      );
+      return false;
+    }
+
+    if (!transaction.isPendingSettlement) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Only transactions pending settlement can be settled',
+        ),
+      );
+      return false;
+    }
+
+    if (!_validateProfileId(settledByProfileId)) {
+      return false;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final savedTransaction = await _transactionsRepo
+          .settleApprovedLostDamagedTransaction(
+            transaction: transaction,
+            settledByProfileId: settledByProfileId,
+            settlementNote: settlementNote,
+          );
+
+      _emitReplacedTransaction(savedTransaction, isSubmitting: false);
 
       return true;
     } catch (error) {
@@ -324,13 +495,78 @@ class TransactionsCubit extends Cubit<TransactionsState> {
         approvalStatus: transaction.approvalStatus == 'not_required'
             ? 'pending'
             : transaction.approvalStatus,
+        settlementStatus: transaction.settlementStatus == 'not_required'
+            ? 'not_required'
+            : transaction.settlementStatus,
       );
     }
 
     return transaction.copyWith(
       approvalRequired: false,
       approvalStatus: 'not_required',
+      settlementStatus: 'not_required',
     );
+  }
+
+  void _emitReplacedTransaction(
+    TransactionModel savedTransaction, {
+    bool? isSubmitting,
+  }) {
+    final updatedTransactions = state.transactions.map((transaction) {
+      if (transaction.id == savedTransaction.id) {
+        return savedTransaction;
+      }
+
+      return transaction;
+    }).toList();
+
+    emitUpdatedTransactions(updatedTransactions, isSubmitting: isSubmitting);
+  }
+
+  bool _validateLostDamagedPendingTransaction(TransactionModel transaction) {
+    final transactionId = transaction.id;
+
+    if (transactionId == null || transactionId.trim().isEmpty) {
+      emit(state.copyWith(errorMessage: 'Transaction ID was not found'));
+      return false;
+    }
+
+    if (!transaction.isLostOrDamaged) {
+      emit(
+        state.copyWith(
+          errorMessage:
+              'This action is allowed only for lost or damaged transactions',
+        ),
+      );
+      return false;
+    }
+
+    if (!transaction.isApprovalPending) {
+      emit(
+        state.copyWith(
+          errorMessage: 'This action is allowed only while approval is pending',
+        ),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _validateProfileId(String profileId) {
+    if (profileId.trim().isEmpty) {
+      emit(state.copyWith(errorMessage: 'Profile ID was not found'));
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _hasApprovalDocument(TransactionModel transaction) {
+    final approvalDocumentPath = transaction.approvalDocumentPath;
+
+    return approvalDocumentPath != null &&
+        approvalDocumentPath.trim().isNotEmpty;
   }
 
   bool _hasRequiredProofImage(TransactionModel transaction) {

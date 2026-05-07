@@ -201,8 +201,10 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
       showDocumentControl: _showDocumentControl,
       showGeneratedBy: _showGeneratedBy,
       reportFooterText: _controllers.footerTextController.text,
-      custodyResponsibilityStatement: _controllers.custodyStatementController.text,
-      lossDamageResponsibilityStatement: _controllers.lossDamageStatementController.text,
+      custodyResponsibilityStatement:
+          _controllers.custodyStatementController.text,
+      lossDamageResponsibilityStatement:
+          _controllers.lossDamageStatementController.text,
     );
 
     context.read<CompanySettingsCubit>().updateCompanyReportSettings(

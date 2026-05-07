@@ -22,6 +22,14 @@ class TransactionModel {
     this.note,
     this.approvalRequired = false,
     this.approvalStatus = 'not_required',
+    this.approvalDocumentPath,
+    this.approvalDecisionNote,
+    this.approvalDecidedByProfileId,
+    this.approvalDecidedAt,
+    this.settlementStatus = 'not_required',
+    this.settlementNote,
+    this.settledByProfileId,
+    this.settledAt,
     this.createdByProfileId,
     this.updatedAt,
   });
@@ -50,6 +58,16 @@ class TransactionModel {
 
   final bool approvalRequired;
   final String approvalStatus;
+  final String? approvalDocumentPath;
+  final String? approvalDecisionNote;
+  final String? approvalDecidedByProfileId;
+  final DateTime? approvalDecidedAt;
+
+  final String settlementStatus;
+  final String? settlementNote;
+  final String? settledByProfileId;
+  final DateTime? settledAt;
+
   final String? createdByProfileId;
   final DateTime? updatedAt;
 
@@ -57,8 +75,23 @@ class TransactionModel {
   bool get isReturn => type == TransactionType.returnTool;
   bool get isLost => type == TransactionType.lost;
   bool get isDamaged => type == TransactionType.damaged;
+  bool get isLostOrDamaged => isLost || isDamaged;
 
   bool get isClosingTransaction => !isIssue;
+
+  bool get isApprovalPending => _isSameStatus(approvalStatus, 'pending');
+  bool get isApprovalApproved => _isSameStatus(approvalStatus, 'approved');
+  bool get isApprovalRejected => _isSameStatus(approvalStatus, 'rejected');
+
+  bool get isSettlementNotRequired {
+    return _isSameStatus(settlementStatus, 'not_required');
+  }
+
+  bool get isPendingSettlement {
+    return _isSameStatus(settlementStatus, 'pending_settlement');
+  }
+
+  bool get isSettled => _isSameStatus(settlementStatus, 'settled');
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
@@ -82,6 +115,15 @@ class TransactionModel {
       note: json['note'] as String?,
       approvalRequired: json['approval_required'] as bool? ?? false,
       approvalStatus: json['approval_status'] as String? ?? 'not_required',
+      approvalDocumentPath: json['approval_document_path'] as String?,
+      approvalDecisionNote: json['approval_decision_note'] as String?,
+      approvalDecidedByProfileId:
+          json['approval_decided_by_profile_id'] as String?,
+      approvalDecidedAt: _parseDateTime(json['approval_decided_at']),
+      settlementStatus: json['settlement_status'] as String? ?? 'not_required',
+      settlementNote: json['settlement_note'] as String?,
+      settledByProfileId: json['settled_by_profile_id'] as String?,
+      settledAt: _parseDateTime(json['settled_at']),
       createdByProfileId: json['created_by_profile_id'] as String?,
       updatedAt: _parseDateTime(json['updated_at']),
     );
@@ -107,6 +149,14 @@ class TransactionModel {
       'note': _emptyToNull(note),
       'approval_required': approvalRequired,
       'approval_status': approvalStatus,
+      'approval_document_path': _emptyToNull(approvalDocumentPath),
+      'approval_decision_note': _emptyToNull(approvalDecisionNote),
+      'approval_decided_by_profile_id': approvalDecidedByProfileId,
+      'approval_decided_at': approvalDecidedAt?.toIso8601String(),
+      'settlement_status': settlementStatus,
+      'settlement_note': _emptyToNull(settlementNote),
+      'settled_by_profile_id': settledByProfileId,
+      'settled_at': settledAt?.toIso8601String(),
       'created_by_profile_id': createdByProfileId,
     };
   }
@@ -129,6 +179,14 @@ class TransactionModel {
       'note': _emptyToNull(note),
       'approval_required': approvalRequired,
       'approval_status': approvalStatus,
+      'approval_document_path': _emptyToNull(approvalDocumentPath),
+      'approval_decision_note': _emptyToNull(approvalDecisionNote),
+      'approval_decided_by_profile_id': approvalDecidedByProfileId,
+      'approval_decided_at': approvalDecidedAt?.toIso8601String(),
+      'settlement_status': settlementStatus,
+      'settlement_note': _emptyToNull(settlementNote),
+      'settled_by_profile_id': settledByProfileId,
+      'settled_at': settledAt?.toIso8601String(),
     };
   }
 
@@ -153,6 +211,14 @@ class TransactionModel {
     String? note,
     bool? approvalRequired,
     String? approvalStatus,
+    String? approvalDocumentPath,
+    String? approvalDecisionNote,
+    String? approvalDecidedByProfileId,
+    DateTime? approvalDecidedAt,
+    String? settlementStatus,
+    String? settlementNote,
+    String? settledByProfileId,
+    DateTime? settledAt,
     String? createdByProfileId,
     DateTime? updatedAt,
   }) {
@@ -177,6 +243,15 @@ class TransactionModel {
       note: note ?? this.note,
       approvalRequired: approvalRequired ?? this.approvalRequired,
       approvalStatus: approvalStatus ?? this.approvalStatus,
+      approvalDocumentPath: approvalDocumentPath ?? this.approvalDocumentPath,
+      approvalDecisionNote: approvalDecisionNote ?? this.approvalDecisionNote,
+      approvalDecidedByProfileId:
+          approvalDecidedByProfileId ?? this.approvalDecidedByProfileId,
+      approvalDecidedAt: approvalDecidedAt ?? this.approvalDecidedAt,
+      settlementStatus: settlementStatus ?? this.settlementStatus,
+      settlementNote: settlementNote ?? this.settlementNote,
+      settledByProfileId: settledByProfileId ?? this.settledByProfileId,
+      settledAt: settledAt ?? this.settledAt,
       createdByProfileId: createdByProfileId ?? this.createdByProfileId,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -238,5 +313,9 @@ class TransactionModel {
     }
 
     return trimmedValue;
+  }
+
+  static bool _isSameStatus(String firstValue, String secondValue) {
+    return firstValue.trim().toLowerCase() == secondValue.trim().toLowerCase();
   }
 }

@@ -223,7 +223,9 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
 
     setState(() {
       _effectiveDate = selectedDate;
-      _effectiveDateController.text = DocumentTemplateFormHelpers.formatDate(selectedDate);
+      _effectiveDateController.text = DocumentTemplateFormHelpers.formatDate(
+        selectedDate,
+      );
     });
   }
 
@@ -243,10 +245,18 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
       issueNo: _issueNoController.text,
       revisionNo: _revisionNoController.text,
       effectiveDate: _effectiveDate,
-      preparedByTitle: DocumentTemplateFormHelpers.emptyToNull(_preparedByTitleController.text),
-      checkedByTitle: DocumentTemplateFormHelpers.emptyToNull(_checkedByTitleController.text),
-      approvedByTitle: DocumentTemplateFormHelpers.emptyToNull(_approvedByTitleController.text),
-      workerSignatureLabel: DocumentTemplateFormHelpers.emptyToNull(_workerSignatureLabelController.text),
+      preparedByTitle: DocumentTemplateFormHelpers.emptyToNull(
+        _preparedByTitleController.text,
+      ),
+      checkedByTitle: DocumentTemplateFormHelpers.emptyToNull(
+        _checkedByTitleController.text,
+      ),
+      approvedByTitle: DocumentTemplateFormHelpers.emptyToNull(
+        _approvedByTitleController.text,
+      ),
+      workerSignatureLabel: DocumentTemplateFormHelpers.emptyToNull(
+        _workerSignatureLabelController.text,
+      ),
       managerSignatureLabel: DocumentTemplateFormHelpers.emptyToNull(
         _managerSignatureLabelController.text,
       ),

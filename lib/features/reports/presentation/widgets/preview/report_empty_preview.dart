@@ -4,7 +4,11 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class ReportEmptyPreview extends StatelessWidget {
-  const ReportEmptyPreview({super.key, required this.icon, required this.message});
+  const ReportEmptyPreview({
+    super.key,
+    required this.icon,
+    required this.message,
+  });
 
   final IconData icon;
   final String message;

@@ -110,13 +110,9 @@ bool shouldReduceCustodyBalance(TransactionModel transaction) {
     return true;
   }
 
-  if (transaction.isLost || transaction.isDamaged) {
-    return _isApproved(transaction.approvalStatus);
+  if (transaction.isLostOrDamaged) {
+    return transaction.isApprovalApproved && transaction.isSettled;
   }
 
   return false;
-}
-
-bool _isApproved(String approvalStatus) {
-  return approvalStatus.trim().toLowerCase() == 'approved';
 }

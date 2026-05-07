@@ -6,7 +6,11 @@ import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
 class WorkerReportFilter extends StatelessWidget {
-  const WorkerReportFilter({super.key, required this.filters, required this.onChanged});
+  const WorkerReportFilter({
+    super.key,
+    required this.filters,
+    required this.onChanged,
+  });
 
   final ReportFilterModel filters;
   final ValueChanged<ReportFilterModel> onChanged;
