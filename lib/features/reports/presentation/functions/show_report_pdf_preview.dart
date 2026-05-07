@@ -111,6 +111,7 @@ class _ReportPdfPreview extends StatelessWidget {
             child: PdfPreview(
               canChangeOrientation: false,
               canChangePageFormat: false,
+              canDebug: false,
               allowPrinting: true,
               allowSharing: true,
               pdfFileName: _buildPdfFileName(reportType),
