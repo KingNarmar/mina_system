@@ -22,7 +22,7 @@ double calculateWorkerToolBalance({
 
     if (transaction.isIssue) {
       balance += transaction.quantity;
-    } else if (transaction.isClosingTransaction) {
+    } else if (shouldReduceCustodyBalance(transaction)) {
       balance -= transaction.quantity;
     }
   }
@@ -64,7 +64,13 @@ List<CustodyBalanceModel> calculateCustodyBalances(
 
     final quantityChange = transaction.isIssue
         ? transaction.quantity
-        : -transaction.quantity;
+        : shouldReduceCustodyBalance(transaction)
+        ? -transaction.quantity
+        : 0.0;
+
+    if (quantityChange == 0) {
+      continue;
+    }
 
     if (currentBalance == null) {
       balancesMap[key] = CustodyBalanceModel(
@@ -97,4 +103,20 @@ List<CustodyBalanceModel> calculateCustodyBalances(
   });
 
   return balances;
+}
+
+bool shouldReduceCustodyBalance(TransactionModel transaction) {
+  if (transaction.isReturn) {
+    return true;
+  }
+
+  if (transaction.isLost || transaction.isDamaged) {
+    return _isApproved(transaction.approvalStatus);
+  }
+
+  return false;
+}
+
+bool _isApproved(String approvalStatus) {
+  return approvalStatus.trim().toLowerCase() == 'approved';
 }

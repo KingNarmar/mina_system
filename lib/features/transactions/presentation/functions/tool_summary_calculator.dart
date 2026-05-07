@@ -1,5 +1,6 @@
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
+import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 
 List<ToolCustodySummaryModel> calculateToolCustodySummaries(
   List<TransactionModel> transactions,
@@ -39,7 +40,9 @@ List<ToolCustodySummaryModel> calculateToolCustodySummaries(
           : summary.damagedQuantity,
       openCustodyQuantity: transaction.isIssue
           ? summary.openCustodyQuantity + transaction.quantity
-          : summary.openCustodyQuantity - transaction.quantity,
+          : shouldReduceCustodyBalance(transaction)
+          ? summary.openCustodyQuantity - transaction.quantity
+          : summary.openCustodyQuantity,
       totalMovements: summary.totalMovements + 1,
     );
   }
@@ -67,7 +70,7 @@ int calculateClosedTodayCount(List<TransactionModel> transactions) {
     final isSameMonth = transaction.dateTime.month == now.month;
     final isSameDay = transaction.dateTime.day == now.day;
 
-    return transaction.isClosingTransaction &&
+    return shouldReduceCustodyBalance(transaction) &&
         isSameYear &&
         isSameMonth &&
         isSameDay;
