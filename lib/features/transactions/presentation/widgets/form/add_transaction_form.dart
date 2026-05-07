@@ -17,9 +17,10 @@ import 'sections/transaction_type_picker.dart';
 import 'sections/transaction_worker_selection.dart';
 
 class AddTransactionForm extends StatefulWidget {
-  const AddTransactionForm({super.key, required this.onSave});
+  const AddTransactionForm({super.key, required this.onSave, this.initialType});
 
   final ValueChanged<TransactionModel> onSave;
+  final TransactionType? initialType;
 
   @override
   State<AddTransactionForm> createState() => _AddTransactionFormState();
@@ -55,6 +56,17 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final type = _selectedTransactionType;
 
     return type == TransactionType.lost || type == TransactionType.damaged;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    final initialType = widget.initialType;
+
+    if (initialType != null) {
+      _selectedType = getTransactionTypeLabel(initialType);
+    }
   }
 
   @override

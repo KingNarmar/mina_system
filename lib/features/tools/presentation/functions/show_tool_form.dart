@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
@@ -95,6 +96,7 @@ Future<void> _saveTool({
   final companyId = context.currentCompanyId;
   final profileId = context.currentProfileId;
   final toolsCubit = context.read<ToolsCubit>();
+  final dashboardCubit = context.read<DashboardCubit>();
 
   final navigator = Navigator.of(popContext);
   final messenger = ScaffoldMessenger.of(context);
@@ -110,6 +112,10 @@ Future<void> _saveTool({
 
     if (!isSaved) {
       return;
+    }
+
+    if (companyId != null && companyId.trim().isNotEmpty) {
+      await dashboardCubit.loadDashboardSummary(companyId: companyId);
     }
 
     navigator.pop();
@@ -132,6 +138,10 @@ Future<void> _saveTool({
 
   if (!isSaved) {
     return;
+  }
+
+  if (companyId != null && companyId.trim().isNotEmpty) {
+    await dashboardCubit.loadDashboardSummary(companyId: companyId);
   }
 
   navigator.pop();

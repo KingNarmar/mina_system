@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
@@ -71,6 +72,7 @@ Future<bool> _saveWorker({
   required WorkerModel savedWorker,
 }) async {
   final companyId = context.requireCurrentCompanyId();
+  final dashboardCubit = context.read<DashboardCubit>();
 
   if (originalWorker == null) {
     final profileId = context.requireCurrentProfileId();
@@ -80,6 +82,14 @@ Future<bool> _saveWorker({
       createdByProfileId: profileId,
       worker: savedWorker,
     );
+
+    if (!context.mounted) {
+      return false;
+    }
+
+    if (isAdded) {
+      await dashboardCubit.loadDashboardSummary(companyId: companyId);
+    }
 
     if (!context.mounted) {
       return false;
@@ -97,6 +107,14 @@ Future<bool> _saveWorker({
     companyId: companyId,
     updatedWorker: savedWorker,
   );
+
+  if (!context.mounted) {
+    return false;
+  }
+
+  if (isUpdated) {
+    await dashboardCubit.loadDashboardSummary(companyId: companyId);
+  }
 
   if (!context.mounted) {
     return false;

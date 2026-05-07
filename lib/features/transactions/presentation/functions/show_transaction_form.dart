@@ -9,7 +9,10 @@ import 'package:mina_system/features/transactions/presentation/cubit/transaction
 import 'package:mina_system/features/transactions/presentation/widgets/form/add_transaction_form.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
-void showTransactionBottomSheet(BuildContext context) {
+void showTransactionBottomSheet(
+  BuildContext context, {
+  TransactionType? initialType,
+}) {
   final parentContext = context;
   final transactionsCubit = context.read<TransactionsCubit>();
   final workersCubit = context.read<WorkersCubit>();
@@ -30,6 +33,7 @@ void showTransactionBottomSheet(BuildContext context) {
           BlocProvider.value(value: toolsCubit),
         ],
         child: AddTransactionForm(
+          initialType: initialType,
           onSave: (transaction) async {
             await _saveTransaction(
               context: parentContext,
@@ -43,7 +47,10 @@ void showTransactionBottomSheet(BuildContext context) {
   );
 }
 
-void showTransactionDialog(BuildContext context) {
+void showTransactionDialog(
+  BuildContext context, {
+  TransactionType? initialType,
+}) {
   final parentContext = context;
   final transactionsCubit = context.read<TransactionsCubit>();
   final workersCubit = context.read<WorkersCubit>();
@@ -63,6 +70,7 @@ void showTransactionDialog(BuildContext context) {
               BlocProvider.value(value: toolsCubit),
             ],
             child: AddTransactionForm(
+              initialType: initialType,
               onSave: (transaction) async {
                 await _saveTransaction(
                   context: parentContext,

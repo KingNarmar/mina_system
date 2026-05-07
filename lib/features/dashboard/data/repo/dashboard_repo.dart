@@ -1,6 +1,7 @@
 import 'package:mina_system/features/dashboard/data/models/dashboard_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
+import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardRepo {
@@ -42,34 +43,37 @@ class DashboardRepo {
   }
 
   int _calculateOpenCustodies(List<TransactionModel> transactions) {
-    final balances = <String, double>{};
-
-    for (final transaction in transactions) {
-      final key = '${transaction.workerHrCode}__${transaction.toolCode}';
-      final currentBalance = balances[key] ?? 0;
-
-      if (transaction.isIssue) {
-        balances[key] = currentBalance + transaction.quantity;
-      } else {
-        balances[key] = currentBalance - transaction.quantity;
-      }
-    }
-
-    return balances.values.where((balance) => balance > 0).length;
+    return calculateCustodyBalances(transactions).length;
   }
 
   int _calculateClosedToday(List<TransactionModel> transactions) {
     final now = DateTime.now();
 
     return transactions.where((transaction) {
-      final date = transaction.dateTime.toLocal();
+      final closedDate = _getTransactionClosedDate(transaction);
 
-      final isToday =
-          date.year == now.year &&
-          date.month == now.month &&
-          date.day == now.day;
+      if (closedDate == null) {
+        return false;
+      }
 
-      return isToday && transaction.isClosingTransaction;
+      final localClosedDate = closedDate.toLocal();
+
+      return localClosedDate.year == now.year &&
+          localClosedDate.month == now.month &&
+          localClosedDate.day == now.day;
     }).length;
+  }
+
+  DateTime? _getTransactionClosedDate(TransactionModel transaction) {
+    if (transaction.isReturn) {
+      return transaction.dateTime;
+    }
+
+    if (transaction.isLostOrDamaged &&
+        shouldReduceCustodyBalance(transaction)) {
+      return transaction.settledAt;
+    }
+
+    return null;
   }
 }

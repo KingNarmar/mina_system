@@ -8,6 +8,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
@@ -469,6 +470,12 @@ class _PendingApprovalActions extends StatelessWidget {
       return;
     }
 
+    await _refreshDashboard(context);
+
+    if (!context.mounted) {
+      return;
+    }
+
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Transaction approved')));
@@ -495,6 +502,12 @@ class _PendingApprovalActions extends StatelessWidget {
     );
 
     if (!context.mounted || !success) {
+      return;
+    }
+
+    await _refreshDashboard(context);
+
+    if (!context.mounted) {
       return;
     }
 
@@ -528,9 +541,27 @@ class _PendingApprovalActions extends StatelessWidget {
       return;
     }
 
+    await _refreshDashboard(context);
+
+    if (!context.mounted) {
+      return;
+    }
+
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Transaction settled')));
+  }
+
+  Future<void> _refreshDashboard(BuildContext context) async {
+    final companyId = context.currentCompanyId;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      return;
+    }
+
+    await context.read<DashboardCubit>().loadDashboardSummary(
+      companyId: companyId,
+    );
   }
 
   Future<bool> _confirmAction({
