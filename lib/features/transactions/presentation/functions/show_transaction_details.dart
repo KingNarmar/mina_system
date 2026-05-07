@@ -3,11 +3,13 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
+import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void showTransactionDetails(
   BuildContext context,
@@ -46,6 +48,8 @@ class _TransactionDetailsContent extends StatelessWidget {
 
     final hasNote =
         transaction.note != null && transaction.note!.trim().isNotEmpty;
+
+    final hasApprovalDocument = _hasText(transaction.approvalDocumentPath);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,10 +117,24 @@ class _TransactionDetailsContent extends StatelessWidget {
           ),
           _TransactionDetailsRow(
             label: 'Document',
-            value: _hasText(transaction.approvalDocumentPath)
+            value: hasApprovalDocument
                 ? 'Signed document uploaded'
                 : 'No signed document uploaded',
           ),
+          if (hasApprovalDocument) ...[
+            const Gap(4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  _openApprovalDocument(context, transaction);
+                },
+                icon: const Icon(Icons.open_in_new, size: 18),
+                label: const Text('View Signed Document'),
+              ),
+            ),
+            const Gap(8),
+          ],
           if (_hasText(transaction.approvalDecisionNote))
             _TransactionDetailsRow(
               label: 'Decision',
@@ -175,6 +193,35 @@ class _TransactionDetailsContent extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _openApprovalDocument(
+    BuildContext context,
+    TransactionModel transaction,
+  ) async {
+    try {
+      final signedUrl = await TransactionsRepo()
+          .createApprovalDocumentSignedUrl(transaction: transaction);
+
+      final uri = Uri.parse(signedUrl);
+
+      if (!await canLaunchUrl(uri)) {
+        if (!context.mounted) return;
+        _showMessage(context, 'Unable to open signed document.');
+        return;
+      }
+
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (error) {
+      if (!context.mounted) return;
+      _showMessage(context, error.toString());
+    }
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   bool _hasText(String? value) {

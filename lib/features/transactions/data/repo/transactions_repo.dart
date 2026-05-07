@@ -142,6 +142,30 @@ class TransactionsRepo {
     return TransactionModel.fromJson(data);
   }
 
+  Future<String> createApprovalDocumentSignedUrl({
+    required TransactionModel transaction,
+    int expiresInSeconds = 60 * 10,
+  }) async {
+    final companyId = transaction.companyId;
+    final documentPath = transaction.approvalDocumentPath;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (documentPath == null || documentPath.trim().isEmpty) {
+      throw StateError('Signed approval document was not found.');
+    }
+
+    if (!_isCloudStoragePath(documentPath, companyId: companyId)) {
+      throw StateError('Invalid approval document storage path.');
+    }
+
+    return _supabase.storage
+        .from(_approvalDocumentsBucket)
+        .createSignedUrl(documentPath, expiresInSeconds);
+  }
+
   Future<TransactionModel> approveLostDamagedTransaction({
     required TransactionModel transaction,
     required String decidedByProfileId,
