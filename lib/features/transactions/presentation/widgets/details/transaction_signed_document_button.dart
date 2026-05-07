@@ -32,13 +32,15 @@ class TransactionSignedDocumentButton extends StatelessWidget {
 
       final uri = Uri.parse(signedUrl);
 
-      if (!await canLaunchUrl(uri)) {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
         if (!context.mounted) return;
         _showMessage(context, 'Unable to open signed document.');
-        return;
       }
-
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (error) {
       if (!context.mounted) return;
       _showMessage(context, error.toString());
