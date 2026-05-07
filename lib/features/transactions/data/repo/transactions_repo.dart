@@ -1,7 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/transaction_model.dart';
-import '../services/transaction_helper_service.dart';
+import '../services/transaction_approval_service.dart';
+import '../services/transaction_code_service.dart';
 import '../services/transaction_storage_service.dart';
 
 class TransactionsRepo {
@@ -9,10 +10,18 @@ class TransactionsRepo {
     : _supabase = supabaseClient ?? Supabase.instance.client,
       _storageService = TransactionStorageService(
         supabaseClient: supabaseClient ?? Supabase.instance.client,
+      ),
+      _approvalService = TransactionApprovalService(
+        supabase: supabaseClient ?? Supabase.instance.client,
+      ),
+      _codeService = TransactionCodeService(
+        supabase: supabaseClient ?? Supabase.instance.client,
       );
 
   final SupabaseClient _supabase;
   final TransactionStorageService _storageService;
+  final TransactionApprovalService _approvalService;
+  final TransactionCodeService _codeService;
 
   static const String _transactionSelectColumns = '''
     id,
@@ -176,56 +185,12 @@ class TransactionsRepo {
     required String decidedByProfileId,
     String? decisionNote,
   }) async {
-    final transactionId = transaction.id;
-    final companyId = transaction.companyId;
-
-    if (transactionId == null || transactionId.trim().isEmpty) {
-      throw StateError('Transaction ID was not found.');
-    }
-
-    if (companyId == null || companyId.trim().isEmpty) {
-      throw StateError('Company ID was not found.');
-    }
-
-    if (decidedByProfileId.trim().isEmpty) {
-      throw StateError('Approver profile ID was not found.');
-    }
-
-    if (!transaction.isLostOrDamaged) {
-      throw StateError('Only lost or damaged transactions can be approved.');
-    }
-
-    if (!transaction.isApprovalPending) {
-      throw StateError('Only pending transactions can be approved.');
-    }
-
-    if (transaction.approvalDocumentPath == null ||
-        transaction.approvalDocumentPath!.trim().isEmpty) {
-      throw StateError(
-        'Signed approval document must be uploaded before approval.',
-      );
-    }
-
-    final now = DateTime.now().toUtc().toIso8601String();
-
-    final data = await _supabase
-        .from('transactions')
-        .update({
-          'approval_status': 'approved',
-          'approval_decision_note': TransactionHelperService.emptyToNull(
-            decisionNote,
-          ),
-          'approval_decided_by_profile_id': decidedByProfileId.trim(),
-          'approval_decided_at': now,
-          'settlement_status': 'pending_settlement',
-          'updated_at': now,
-        })
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
-        .select(_transactionSelectColumns)
-        .single();
-
-    return TransactionModel.fromJson(data);
+    return _approvalService.approveLostDamagedTransaction(
+      transaction: transaction,
+      decidedByProfileId: decidedByProfileId,
+      selectColumns: _transactionSelectColumns,
+      decisionNote: decisionNote,
+    );
   }
 
   Future<TransactionModel> rejectLostDamagedTransaction({
@@ -233,59 +198,12 @@ class TransactionsRepo {
     required String decidedByProfileId,
     String? decisionNote,
   }) async {
-    final transactionId = transaction.id;
-    final companyId = transaction.companyId;
-
-    if (transactionId == null || transactionId.trim().isEmpty) {
-      throw StateError('Transaction ID was not found.');
-    }
-
-    if (companyId == null || companyId.trim().isEmpty) {
-      throw StateError('Company ID was not found.');
-    }
-
-    if (decidedByProfileId.trim().isEmpty) {
-      throw StateError('Rejector profile ID was not found.');
-    }
-
-    if (!transaction.isLostOrDamaged) {
-      throw StateError('Only lost or damaged transactions can be rejected.');
-    }
-
-    if (!transaction.isApprovalPending) {
-      throw StateError('Only pending transactions can be rejected.');
-    }
-
-    if (transaction.approvalDocumentPath == null ||
-        transaction.approvalDocumentPath!.trim().isEmpty) {
-      throw StateError(
-        'Signed approval document must be uploaded before rejection.',
-      );
-    }
-
-    final now = DateTime.now().toUtc().toIso8601String();
-
-    final data = await _supabase
-        .from('transactions')
-        .update({
-          'approval_status': 'rejected',
-          'approval_decision_note': TransactionHelperService.emptyToNull(
-            decisionNote,
-          ),
-          'approval_decided_by_profile_id': decidedByProfileId.trim(),
-          'approval_decided_at': now,
-          'settlement_status': 'not_required',
-          'settlement_note': null,
-          'settled_by_profile_id': null,
-          'settled_at': null,
-          'updated_at': now,
-        })
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
-        .select(_transactionSelectColumns)
-        .single();
-
-    return TransactionModel.fromJson(data);
+    return _approvalService.rejectLostDamagedTransaction(
+      transaction: transaction,
+      decidedByProfileId: decidedByProfileId,
+      selectColumns: _transactionSelectColumns,
+      decisionNote: decisionNote,
+    );
   }
 
   Future<TransactionModel> settleApprovedLostDamagedTransaction({
@@ -293,79 +211,18 @@ class TransactionsRepo {
     required String settledByProfileId,
     String? settlementNote,
   }) async {
-    final transactionId = transaction.id;
-    final companyId = transaction.companyId;
-
-    if (transactionId == null || transactionId.trim().isEmpty) {
-      throw StateError('Transaction ID was not found.');
-    }
-
-    if (companyId == null || companyId.trim().isEmpty) {
-      throw StateError('Company ID was not found.');
-    }
-
-    if (settledByProfileId.trim().isEmpty) {
-      throw StateError('Settlement profile ID was not found.');
-    }
-
-    if (!transaction.isLostOrDamaged) {
-      throw StateError('Only lost or damaged transactions can be settled.');
-    }
-
-    if (!transaction.isApprovalApproved) {
-      throw StateError(
-        'Only approved lost or damaged transactions can be settled.',
-      );
-    }
-
-    if (!transaction.isPendingSettlement) {
-      throw StateError('Only transactions pending settlement can be settled.');
-    }
-
-    final now = DateTime.now().toUtc().toIso8601String();
-
-    final data = await _supabase
-        .from('transactions')
-        .update({
-          'settlement_status': 'settled',
-          'settlement_note': TransactionHelperService.emptyToNull(
-            settlementNote,
-          ),
-          'settled_by_profile_id': settledByProfileId.trim(),
-          'settled_at': now,
-          'updated_at': now,
-        })
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
-        .select(_transactionSelectColumns)
-        .single();
-
-    return TransactionModel.fromJson(data);
+    return _approvalService.settleApprovedLostDamagedTransaction(
+      transaction: transaction,
+      settledByProfileId: settledByProfileId,
+      selectColumns: _transactionSelectColumns,
+      settlementNote: settlementNote,
+    );
   }
 
   Future<String> generateNextTransactionCode({
     required String companyId,
   }) async {
-    final data = await _supabase
-        .from('transactions')
-        .select('transaction_code')
-        .eq('company_id', companyId);
-
-    var maxNumber = 0;
-
-    for (final item in data) {
-      final transactionCode = item['transaction_code'] as String?;
-      final number = TransactionHelperService.extractEndingNumber(
-        transactionCode,
-      );
-
-      if (number > maxNumber) {
-        maxNumber = number;
-      }
-    }
-
-    final nextNumber = maxNumber + 1;
-    return 'TRX-${nextNumber.toString().padLeft(3, '0')}';
+    return _codeService.generateNextTransactionCode(companyId: companyId);
   }
 
   Future<bool> transactionCodeExists({
@@ -373,31 +230,11 @@ class TransactionsRepo {
     required String transactionCode,
     String? ignoredTransactionId,
   }) async {
-    final cleanTransactionCode = transactionCode.trim();
-
-    if (cleanTransactionCode.isEmpty) {
-      return false;
-    }
-
-    final data = await _supabase
-        .from('transactions')
-        .select('id, transaction_code')
-        .eq('company_id', companyId);
-
-    return data.any((item) {
-      final transactionId = item['id'] as String?;
-      final existingTransactionCode = item['transaction_code'] as String?;
-
-      if (ignoredTransactionId != null &&
-          transactionId == ignoredTransactionId) {
-        return false;
-      }
-
-      return TransactionHelperService.isSameTransactionCode(
-        existingTransactionCode,
-        cleanTransactionCode,
-      );
-    });
+    return _codeService.transactionCodeExists(
+      companyId: companyId,
+      transactionCode: transactionCode,
+      ignoredTransactionId: ignoredTransactionId,
+    );
   }
 
   Future<TransactionModel> _prepareTransactionProofImage(
