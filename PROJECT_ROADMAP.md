@@ -10,7 +10,7 @@
 
 ## Project Vision
 
-Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, approvals, settlements, and professional PDF reports for companies and warehouses.
+Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, users, roles, invitations, approvals, settlements, audit logs, and professional PDF reports for companies and warehouses.
 
 The system is being built as a real multi-company SaaS/product, not a local demo.
 
@@ -54,6 +54,8 @@ Follow this pattern for each feature:
 - Every business table must be connected to `company_id`.
 - Every query must be filtered by `currentCompanyId`.
 - Never expose or use service role keys in Flutter.
+- Admin Auth methods must not be called directly from Flutter.
+- User invitations must be handled through a secure backend / Supabase Edge Function.
 - Before using any Supabase table:
   - Check real columns first.
   - Add correct grants.
@@ -66,6 +68,8 @@ Follow this pattern for each feature:
 - Lost/Damaged transactions should not reduce worker custody balance while pending approval.
 - Lost/Damaged transactions should not reduce worker custody balance after approval only.
 - Lost/Damaged transactions should reduce worker custody balance only after final settlement/deduction is completed.
+- Company users must access company data only through active company membership.
+- RLS must enforce role permissions at database level, not UI only.
 - Colors should be centralized inside `AppColors`.
 - Do not use direct widget-level colors like `Colors.green` or `Colors.orange` unless they are first added to `AppColors`.
 
@@ -82,10 +86,21 @@ Implemented:
 - Email confirmation is working.
 - Auth redirect between Login / Register / Dashboard is working.
 
-Flow:
+Current flow:
 
 ```text
 Register → Confirm Email → Login → Create Company if no company exists → Dashboard
+```
+
+Required future flow after Company Users / Invitations:
+
+```text
+Register/Login
+→ Check pending invitations by email
+→ Check active company memberships
+→ If invited: Accept Invitation / Join Company
+→ If already member: Select Company or Dashboard
+→ If no membership and no invitation: Create Company
 ```
 
 ---
@@ -125,6 +140,14 @@ One company → Dashboard
 Multiple companies → Select Company placeholder
 ```
 
+Required future behavior:
+
+```text
+Pending invitation exists → Accept Invitation screen
+Active membership exists → Select Company / Dashboard
+No invitation and no membership → Create Company screen
+```
+
 ---
 
 ## Create Company Flow Status: Done
@@ -136,6 +159,15 @@ Implemented:
 - Company created with defaults.
 - Dashboard opens after creation.
 - Company name appears in TopBar.
+
+Future improvements:
+
+- Add stronger confirmation before creating a new company.
+- Add “I am creating a new company as the owner” checkbox.
+- Add “I already have an invitation” option.
+- Add “Join company with invite” option.
+- Prevent accidental company creation as much as possible.
+- Add accidental company cleanup/archive flow.
 
 ---
 
@@ -677,12 +709,25 @@ Implemented:
 - Open Custodies comes from real transactions.
 - Closed Today comes from real closing transactions.
 - Fixed Closed Today timezone handling by converting transaction dates to local time before comparison.
+- Dashboard Closed Today logic updated after settlement workflow:
+  - Return counts as closed immediately.
+  - Lost/Damaged counts as closed only after settlement.
+  - Pending approval is not closed.
+  - Approved but pending settlement is not closed.
+  - Rejected is not closed.
 - Recent Transactions comes from real Supabase transactions.
 - Dashboard Stats Grid accepts real values.
 - Dashboard Stats Grid is self-connected to `DashboardCubit`.
 - Recent Transactions Card accepts real transaction data.
 - Recent Transactions Card is self-connected to `DashboardCubit`.
 - Dashboard refreshes after adding any new transaction.
+- Dashboard refreshes after Approve / Reject / Settle.
+- Dashboard refreshes after Add Worker / Add Tool.
+- Dashboard Quick Actions are working:
+  - Issue Tool
+  - Return Tool
+  - Add Worker
+  - Add Tool
 - Added `AppColors.success`.
 - Added `AppColors.warning`.
 - Removed direct widget-level colors for Dashboard stat cards.
@@ -691,8 +736,8 @@ Implemented:
 - Tablet Dashboard tested.
 - Mobile Dashboard tested.
 - Recent Transactions displays correctly across desktop/tablet/mobile.
-- Closed Today updates after Return transactions.
-- Open Custodies updates after Issue/Return.
+- Closed Today updates after Return and Settlement.
+- Open Custodies updates after Issue/Return/Settlement.
 - `flutter analyze` completed successfully with no issues.
 - Dashboard screenshots were intentionally updated and pushed.
 - Changes committed and pushed to GitHub.
@@ -707,12 +752,16 @@ Dashboard real stats:
 
 Pending / Future Enhancements:
 
-- Update Closed Today logic after final Approval + Settlement workflow is fully implemented.
 - Add Dashboard loading skeletons or shimmer if needed.
 - Add Dashboard empty states with better visual design if needed.
 - Add trends/percentages later.
 - Add role-based Dashboard cards later.
 - Add dashboard date filters later if needed.
+- Add dashboard cards for:
+  - Pending Invitations
+  - Pending Approvals
+  - Pending Settlements
+  - Recent Critical Activities
 
 ---
 
@@ -753,6 +802,52 @@ Commit message:
 ```text
 Upgrade Flutter SDK and verify project
 ```
+
+---
+
+# Maintenance Checkpoint — Large File Refactor
+
+## Status: Mostly Done / One Deferred Model
+
+Goal:
+
+Reduce large Dart files into smaller, more maintainable modules without changing working behavior.
+
+Completed:
+
+- Refactored Pending Approvals UI into smaller widgets.
+- Refactored Report PDF table sections into smaller report-specific files.
+- Refactored Transaction Details dialog into smaller detail widgets.
+- Refactored LookupsCubit using Dart part files.
+- Refactored TransactionsCubit using Dart part files.
+- Refactored TransactionsRepo into a facade delegating to specialized services:
+  - `TransactionStorageService`
+  - `TransactionApprovalService`
+  - `TransactionCodeService`
+- Ran `dart format lib`.
+- Ran `flutter analyze`.
+- Result: no issues.
+- Changes committed and pushed.
+
+Files intentionally deferred:
+
+```text
+lib/features/transactions/data/models/transaction_model.dart
+```
+
+Reason:
+
+- It is a central model used by transactions, dashboard, reports, and approval workflow.
+- It is only slightly above 300 lines.
+- Refactor can be done later using safe part files:
+  - `transaction_model_json.dart`
+  - `transaction_model_copy_with.dart`
+  - `transaction_model_parsers.dart`
+
+Rule:
+
+- Do not refactor this model during feature work.
+- Refactor it later as a small isolated maintenance commit.
 
 ---
 
@@ -916,7 +1011,7 @@ Pending / Future Enhancements:
 
 # Phase H — Lost/Damaged Approval & Settlement Workflow
 
-## Status: In Progress / Core Workflow Implemented
+## Status: Core Workflow Implemented
 
 Goal:
 
@@ -1204,6 +1299,8 @@ This also affects:
 
 - Worker custody balance
 - Tool summary open custody quantity
+- Dashboard Open Custodies
+- Dashboard Closed Today
 - Any dependent custody calculations
 
 ## Tested End-to-End
@@ -1222,6 +1319,7 @@ Tested:
 - Reject transaction keeps tool in custody.
 - Lost/Damaged Approval PDF preview works.
 - PDF layout issue was fixed.
+- Dashboard updates after settlement.
 - `flutter analyze` has no errors.
 - Changes were committed and pushed.
 
@@ -1236,16 +1334,11 @@ Step H.5 — Add approve/reject/settle methods in TransactionsCubit. ✅
 Step H.6 — Add Pending Approvals UI. ✅
 Step H.7 — Add Lost/Damaged Approval PDF report. ✅
 Step H.8 — Update custody balance logic to reduce only after settlement. ✅
+Step H.9 — Update Dashboard Closed Today logic after settlement rules. ✅
 Step H.10 — Test complete flow end-to-end. ✅
 ```
 
 ## Pending / Future Enhancements
-
-```text
-Step H.9 — Update Dashboard Closed Today logic after settlement rules.
-```
-
-Other future enhancements:
 
 - Add optional settlement/deduction report if needed.
 - Add role-based UI visibility for approval/settlement actions.
@@ -1281,6 +1374,9 @@ Needed:
 - Ensure role changes with selected company.
 - Add better UX for companies list.
 - Add current company switching confirmation if there is unsaved work.
+- Support user being a member in more than one company.
+- Support accepted invitations creating company memberships.
+- Avoid forcing Create Company when a pending invitation exists.
 
 ---
 
@@ -1290,16 +1386,37 @@ Current roles expected:
 
 - owner
 - admin
+- warehouse_manager
 - warehouse_user
-- member
+- data_entry
+- viewer
 
-Required:
+Current database enum may still contain:
 
-## Owner/Admin
+- owner
+- admin
+- warehouse_user
+
+Required future role expansion:
+
+```text
+owner
+admin
+warehouse_manager
+warehouse_user
+data_entry
+viewer
+```
+
+## Owner
 
 Can manage:
 
+- Everything
 - Company settings
+- Users
+- Invitations
+- Roles
 - Lookups
 - Workers
 - Tools
@@ -1307,9 +1424,26 @@ Can manage:
 - Reports
 - Approvals
 - Settlements
-- Roles/Users later
+- Audit logs
 
-## Warehouse User
+## Admin
+
+Can manage:
+
+- Company settings
+- Users except owner removal
+- Invitations
+- Roles except owner role
+- Lookups
+- Workers
+- Tools
+- Transactions
+- Reports
+- Approvals
+- Settlements
+- Audit logs
+
+## Warehouse Manager
 
 Can manage:
 
@@ -1319,9 +1453,44 @@ Can manage:
 - Custody operations
 - Generate reports
 - Upload proof images
-- Upload signed approval documents if allowed
+- Upload signed approval documents
+- Approve / Reject / Settle if company policy allows
 
-## Member / Read-only
+## Warehouse User
+
+Can manage:
+
+- Transactions
+- Custody operations
+- Upload proof images
+- Upload signed approval documents if company policy allows
+- View workers/tools/reports
+
+Should not manage:
+
+- Company settings
+- Users
+- Roles
+- Financial settlement unless allowed
+
+## Data Entry
+
+Can manage:
+
+- Workers
+- Tools
+- Lookups if allowed
+- Basic master data
+
+Should not manage:
+
+- Approval
+- Settlement
+- Company settings
+- Users
+- Roles
+
+## Viewer
 
 Can view:
 
@@ -1339,6 +1508,8 @@ Should not manage:
 - Transactions
 - Approvals
 - Settlements
+- Users
+- Roles
 
 Pending:
 
@@ -1348,7 +1519,8 @@ Pending:
 - Confirm owner/admin-only approval settlement policies.
 - Hide approval/reject/settle actions from unauthorized users.
 - Hide Company Settings from non-owner/admin users.
-- Add future user invitation flow.
+- Add user invitation flow.
+- Add company members management UI.
 
 ---
 
@@ -1392,9 +1564,676 @@ Planned:
 
 ---
 
+# Phase L — Company Users, Invitations & Role Management
+
+## Status: Planned / High Priority
+
+Goal:
+
+Allow a company owner/admin to invite other users to the same company and assign each user a controlled role.
+
+This phase is required before a production-ready Audit Trail because the system must reliably know:
+
+```text
+Who did the action?
+Which company were they acting under?
+What role did they have?
+Were they allowed to perform that action?
+```
+
+## Business Problem
+
+The first customer can register and create a company as Owner.
+
+However, other employees should not create separate companies.
+
+Correct flow:
+
+```text
+Owner/Admin → Invite User → User accepts invitation → User joins same company → User gets assigned role
+```
+
+Incorrect flow to prevent:
+
+```text
+Employee registers normally → Creates new company accidentally → Data becomes isolated in wrong tenant
+```
+
+## Required Database Tables
+
+### company_members
+
+Purpose:
+
+Store active users inside a company.
+
+Suggested fields:
+
+```text
+id
+company_id
+profile_id
+role
+status
+invited_by_profile_id
+joined_at
+disabled_at
+removed_at
+created_at
+updated_at
+```
+
+Suggested status values:
+
+```text
+active
+disabled
+removed
+```
+
+Suggested role values:
+
+```text
+owner
+admin
+warehouse_manager
+warehouse_user
+data_entry
+viewer
+```
+
+Rules:
+
+- A user can belong to multiple companies.
+- A user can have different roles in different companies.
+- A company must always have at least one owner.
+- Owner cannot accidentally remove himself if he is the last owner.
+- Disabled users cannot access company data.
+- Removed users should not see the company anymore.
+
+### company_invitations
+
+Purpose:
+
+Store pending, accepted, expired, or cancelled invitations.
+
+Suggested fields:
+
+```text
+id
+company_id
+email
+role
+status
+token_hash
+invited_by_profile_id
+accepted_by_profile_id
+accepted_at
+expires_at
+cancelled_at
+created_at
+updated_at
+```
+
+Suggested status values:
+
+```text
+pending
+accepted
+expired
+cancelled
+```
+
+Rules:
+
+- Invitations are company-scoped.
+- Invitation email must be normalized.
+- Pending invitation should be unique per company/email.
+- Invitation must expire after a configured period.
+- Accepted invitation should create or activate `company_members`.
+- Cancelled invitation cannot be accepted.
+- Expired invitation cannot be accepted.
+- Invitation acceptance must be handled safely.
+
+## Required Backend / Edge Function
+
+Do not call Supabase admin auth methods directly from Flutter.
+
+Create secure Edge Functions or backend endpoints:
+
+```text
+invite_company_user
+accept_company_invitation
+cancel_company_invitation
+resend_company_invitation
+change_company_member_role
+disable_company_member
+reactivate_company_member
+remove_company_member
+archive_empty_company
+```
+
+Reason:
+
+- Flutter must never contain service role keys.
+- Admin invite requires protected server-side logic.
+- RLS must still protect database access.
+
+## Required UI
+
+Add a new Company Settings section:
+
+```text
+Company Users
+```
+
+Tabs:
+
+```text
+Members
+Invitations
+Roles / Permissions
+```
+
+### Members Tab
+
+Show:
+
+```text
+Name
+Email
+Role
+Status
+Joined At
+Actions
+```
+
+Actions:
+
+```text
+Change Role
+Disable User
+Reactivate User
+Remove User
+```
+
+Rules:
+
+- Only Owner/Admin can manage users.
+- Owner role changes are restricted.
+- Last owner cannot be removed or downgraded.
+
+### Invitations Tab
+
+Show:
+
+```text
+Email
+Role
+Status
+Invited By
+Invited At
+Expires At
+Actions
+```
+
+Actions:
+
+```text
+Invite User
+Resend Invite
+Cancel Invite
+Copy Invite Link if allowed
+```
+
+### Invite User Dialog
+
+Fields:
+
+```text
+Email
+Role
+Optional message later
+```
+
+Validation:
+
+```text
+Email required
+Valid email format
+Role required
+Cannot invite duplicate active member
+Cannot invite duplicate pending invitation for same company
+```
+
+### Accept Invitation Screen
+
+Shown when:
+
+```text
+User opens invite link
+or
+User logs in and has pending invitation by email
+```
+
+Must show:
+
+```text
+Company name
+Invited role
+Invited by
+Accept invitation
+Decline invitation
+```
+
+After accept:
+
+```text
+Create/Update profile
+Create company_members row
+Mark invitation as accepted
+Set current company to invited company
+Open dashboard
+```
+
+## User Safety UX for Accidental Company Creation
+
+This is required for less experienced users.
+
+### Before Create Company
+
+When user has no active company membership, show Create Company screen with two clear choices:
+
+```text
+Create a New Company
+Join an Existing Company
+```
+
+Create New Company must include warning:
+
+```text
+Create a new company only if you are the owner/admin setting up a new organization.
+If your company already uses Mina System, ask your manager to invite you.
+```
+
+Add required confirmation checkbox:
+
+```text
+I confirm that I am authorized to create a new company account.
+```
+
+Add secondary action:
+
+```text
+I have an invitation / Join existing company
+```
+
+### CurrentContext Decision Order
+
+Update CurrentContext loading order:
+
+```text
+1. Load current profile.
+2. Check active company memberships.
+3. Check pending invitations matching the authenticated email.
+4. If pending invitations exist and no active company selected:
+   show Accept Invitation / Join Company screen.
+5. If active memberships exist:
+   open dashboard or company selector.
+6. If no active memberships and no pending invitations:
+   show Create or Join Company screen.
+```
+
+### If User Creates a Company by Mistake
+
+Add a safe cleanup strategy.
+
+Do not immediately hard delete unless it is safe.
+
+Possible handling:
+
+```text
+If company is empty:
+- user can archive/delete accidental company from UI.
+- only if:
+  - company has exactly one member
+  - member is owner
+  - no real workers
+  - no real tools
+  - no transactions
+  - no uploaded business documents
+  - no other active members
+```
+
+Because default lookups/settings may exist, define “empty company” carefully:
+
+```text
+Empty company = no business records beyond system-generated defaults.
+```
+
+Business records that block deletion:
+
+```text
+workers
+tools
+transactions
+custody_acknowledgements
+uploaded approval documents
+uploaded transaction proofs
+additional company members
+```
+
+If company has business data:
+
+```text
+Archive only, do not hard delete.
+```
+
+Suggested company status:
+
+```text
+active
+archived
+deleted_pending
+```
+
+Archive behavior:
+
+```text
+Archived company disappears from normal selector.
+Owner can restore it if needed.
+Data remains protected by RLS.
+No accidental data loss.
+```
+
+When user later accepts invitation to another company:
+
+```text
+Set current company to invited company.
+Keep accidental company archived or allow safe deletion if empty.
+Do not mix data between companies.
+Never move business data automatically without explicit admin action.
+```
+
+Future optional admin/support tool:
+
+```text
+Find orphan/empty companies
+Archive empty accidental companies
+Permanently delete archived empty companies after retention period
+```
+
+## Required RLS Policies
+
+RLS must protect:
+
+```text
+company_members
+company_invitations
+companies
+all company-scoped business tables
+```
+
+Rules:
+
+```text
+Owner/Admin can invite users.
+Owner/Admin can view members and invitations.
+Members can view their own company membership.
+Disabled/removed members cannot access company data.
+Users can accept invitation only for their own email.
+Only Owner/Admin can change roles.
+Last owner cannot be removed/downgraded.
+```
+
+## Required App Behavior
+
+After login:
+
+```text
+If user is active member of one company:
+  open dashboard.
+
+If user is active member of multiple companies:
+  open company selector.
+
+If user has pending invitation:
+  show Accept Invitation screen.
+
+If user has no membership and no invitation:
+  show Create or Join Company screen.
+```
+
+## Implementation Steps
+
+```text
+Step L.1 — Inspect current profiles / companies / company_members schema.
+Step L.2 — Design company_members and company_invitations schema.
+Step L.3 — Add SQL migration for invitations and member statuses.
+Step L.4 — Add/Update RLS policies for company member access.
+Step L.5 — Add secure Edge Function for inviting users.
+Step L.6 — Add secure Edge Function for accepting invitations.
+Step L.7 — Add Company Users models.
+Step L.8 — Add Company Users repo/service.
+Step L.9 — Add Company Users Cubit/State.
+Step L.10 — Add Company Users UI in Company Settings.
+Step L.11 — Add Invite User dialog.
+Step L.12 — Add Invitations tab.
+Step L.13 — Add Accept Invitation screen.
+Step L.14 — Update CurrentContextGate decision flow.
+Step L.15 — Add Create or Join Company screen.
+Step L.16 — Add accidental empty company archive/delete flow.
+Step L.17 — Add role-based UI visibility.
+Step L.18 — Add manual tests.
+Step L.19 — Run dart format lib.
+Step L.20 — Run flutter analyze.
+Step L.21 — Commit and push.
+```
+
+## Manual Tests
+
+Test:
+
+```text
+New owner registers and creates company.
+Owner invites warehouse user.
+Invited user accepts invitation.
+Invited user opens same company.
+Invited user cannot see other companies.
+Warehouse user cannot open company settings if not allowed.
+Owner can change user role.
+Owner can disable user.
+Disabled user cannot access company data.
+User with pending invitation does not accidentally create company first.
+User can still create company if truly starting a new organization.
+Accidental empty company can be archived/deleted safely.
+Company with transactions cannot be hard deleted.
+Multiple company user sees company selector.
+```
+
+---
+
+# Phase M — Audit Trail & Activity Logs
+
+## Status: Planned / High Priority After Phase L
+
+Goal:
+
+Track who did what, when, and under which company.
+
+This phase should come after Company Users / Invitations because audit logs depend on reliable user membership and roles.
+
+Required audit coverage:
+
+```text
+Create Worker
+Update Worker
+Delete/Deactivate Worker
+Create Tool
+Update Tool
+Delete/Deactivate Tool
+Create Transaction
+Upload Proof Image
+Upload Signed Approval Document
+Approve Transaction
+Reject Transaction
+Settle Transaction
+Update Company Profile
+Update Company Logo
+Update Report Settings
+Update Document Templates
+Add Lookup
+Delete Lookup
+Invite User
+Accept Invitation
+Change Role
+Disable User
+Reactivate User
+Remove User
+Archive Company
+```
+
+Suggested table:
+
+```text
+audit_logs
+```
+
+Suggested fields:
+
+```text
+id
+company_id
+profile_id
+user_email
+user_role
+action
+entity_type
+entity_id
+entity_code
+entity_name
+old_values
+new_values
+metadata
+created_at
+```
+
+Suggested action values:
+
+```text
+CREATE_WORKER
+UPDATE_WORKER
+DELETE_WORKER
+CREATE_TOOL
+UPDATE_TOOL
+DELETE_TOOL
+CREATE_TRANSACTION
+UPLOAD_APPROVAL_DOCUMENT
+APPROVE_TRANSACTION
+REJECT_TRANSACTION
+SETTLE_TRANSACTION
+UPDATE_COMPANY_SETTINGS
+INVITE_USER
+ACCEPT_INVITATION
+CHANGE_USER_ROLE
+DISABLE_USER
+ARCHIVE_COMPANY
+```
+
+Required UI:
+
+```text
+Activity Logs
+```
+
+Filters:
+
+```text
+Date From / Date To
+User
+Role
+Action
+Module
+Entity Type
+Worker
+Tool
+Transaction Code
+```
+
+Details dialog:
+
+```text
+Action
+Performed By
+Performed At
+Affected Entity
+Old Values
+New Values
+Metadata
+```
+
+Entity timeline:
+
+```text
+Worker History
+Tool History
+Transaction History
+Company User History
+```
+
+Rules:
+
+- Owner/Admin can view full audit logs.
+- Other roles can view limited logs if allowed.
+- Audit logs should not be editable from UI.
+- Audit logs should not be deleted by normal users.
+- Future retention/archive policy can be added later.
+
+---
+
+# Phase N — Future Product Enhancements
+
+Planned:
+
+- Worker Acknowledgment Reports.
+- Signed report storage.
+- Void/Correction workflow.
+- Database-level open-custody protection for deleting tools/workers.
+- Better dashboard insights.
+- Better PDF table layout for long reports.
+- Export history.
+- Notifications.
+- Multi-company selection.
+- Company switching.
+- User invitation flow.
+- Role management UI.
+- Audit logs.
+- Transaction correction flow.
+- Settlement/deduction report if business needs it.
+- Better signed document preview/download UI.
+- Mobile/tablet UI polish.
+- Better empty states.
+- Dashboard trends.
+- Search and filter improvements.
+- Bulk import workers/tools if needed.
+- Better reporting filters.
+- Report templates versioning.
+- Optional attachment history per transaction.
+- Optional storage cleanup strategy for replaced files.
+- Optional archived/inactive workers and tools improvements.
+- Optional company subscription/licensing flow.
+- Optional SaaS billing/tenant management flow.
+- Optional offline-first support if needed later.
+- Optional barcode/QR support for tools.
+- Optional QR-based worker/tool selection.
+- Optional approval notifications.
+- Optional email export/share flow.
+
+---
+
 # Refactor Backlog
 
-Some files have grown large during feature delivery and should be refactored carefully without changing working behavior.
+Some files may still need careful future refactor.
 
 Rules for refactor:
 
@@ -1407,72 +2246,22 @@ Rules for refactor:
 - Test affected screens manually.
 - Commit refactor separately from feature work.
 
-Priority refactor candidates:
+Deferred refactor candidate:
 
 ```text
-lib/features/reports/presentation/services/pdf/report_pdf_tables_section.dart
-lib/features/transactions/data/repo/transactions_repo.dart
-lib/features/transactions/presentation/functions/show_transaction_details.dart
-lib/features/transactions/presentation/widgets/pending_approvals/pending_approvals_layout.dart
-lib/features/transactions/presentation/cubit/transactions_cubit.dart
+lib/features/transactions/data/models/transaction_model.dart
 ```
 
-Suggested refactor direction:
-
-## Reports PDF
-
-Move Lost/Damaged Approval PDF form into:
+Suggested safe refactor direction:
 
 ```text
-lib/features/reports/presentation/services/pdf/lost_damaged_approval_pdf_section.dart
+transaction_model.dart
+transaction_model_json.dart
+transaction_model_copy_with.dart
+transaction_model_parsers.dart
 ```
 
-Keep `report_pdf_tables_section.dart` as a small router only.
-
-## Transaction Details
-
-Move approval document actions into:
-
-```text
-lib/features/transactions/presentation/widgets/details/approval_document_action.dart
-```
-
-Move image preview into:
-
-```text
-lib/features/transactions/presentation/widgets/details/transaction_image_preview.dart
-```
-
-## Pending Approvals
-
-Split:
-
-```text
-pending_approvals_layout.dart
-```
-
-into:
-
-```text
-pending_approvals_layout.dart
-pending_approvals_header.dart
-pending_approvals_table.dart
-pending_approvals_card.dart
-pending_approval_actions.dart
-pending_approval_status_chip.dart
-```
-
-## Transactions Repo
-
-Optional future split:
-
-```text
-transactions_repo.dart
-transaction_storage_service.dart
-transaction_approval_service.dart
-```
-
-Only do this when the current workflow is stable and committed.
+Only do this as a separate maintenance commit.
 
 ---
 
@@ -1481,25 +2270,33 @@ Only do this when the current workflow is stable and committed.
 Next recommended development step:
 
 ```text
-Step H.9 — Update Dashboard Closed Today logic after settlement rules.
+Phase L — Company Users, Invitations & Role Management
 ```
 
-Goal:
-
-Ensure Dashboard Closed Today count follows final settlement rules:
+Start with:
 
 ```text
-Return → counts as closed immediately.
-Lost/Damaged → counts as closed only when settlement_status = settled.
-Pending approval → not closed.
-Approved but pending settlement → not closed.
-Rejected → not closed.
+Step L.1 — Inspect current profiles / companies / company_members schema.
 ```
 
-After Step H.9:
+Before writing any Flutter code:
 
-- Test Dashboard stats.
-- Run `dart format lib`.
-- Run `flutter analyze`.
-- Commit.
-- Push.
+```text
+1. Inspect Supabase tables:
+   - profiles
+   - companies
+   - company_members if exists
+   - existing role enum
+   - current helper functions like private.has_company_role
+2. Decide whether to extend existing company_members or create new invitation table only.
+3. Design company_invitations table.
+4. Design safe invitation acceptance flow.
+5. Design accidental empty company archive/delete flow.
+```
+
+After Step L.1:
+
+- Add SQL safely.
+- Add RLS.
+- Test database access.
+- Then move to Flutter models/repo/cubit/UI.
