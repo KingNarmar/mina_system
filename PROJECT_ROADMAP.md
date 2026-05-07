@@ -6,9 +6,11 @@
 
 **Materials Inventory Navigation Assistant**
 
+---
+
 ## Project Vision
 
-Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, and professional PDF reports for companies and warehouses.
+Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, approvals, settlements, and professional PDF reports for companies and warehouses.
 
 The system is being built as a real multi-company SaaS/product, not a local demo.
 
@@ -59,7 +61,10 @@ Follow this pattern for each feature:
 - Database should store file paths only, not local file paths.
 - Transactions should not be deleted from the system.
 - Transaction editing should not be exposed as a normal UI action.
-- Transaction corrections should be handled by new corrective transactions or future approval/void workflows.
+- Transaction corrections should be handled by corrective transactions, approval workflow, settlement workflow, or future void workflow.
+- Lost/Damaged transactions should not reduce worker custody balance while pending approval.
+- Lost/Damaged transactions should not reduce worker custody balance after approval only.
+- Lost/Damaged transactions should reduce worker custody balance only after final settlement/deduction is completed.
 - Colors should be centralized inside `AppColors`.
 - Do not use direct widget-level colors like `Colors.green` or `Colors.orange` unless they are first added to `AppColors`.
 
@@ -142,7 +147,7 @@ Implemented:
 - Read company profile from `companies`.
 - Update company profile.
 - Update TopBar company name without reloading the dashboard.
-- Company profile is now used inside PDF report headers.
+- Company profile is used inside PDF report headers.
 
 Fields:
 
@@ -171,7 +176,7 @@ Implemented:
 - Save `logo_path` in `companies`.
 - Delete old logo after successful new upload.
 - Show success SnackBar.
-- Company logo is now used inside generated PDF reports.
+- Company logo is used inside generated PDF reports.
 - PDF logo refresh works without restarting the app after changing the logo.
 
 Storage path format:
@@ -196,7 +201,7 @@ Implemented:
 - Read `company_report_settings`.
 - Update report settings.
 - Show success SnackBar.
-- Report settings are now used inside PDF reports.
+- Report settings are used inside PDF reports.
 
 Fields:
 
@@ -211,7 +216,7 @@ Fields:
 - Custody Responsibility Statement
 - Loss / Damage Responsibility Statement
 
-PDF behavior already connected:
+PDF behavior connected:
 
 - `showCompanyLogo`
 - `showCompanyDetails`
@@ -220,10 +225,20 @@ PDF behavior already connected:
 - `reportFooterText`
 - `custodyResponsibilityStatement`
 - `lossDamageResponsibilityStatement`
+- `dateFormat`
+
+Completed:
+
+- Applied `dateFormat` to PDF dates.
+- Fixed PDF date format normalization to support formats like:
+  - `yyyy-MM-dd`
+  - `dd/MM/yyyy`
+  - `MM/dd/yyyy`
+  - `dd-MM-yyyy`
+  - `yyyy/MM/dd`
 
 Pending / Future Enhancements:
 
-- Apply `dateFormat` to PDF dates.
 - Apply `timeFormat` to PDF timestamps.
 - Apply `defaultTimezone` to report generation dates/times.
 
@@ -244,15 +259,13 @@ Implemented:
 - Read document templates by company
 - Update document template fields
 - Show success SnackBar after update
-- Tested update flow successfully
-- Document templates are now used inside PDF Document Control section.
+- Document templates are used inside PDF Document Control section.
 - Robust PDF template matching added to handle values like:
   - `worker_custody`
   - `worker_custody_report`
   - `Worker Custody Report`
   - matching document titles
-- `flutter analyze` has no errors after implementation.
-- Changes committed and pushed to GitHub.
+- Document template signature labels are used inside PDF Signature Section.
 
 Fields supported:
 
@@ -270,7 +283,7 @@ Fields supported:
 - Storekeeper Signature Label
 - Is Active
 
-PDF behavior already connected:
+PDF behavior connected:
 
 - Document Code
 - Document Title
@@ -280,13 +293,9 @@ PDF behavior already connected:
 - Report Type
 - Prepared By
 - Approved By
-
-Pending / Next Use:
-
-- Use `workerSignatureLabel`
-- Use `managerSignatureLabel`
-- Use `storekeeperSignatureLabel`
-- Add PDF Signature Section after Responsibility Statement and before Footer Text.
+- Worker Signature Label
+- Manager Signature Label
+- Storekeeper Signature Label
 
 ---
 
@@ -338,57 +347,14 @@ Implemented:
   - Job Titles
   - Tool Units
   - Tool Categories
-- `flutter analyze` has no errors
-- Changes committed and pushed to GitHub
-
-## Departments
-
-Implemented:
-
-- Read departments by `company_id`
-- Add department
-- Delete department
-- Prevent duplicate department names inside the same company
-- Prevent deleting department when it has linked job titles
-
-## Job Titles
-
-Implemented:
-
-- Read job titles by department/company
-- Add job title
-- Delete job title
-- Prevent duplicate job titles inside the same department/company
-
-## Tool Units
-
-Implemented:
-
-- Read units by company
-- Add unit
-- Delete unit
-- Prevent duplicate units inside company
-
-## Tool Categories
-
-Implemented:
-
-- Read categories by company
-- Add category
-- Delete category
-- Prevent duplicate categories inside company
+- `flutter analyze` has no errors.
+- Changes committed and pushed to GitHub.
 
 Rules applied:
 
-- Kept the existing UI as much as possible.
-- Added loading/error states.
 - Used `currentCompanyId`.
 - Added grants and RLS policies before testing.
-- Tested real Supabase persistence by closing/reopening Lookups.
-- Tested duplicate prevention with different writing styles, such as:
-  - `TEMP-UNIT`
-  - `temp unit`
-  - `temp_unit`
+- Kept existing UI as much as possible.
 
 ---
 
@@ -458,31 +424,14 @@ Database rules confirmed:
 - `worker_code` is unique inside the same company.
 - Department and Job Title deletion is protected by `ON DELETE RESTRICT` when workers depend on them.
 
-Fields supported:
-
-- Worker Code
-- HR Code
-- Worker Name
-- Department
-- Job Title
-- Phone
-- Email
-- Status
-- Notes
-- Created By Profile
-- Company ID
-
 Rules applied:
 
-- Kept the existing Workers UI as much as possible.
 - Used real Supabase data.
 - Used `currentCompanyId`.
 - Used `currentProfileId` for `created_by_profile_id`.
 - Used lookup models/data for Department and Job Title.
 - Added loading and error states.
-- Tested add/update/delete/search.
-- Ran `flutter analyze`.
-- Committed and pushed.
+- Kept existing Workers UI as much as possible.
 
 ---
 
@@ -561,29 +510,6 @@ Database rules confirmed:
 - `tool_code` is unique inside the same company.
 - `tool_name` has a normalized unique index inside the same company.
 - Tool Unit and Tool Category deletion is protected by foreign key constraints when tools depend on them.
-
-Fields supported:
-
-- Tool Code
-- Tool Name
-- Unit
-- Category
-- Description
-- Status
-- Created By Profile
-- Company ID
-
-Rules applied:
-
-- Kept the existing Tools UI as much as possible.
-- Used real Supabase data.
-- Used `currentCompanyId`.
-- Used `currentProfileId` for `created_by_profile_id`.
-- Used lookup models/data for Tool Unit and Tool Category.
-- Added loading and error states.
-- Tested add/update/delete/search.
-- Ran `flutter analyze`.
-- Committed and pushed.
 
 Note:
 
@@ -665,30 +591,6 @@ Implemented:
   - Company members can read transaction proofs.
   - Owner/admin/warehouse users can upload transaction proofs.
 - Updated `TransactionModel` to support Supabase columns.
-- Kept UI-friendly fields for current screens:
-  - `transactionCode`
-  - `type`
-  - `workerHrCode`
-  - `workerName`
-  - `toolCode`
-  - `toolName`
-  - `unit`
-  - `quantity`
-  - `dateTime`
-  - `imagePath`
-  - `note`
-- Added Supabase fields:
-  - `id`
-  - `companyId`
-  - `workerId`
-  - `workerDepartment`
-  - `workerJobTitle`
-  - `toolId`
-  - `toolCategory`
-  - `approvalRequired`
-  - `approvalStatus`
-  - `createdByProfileId`
-  - `updatedAt`
 - Created `TransactionsRepo`.
 - Read transactions by `company_id`.
 - Add transaction to Supabase.
@@ -696,32 +598,16 @@ Implemented:
 - Auto-generate transaction code from Supabase records.
 - Upload proof images to Supabase Storage bucket `transaction-proofs`.
 - Store only cloud storage paths in `transactions.proof_image_path`.
-- Storage path format:
-
-```text
-{companyId}/transactions/{transactionCode}/proof-{timestamp}.{extension}
-```
-
 - Added `TransactionsState` loading/submitting/error fields.
 - Refactored `TransactionsCubit` to use Supabase.
 - Loaded transactions after `CurrentContextLoaded`.
 - Connected Add Transaction form to Supabase.
-- Add Transaction form now sends:
-  - `worker_id`
-  - worker snapshots
-  - `tool_id`
-  - tool snapshots
-  - quantity
-  - proof image path
-  - note
-  - created by profile
-  - company ID
 - Added loading overlay in Transactions screen.
 - Added error banner in Transactions screen.
 - Fixed transaction proof image display in details dialog.
 - Fixed transaction proof thumbnail display in desktop table.
 - Fullscreen proof image preview now uses resolved signed URL.
-- Search/filter transactions still works.
+- Search/filter transactions works.
 - Custody Balance is calculated from real Supabase transactions.
 - Tool Summary is calculated from real Supabase transactions.
 - Closed Today count is calculated from real Supabase transactions.
@@ -751,56 +637,21 @@ Business rules confirmed:
 - Lost and Damaged enter pending approval flow.
 - Images must be stored in Supabase Storage, not as local file paths.
 
-Database rules confirmed:
+Latest custody balance rule update:
 
-- `transactions.company_id` references `companies(id)`.
-- `transactions.worker_id` is linked to `workers`.
-- `transactions.tool_id` is linked to `tools`.
-- `transaction_code` is unique inside the same company.
-- `proof_image_path` cannot be a local file path.
-- `issue` and `damaged` require proof images.
-- `lost` and `damaged` require note.
-- `lost` and `damaged` require approval flow.
-
-Fields supported:
-
-- Transaction Code
-- Transaction Type
-- Worker
-- Worker HR Code Snapshot
-- Worker Name Snapshot
-- Worker Department Snapshot
-- Worker Job Title Snapshot
-- Tool
-- Tool Code Snapshot
-- Tool Name Snapshot
-- Tool Unit Snapshot
-- Tool Category Snapshot
-- Quantity
-- Proof Image
-- Note
-- Approval Required
-- Approval Status
-- Created By Profile
-- Company ID
-
-Rules applied:
-
-- Kept the existing Transactions UI as much as possible.
-- Used real Supabase data.
-- Used `currentCompanyId`.
-- Used `currentProfileId`.
-- Used real Worker IDs and Tool IDs.
-- Used snapshots to preserve historical transaction data.
-- Added loading and error states.
-- Tested issue/return/lost/damaged/search/balance/summary.
-- Ran `flutter analyze`.
-- Committed and pushed.
+- Pending Lost/Damaged transactions no longer reduce worker custody balance.
+- Rejected Lost/Damaged transactions do not reduce worker custody balance.
+- Return transactions reduce custody balance immediately.
+- Lost/Damaged transactions should reduce worker custody balance only after final settlement/deduction is completed.
+- Current temporary logic has been adjusted away from immediate pending deduction.
+- Next phase must introduce explicit settlement fields and final settlement logic.
 
 Pending / Future Enhancements:
 
-- Build approval UI for Lost/Damaged transactions.
+- Build full Lost/Damaged Approval + Settlement workflow.
 - Add controlled Approve/Reject workflow.
+- Add signed approval document upload.
+- Add settlement/deduction workflow.
 - Add Void/Correction workflow if needed.
 - Generate custody acknowledgement PDFs from real transactions.
 - Use `custody_acknowledgements` and `custody_acknowledgement_items` in reports/signature flow.
@@ -818,12 +669,6 @@ Replace static/dummy Dashboard data with real Supabase-backed company data.
 
 Implemented:
 
-- Reviewed real Dashboard files from GitHub:
-  - `dashboard_screen.dart`
-  - `dashboard_stats_grid.dart`
-  - `dashboard_stat_card.dart`
-  - `quick_action_card.dart`
-  - `recent_transactions_card.dart`
 - Created `DashboardSummaryModel`.
 - Created `DashboardRepo`.
 - Created `DashboardState`.
@@ -831,19 +676,16 @@ Implemented:
 - Added `DashboardCubit` to `AppShell`.
 - Fixed `AppShell` provider scope by moving the `BlocListener` into `_AppShellView`.
 - Loaded dashboard summary after `CurrentContextLoaded`.
-- Dashboard summary now reads real data by `company_id`.
-- Total Workers now comes from Supabase `workers`.
-- Total Tools now comes from Supabase `tools`.
-- Open Custodies now comes from real transactions.
-- Closed Today now comes from real closing transactions:
-  - Return
-  - Lost
-  - Damaged
+- Dashboard summary reads real data by `company_id`.
+- Total Workers comes from Supabase `workers`.
+- Total Tools comes from Supabase `tools`.
+- Open Custodies comes from real transactions.
+- Closed Today comes from real closing transactions.
 - Fixed Closed Today timezone handling by converting transaction dates to local time before comparison.
-- Recent Transactions now comes from real Supabase transactions.
-- Dashboard Stats Grid now accepts real values.
+- Recent Transactions comes from real Supabase transactions.
+- Dashboard Stats Grid accepts real values.
 - Dashboard Stats Grid is self-connected to `DashboardCubit`.
-- Recent Transactions Card now accepts real transaction data.
+- Recent Transactions Card accepts real transaction data.
 - Recent Transactions Card is self-connected to `DashboardCubit`.
 - Dashboard refreshes after adding any new transaction.
 - Added `AppColors.success`.
@@ -854,7 +696,7 @@ Implemented:
 - Tablet Dashboard tested.
 - Mobile Dashboard tested.
 - Recent Transactions displays correctly across desktop/tablet/mobile.
-- Closed Today updates after Return/Lost/Damaged transactions.
+- Closed Today updates after Return transactions.
 - Open Custodies updates after Issue/Return.
 - `flutter analyze` completed successfully with no issues.
 - Dashboard screenshots were intentionally updated and pushed.
@@ -868,17 +710,9 @@ Dashboard real stats:
 - Closed Today
 - Recent Transactions
 
-Rules applied:
-
-- Dashboard uses `currentCompanyId`.
-- No static dummy values for Dashboard stats.
-- Dashboard data comes from Supabase.
-- Dashboard refreshes after transaction creation.
-- Colors are centralized in `AppColors`.
-- Kept UI changes minimal.
-
 Pending / Future Enhancements:
 
+- Update Closed Today logic after final Approval + Settlement workflow is implemented.
 - Add Dashboard loading skeletons or shimmer if needed.
 - Add Dashboard empty states with better visual design if needed.
 - Add trends/percentages later.
@@ -895,19 +729,6 @@ Goal:
 
 Upgrade Flutter SDK safely after the project reached a stable checkpoint.
 
-Reason:
-
-The project had reached a safe checkpoint with the following completed and pushed:
-
-- Auth
-- Current Context
-- Company Settings
-- Lookups
-- Workers
-- Tools
-- Transactions / Custody Core
-- Dashboard Supabase Data
-
 Completed:
 
 - Confirmed current Flutter version and channel.
@@ -918,7 +739,6 @@ Completed:
 - Result: `No issues found`.
 - Ran `flutter pub get`.
 - Ran `dart format lib`.
-- Result: `Formatted 191 files (0 changed)`.
 - Ran `flutter analyze`.
 - Result: `No issues found`.
 - Ran the app on Windows.
@@ -939,12 +759,6 @@ Commit message:
 Upgrade Flutter SDK and verify project
 ```
 
-Rules applied:
-
-- Flutter upgrade was a separate commit.
-- Flutter upgrade was not mixed with feature work.
-- Reports/PDF work started only after app verification.
-
 ---
 
 # Phase G — Reports / PDF
@@ -955,14 +769,16 @@ Goal:
 
 Generate professional PDF reports using real data and company settings.
 
-Reports planned:
+Reports available / planned:
 
 - Worker Custody Report
-- Tool Custody Report
-- Issue Report
-- Return Report
-- Lost/Damaged Report
+- Tool History Report
+- Transactions Report
+- Lost & Damaged Report
+- Tool Summary Report
 - Worker Acknowledgment Report
+- Lost/Damaged Approval Report
+- Future signed settlement report if needed
 
 PDF must use:
 
@@ -976,58 +792,23 @@ PDF must use:
 - Transaction snapshots
 - Supabase Storage assets
 
-Report behavior:
+Implemented:
 
-- Respect `show_company_logo`
-- Respect `show_company_details`
-- Respect `show_document_control`
-- Respect footer and responsibility statements.
-- Use real transaction data.
-- Use real custody balances.
-- Use real worker/tool data.
-- Use company document templates.
-- Generate clean professional PDF output.
-
-Important:
-
-- Do not use local file paths for logos.
-- Use Supabase Storage path and signed/downloaded asset as needed.
-- Reports should rely on real transactions and snapshots.
-- PDF generation must work across target platforms as much as possible.
-
-Implemented so far:
-
-- Reviewed current Reports files from GitHub:
-  - `reports_screen.dart`
-  - `show_report_builder.dart`
-  - `report_option_model.dart`
-  - `report_filter_model.dart`
-  - `report_option_card.dart`
-  - `report_builder_panel.dart`
-  - `report_filter_section.dart`
-  - `report_preview_section.dart`
-  - `report_filter_helpers.dart`
-- Confirmed Reports screen already had:
-  - Worker Custody Report
-  - Tool History Report
-  - Transactions Report
-  - Lost & Damaged Report
-  - Tool Summary Report
-- Confirmed filter UI already existed for:
-  - Worker
-  - Tool
-  - Transaction Type
-  - Date From
-  - Date To
-- Confirmed preview UI already used real transactions and calculators.
 - Added PDF dependencies:
   - `pdf`
   - `printing`
 - Generated platform plugin registrant updates for `printing`.
 - Created `ReportPdfService`.
+- Refactored PDF generation into smaller files under:
+
+```text
+lib/features/reports/presentation/services/pdf/
+```
+
 - Created `show_report_pdf_preview.dart`.
 - Connected Reports UI button from `PDF Coming Soon` to `Preview PDF`.
 - Added `PdfPreview` with print/share support.
+- Hidden PDF preview debug toggle using `canDebug: false`.
 - Tested PDF Preview on Windows.
 - Made `CompanySettingsCubit` global inside `AppShell`.
 - Removed duplicated local `CompanySettingsCubit` provider from `CompanySettingsScreen`.
@@ -1043,95 +824,42 @@ Implemented so far:
   - Email
   - Website
 - Added report title and generated date.
+- Added Document Control section controlled by `showDocumentControl`.
 - Added Filters section.
 - Added real data tables for:
   - Worker Custody Report
   - Tool Summary Report
   - Tool History / Transactions / Lost & Damaged reports using transaction list table
+- Added Approval column to transaction-based PDF tables.
 - Added footer text from `reportFooterText`.
 - Added Responsibility Statement section:
   - Worker Custody Report uses `custodyResponsibilityStatement`
   - Lost & Damaged Report uses `lossDamageResponsibilityStatement`
-- Added Document Control section controlled by `showDocumentControl`.
-- Document Control uses active `CompanyDocumentTemplateModel` values:
-  - Document Code
-  - Document Title
-  - Issue No.
-  - Revision
-  - Effective Date
-  - Report Type
-  - Prepared By
-  - Approved By
-- Improved Document Template matching for PDF reports so it supports:
-  - `worker_custody`
-  - `worker_custody_report`
-  - `Worker Custody Report`
-  - Matching document titles
-- Verified Document Control appears above Filters.
-- Verified this PDF order:
-
-```text
-Company Header
-Report Title / Generated Date
-Document Control
-Filters
-Report Data Table
-Responsibility Statement
-Footer Text
-```
-
-Tested:
-
-- PDF Preview opens on Windows.
-- Company logo appears in PDF.
-- Changing company logo updates the next PDF without app restart.
-- Footer text appears in PDF.
-- Responsibility Statement appears in Worker Custody / Lost & Damaged reports.
-- Document Control appears above Filters when enabled and an active template exists.
-- `flutter analyze` has no errors after implemented report changes.
-- Report PDF changes were committed and pushed in multiple small commits.
-
-Important files:
-
-```text
-lib/features/reports/presentation/widgets/report_builder_panel.dart
-lib/features/reports/presentation/functions/show_report_pdf_preview.dart
-lib/features/reports/presentation/services/report_pdf_service.dart
-lib/features/reports/presentation/widgets/report_filter_section.dart
-lib/features/reports/presentation/widgets/report_preview_section.dart
-lib/features/reports/presentation/functions/report_filter_helpers.dart
-lib/features/company_settings/presentation/cubit/company_settings_cubit.dart
-lib/features/company_settings/presentation/cubit/company_settings_state.dart
-lib/features/company_settings/data/models/company_profile_model.dart
-lib/features/company_settings/data/models/company_report_settings_model.dart
-lib/features/company_settings/data/models/company_document_template_model.dart
-```
-
-Current PDF section order should remain:
-
-```text
-Company Header
-Report Title / Generated Date
-Document Control
-Filters
-Report Data Table
-Responsibility Statement
-Footer Text
-```
-
-Latest Completed Step:
-
-- Added Signature Section to PDF reports.
-- Signature Section appears after Responsibility Statement and before Footer Text.
+- Added Signature Section after Responsibility Statement and before Footer Text.
 - Signature Section uses document template labels:
   - `workerSignatureLabel`
   - `managerSignatureLabel`
   - `storekeeperSignatureLabel`
-- Added safe fallback labels when template labels are empty:
+- Added safe fallback labels:
   - Worker Signature
   - Manager Signature
   - Storekeeper Signature
-- Verified PDF section order:
+- Added page numbers to every PDF page:
+  - `Page X of Y`
+- Applied `dateFormat` to PDF dates.
+- Fixed PDF date format normalization.
+- Improved Document Template matching for PDF reports.
+- Added Approval Status Filter in Reports UI.
+- Connected Approval Status Filter to preview and PDF filtering.
+- Added Approval Status to PDF Filters section.
+- Tested long PDFs with page numbering.
+- Tested Date Format change in PDF.
+- Tested Approval column in transaction PDF table.
+- Tested Approval Status filter.
+- `flutter analyze` has no errors after report changes.
+- Report PDF changes were committed and pushed in multiple small commits.
+
+Current PDF section order:
 
 ```text
 Company Header
@@ -1142,22 +870,281 @@ Report Data Table
 Responsibility Statement
 Signature Section
 Footer Text
+Page X of Y
+```
 
-Future Phase G Enhancements:
+Important files:
 
-- Add PDF signature section.
-- Add better PDF table layouts for long reports.
-- Add page numbers.
-- Add approval status filters or approval-specific reports.
+```text
+lib/features/reports/presentation/widgets/report_builder_panel.dart
+lib/features/reports/presentation/functions/show_report_pdf_preview.dart
+lib/features/reports/presentation/services/report_pdf_service.dart
+lib/features/reports/presentation/services/pdf/
+lib/features/reports/presentation/widgets/report_filter_section.dart
+lib/features/reports/presentation/widgets/filters/
+lib/features/reports/presentation/widgets/report_preview_section.dart
+lib/features/reports/presentation/functions/report_filter_helpers.dart
+lib/features/company_settings/presentation/cubit/company_settings_cubit.dart
+lib/features/company_settings/presentation/cubit/company_settings_state.dart
+lib/features/company_settings/data/models/company_profile_model.dart
+lib/features/company_settings/data/models/company_report_settings_model.dart
+lib/features/company_settings/data/models/company_document_template_model.dart
+```
+
+Pending / Future Enhancements:
+
+- Add PDF Approval Status Summary section:
+  - Total Transactions
+  - Pending
+  - Approved
+  - Rejected
+  - Not Required
+- Add better PDF table layouts for long reports if needed.
+- Add Lost/Damaged Approval Report for printing and signature.
+- Add signed approval document upload flow.
 - Add Worker Acknowledgment Report using `custody_acknowledgements` and `custody_acknowledgement_items`.
 - Add export/download flow if needed beyond `PdfPreview` printing/sharing.
-- Improve date formatting based on `company_report_settings.dateFormat`.
 - Improve time formatting based on `company_report_settings.timeFormat`.
 - Improve timezone handling based on `company_report_settings.defaultTimezone`.
 
 ---
 
-# Phase H — Multi-Company Improvements
+# Phase H — Lost/Damaged Approval & Settlement Workflow
+
+## Status: Planned / Next Major Phase
+
+Goal:
+
+Build a controlled workflow for Lost/Damaged transactions so that tools remain in the worker custody until the correct business process is completed.
+
+Business problem:
+
+When a worker loses or damages a tool, the warehouse should not immediately remove the item from the worker custody just because a Lost/Damaged transaction was created.
+
+The correct business flow is:
+
+```text
+1. Warehouse creates Lost or Damaged transaction.
+2. Transaction status becomes Pending Approval.
+3. Tool remains in worker custody.
+4. Warehouse prints Lost/Damaged Approval Report.
+5. Worker signs the report.
+6. Manager reviews and signs Approve or Reject.
+7. Signed document is uploaded to the system.
+8. If rejected:
+   - Transaction becomes Rejected.
+   - Tool remains in worker custody.
+9. If approved:
+   - Transaction becomes Approved.
+   - Tool still remains in worker custody until financial/administrative settlement is completed.
+10. After salary deduction or final settlement:
+   - Settlement becomes Settled.
+   - Tool is removed from worker custody balance.
+```
+
+Required database additions:
+
+Add fields to `transactions`:
+
+```text
+approval_document_path
+approval_decision_note
+approval_decided_by_profile_id
+approval_decided_at
+
+settlement_status
+settlement_note
+settled_by_profile_id
+settled_at
+```
+
+Suggested settlement statuses:
+
+```text
+not_required
+pending_settlement
+settled
+```
+
+Suggested storage:
+
+Either reuse:
+
+```text
+transaction-proofs
+```
+
+or create a dedicated bucket:
+
+```text
+transaction-approval-documents
+```
+
+Recommended storage path format:
+
+```text
+{companyId}/transactions/{transactionCode}/approval-document-{timestamp}.{extension}
+```
+
+Required model updates:
+
+Update `TransactionModel` with:
+
+```text
+approvalDocumentPath
+approvalDecisionNote
+approvalDecidedByProfileId
+approvalDecidedAt
+
+settlementStatus
+settlementNote
+settledByProfileId
+settledAt
+```
+
+Required repository methods:
+
+Add safe, controlled methods instead of exposing normal transaction edit:
+
+```dart
+approveLostDamagedTransaction(...)
+rejectLostDamagedTransaction(...)
+settleApprovedLostDamagedTransaction(...)
+uploadApprovalDocument(...)
+```
+
+Required Cubit methods:
+
+Add:
+
+```dart
+approveTransaction(...)
+rejectTransaction(...)
+settleTransaction(...)
+```
+
+Validation rules:
+
+```text
+Approve/Reject:
+- Only allowed for Lost/Damaged transactions.
+- Only allowed when approval_status = pending.
+- Signed approval document should be uploaded before approval if required by business rule.
+
+Settle:
+- Only allowed for Lost/Damaged transactions.
+- Only allowed when approval_status = approved.
+- Only allowed when settlement_status = pending_settlement.
+```
+
+Custody balance rules:
+
+```text
+Issue:
+- Adds to custody balance.
+
+Return:
+- Reduces custody balance immediately.
+
+Lost/Damaged Pending Approval:
+- Does not reduce custody balance.
+
+Lost/Damaged Rejected:
+- Does not reduce custody balance.
+
+Lost/Damaged Approved but Pending Settlement:
+- Does not reduce custody balance.
+
+Lost/Damaged Approved and Settled:
+- Reduces custody balance.
+```
+
+Required UI:
+
+Add a controlled approval area, either:
+
+```text
+Transactions → Pending Approvals
+```
+
+or:
+
+```text
+Approvals screen
+```
+
+Suggested table/card fields:
+
+```text
+Transaction Code
+Worker
+Tool
+Type
+Quantity
+Approval Status
+Settlement Status
+Created Date
+Actions
+```
+
+Required actions:
+
+```text
+Print Approval Report
+Upload Signed Document
+Approve
+Reject
+Settle / Mark as Deducted
+View Details
+```
+
+Required PDF:
+
+Add:
+
+```text
+Lost/Damaged Approval Report
+```
+
+Report should include:
+
+```text
+Company Header
+Document Control
+Transaction Details
+Worker Details
+Tool Details
+Quantity
+Type: Lost / Damaged
+Reason / Note
+Proof Image reference if needed
+Approval Status
+Settlement Status
+Responsibility Statement
+Signature Section:
+- Worker Signature
+- Manager Signature
+- Storekeeper Signature
+```
+
+Implementation steps:
+
+```text
+Step H.1 — Add approval/settlement database fields and policies.
+Step H.2 — Update TransactionModel with approval document and settlement fields.
+Step H.3 — Update TransactionsRepo select/update methods.
+Step H.4 — Add upload signed approval document logic.
+Step H.5 — Add approve/reject/settle methods in TransactionsCubit.
+Step H.6 — Add Pending Approvals UI.
+Step H.7 — Add Lost/Damaged Approval PDF report.
+Step H.8 — Update custody balance logic to reduce only after settlement.
+Step H.9 — Update Dashboard Closed Today logic after settlement rules.
+Step H.10 — Test complete flow end-to-end.
+```
+
+---
+
+# Phase I — Multi-Company Improvements
 
 Current status:
 
@@ -1175,7 +1162,7 @@ Needed:
 
 ---
 
-# Phase I — Roles & Permissions
+# Phase J — Roles & Permissions
 
 Current roles expected:
 
@@ -1197,6 +1184,8 @@ Can manage:
 - Transactions
 - Reports
 - Approvals
+- Settlements
+- Roles/Users later
 
 ## Warehouse User
 
@@ -1206,134 +1195,54 @@ Can manage:
 - Tools
 - Transactions
 - Custody operations
-- Upload transaction proofs
+- Generate reports
+- Upload proof images
+- Upload signed approval documents if allowed
 
-## Member
+## Member / Read-only
 
-Limited access based on future business rules.
+Can view:
 
-UI behavior:
+- Dashboard
+- Reports
+- Transactions
+- Custody status
 
-- Hide or disable restricted buttons.
-- Backend RLS remains the real source of security.
+Should not manage:
 
----
+- Company settings
+- Lookups
+- Tools
+- Workers
+- Transactions
+- Approvals
+- Settlements
 
-# Phase J — Multi-Platform Production Release
+Pending:
 
-Goal:
-
-Prepare Mina System to be used by real companies across mobile, tablet, and desktop environments.
-
-The app must not be limited to Android only.
-
-Because the target users are companies and warehouses, the system should support different work environments:
-
-- Mobile phones for quick access and field usage.
-- Tablets for warehouse/store operations.
-- Desktop for management, reports, and daily office use.
-
-## Target Platforms
-
-### Android Status: Required
-
-- Prepare Android release build.
-- Configure app signing.
-- Prepare Google Play release requirements.
-- Test responsive UI on phones and tablets.
-- Test Supabase auth redirects on Android.
-
-### iOS Status: Required
-
-- Prepare iOS release build.
-- Configure Apple Developer account requirements.
-- Configure app signing and provisioning.
-- Prepare App Store release requirements.
-- Test responsive UI on iPhone and iPad.
-- Test Supabase auth redirects/deep links on iOS.
-
-### Desktop Status: Required
-
-Desktop support is important because many company users may prefer to manage warehouse data, reports, and settings from a computer.
-
-Required desktop targets:
-
-- Windows as first desktop priority.
-- macOS/Linux can be considered later depending on customer needs.
-
-Desktop requirements:
-
-- Test layout on desktop widths.
-- Ensure navigation/sidebar works smoothly.
-- Ensure file picker works for logo upload.
-- Ensure PDF generation and saving/exporting works properly.
-- Ensure Supabase auth/session persistence works correctly.
-
-## Cross-Platform Requirements
-
-- Responsive layout must work on:
-  - Mobile
-  - Tablet
-  - Desktop
-- No feature should depend on Android-only behavior.
-- File uploads should use Supabase Storage, not local paths.
-- PDF reports should work across supported platforms.
-- Auth redirects and email confirmation should be configured correctly per platform.
-- Deep links must be configured for mobile platforms.
-- Desktop auth behavior must be tested separately.
-- App icons and app name must be configured for all target platforms.
-- Production Supabase project must be separated from development Supabase project.
-- Environment/config management must be prepared before release.
-
-## Release Strategy
-
-The project should be prepared as a multi-platform product.
-
-Recommended release order:
-
-1. Internal desktop build for company/admin testing.
-2. Android test release.
-3. iOS test release.
-4. Production release for Android/iOS.
-5. Desktop production packaging for customers who need office/admin usage.
-
-The exact release order can change based on business/customer needs, but the product architecture must remain multi-platform from the beginning.
+- Add role-based UI visibility.
+- Add role-based route protection.
+- Add stronger RLS role checks for approval/settlement actions.
+- Confirm owner/admin-only approval settlement policies.
 
 ---
 
-# Immediate Next Step
+# Phase K — Future Product Enhancements
 
-Continue from:
+Planned:
 
-```text
-Phase G — Reports / PDF
-```
-
-Start the new chat with:
-
-```text
-Step 52.19 — Add Signature Section to PDF Reports
-```
-
-Before starting, review the real GitHub repo first, especially:
-
-```text
-PROJECT_ROADMAP.md
-lib/features/reports/presentation/services/report_pdf_service.dart
-lib/features/reports/presentation/functions/show_report_pdf_preview.dart
-lib/features/reports/presentation/widgets/report_builder_panel.dart
-lib/features/company_settings/data/models/company_document_template_model.dart
-```
-
-Next implementation target:
-
-```text
-Add Signature Section after Responsibility Statement and before Footer Text.
-
-Use:
-- workerSignatureLabel
-- managerSignatureLabel
-- storekeeperSignatureLabel
-
-from the active CompanyDocumentTemplateModel.
-```
+- Worker Acknowledgment Reports.
+- Signed report storage.
+- Void/Correction workflow.
+- Database-level open-custody protection for deleting tools/workers.
+- Better dashboard insights.
+- Better PDF table layout for long reports.
+- Export history.
+- Notifications.
+- Multi-company selection.
+- Company switching.
+- User invitation flow.
+- Role management UI.
+- Mobile polishing.
+- Tablet polishing.
+- App store / Play store preparation.
