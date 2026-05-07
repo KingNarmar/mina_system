@@ -2,6 +2,7 @@ import 'package:mina_system/features/company_settings/data/models/company_docume
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+
 import 'report_pdf_formatters.dart';
 
 class ReportPdfDocumentControlSection {
@@ -67,6 +68,7 @@ class ReportPdfDocumentControlSection {
                     label: 'Effective Date',
                     value: ReportPdfFormatters.formatDate(
                       documentTemplate.effectiveDate,
+                      dateFormat: reportSettings.dateFormat,
                     ),
                   ),
                   _buildDocumentControlCell(

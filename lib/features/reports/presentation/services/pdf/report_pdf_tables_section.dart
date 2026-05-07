@@ -1,15 +1,18 @@
+import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/tool_summary_calculator.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+
 import 'report_pdf_formatters.dart';
 
 class ReportPdfTablesSection {
   static pw.Widget buildReportBody({
     required ReportType reportType,
     required List<TransactionModel> transactions,
+    required CompanyReportSettingsModel reportSettings,
   }) {
     switch (reportType) {
       case ReportType.workerCustody:
@@ -21,12 +24,16 @@ class ReportPdfTablesSection {
       case ReportType.toolHistory:
       case ReportType.transactions:
       case ReportType.lostDamaged:
-        return _buildTransactionsTable(transactions);
+        return _buildTransactionsTable(
+          transactions: transactions,
+          reportSettings: reportSettings,
+        );
     }
   }
 
   static pw.Widget _buildWorkerCustodyTable(
-      List<TransactionModel> transactions) {
+    List<TransactionModel> transactions,
+  ) {
     final balances = calculateCustodyBalances(transactions);
 
     if (balances.isEmpty) {
@@ -88,8 +95,10 @@ class ReportPdfTablesSection {
     );
   }
 
-  static pw.Widget _buildTransactionsTable(
-      List<TransactionModel> transactions) {
+  static pw.Widget _buildTransactionsTable({
+    required List<TransactionModel> transactions,
+    required CompanyReportSettingsModel reportSettings,
+  }) {
     if (transactions.isEmpty) {
       return _buildEmptyMessage('No matching transactions found.');
     }
@@ -104,7 +113,10 @@ class ReportPdfTablesSection {
           transaction.toolName,
           transaction.quantity.toStringAsFixed(2),
           transaction.unit,
-          ReportPdfFormatters.formatDate(transaction.dateTime),
+          ReportPdfFormatters.formatDate(
+            transaction.dateTime,
+            dateFormat: reportSettings.dateFormat,
+          ),
         ];
       }).toList(),
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),

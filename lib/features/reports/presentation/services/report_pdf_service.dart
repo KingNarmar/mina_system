@@ -78,11 +78,15 @@ class ReportPdfService {
               ),
             ],
             pw.SizedBox(height: 16),
-            ReportPdfFiltersSection.buildFiltersSummary(filters),
+            ReportPdfFiltersSection.buildFiltersSummary(
+              filters: filters,
+              reportSettings: reportSettings,
+            ),
             pw.SizedBox(height: 20),
             ReportPdfTablesSection.buildReportBody(
               reportType: reportType,
               transactions: filteredTransactions,
+              reportSettings: reportSettings,
             ),
             ReportPdfResponsibilitySection.buildResponsibilityStatement(
               reportType: reportType,

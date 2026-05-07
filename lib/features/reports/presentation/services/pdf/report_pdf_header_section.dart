@@ -1,9 +1,11 @@
 import 'dart:typed_data';
+
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+
 import 'report_pdf_formatters.dart';
 
 class ReportPdfHeaderSection {
@@ -96,7 +98,7 @@ class ReportPdfHeaderSection {
             ),
             if (reportSettings.showGeneratedBy)
               pw.Text(
-                'Generated: ${ReportPdfFormatters.formatDate(DateTime.now())}',
+                'Generated: ${ReportPdfFormatters.formatDate(DateTime.now(), dateFormat: reportSettings.dateFormat)}',
                 style: const pw.TextStyle(
                   fontSize: 9,
                   color: PdfColors.blueGrey600,

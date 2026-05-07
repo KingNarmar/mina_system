@@ -57,11 +57,26 @@ class ReportPdfFormatters {
         .join(' ');
   }
 
-  static String formatDate(DateTime date) {
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
+  static String formatDate(DateTime date, {String? dateFormat}) {
+    final normalizedFormat = _normalizeDateFormat(dateFormat);
 
-    return '${date.year}-$month-$day';
+    switch (normalizedFormat) {
+      case 'dd/mm/yyyy':
+        return '${_twoDigits(date.day)}/${_twoDigits(date.month)}/${date.year}';
+
+      case 'mm/dd/yyyy':
+        return '${_twoDigits(date.month)}/${_twoDigits(date.day)}/${date.year}';
+
+      case 'dd-mm-yyyy':
+        return '${_twoDigits(date.day)}-${_twoDigits(date.month)}-${date.year}';
+
+      case 'yyyy/mm/dd':
+        return '${date.year}/${_twoDigits(date.month)}/${_twoDigits(date.day)}';
+
+      case 'yyyy-mm-dd':
+      default:
+        return _formatYearMonthDay(date);
+    }
   }
 
   static String normalizeTemplateText(String value) {
@@ -79,5 +94,32 @@ class ReportPdfFormatters {
     }
 
     return trimmedLabel;
+  }
+
+  static String _normalizeDateFormat(String? dateFormat) {
+    final cleanFormat = dateFormat?.trim().toLowerCase();
+
+    if (cleanFormat == null || cleanFormat.isEmpty) {
+      return 'yyyy-mm-dd';
+    }
+
+    return cleanFormat
+        .replaceAll('yyyy', 'yyyy')
+        .replaceAll('yyy', 'yyyy')
+        .replaceAll('yy', 'yyyy')
+        .replaceAll('mm', 'mm')
+        .replaceAll('m', 'mm')
+        .replaceAll('dd', 'dd')
+        .replaceAll('d', 'dd')
+        .replaceAll('.', '-')
+        .replaceAll('\\', '/');
+  }
+
+  static String _formatYearMonthDay(DateTime date) {
+    return '${date.year}-${_twoDigits(date.month)}-${_twoDigits(date.day)}';
+  }
+
+  static String _twoDigits(int value) {
+    return value.toString().padLeft(2, '0');
   }
 }
