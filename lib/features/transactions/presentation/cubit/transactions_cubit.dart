@@ -31,7 +31,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       );
 
   final TransactionsRepo _transactionsRepo;
-  
+
   void emitState(TransactionsState state) => emit(state);
 
   void emitUpdatedTransactions(

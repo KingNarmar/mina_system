@@ -11,7 +11,9 @@ extension TransactionsCubitLoadSearch on TransactionsCubit {
 
       emitUpdatedTransactions(transactions, isLoading: false);
     } catch (error) {
-      emitState(state.copyWith(isLoading: false, errorMessage: error.toString()));
+      emitState(
+        state.copyWith(isLoading: false, errorMessage: error.toString()),
+      );
     }
   }
 

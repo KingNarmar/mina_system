@@ -45,7 +45,9 @@ extension LookupsCubitDepartments on LookupsCubit {
 
       return true;
     } catch (error) {
-      emitState(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emitState(
+        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+      );
       return false;
     }
   }
@@ -75,7 +77,9 @@ extension LookupsCubitDepartments on LookupsCubit {
 
       return true;
     } catch (error) {
-      emitState(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emitState(
+        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+      );
       return false;
     }
   }
