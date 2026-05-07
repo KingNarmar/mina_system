@@ -1,18 +1,18 @@
-import 'dart:io';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/transaction_model.dart';
+import '../services/transaction_helper_service.dart';
+import '../services/transaction_storage_service.dart';
 
 class TransactionsRepo {
   TransactionsRepo({SupabaseClient? supabaseClient})
-    : _supabase = supabaseClient ?? Supabase.instance.client;
+    : _supabase = supabaseClient ?? Supabase.instance.client,
+      _storageService = TransactionStorageService(
+        supabaseClient: supabaseClient ?? Supabase.instance.client,
+      );
 
   final SupabaseClient _supabase;
-
-  static const String _proofsBucket = 'transaction-proofs';
-  static const String _approvalDocumentsBucket =
-      'transaction-approval-documents';
+  final TransactionStorageService _storageService;
 
   static const String _transactionSelectColumns = '''
     id,
@@ -122,7 +122,7 @@ class TransactionsRepo {
       );
     }
 
-    final uploadedPath = await _uploadApprovalDocumentFile(
+    final uploadedPath = await _storageService.uploadApprovalDocumentFile(
       companyId: companyId,
       transactionCode: transaction.transactionCode,
       localDocumentPath: localDocumentPath,
@@ -157,13 +157,18 @@ class TransactionsRepo {
       throw StateError('Signed approval document was not found.');
     }
 
-    if (!_isCloudStoragePath(documentPath, companyId: companyId)) {
+    if (!_storageService.isCloudStoragePath(
+      documentPath,
+      companyId: companyId,
+    )) {
       throw StateError('Invalid approval document storage path.');
     }
 
-    return _supabase.storage
-        .from(_approvalDocumentsBucket)
-        .createSignedUrl(documentPath, expiresInSeconds);
+    return _storageService.createSignedUrl(
+      bucket: TransactionStorageService.approvalDocumentsBucket,
+      path: documentPath,
+      expiresInSeconds: expiresInSeconds,
+    );
   }
 
   Future<TransactionModel> approveLostDamagedTransaction({
@@ -207,7 +212,9 @@ class TransactionsRepo {
         .from('transactions')
         .update({
           'approval_status': 'approved',
-          'approval_decision_note': _emptyToNull(decisionNote),
+          'approval_decision_note': TransactionHelperService.emptyToNull(
+            decisionNote,
+          ),
           'approval_decided_by_profile_id': decidedByProfileId.trim(),
           'approval_decided_at': now,
           'settlement_status': 'pending_settlement',
@@ -262,7 +269,9 @@ class TransactionsRepo {
         .from('transactions')
         .update({
           'approval_status': 'rejected',
-          'approval_decision_note': _emptyToNull(decisionNote),
+          'approval_decision_note': TransactionHelperService.emptyToNull(
+            decisionNote,
+          ),
           'approval_decided_by_profile_id': decidedByProfileId.trim(),
           'approval_decided_at': now,
           'settlement_status': 'not_required',
@@ -319,7 +328,9 @@ class TransactionsRepo {
         .from('transactions')
         .update({
           'settlement_status': 'settled',
-          'settlement_note': _emptyToNull(settlementNote),
+          'settlement_note': TransactionHelperService.emptyToNull(
+            settlementNote,
+          ),
           'settled_by_profile_id': settledByProfileId.trim(),
           'settled_at': now,
           'updated_at': now,
@@ -344,7 +355,9 @@ class TransactionsRepo {
 
     for (final item in data) {
       final transactionCode = item['transaction_code'] as String?;
-      final number = _extractEndingNumber(transactionCode);
+      final number = TransactionHelperService.extractEndingNumber(
+        transactionCode,
+      );
 
       if (number > maxNumber) {
         maxNumber = number;
@@ -380,7 +393,7 @@ class TransactionsRepo {
         return false;
       }
 
-      return _isSameTransactionCode(
+      return TransactionHelperService.isSameTransactionCode(
         existingTransactionCode,
         cleanTransactionCode,
       );
@@ -401,165 +414,16 @@ class TransactionsRepo {
       return transaction;
     }
 
-    if (_isCloudStoragePath(imagePath, companyId: companyId)) {
+    if (_storageService.isCloudStoragePath(imagePath, companyId: companyId)) {
       return transaction;
     }
 
-    final uploadedPath = await _uploadProofImage(
+    final uploadedPath = await _storageService.uploadProofImage(
       companyId: companyId,
       transactionCode: transaction.transactionCode,
       localImagePath: imagePath,
     );
 
     return transaction.copyWith(imagePath: uploadedPath);
-  }
-
-  Future<String> _uploadProofImage({
-    required String companyId,
-    required String transactionCode,
-    required String localImagePath,
-  }) async {
-    final file = File(localImagePath);
-
-    if (!file.existsSync()) {
-      throw StateError('Proof image file was not found.');
-    }
-
-    final extension = _getFileExtension(localImagePath);
-
-    _validateAllowedExtension(
-      extension: extension,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
-      errorMessage: 'Proof image must be JPG, JPEG, PNG, or WEBP.',
-    );
-
-    final bytes = await file.readAsBytes();
-    final contentType = _getContentType(extension);
-
-    final filePath =
-        '$companyId/transactions/$transactionCode/proof-${DateTime.now().millisecondsSinceEpoch}.$extension';
-
-    await _supabase.storage
-        .from(_proofsBucket)
-        .uploadBinary(
-          filePath,
-          bytes,
-          fileOptions: FileOptions(contentType: contentType, upsert: false),
-        );
-
-    return filePath;
-  }
-
-  Future<String> _uploadApprovalDocumentFile({
-    required String companyId,
-    required String transactionCode,
-    required String localDocumentPath,
-  }) async {
-    final file = File(localDocumentPath);
-
-    if (!file.existsSync()) {
-      throw StateError('Approval document file was not found.');
-    }
-
-    final extension = _getFileExtension(localDocumentPath);
-
-    _validateAllowedExtension(
-      extension: extension,
-      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
-      errorMessage: 'Approval document must be PDF, JPG, JPEG, PNG, or WEBP.',
-    );
-
-    final bytes = await file.readAsBytes();
-    final contentType = _getContentType(extension);
-
-    final filePath =
-        '$companyId/transactions/$transactionCode/approval-document-${DateTime.now().millisecondsSinceEpoch}.$extension';
-
-    await _supabase.storage
-        .from(_approvalDocumentsBucket)
-        .uploadBinary(
-          filePath,
-          bytes,
-          fileOptions: FileOptions(contentType: contentType, upsert: false),
-        );
-
-    return filePath;
-  }
-
-  bool _isCloudStoragePath(String path, {required String companyId}) {
-    return path.trim().startsWith('$companyId/');
-  }
-
-  void _validateAllowedExtension({
-    required String extension,
-    required List<String> allowedExtensions,
-    required String errorMessage,
-  }) {
-    if (!allowedExtensions.contains(extension.toLowerCase())) {
-      throw StateError(errorMessage);
-    }
-  }
-
-  String _getFileExtension(String path) {
-    final cleanPath = path.split('?').first;
-    final parts = cleanPath.split('.');
-
-    if (parts.length < 2) {
-      return 'jpg';
-    }
-
-    return parts.last.trim().toLowerCase();
-  }
-
-  String _getContentType(String extension) {
-    switch (extension.toLowerCase()) {
-      case 'pdf':
-        return 'application/pdf';
-      case 'png':
-        return 'image/png';
-      case 'webp':
-        return 'image/webp';
-      case 'jpeg':
-      case 'jpg':
-      default:
-        return 'image/jpeg';
-    }
-  }
-
-  bool _isSameTransactionCode(String? firstValue, String secondValue) {
-    if (firstValue == null) {
-      return false;
-    }
-
-    return _normalizeTransactionCode(firstValue) ==
-        _normalizeTransactionCode(secondValue);
-  }
-
-  String _normalizeTransactionCode(String value) {
-    return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
-  }
-
-  int _extractEndingNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 0;
-    }
-
-    final match = RegExp(r'(\d+)$').firstMatch(value.trim());
-
-    if (match == null) {
-      return 0;
-    }
-
-    return int.tryParse(match.group(1) ?? '') ?? 0;
-  }
-
-  String? _emptyToNull(String? value) {
-    final trimmedValue = value?.trim();
-
-    if (trimmedValue == null || trimmedValue.isEmpty) {
-      return null;
-    }
-
-    return trimmedValue;
   }
 }

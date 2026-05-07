@@ -3,6 +3,8 @@ import 'package:mina_system/features/transactions/data/models/custody_balance_mo
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit_helpers.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit_validators.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/tool_summary_calculator.dart';
@@ -102,36 +104,11 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       return false;
     }
 
-    if (transaction.workerId == null || transaction.workerId!.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Worker ID was not found'));
-      return false;
-    }
-
-    if (transaction.toolId == null || transaction.toolId!.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Tool ID was not found'));
-      return false;
-    }
-
-    if (transaction.quantity <= 0) {
-      emit(state.copyWith(errorMessage: 'Quantity must be greater than zero'));
-      return false;
-    }
-
-    if (!_hasRequiredProofImage(transaction)) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Proof image is required for this transaction type',
-        ),
-      );
-      return false;
-    }
-
-    if (!_hasRequiredNote(transaction)) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Note is required for lost or damaged transactions',
-        ),
-      );
+    final validationError = TransactionsCubitValidators.validateAddTransaction(
+      transaction,
+    );
+    if (validationError != null) {
+      emit(state.copyWith(errorMessage: validationError));
       return false;
     }
 
@@ -158,7 +135,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       final transactionCode = await _transactionsRepo
           .generateNextTransactionCode(companyId: companyId);
 
-      final transactionToInsert = _applyApprovalRules(
+      final transactionToInsert = TransactionsCubitHelpers.applyApprovalRules(
         transaction.copyWith(
           companyId: companyId,
           transactionCode: transactionCode,
@@ -186,62 +163,29 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     required TransactionModel updatedTransaction,
     String? companyId,
   }) async {
-    final transactionId = updatedTransaction.id;
-
     if (companyId == null || companyId.isEmpty) {
       emit(state.copyWith(errorMessage: 'Company ID was not found'));
       return false;
     }
 
-    if (transactionId == null || transactionId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Transaction ID was not found'));
-      return false;
-    }
-
-    if (updatedTransaction.workerId == null ||
-        updatedTransaction.workerId!.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Worker ID was not found'));
-      return false;
-    }
-
-    if (updatedTransaction.toolId == null ||
-        updatedTransaction.toolId!.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Tool ID was not found'));
-      return false;
-    }
-
-    if (updatedTransaction.quantity <= 0) {
-      emit(state.copyWith(errorMessage: 'Quantity must be greater than zero'));
-      return false;
-    }
-
-    if (!_hasRequiredProofImage(updatedTransaction)) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Proof image is required for this transaction type',
-        ),
-      );
-      return false;
-    }
-
-    if (!_hasRequiredNote(updatedTransaction)) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Note is required for lost or damaged transactions',
-        ),
-      );
+    final validationError =
+        TransactionsCubitValidators.validateUpdateTransaction(
+          updatedTransaction,
+        );
+    if (validationError != null) {
+      emit(state.copyWith(errorMessage: validationError));
       return false;
     }
 
     emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
-      final transactionToUpdate = _applyApprovalRules(
+      final transactionToUpdate = TransactionsCubitHelpers.applyApprovalRules(
         updatedTransaction.copyWith(companyId: companyId),
       );
 
       final savedTransaction = await _transactionsRepo.updateTransaction(
-        transactionId: transactionId,
+        transactionId: updatedTransaction.id!,
         transaction: transactionToUpdate,
       );
 
@@ -258,7 +202,12 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     required TransactionModel transaction,
     required String localDocumentPath,
   }) async {
-    if (!_validateLostDamagedPendingTransaction(transaction)) {
+    final validationError =
+        TransactionsCubitValidators.validateLostDamagedPendingTransaction(
+          transaction,
+        );
+    if (validationError != null) {
+      emit(state.copyWith(errorMessage: validationError));
       return false;
     }
 
@@ -291,15 +240,24 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     required String decidedByProfileId,
     String? decisionNote,
   }) async {
-    if (!_validateLostDamagedPendingTransaction(transaction)) {
+    final validationError =
+        TransactionsCubitValidators.validateLostDamagedPendingTransaction(
+          transaction,
+        );
+    if (validationError != null) {
+      emit(state.copyWith(errorMessage: validationError));
       return false;
     }
 
-    if (!_validateProfileId(decidedByProfileId)) {
+    final profileError = TransactionsCubitValidators.validateProfileId(
+      decidedByProfileId,
+    );
+    if (profileError != null) {
+      emit(state.copyWith(errorMessage: profileError));
       return false;
     }
 
-    if (!_hasApprovalDocument(transaction)) {
+    if (!TransactionsCubitValidators.hasApprovalDocument(transaction)) {
       emit(
         state.copyWith(
           errorMessage:
@@ -333,15 +291,24 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     required String decidedByProfileId,
     String? decisionNote,
   }) async {
-    if (!_validateLostDamagedPendingTransaction(transaction)) {
+    final validationError =
+        TransactionsCubitValidators.validateLostDamagedPendingTransaction(
+          transaction,
+        );
+    if (validationError != null) {
+      emit(state.copyWith(errorMessage: validationError));
       return false;
     }
 
-    if (!_validateProfileId(decidedByProfileId)) {
+    final profileError = TransactionsCubitValidators.validateProfileId(
+      decidedByProfileId,
+    );
+    if (profileError != null) {
+      emit(state.copyWith(errorMessage: profileError));
       return false;
     }
 
-    if (!_hasApprovalDocument(transaction)) {
+    if (!TransactionsCubitValidators.hasApprovalDocument(transaction)) {
       emit(
         state.copyWith(
           errorMessage:
@@ -410,7 +377,11 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       return false;
     }
 
-    if (!_validateProfileId(settledByProfileId)) {
+    final profileError = TransactionsCubitValidators.validateProfileId(
+      settledByProfileId,
+    );
+    if (profileError != null) {
+      emit(state.copyWith(errorMessage: profileError));
       return false;
     }
 
@@ -474,37 +445,12 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     bool? isSubmitting,
   }) {
     emit(
-      state.copyWith(
-        transactions: transactions,
-        filteredTransactions: filterTransactions(
-          transactions: transactions,
-          query: state.searchQuery,
-          typeFilter: state.typeFilter,
-        ),
+      TransactionsCubitHelpers.updateTransactionsList(
+        state,
+        transactions,
         isLoading: isLoading,
         isSubmitting: isSubmitting,
-        clearErrorMessage: true,
       ),
-    );
-  }
-
-  TransactionModel _applyApprovalRules(TransactionModel transaction) {
-    if (transaction.isLost || transaction.isDamaged) {
-      return transaction.copyWith(
-        approvalRequired: true,
-        approvalStatus: transaction.approvalStatus == 'not_required'
-            ? 'pending'
-            : transaction.approvalStatus,
-        settlementStatus: transaction.settlementStatus == 'not_required'
-            ? 'not_required'
-            : transaction.settlementStatus,
-      );
-    }
-
-    return transaction.copyWith(
-      approvalRequired: false,
-      approvalStatus: 'not_required',
-      settlementStatus: 'not_required',
     );
   }
 
@@ -512,80 +458,12 @@ class TransactionsCubit extends Cubit<TransactionsState> {
     TransactionModel savedTransaction, {
     bool? isSubmitting,
   }) {
-    final updatedTransactions = state.transactions.map((transaction) {
-      if (transaction.id == savedTransaction.id) {
-        return savedTransaction;
-      }
-
-      return transaction;
-    }).toList();
+    final updatedTransactions =
+        TransactionsCubitHelpers.replaceTransactionInList(
+          state.transactions,
+          savedTransaction,
+        );
 
     emitUpdatedTransactions(updatedTransactions, isSubmitting: isSubmitting);
-  }
-
-  bool _validateLostDamagedPendingTransaction(TransactionModel transaction) {
-    final transactionId = transaction.id;
-
-    if (transactionId == null || transactionId.trim().isEmpty) {
-      emit(state.copyWith(errorMessage: 'Transaction ID was not found'));
-      return false;
-    }
-
-    if (!transaction.isLostOrDamaged) {
-      emit(
-        state.copyWith(
-          errorMessage:
-              'This action is allowed only for lost or damaged transactions',
-        ),
-      );
-      return false;
-    }
-
-    if (!transaction.isApprovalPending) {
-      emit(
-        state.copyWith(
-          errorMessage: 'This action is allowed only while approval is pending',
-        ),
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _validateProfileId(String profileId) {
-    if (profileId.trim().isEmpty) {
-      emit(state.copyWith(errorMessage: 'Profile ID was not found'));
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _hasApprovalDocument(TransactionModel transaction) {
-    final approvalDocumentPath = transaction.approvalDocumentPath;
-
-    return approvalDocumentPath != null &&
-        approvalDocumentPath.trim().isNotEmpty;
-  }
-
-  bool _hasRequiredProofImage(TransactionModel transaction) {
-    if (!transaction.isIssue && !transaction.isDamaged) {
-      return true;
-    }
-
-    final imagePath = transaction.imagePath;
-
-    return imagePath != null && imagePath.trim().isNotEmpty;
-  }
-
-  bool _hasRequiredNote(TransactionModel transaction) {
-    if (!transaction.isLost && !transaction.isDamaged) {
-      return true;
-    }
-
-    final note = transaction.note;
-
-    return note != null && note.trim().isNotEmpty;
   }
 }
