@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/network/presentation/cubit/network_status_cubit.dart';
+import 'package:mina_system/core/network/presentation/cubit/network_status_state.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
@@ -21,7 +23,17 @@ class CurrentContextGate extends StatelessWidget {
         }
 
         if (state is CurrentContextFailure) {
-          return _CurrentContextFailureView(message: state.message);
+          return BlocBuilder<NetworkStatusCubit, NetworkStatusState>(
+            builder: (context, networkState) {
+              final isOffline = networkState is NetworkStatusOffline;
+
+              if (isOffline) {
+                return const _CurrentContextOfflineView();
+              }
+
+              return _CurrentContextFailureView(message: state.message);
+            },
+          );
         }
 
         if (state is CurrentContextLoaded) {
@@ -50,6 +62,60 @@ class _CurrentContextLoadingView extends StatelessWidget {
     return const Scaffold(
       backgroundColor: AppColors.background,
       body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+class _CurrentContextOfflineView extends StatelessWidget {
+  const _CurrentContextOfflineView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 52,
+                  color: AppColors.warning,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'You are offline',
+                  style: AppTextStyles.title,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'No internet connection detected. Please reconnect and try again.',
+                  style: AppTextStyles.body,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                MainButton(
+                  text: 'Retry',
+                  onPressed: () async {
+                    await context.read<NetworkStatusCubit>().refresh();
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    context.read<CurrentContextCubit>().loadCurrentContext();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -91,7 +157,13 @@ class _CurrentContextFailureView extends StatelessWidget {
                 const SizedBox(height: 24),
                 MainButton(
                   text: 'Retry',
-                  onPressed: () {
+                  onPressed: () async {
+                    await context.read<NetworkStatusCubit>().refresh();
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
                     context.read<CurrentContextCubit>().loadCurrentContext();
                   },
                 ),

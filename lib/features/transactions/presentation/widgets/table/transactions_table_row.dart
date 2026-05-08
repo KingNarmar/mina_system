@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
@@ -117,7 +119,7 @@ class _TransactionThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
+    return FutureBuilder<String?>(
       future: _resolveTransactionImageUrl(imagePath),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -127,7 +129,15 @@ class _TransactionThumbnail extends StatelessWidget {
         final imageUrl = snapshot.data;
 
         if (imageUrl == null || imageUrl.trim().isEmpty) {
-          return const _ThumbnailFallback(icon: Icons.broken_image_outlined);
+          return _ThumbnailFallback(
+            icon: Icons.wifi_off_rounded,
+            onTap: () {
+              AppMessage.showWarning(
+                context,
+                'Proof images are stored online and cannot be viewed while offline.',
+              );
+            },
+          );
         }
 
         return InkWell(
@@ -156,10 +166,13 @@ class _TransactionThumbnail extends StatelessWidget {
     );
   }
 
-  Future<String> _resolveTransactionImageUrl(String path) async {
+  Future<String?> _resolveTransactionImageUrl(String path) async {
     if (path.startsWith('http://') || path.startsWith('https://')) {
+      await NetworkStatusService().ensureOnline();
       return path;
     }
+
+    await NetworkStatusService().ensureOnline();
 
     return Supabase.instance.client.storage
         .from('transaction-proofs')
@@ -168,13 +181,14 @@ class _TransactionThumbnail extends StatelessWidget {
 }
 
 class _ThumbnailFallback extends StatelessWidget {
-  const _ThumbnailFallback({required this.icon});
+  const _ThumbnailFallback({required this.icon, this.onTap});
 
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final content = Container(
       width: 44,
       height: 36,
       decoration: BoxDecoration(
@@ -182,6 +196,16 @@ class _ThumbnailFallback extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(icon, size: 18, color: AppColors.textSecondary),
+    );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: content,
     );
   }
 }

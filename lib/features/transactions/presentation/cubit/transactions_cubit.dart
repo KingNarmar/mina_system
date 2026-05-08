@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
@@ -11,28 +12,40 @@ import 'package:mina_system/features/transactions/presentation/functions/tool_su
 import 'package:mina_system/features/transactions/presentation/functions/transaction_code_generator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_filters.dart';
 
-part 'transactions_cubit_load_search.dart';
-part 'transactions_cubit_crud.dart';
 part 'transactions_cubit_approval_workflow.dart';
 part 'transactions_cubit_calculations.dart';
+part 'transactions_cubit_crud.dart';
+part 'transactions_cubit_load_search.dart';
 
 class TransactionsCubit extends Cubit<TransactionsState> {
-  TransactionsCubit({TransactionsRepo? transactionsRepo})
-    : _transactionsRepo = transactionsRepo ?? TransactionsRepo(),
-      super(
-        const TransactionsState(
-          transactions: [],
-          filteredTransactions: [],
-          searchQuery: '',
-          custodyBalanceSearchQuery: '',
-          toolSummarySearchQuery: '',
-          typeFilter: TransactionTypeFilter.all,
-        ),
-      );
+  TransactionsCubit({
+    TransactionsRepo? transactionsRepo,
+    NetworkStatusService? networkStatusService,
+  }) : _transactionsRepo = transactionsRepo ?? TransactionsRepo(),
+       _networkStatusService = networkStatusService ?? NetworkStatusService(),
+       super(
+         const TransactionsState(
+           transactions: [],
+           filteredTransactions: [],
+           searchQuery: '',
+           custodyBalanceSearchQuery: '',
+           toolSummarySearchQuery: '',
+           typeFilter: TransactionTypeFilter.all,
+         ),
+       );
 
   final TransactionsRepo _transactionsRepo;
+  final NetworkStatusService _networkStatusService;
 
   void emitState(TransactionsState state) => emit(state);
+
+  void clearErrorMessage() {
+    if (state.errorMessage == null) {
+      return;
+    }
+
+    emit(state.copyWith(clearErrorMessage: true));
+  }
 
   void emitUpdatedTransactions(
     List<TransactionModel> transactions, {

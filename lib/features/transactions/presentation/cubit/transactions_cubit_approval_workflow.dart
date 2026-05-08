@@ -21,6 +21,15 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return false;
     }
 
+    try {
+      await _networkStatusService.ensureOnline();
+    } on NetworkUnavailableException catch (error) {
+      emitState(
+        state.copyWith(isSubmitting: false, errorMessage: error.message),
+      );
+      return false;
+    }
+
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
-import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
@@ -141,8 +140,6 @@ class _TransactionsViewState extends State<_TransactionsView> {
                 );
               },
             ),
-            if (state.errorMessage != null)
-              _TransactionsErrorBanner(message: state.errorMessage!),
             if (state.isLoading || state.isSubmitting)
               const _TransactionsLoadingOverlay(),
           ],
@@ -195,33 +192,6 @@ class _TransactionsViewState extends State<_TransactionsView> {
 
       return transaction.isApprovalApproved && transaction.isPendingSettlement;
     }).toList();
-  }
-}
-
-class _TransactionsErrorBanner extends StatelessWidget {
-  const _TransactionsErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 12,
-      left: 16,
-      right: 16,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
-        ),
-        child: Text(
-          message,
-          style: AppTextStyles.caption.copyWith(color: AppColors.error),
-        ),
-      ),
-    );
   }
 }
 

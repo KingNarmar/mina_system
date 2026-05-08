@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:mina_system/core/services/image_compression_service.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/company_document_template_model.dart';
@@ -12,11 +13,14 @@ class CompanySettingsRepo {
     SupabaseClient? supabaseClient,
     ImageCompressionService imageCompressionService =
         const ImageCompressionService(),
+    NetworkStatusService? networkStatusService,
   }) : _supabase = supabaseClient ?? Supabase.instance.client,
-       _imageCompressionService = imageCompressionService;
+       _imageCompressionService = imageCompressionService,
+       _networkStatusService = networkStatusService ?? NetworkStatusService();
 
   final SupabaseClient _supabase;
   final ImageCompressionService _imageCompressionService;
+  final NetworkStatusService _networkStatusService;
 
   Future<CompanyProfileModel> getCompanyProfile({
     required String companyId,
@@ -101,6 +105,8 @@ class CompanySettingsRepo {
     required String fileExtension,
     required String contentType,
   }) async {
+    await _networkStatusService.ensureOnline();
+
     final currentCompanyData = await _supabase
         .from('companies')
         .select('logo_path')

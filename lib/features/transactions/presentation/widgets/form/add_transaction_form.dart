@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
@@ -19,7 +20,7 @@ import 'sections/transaction_worker_selection.dart';
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key, required this.onSave, this.initialType});
 
-  final ValueChanged<TransactionModel> onSave;
+  final Future<String?> Function(TransactionModel transaction) onSave;
   final TransactionType? initialType;
 
   @override
@@ -35,6 +36,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   WorkerModel? _selectedWorker;
   ToolModel? _selectedTool;
   String? _selectedImagePath;
+  String? _submitErrorMessage;
 
   TransactionType? get _selectedTransactionType {
     final selectedType = _selectedType;
@@ -80,6 +82,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   Widget build(BuildContext context) {
     final workers = context.watch<WorkersCubit>().state.workers;
     final tools = context.watch<ToolsCubit>().state.tools;
+    final isSubmitting = context.watch<TransactionsCubit>().state.isSubmitting;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -102,6 +105,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 onChanged: (value) {
                   setState(() {
                     _selectedType = value;
+                    _submitErrorMessage = null;
                   });
                 },
               ),
@@ -112,6 +116,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 onSelected: (worker) {
                   setState(() {
                     _selectedWorker = worker;
+                    _submitErrorMessage = null;
                   });
                 },
               ),
@@ -122,6 +127,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 onSelected: (tool) {
                   setState(() {
                     _selectedTool = tool;
+                    _submitErrorMessage = null;
                   });
                 },
               ),
@@ -136,11 +142,20 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 onImageSelected: (imagePath) {
                   setState(() {
                     _selectedImagePath = imagePath;
+                    _submitErrorMessage = null;
                   });
                 },
               ),
+              if (_submitErrorMessage != null) ...[
+                const Gap(16),
+                _TransactionFormErrorMessage(message: _submitErrorMessage!),
+              ],
               const Gap(20),
-              MainButton(text: 'Save Transaction', onPressed: _onSavePressed),
+              MainButton(
+                text: 'Save Transaction',
+                isLoading: isSubmitting,
+                onPressed: _onSavePressed,
+              ),
             ],
           ),
         ),
@@ -172,10 +187,14 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     );
   }
 
-  void _onSavePressed() {
+  Future<void> _onSavePressed() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    setState(() {
+      _submitErrorMessage = null;
+    });
 
     final selectedWorker = _selectedWorker!;
     final selectedTool = _selectedTool!;
@@ -202,6 +221,53 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       note: cleanNote.isEmpty ? null : cleanNote,
     );
 
-    widget.onSave(transaction);
+    final errorMessage = await widget.onSave(transaction);
+
+    if (!mounted || errorMessage == null) {
+      return;
+    }
+
+    setState(() {
+      _submitErrorMessage = errorMessage;
+    });
+  }
+}
+
+class _TransactionFormErrorMessage extends StatelessWidget {
+  const _TransactionFormErrorMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

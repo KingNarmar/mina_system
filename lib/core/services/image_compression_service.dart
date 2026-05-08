@@ -103,27 +103,17 @@ class ImageCompressionService {
     return encodedResult;
   }
 
-  bool _shouldResize(
-    img.Image image, {
-    required int maxDimension,
-  }) {
+  bool _shouldResize(img.Image image, {required int maxDimension}) {
     return max(image.width, image.height) > maxDimension;
   }
 
-  img.Image _resizeImage(
-    img.Image image, {
-    required int maxDimension,
-  }) {
+  img.Image _resizeImage(img.Image image, {required int maxDimension}) {
     final largestSide = max(image.width, image.height);
     final scale = maxDimension / largestSide;
     final targetWidth = max(1, (image.width * scale).round());
     final targetHeight = max(1, (image.height * scale).round());
 
-    return img.copyResize(
-      image,
-      width: targetWidth,
-      height: targetHeight,
-    );
+    return img.copyResize(image, width: targetWidth, height: targetHeight);
   }
 
   ImageCompressionResult _encodeCompressedImage({

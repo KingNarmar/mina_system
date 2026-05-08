@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
@@ -91,20 +92,23 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    final success = await context
-        .read<TransactionsCubit>()
-        .uploadApprovalDocument(
-          transaction: transaction,
-          localDocumentPath: path,
-        );
+    final transactionsCubit = context.read<TransactionsCubit>();
 
-    if (!context.mounted || !success) {
+    final success = await transactionsCubit.uploadApprovalDocument(
+      transaction: transaction,
+      localDocumentPath: path,
+    );
+
+    if (!context.mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Signed approval document uploaded')),
-    );
+    if (!success) {
+      _showTransactionError(context, transactionsCubit);
+      return;
+    }
+
+    AppMessage.showSuccess(context, 'Signed approval document uploaded');
   }
 
   Future<void> _approveTransaction(
@@ -123,12 +127,19 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    final success = await context.read<TransactionsCubit>().approveTransaction(
+    final transactionsCubit = context.read<TransactionsCubit>();
+
+    final success = await transactionsCubit.approveTransaction(
       transaction: transaction,
       decidedByProfileId: context.currentProfileId ?? '',
     );
 
-    if (!context.mounted || !success) {
+    if (!context.mounted) {
+      return;
+    }
+
+    if (!success) {
+      _showTransactionError(context, transactionsCubit);
       return;
     }
 
@@ -138,9 +149,7 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Transaction approved')));
+    AppMessage.showSuccess(context, 'Transaction approved');
   }
 
   Future<void> _rejectTransaction(
@@ -158,12 +167,19 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    final success = await context.read<TransactionsCubit>().rejectTransaction(
+    final transactionsCubit = context.read<TransactionsCubit>();
+
+    final success = await transactionsCubit.rejectTransaction(
       transaction: transaction,
       decidedByProfileId: context.currentProfileId ?? '',
     );
 
-    if (!context.mounted || !success) {
+    if (!context.mounted) {
+      return;
+    }
+
+    if (!success) {
+      _showTransactionError(context, transactionsCubit);
       return;
     }
 
@@ -173,9 +189,7 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Transaction rejected')));
+    AppMessage.showSuccess(context, 'Transaction rejected');
   }
 
   Future<void> _settleTransaction(
@@ -194,12 +208,19 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    final success = await context.read<TransactionsCubit>().settleTransaction(
+    final transactionsCubit = context.read<TransactionsCubit>();
+
+    final success = await transactionsCubit.settleTransaction(
       transaction: transaction,
       settledByProfileId: context.currentProfileId ?? '',
     );
 
-    if (!context.mounted || !success) {
+    if (!context.mounted) {
+      return;
+    }
+
+    if (!success) {
+      _showTransactionError(context, transactionsCubit);
       return;
     }
 
@@ -209,9 +230,19 @@ class PendingApprovalActions extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Transaction settled')));
+    AppMessage.showSuccess(context, 'Transaction settled');
+  }
+
+  void _showTransactionError(
+    BuildContext context,
+    TransactionsCubit transactionsCubit,
+  ) {
+    final message =
+        transactionsCubit.state.errorMessage ?? 'Unable to complete action.';
+
+    transactionsCubit.clearErrorMessage();
+
+    AppMessage.showError(context, message);
   }
 
   Future<void> _refreshDashboard(BuildContext context) async {

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/layout/desktop_shell.dart';
 import 'package:mina_system/core/layout/mobile_shell.dart';
 import 'package:mina_system/core/layout/tablet_shell.dart';
+import 'package:mina_system/core/network/presentation/cubit/network_status_cubit.dart';
+import 'package:mina_system/core/network/presentation/widgets/global_offline_banner.dart';
 import 'package:mina_system/core/responsive/responsive_layout.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
@@ -21,6 +23,7 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => NetworkStatusCubit()..startWatching()),
         BlocProvider(
           create: (_) => CurrentContextCubit()..loadCurrentContext(),
         ),
@@ -81,11 +84,13 @@ class _AppShellView extends StatelessWidget {
           companyId: companyId,
         );
       },
-      child: const CurrentContextGate(
-        child: ResponsiveLayout(
-          mobile: MobileShell(),
-          tablet: TabletShell(),
-          desktop: DesktopShell(),
+      child: const GlobalOfflineBanner(
+        child: CurrentContextGate(
+          child: ResponsiveLayout(
+            mobile: MobileShell(),
+            tablet: TabletShell(),
+            desktop: DesktopShell(),
+          ),
         ),
       ),
     );

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -27,6 +29,8 @@ class TransactionSignedDocumentButton extends StatelessWidget {
     TransactionModel transaction,
   ) async {
     try {
+      await NetworkStatusService().ensureOnline();
+
       final signedUrl = await TransactionsRepo()
           .createApprovalDocumentSignedUrl(transaction: transaction);
 
@@ -39,17 +43,63 @@ class TransactionSignedDocumentButton extends StatelessWidget {
 
       if (!launched) {
         if (!context.mounted) return;
-        _showMessage(context, 'Unable to open signed document.');
+
+        _showDocumentMessageDialog(
+          context: context,
+          title: 'Unable to open document',
+          message: 'Unable to open signed document.',
+          icon: Icons.error_outline_rounded,
+          iconColor: AppColors.error,
+        );
       }
-    } catch (error) {
+    } on NetworkUnavailableException catch (_) {
       if (!context.mounted) return;
-      _showMessage(context, error.toString());
+
+      _showDocumentMessageDialog(
+        context: context,
+        title: 'Offline mode',
+        message:
+            'Signed documents are stored online and cannot be opened while offline.',
+        icon: Icons.wifi_off_rounded,
+        iconColor: AppColors.warning,
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+
+      _showDocumentMessageDialog(
+        context: context,
+        title: 'Unable to open document',
+        message: 'Unable to open signed document.',
+        icon: Icons.error_outline_rounded,
+        iconColor: AppColors.error,
+      );
     }
   }
 
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _showDocumentMessageDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color iconColor,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: Icon(icon, color: iconColor, size: 36),
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

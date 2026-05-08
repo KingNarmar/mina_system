@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
@@ -35,7 +36,7 @@ void showTransactionBottomSheet(
         child: AddTransactionForm(
           initialType: initialType,
           onSave: (transaction) async {
-            await _saveTransaction(
+            return _saveTransaction(
               context: parentContext,
               popContext: sheetContext,
               transaction: transaction,
@@ -72,7 +73,7 @@ void showTransactionDialog(
             child: AddTransactionForm(
               initialType: initialType,
               onSave: (transaction) async {
-                await _saveTransaction(
+                return _saveTransaction(
                   context: parentContext,
                   popContext: dialogContext,
                   transaction: transaction,
@@ -86,7 +87,7 @@ void showTransactionDialog(
   );
 }
 
-Future<void> _saveTransaction({
+Future<String?> _saveTransaction({
   required BuildContext context,
   required BuildContext popContext,
   required TransactionModel transaction,
@@ -97,18 +98,9 @@ Future<void> _saveTransaction({
   final dashboardCubit = context.read<DashboardCubit>();
 
   final navigator = Navigator.of(popContext);
-  final messenger = ScaffoldMessenger.of(context);
 
   if (companyId == null || companyId.isEmpty) {
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Company ID was not found'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    return;
+    return 'Company ID was not found';
   }
 
   final isSaved = await transactionsCubit.addTransaction(
@@ -118,18 +110,21 @@ Future<void> _saveTransaction({
   );
 
   if (!isSaved) {
-    return;
+    final errorMessage =
+        transactionsCubit.state.errorMessage ?? 'Unable to save transaction.';
+
+    transactionsCubit.clearErrorMessage();
+
+    return errorMessage;
   }
 
   await dashboardCubit.loadDashboardSummary(companyId: companyId);
 
   navigator.pop();
-  messenger
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      const SnackBar(
-        content: Text('Transaction added successfully'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+
+  if (context.mounted) {
+    AppMessage.showSuccess(context, 'Transaction added successfully');
+  }
+
+  return null;
 }
