@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
@@ -13,7 +14,14 @@ import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.da
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
 
 class JobTitlesTab extends StatefulWidget {
-  const JobTitlesTab({super.key});
+  const JobTitlesTab({
+    super.key,
+    this.isCompactInputMode = false,
+    this.onLookupInputFocusChanged,
+  });
+
+  final bool isCompactInputMode;
+  final ValueChanged<bool>? onLookupInputFocusChanged;
 
   @override
   State<JobTitlesTab> createState() => _JobTitlesTabState();
@@ -32,30 +40,54 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final padding = EdgeInsets.fromLTRB(
+      widget.isCompactInputMode ? 16 : 24,
+      widget.isCompactInputMode ? 8 : 24,
+      widget.isCompactInputMode ? 16 : 24,
+      bottomInset > 0 ? bottomInset + 16 : 24,
+    );
+
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
         final jobTitles = state.getJobTitlesByDepartment(_selectedDepartment);
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: padding,
           child: LookupCard(
             title: 'Manage Job Titles',
             child: Column(
               children: [
-                CustomDropdownFormField(
-                  hint: 'Select Department',
-                  value: _selectedDepartment,
-                  items: state.departments,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedDepartment = value;
-                    });
-                  },
-                ),
-                const Gap(12),
+                if (widget.isCompactInputMode &&
+                    _selectedDepartment != null) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Department: $_selectedDepartment',
+                      style: AppTextStyles.caption,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ] else ...[
+                  CustomDropdownFormField(
+                    hint: 'Select Department',
+                    value: _selectedDepartment,
+                    items: state.departments,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedDepartment = value;
+                      });
+                    },
+                  ),
+                ],
+                Gap(widget.isCompactInputMode ? 8 : 12),
                 LookupAddRow(
                   hint: 'Job Title',
                   controller: _jobTitleController,
+                  isCompactInputMode: widget.isCompactInputMode,
+                  onFocusChanged: widget.onLookupInputFocusChanged,
                   onAdd: () async {
                     final isAdded = await addJobTitleLookup(
                       context: context,

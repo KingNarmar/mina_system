@@ -30,7 +30,8 @@ class _WorkersView extends StatelessWidget {
           children: [
             LayoutBuilder(
               builder: (context, constraints) {
-                final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
+                final mediaSize = MediaQuery.sizeOf(context);
+                final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
 
                 if (isMobile) {
                   return WorkersMobileLayout(workers: workers);

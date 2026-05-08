@@ -12,7 +12,14 @@ import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.da
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
 
 class ToolUnitsTab extends StatefulWidget {
-  const ToolUnitsTab({super.key});
+  const ToolUnitsTab({
+    super.key,
+    this.isCompactInputMode = false,
+    this.onLookupInputFocusChanged,
+  });
+
+  final bool isCompactInputMode;
+  final ValueChanged<bool>? onLookupInputFocusChanged;
 
   @override
   State<ToolUnitsTab> createState() => _ToolUnitsTabState();
@@ -29,10 +36,19 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final padding = EdgeInsets.fromLTRB(
+      widget.isCompactInputMode ? 16 : 24,
+      widget.isCompactInputMode ? 8 : 24,
+      widget.isCompactInputMode ? 16 : 24,
+      bottomInset > 0 ? bottomInset + 16 : 24,
+    );
+
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: padding,
           child: LookupCard(
             title: 'Manage Tool Units',
             child: Column(
@@ -40,6 +56,8 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                 LookupAddRow(
                   hint: 'Unit Name',
                   controller: _unitController,
+                  isCompactInputMode: widget.isCompactInputMode,
+                  onFocusChanged: widget.onLookupInputFocusChanged,
                   onAdd: () async {
                     final isAdded = await addToolUnitLookup(
                       context: context,

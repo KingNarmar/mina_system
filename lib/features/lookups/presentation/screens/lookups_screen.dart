@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
@@ -18,46 +19,76 @@ class LookupsScreen extends StatelessWidget {
   }
 }
 
-class _LookupsView extends StatelessWidget {
+class _LookupsView extends StatefulWidget {
   const _LookupsView();
 
   @override
+  State<_LookupsView> createState() => _LookupsViewState();
+}
+
+class _LookupsViewState extends State<_LookupsView> {
+  bool _isLookupInputFocused = false;
+
+  @override
   Widget build(BuildContext context) {
+    final mediaSize = MediaQuery.sizeOf(context);
+    final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
+    final isCompactLandscape = isMobile && mediaSize.width > mediaSize.height;
+    final isCompactInputMode = isCompactLandscape && _isLookupInputFocused;
+
     return DefaultTabController(
       length: 4,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: AppColors.background,
         body: BlocBuilder<LookupsCubit, LookupsState>(
           builder: (context, state) {
             return Column(
               children: [
-                Container(
-                  color: AppColors.card,
-                  child: const TabBar(
-                    isScrollable: true,
-                    tabAlignment: TabAlignment.start,
-                    labelColor: AppColors.accent,
-                    unselectedLabelColor: AppColors.textSecondary,
-                    indicatorColor: AppColors.accent,
-                    tabs: [
-                      Tab(text: 'Departments'),
-                      Tab(text: 'Job Titles'),
-                      Tab(text: 'Tool Units'),
-                      Tab(text: 'Tool Categories'),
-                    ],
+                if (!isCompactInputMode)
+                  Container(
+                    color: AppColors.card,
+                    child: const TabBar(
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      labelColor: AppColors.accent,
+                      unselectedLabelColor: AppColors.textSecondary,
+                      indicatorColor: AppColors.accent,
+                      tabs: [
+                        Tab(text: 'Departments'),
+                        Tab(text: 'Job Titles'),
+                        Tab(text: 'Tool Units'),
+                        Tab(text: 'Tool Categories'),
+                      ],
+                    ),
                   ),
-                ),
                 if (state.errorMessage != null)
                   _LookupsErrorBanner(message: state.errorMessage!),
                 Expanded(
                   child: Stack(
                     children: [
-                      const TabBarView(
+                      TabBarView(
                         children: [
-                          DepartmentsTab(),
-                          JobTitlesTab(),
-                          ToolUnitsTab(),
-                          ToolCategoriesTab(),
+                          DepartmentsTab(
+                            isCompactInputMode: isCompactInputMode,
+                            onLookupInputFocusChanged:
+                                _onLookupInputFocusChanged,
+                          ),
+                          JobTitlesTab(
+                            isCompactInputMode: isCompactInputMode,
+                            onLookupInputFocusChanged:
+                                _onLookupInputFocusChanged,
+                          ),
+                          ToolUnitsTab(
+                            isCompactInputMode: isCompactInputMode,
+                            onLookupInputFocusChanged:
+                                _onLookupInputFocusChanged,
+                          ),
+                          ToolCategoriesTab(
+                            isCompactInputMode: isCompactInputMode,
+                            onLookupInputFocusChanged:
+                                _onLookupInputFocusChanged,
+                          ),
                         ],
                       ),
                       if (state.isLoading) const _LookupsLoadingOverlay(),
@@ -70,6 +101,16 @@ class _LookupsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _onLookupInputFocusChanged(bool isFocused) {
+    if (_isLookupInputFocused == isFocused) {
+      return;
+    }
+
+    setState(() {
+      _isLookupInputFocused = isFocused;
+    });
   }
 }
 

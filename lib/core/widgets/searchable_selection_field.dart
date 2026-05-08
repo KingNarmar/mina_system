@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
-import 'package:gap/gap.dart';
 
 class SearchableSelectionField<T> extends StatelessWidget {
   const SearchableSelectionField({
@@ -136,64 +139,105 @@ class _SearchableSelectionBottomSheetState<T>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        MediaQuery.viewInsetsOf(context).bottom + 20,
-      ),
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.75,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.hint, style: AppTextStyles.title),
-            const Gap(16),
-            CustomTextFormField(
-              hint: 'Search...',
-              controller: _searchController,
-              icon: const Icon(Icons.search),
-              onChanged: _onSearchChanged,
-            ),
-            const Gap(16),
-            Expanded(
-              child: _filteredItems.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No results found',
-                        style: AppTextStyles.body.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      itemCount: _filteredItems.length,
-                      separatorBuilder: (context, index) {
-                        return const Divider(
-                          height: 1,
-                          color: AppColors.border,
-                        );
-                      },
-                      itemBuilder: (context, index) {
-                        final item = _filteredItems[index];
+    final mediaSize = MediaQuery.sizeOf(context);
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final viewPadding = MediaQuery.viewPaddingOf(context);
 
-                        return ListTile(
-                          title: Text(
-                            widget.itemLabelBuilder(item),
-                            style: AppTextStyles.body.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w500,
-                            ),
+    final isCompactDevice = mediaSize.shortestSide < AppBreakpoints.tablet;
+    final isLandscape = mediaSize.width > mediaSize.height;
+    final isKeyboardOpen = viewInsets.bottom > 0;
+    final isCompactLandscape = isCompactDevice && isLandscape;
+
+    final horizontalPadding = isCompactLandscape ? 16.0 : 20.0;
+    final verticalPadding = isCompactLandscape ? 10.0 : 20.0;
+    final contentGap = isCompactLandscape ? 8.0 : 16.0;
+
+    final usableHeight = math.max(
+      0.0,
+      mediaSize.height -
+          viewInsets.bottom -
+          viewPadding.top -
+          viewPadding.bottom -
+          (verticalPadding * 2),
+    );
+
+    final preferredHeight = isCompactLandscape || isKeyboardOpen
+        ? usableHeight
+        : mediaSize.height * 0.75;
+
+    final sheetHeight = math.min(preferredHeight, usableHeight);
+    final shouldShowTitle = !(isCompactLandscape && isKeyboardOpen);
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          verticalPadding,
+          horizontalPadding,
+          viewInsets.bottom + verticalPadding,
+        ),
+        child: SizedBox(
+          height: sheetHeight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (shouldShowTitle) ...[
+                Text(
+                  widget.hint,
+                  style: AppTextStyles.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Gap(contentGap),
+              ],
+              CustomTextFormField(
+                hint: 'Search...',
+                controller: _searchController,
+                icon: const Icon(Icons.search),
+                onChanged: _onSearchChanged,
+              ),
+              Gap(contentGap),
+              Expanded(
+                child: _filteredItems.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No results found',
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.textSecondary,
                           ),
-                          onTap: () {
-                            widget.onItemSelected(item);
-                          },
-                        );
-                      },
-                    ),
-            ),
-          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: _filteredItems.length,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        separatorBuilder: (context, index) {
+                          return const Divider(
+                            height: 1,
+                            color: AppColors.border,
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          final item = _filteredItems[index];
+
+                          return ListTile(
+                            title: Text(
+                              widget.itemLabelBuilder(item),
+                              style: AppTextStyles.body.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            onTap: () {
+                              widget.onItemSelected(item);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

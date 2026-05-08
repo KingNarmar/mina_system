@@ -115,7 +115,9 @@ class QuickActionsCard extends StatelessWidget {
   }
 
   bool _shouldUseBottomSheet(BuildContext context) {
-    return MediaQuery.sizeOf(context).width < AppBreakpoints.tablet;
+    final shortestSide = MediaQuery.sizeOf(context).shortestSide;
+
+    return shortestSide < AppBreakpoints.tablet;
   }
 }
 

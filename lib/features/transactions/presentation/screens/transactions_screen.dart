@@ -23,8 +23,17 @@ class TransactionsScreen extends StatelessWidget {
   }
 }
 
-class _TransactionsView extends StatelessWidget {
+class _TransactionsView extends StatefulWidget {
   const _TransactionsView();
+
+  @override
+  State<_TransactionsView> createState() => _TransactionsViewState();
+}
+
+class _TransactionsViewState extends State<_TransactionsView> {
+  bool _isTransactionSearchFocused = false;
+  bool _isCustodyBalanceSearchFocused = false;
+  bool _isToolSummarySearchFocused = false;
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +55,17 @@ class _TransactionsView extends StatelessWidget {
         return Stack(
           children: [
             LayoutBuilder(
-              builder: (context, constraints) {
-                final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
+              builder: (context, _) {
+                final mediaSize = MediaQuery.sizeOf(context);
+                final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
+                final isCompactLandscape =
+                    isMobile && mediaSize.width > mediaSize.height;
+                final isAnySearchFocused =
+                    _isTransactionSearchFocused ||
+                    _isCustodyBalanceSearchFocused ||
+                    _isToolSummarySearchFocused;
+                final isCompactSearchMode =
+                    isCompactLandscape && isAnySearchFocused;
 
                 return DefaultTabController(
                   length: 4,
@@ -55,22 +73,23 @@ class _TransactionsView extends StatelessWidget {
                     backgroundColor: AppColors.background,
                     body: Column(
                       children: [
-                        Container(
-                          color: AppColors.card,
-                          child: const TabBar(
-                            isScrollable: true,
-                            tabAlignment: TabAlignment.start,
-                            labelColor: AppColors.accent,
-                            unselectedLabelColor: AppColors.textSecondary,
-                            indicatorColor: AppColors.accent,
-                            tabs: [
-                              Tab(text: 'Transactions'),
-                              Tab(text: 'Pending Approvals'),
-                              Tab(text: 'Custody Balance'),
-                              Tab(text: 'Tool Summary'),
-                            ],
+                        if (!isCompactSearchMode)
+                          Container(
+                            color: AppColors.card,
+                            child: const TabBar(
+                              isScrollable: true,
+                              tabAlignment: TabAlignment.start,
+                              labelColor: AppColors.accent,
+                              unselectedLabelColor: AppColors.textSecondary,
+                              indicatorColor: AppColors.accent,
+                              tabs: [
+                                Tab(text: 'Transactions'),
+                                Tab(text: 'Pending Approvals'),
+                                Tab(text: 'Custody Balance'),
+                                Tab(text: 'Tool Summary'),
+                              ],
+                            ),
                           ),
-                        ),
                         Expanded(
                           child: TabBarView(
                             children: [
@@ -78,6 +97,9 @@ class _TransactionsView extends StatelessWidget {
                                 TransactionsMobileLayout(
                                   transactions: transactions,
                                   selectedFilter: state.typeFilter,
+                                  isCompactSearchMode: isCompactSearchMode,
+                                  onSearchFocusChanged:
+                                      _onTransactionSearchFocusChanged,
                                 )
                               else
                                 TransactionsDesktopLayout(
@@ -91,6 +113,9 @@ class _TransactionsView extends StatelessWidget {
                               if (isMobile)
                                 CustodyBalanceMobileLayout(
                                   balances: custodyBalances,
+                                  isCompactSearchMode: isCompactSearchMode,
+                                  onSearchFocusChanged:
+                                      _onCustodyBalanceSearchFocusChanged,
                                 )
                               else
                                 CustodyBalanceDesktopLayout(
@@ -99,6 +124,9 @@ class _TransactionsView extends StatelessWidget {
                               if (isMobile)
                                 ToolCustodySummaryMobileLayout(
                                   summaries: toolSummaries,
+                                  isCompactSearchMode: isCompactSearchMode,
+                                  onSearchFocusChanged:
+                                      _onToolSummarySearchFocusChanged,
                                 )
                               else
                                 ToolCustodySummaryDesktopLayout(
@@ -121,6 +149,36 @@ class _TransactionsView extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _onTransactionSearchFocusChanged(bool isFocused) {
+    if (_isTransactionSearchFocused == isFocused) {
+      return;
+    }
+
+    setState(() {
+      _isTransactionSearchFocused = isFocused;
+    });
+  }
+
+  void _onCustodyBalanceSearchFocusChanged(bool isFocused) {
+    if (_isCustodyBalanceSearchFocused == isFocused) {
+      return;
+    }
+
+    setState(() {
+      _isCustodyBalanceSearchFocused = isFocused;
+    });
+  }
+
+  void _onToolSummarySearchFocusChanged(bool isFocused) {
+    if (_isToolSummarySearchFocused == isFocused) {
+      return;
+    }
+
+    setState(() {
+      _isToolSummarySearchFocused = isFocused;
+    });
   }
 
   List<TransactionModel> _getPendingApprovalTransactions(

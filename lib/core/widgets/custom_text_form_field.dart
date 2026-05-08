@@ -10,6 +10,7 @@ class CustomTextFormField extends StatelessWidget {
     this.validator,
     this.icon,
     this.controller,
+    this.focusNode,
     this.readOnly = false,
     this.onTap,
     this.onChanged,
@@ -20,6 +21,7 @@ class CustomTextFormField extends StatelessWidget {
   final String? Function(String?)? validator;
   final Widget? icon;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final bool readOnly;
   final VoidCallback? onTap;
   final void Function(String)? onChanged;
@@ -27,6 +29,7 @@ class CustomTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      focusNode: focusNode,
       readOnly: readOnly,
       onTap: onTap,
       keyboardType: keyboardType,
@@ -34,7 +37,6 @@ class CustomTextFormField extends StatelessWidget {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       controller: controller,
-
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(16),
         filled: true,

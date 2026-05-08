@@ -58,7 +58,8 @@ class ReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
+        final mediaSize = MediaQuery.sizeOf(context);
+        final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -113,7 +114,8 @@ class _ReportsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final crossAxisCount = width < AppBreakpoints.desktop ? 2 : 3;
+    final crossAxisCount = width < 780 ? 2 : 3;
+    final childAspectRatio = width < 780 ? 0.95 : 1.20;
 
     return GridView.builder(
       itemCount: reports.length,
@@ -123,7 +125,7 @@ class _ReportsGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: width < AppBreakpoints.desktop ? 1.35 : 1.25,
+        childAspectRatio: childAspectRatio,
       ),
       itemBuilder: (context, index) {
         final report = reports[index];
