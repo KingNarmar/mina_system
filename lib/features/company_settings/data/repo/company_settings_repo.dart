@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:mina_system/core/services/image_compression_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/company_document_template_model.dart';
@@ -7,10 +8,15 @@ import '../models/company_profile_model.dart';
 import '../models/company_report_settings_model.dart';
 
 class CompanySettingsRepo {
-  CompanySettingsRepo({SupabaseClient? supabaseClient})
-    : _supabase = supabaseClient ?? Supabase.instance.client;
+  CompanySettingsRepo({
+    SupabaseClient? supabaseClient,
+    ImageCompressionService imageCompressionService =
+        const ImageCompressionService(),
+  }) : _supabase = supabaseClient ?? Supabase.instance.client,
+       _imageCompressionService = imageCompressionService;
 
   final SupabaseClient _supabase;
+  final ImageCompressionService _imageCompressionService;
 
   Future<CompanyProfileModel> getCompanyProfile({
     required String companyId,
@@ -103,17 +109,26 @@ class CompanySettingsRepo {
 
     final oldLogoPath = currentCompanyData['logo_path'] as String?;
 
-    final cleanExtension = fileExtension.replaceAll('.', '').toLowerCase();
+    final compressedLogo = await _imageCompressionService.compressImageBytes(
+      sourceBytes: bytes,
+      fileExtension: fileExtension,
+      quality: ImageCompressionService.companyLogoQuality,
+      maxDimension: ImageCompressionService.companyLogoMaxDimension,
+      sourceDescription: 'company logo',
+    );
 
     final filePath =
-        '$companyId/logo/company-logo-${DateTime.now().millisecondsSinceEpoch}.$cleanExtension';
+        '$companyId/logo/company-logo-${DateTime.now().millisecondsSinceEpoch}.${compressedLogo.extension}';
 
     await _supabase.storage
         .from('company-assets')
         .uploadBinary(
           filePath,
-          bytes,
-          fileOptions: FileOptions(contentType: contentType, upsert: false),
+          compressedLogo.bytes,
+          fileOptions: FileOptions(
+            contentType: compressedLogo.contentType,
+            upsert: false,
+          ),
         );
 
     final updatedCompanyData = await _supabase

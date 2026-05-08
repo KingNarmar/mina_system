@@ -1,11 +1,19 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:mina_system/core/services/image_compression_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TransactionStorageService {
-  TransactionStorageService({SupabaseClient? supabaseClient})
-    : _supabase = supabaseClient ?? Supabase.instance.client;
+  TransactionStorageService({
+    SupabaseClient? supabaseClient,
+    ImageCompressionService imageCompressionService =
+        const ImageCompressionService(),
+  }) : _supabase = supabaseClient ?? Supabase.instance.client,
+       _imageCompressionService = imageCompressionService;
 
   final SupabaseClient _supabase;
+  final ImageCompressionService _imageCompressionService;
 
   static const String proofsBucket = 'transaction-proofs';
   static const String approvalDocumentsBucket =
@@ -22,26 +30,22 @@ class TransactionStorageService {
       throw StateError('Proof image file was not found.');
     }
 
-    final extension = getFileExtension(localImagePath);
-
-    validateAllowedExtension(
-      extension: extension,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
-      errorMessage: 'Proof image must be JPG, JPEG, PNG, or WEBP.',
+    final compressedImage = await _imageCompressionService.compressImageFile(
+      file,
     );
 
-    final bytes = await file.readAsBytes();
-    final contentType = getContentType(extension);
-
     final filePath =
-        '$companyId/transactions/$transactionCode/proof-${DateTime.now().millisecondsSinceEpoch}.$extension';
+        '$companyId/transactions/$transactionCode/proof-${DateTime.now().millisecondsSinceEpoch}.${compressedImage.extension}';
 
     await _supabase.storage
         .from(proofsBucket)
         .uploadBinary(
           filePath,
-          bytes,
-          fileOptions: FileOptions(contentType: contentType, upsert: false),
+          compressedImage.bytes,
+          fileOptions: FileOptions(
+            contentType: compressedImage.contentType,
+            upsert: false,
+          ),
         );
 
     return filePath;
@@ -66,21 +70,50 @@ class TransactionStorageService {
       errorMessage: 'Approval document must be PDF, JPG, JPEG, PNG, or WEBP.',
     );
 
-    final bytes = await file.readAsBytes();
-    final contentType = getContentType(extension);
+    final ApprovalDocumentUploadData uploadData =
+        await _prepareApprovalDocumentUploadData(
+          file: file,
+          extension: extension,
+        );
 
     final filePath =
-        '$companyId/transactions/$transactionCode/approval-document-${DateTime.now().millisecondsSinceEpoch}.$extension';
+        '$companyId/transactions/$transactionCode/approval-document-${DateTime.now().millisecondsSinceEpoch}.${uploadData.extension}';
 
     await _supabase.storage
         .from(approvalDocumentsBucket)
         .uploadBinary(
           filePath,
-          bytes,
-          fileOptions: FileOptions(contentType: contentType, upsert: false),
+          uploadData.bytes,
+          fileOptions: FileOptions(
+            contentType: uploadData.contentType,
+            upsert: false,
+          ),
         );
 
     return filePath;
+  }
+
+  Future<ApprovalDocumentUploadData> _prepareApprovalDocumentUploadData({
+    required File file,
+    required String extension,
+  }) async {
+    if (extension == 'pdf') {
+      return ApprovalDocumentUploadData(
+        bytes: await file.readAsBytes(),
+        extension: extension,
+        contentType: getContentType(extension),
+      );
+    }
+
+    final compressedImage = await _imageCompressionService.compressImageFile(
+      file,
+    );
+
+    return ApprovalDocumentUploadData(
+      bytes: compressedImage.bytes,
+      extension: compressedImage.extension,
+      contentType: compressedImage.contentType,
+    );
   }
 
   bool isCloudStoragePath(String path, {required String companyId}) {
@@ -132,4 +165,16 @@ class TransactionStorageService {
         .from(bucket)
         .createSignedUrl(path, expiresInSeconds);
   }
+}
+
+class ApprovalDocumentUploadData {
+  const ApprovalDocumentUploadData({
+    required this.bytes,
+    required this.extension,
+    required this.contentType,
+  });
+
+  final Uint8List bytes;
+  final String extension;
+  final String contentType;
 }

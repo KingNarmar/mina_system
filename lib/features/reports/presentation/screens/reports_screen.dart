@@ -115,7 +115,7 @@ class _ReportsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final crossAxisCount = width < 780 ? 2 : 3;
-    final childAspectRatio = width < 780 ? 0.95 : 1.20;
+    final cardHeight = width < 900 ? 190.0 : 180.0;
 
     return GridView.builder(
       itemCount: reports.length,
@@ -125,7 +125,7 @@ class _ReportsGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: childAspectRatio,
+        mainAxisExtent: cardHeight,
       ),
       itemBuilder: (context, index) {
         final report = reports[index];

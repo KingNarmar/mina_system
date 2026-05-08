@@ -9,6 +9,10 @@ import 'package:pdf/widgets.dart' as pw;
 import 'report_pdf_formatters.dart';
 
 class ReportPdfHeaderSection {
+  static const double _logoBoxWidth = 110;
+  static const double _logoBoxHeight = 56;
+  static const double _logoBoxPadding = 4;
+
   static pw.Widget buildHeader({
     required ReportType reportType,
     required CompanyProfileModel companyProfile,
@@ -25,14 +29,16 @@ class ReportPdfHeaderSection {
           children: [
             if (reportSettings.showCompanyLogo && logoImage != null) ...[
               pw.Container(
-                width: 72,
-                height: 72,
-                padding: const pw.EdgeInsets.all(6),
+                width: _logoBoxWidth,
+                height: _logoBoxHeight,
+                padding: const pw.EdgeInsets.all(_logoBoxPadding),
                 decoration: pw.BoxDecoration(
                   border: pw.Border.all(color: PdfColors.grey300),
                   borderRadius: pw.BorderRadius.circular(8),
                 ),
-                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                child: pw.Center(
+                  child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                ),
               ),
               pw.SizedBox(width: 16),
             ],
