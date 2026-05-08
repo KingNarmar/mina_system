@@ -2,8 +2,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
@@ -32,9 +34,15 @@ class CompanyLogoPicker extends StatelessWidget {
             !current.isUploadingLogo;
       },
       listener: (context, state) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Company logo uploaded.')));
+        final loadedState = state as CompanySettingsLoaded;
+
+        if (loadedState.hasError) {
+          AppMessage.showError(context, loadedState.errorMessage!);
+          context.read<CompanySettingsCubit>().clearErrorMessage();
+          return;
+        }
+
+        AppMessage.showSuccess(context, 'Company logo uploaded.');
       },
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -76,13 +84,26 @@ class CompanyLogoPicker extends StatelessWidget {
     final companyId = context.requireCurrentCompanyId();
     final cubit = context.read<CompanySettingsCubit>();
 
+    try {
+      await NetworkStatusService().ensureOnline();
+    } on NetworkUnavailableException catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      AppMessage.showError(context, error.message);
+      return;
+    }
+
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
       withData: true,
     );
 
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      return;
+    }
 
     if (result == null || result.files.isEmpty) {
       return;
@@ -93,14 +114,17 @@ class CompanyLogoPicker extends StatelessWidget {
     final extension = file.extension?.toLowerCase();
 
     if (bytes == null || extension == null) {
-      _showMessage(context, 'Unable to read selected file.');
+      AppMessage.showError(context, 'Unable to read selected file.');
       return;
     }
 
     final contentType = _getContentType(extension);
 
     if (contentType == null) {
-      _showMessage(context, 'Please select a PNG, JPG, JPEG, or WEBP image.');
+      AppMessage.showWarning(
+        context,
+        'Please select a PNG, JPG, JPEG, or WEBP image.',
+      );
       return;
     }
 
@@ -124,11 +148,5 @@ class CompanyLogoPicker extends StatelessWidget {
       default:
         return null;
     }
-  }
-
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
@@ -30,9 +31,15 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
             !current.isUpdatingDocumentTemplate;
       },
       listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document template updated.')),
-        );
+        final loadedState = state as CompanySettingsLoaded;
+
+        if (loadedState.hasError) {
+          AppMessage.showError(context, loadedState.errorMessage!);
+          context.read<CompanySettingsCubit>().clearErrorMessage();
+          return;
+        }
+
+        AppMessage.showSuccess(context, 'Document template updated.');
       },
       child: Container(
         padding: const EdgeInsets.all(20),

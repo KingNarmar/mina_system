@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
@@ -83,13 +84,17 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
       listener: (context, state) {
         final loadedState = state as CompanySettingsLoaded;
 
+        if (loadedState.hasError) {
+          AppMessage.showError(context, loadedState.errorMessage!);
+          context.read<CompanySettingsCubit>().clearErrorMessage();
+          return;
+        }
+
         context.read<CurrentContextCubit>().updateCurrentCompanyName(
           loadedState.profile.name,
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Company profile updated.')),
-        );
+        AppMessage.showSuccess(context, 'Company profile updated.');
       },
       child: Container(
         padding: const EdgeInsets.all(20),

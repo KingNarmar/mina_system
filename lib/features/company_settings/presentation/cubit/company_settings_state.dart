@@ -28,12 +28,14 @@ class CompanySettingsLoaded extends CompanySettingsState {
     required this.reportSettings,
     required this.documentTemplates,
     this.action = CompanySettingsAction.none,
+    this.errorMessage,
   });
 
   final CompanyProfileModel profile;
   final CompanyReportSettingsModel reportSettings;
   final List<CompanyDocumentTemplateModel> documentTemplates;
   final CompanySettingsAction action;
+  final String? errorMessage;
 
   bool get isSaving => action != CompanySettingsAction.none;
 
@@ -47,17 +49,24 @@ class CompanySettingsLoaded extends CompanySettingsState {
   bool get isUpdatingDocumentTemplate =>
       action == CompanySettingsAction.updatingDocumentTemplate;
 
+  bool get hasError => errorMessage != null && errorMessage!.trim().isNotEmpty;
+
   CompanySettingsLoaded copyWith({
     CompanyProfileModel? profile,
     CompanyReportSettingsModel? reportSettings,
     List<CompanyDocumentTemplateModel>? documentTemplates,
     CompanySettingsAction? action,
+    String? errorMessage,
+    bool clearErrorMessage = false,
   }) {
     return CompanySettingsLoaded(
       profile: profile ?? this.profile,
       reportSettings: reportSettings ?? this.reportSettings,
       documentTemplates: documentTemplates ?? this.documentTemplates,
       action: action ?? this.action,
+      errorMessage: clearErrorMessage
+          ? null
+          : errorMessage ?? this.errorMessage,
     );
   }
 }

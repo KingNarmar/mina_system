@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
@@ -84,9 +85,15 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
             !current.isUpdatingReportSettings;
       },
       listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report settings updated.')),
-        );
+        final loadedState = state as CompanySettingsLoaded;
+
+        if (loadedState.hasError) {
+          AppMessage.showError(context, loadedState.errorMessage!);
+          context.read<CompanySettingsCubit>().clearErrorMessage();
+          return;
+        }
+
+        AppMessage.showSuccess(context, 'Report settings updated.');
       },
       child: Container(
         padding: const EdgeInsets.all(20),

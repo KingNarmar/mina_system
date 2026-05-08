@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 
 import '../../data/models/company_document_template_model.dart';
 import '../../data/models/company_profile_model.dart';
@@ -8,11 +9,15 @@ import '../../data/repo/company_settings_repo.dart';
 import 'company_settings_state.dart';
 
 class CompanySettingsCubit extends Cubit<CompanySettingsState> {
-  CompanySettingsCubit({CompanySettingsRepo? repo})
-    : _repo = repo ?? CompanySettingsRepo(),
-      super(const CompanySettingsInitial());
+  CompanySettingsCubit({
+    CompanySettingsRepo? repo,
+    NetworkStatusService? networkStatusService,
+  }) : _repo = repo ?? CompanySettingsRepo(),
+       _networkStatusService = networkStatusService ?? NetworkStatusService(),
+       super(const CompanySettingsInitial());
 
   final CompanySettingsRepo _repo;
+  final NetworkStatusService _networkStatusService;
 
   Future<void> loadCompanyProfile({required String companyId}) async {
     emit(const CompanySettingsLoading());
@@ -52,17 +57,26 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       return;
     }
 
-    emit(currentState.copyWith(action: CompanySettingsAction.updatingProfile));
+    final actionState = currentState.copyWith(
+      action: CompanySettingsAction.updatingProfile,
+      clearErrorMessage: true,
+    );
+
+    emit(actionState);
+
+    final canContinue = await _ensureOnline(actionState);
+    if (!canContinue) {
+      return;
+    }
 
     try {
       final updatedProfile = await _repo.updateCompanyProfile(profile: profile);
 
       emit(
-        CompanySettingsLoaded(
+        actionState.copyWith(
           profile: updatedProfile,
-          reportSettings: currentState.reportSettings,
-          documentTemplates: currentState.documentTemplates,
           action: CompanySettingsAction.none,
+          clearErrorMessage: true,
         ),
       );
     } catch (error, stackTrace) {
@@ -71,7 +85,12 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         debugPrint('UpdateCompanyProfile stackTrace: $stackTrace');
       }
 
-      emit(const CompanySettingsFailure('Unable to update company profile.'));
+      emit(
+        actionState.copyWith(
+          action: CompanySettingsAction.none,
+          errorMessage: 'Unable to update company profile.',
+        ),
+      );
     }
   }
 
@@ -84,11 +103,17 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       return;
     }
 
-    emit(
-      currentState.copyWith(
-        action: CompanySettingsAction.updatingReportSettings,
-      ),
+    final actionState = currentState.copyWith(
+      action: CompanySettingsAction.updatingReportSettings,
+      clearErrorMessage: true,
     );
+
+    emit(actionState);
+
+    final canContinue = await _ensureOnline(actionState);
+    if (!canContinue) {
+      return;
+    }
 
     try {
       final updatedReportSettings = await _repo.updateCompanyReportSettings(
@@ -96,11 +121,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       );
 
       emit(
-        CompanySettingsLoaded(
-          profile: currentState.profile,
+        actionState.copyWith(
           reportSettings: updatedReportSettings,
-          documentTemplates: currentState.documentTemplates,
           action: CompanySettingsAction.none,
+          clearErrorMessage: true,
         ),
       );
     } catch (error, stackTrace) {
@@ -109,7 +133,12 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         debugPrint('UpdateCompanyReportSettings stackTrace: $stackTrace');
       }
 
-      emit(const CompanySettingsFailure('Unable to update report settings.'));
+      emit(
+        actionState.copyWith(
+          action: CompanySettingsAction.none,
+          errorMessage: 'Unable to update report settings.',
+        ),
+      );
     }
   }
 
@@ -122,18 +151,24 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       return;
     }
 
-    emit(
-      currentState.copyWith(
-        action: CompanySettingsAction.updatingDocumentTemplate,
-      ),
+    final actionState = currentState.copyWith(
+      action: CompanySettingsAction.updatingDocumentTemplate,
+      clearErrorMessage: true,
     );
+
+    emit(actionState);
+
+    final canContinue = await _ensureOnline(actionState);
+    if (!canContinue) {
+      return;
+    }
 
     try {
       final updatedDocumentTemplate = await _repo.updateCompanyDocumentTemplate(
         documentTemplate: documentTemplate,
       );
 
-      final updatedDocumentTemplates = currentState.documentTemplates.map((
+      final updatedDocumentTemplates = actionState.documentTemplates.map((
         item,
       ) {
         if (item.id == updatedDocumentTemplate.id) {
@@ -144,11 +179,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       }).toList();
 
       emit(
-        CompanySettingsLoaded(
-          profile: currentState.profile,
-          reportSettings: currentState.reportSettings,
+        actionState.copyWith(
           documentTemplates: updatedDocumentTemplates,
           action: CompanySettingsAction.none,
+          clearErrorMessage: true,
         ),
       );
     } catch (error, stackTrace) {
@@ -157,7 +191,12 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         debugPrint('UpdateCompanyDocumentTemplate stackTrace: $stackTrace');
       }
 
-      emit(const CompanySettingsFailure('Unable to update document template.'));
+      emit(
+        actionState.copyWith(
+          action: CompanySettingsAction.none,
+          errorMessage: 'Unable to update document template.',
+        ),
+      );
     }
   }
 
@@ -173,7 +212,17 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       return;
     }
 
-    emit(currentState.copyWith(action: CompanySettingsAction.uploadingLogo));
+    final actionState = currentState.copyWith(
+      action: CompanySettingsAction.uploadingLogo,
+      clearErrorMessage: true,
+    );
+
+    emit(actionState);
+
+    final canContinue = await _ensureOnline(actionState);
+    if (!canContinue) {
+      return;
+    }
 
     try {
       final updatedProfile = await _repo.uploadCompanyLogo(
@@ -184,11 +233,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       );
 
       emit(
-        CompanySettingsLoaded(
+        actionState.copyWith(
           profile: updatedProfile,
-          reportSettings: currentState.reportSettings,
-          documentTemplates: currentState.documentTemplates,
           action: CompanySettingsAction.none,
+          clearErrorMessage: true,
         ),
       );
     } catch (error, stackTrace) {
@@ -197,7 +245,41 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         debugPrint('UploadCompanyLogo stackTrace: $stackTrace');
       }
 
-      emit(const CompanySettingsFailure('Unable to upload company logo.'));
+      emit(
+        actionState.copyWith(
+          action: CompanySettingsAction.none,
+          errorMessage: 'Unable to upload company logo.',
+        ),
+      );
+    }
+  }
+
+  void clearErrorMessage() {
+    final currentState = state;
+
+    if (currentState is! CompanySettingsLoaded) {
+      return;
+    }
+
+    if (currentState.errorMessage == null) {
+      return;
+    }
+
+    emit(currentState.copyWith(clearErrorMessage: true));
+  }
+
+  Future<bool> _ensureOnline(CompanySettingsLoaded currentState) async {
+    try {
+      await _networkStatusService.ensureOnline();
+      return true;
+    } on NetworkUnavailableException catch (error) {
+      emit(
+        currentState.copyWith(
+          action: CompanySettingsAction.none,
+          errorMessage: error.message,
+        ),
+      );
+      return false;
     }
   }
 }
