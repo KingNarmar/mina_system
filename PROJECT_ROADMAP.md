@@ -8,28 +8,63 @@
 
 ---
 
-## Project Vision
+## Last Verified GitHub State
 
-Mina System is a Flutter + Supabase application for managing tool custody, warehouse workers, tools, transactions, dashboard data, company settings, approvals, settlements, PDF reports, responsive layouts, users, roles, subscriptions, usage limits, storage limits, offline-aware behavior, and production-ready distribution.
+Latest verified pushed commit:
 
-The system is being built as a real multi-company SaaS/product, not a local demo.
+`353b9ef4e3f2e2a9fe2f8aed66ff6a61da52f2e9`
 
-Every company must have isolated data using `currentCompanyId`.
+Commit message:
 
-The product must support:
+`Block offline mutations for company settings`
 
-- Free download from stores.
-- Free plan / trial plan.
-- Paid monthly packages.
-- B2B company subscriptions.
-- Web landing page.
-- Desktop installer download.
-- Mobile app distribution through Google Play and App Store.
-- Production Supabase environment separate from development/testing.
-- Safe storage usage through image compression and storage limits.
-- Clear behavior when the user is offline or the internet connection is unstable.
-- Mobile/tablet camera capture for faster proof/document upload workflows.
-- File upload fallback from device storage.
+This roadmap is the single source of truth for the Mina System project.
+
+It is based on the real GitHub repository, not the README.
+
+---
+
+# Project Vision
+
+Mina System is a Flutter + Supabase inventory and custody management system built as a real multi-company SaaS/product.
+
+The system manages:
+
+- Companies
+- Users and roles
+- Workers
+- Tools
+- Lookups
+- Transactions
+- Tool custody balances
+- Lost/Damaged approval workflow
+- Settlements
+- Dashboard summaries
+- Company settings
+- PDF reports
+- Supabase Storage uploads
+- Storage/image optimization
+- Responsive layouts
+- Offline/network-aware behavior
+- Future subscriptions, plans, usage limits, and storage limits
+
+Every company must have isolated data using `company_id` and the active `currentCompanyId`.
+
+The product should eventually support:
+
+- Free download from stores
+- Free plan / trial plan
+- Paid monthly packages
+- B2B company subscriptions
+- Web landing page
+- Desktop installer download
+- Google Play release
+- App Store release
+- Production Supabase environment separate from development/testing
+- Safe storage usage through image compression and storage limits
+- Clear behavior when the user is offline or the internet connection is unstable
+- Mobile/tablet camera capture for faster proof/document upload workflows
+- File upload fallback from device storage
 
 ---
 
@@ -43,32 +78,43 @@ The product must support:
 - Always review the real GitHub repo before continuing a new step.
 - Do not rely only on README because it may be outdated.
 - If a file becomes too large, refactor it into smaller focused files without changing working behavior.
-- Every new feature must be tested on:
-  - Windows
-  - Mobile portrait
-  - Mobile landscape
-  - Tablet portrait
-  - Tablet landscape
-- After each completed feature:
-  - Test
-  - Run `dart format lib`
-  - Run `flutter analyze`
-  - Commit
-  - Push
-  - Review repo again.
+- Keep `PROJECT_ROADMAP.md` as the single source of truth.
+- Update this roadmap after each completed feature or phase.
+- Do not create multiple roadmap files.
+
+After each completed feature:
+
+1. Test manually.
+2. Run `dart format lib`.
+3. Run `flutter analyze`.
+4. Commit.
+5. Push.
+6. Review repo again.
+
+## Testing Rules
+
+Every new feature should be tested on:
+
+- Windows
+- Mobile portrait
+- Mobile landscape
+- Tablet portrait
+- Tablet landscape
 
 ## Architecture Rules
 
-Follow this pattern for each feature:
+Follow this pattern where applicable:
 
 1. Model
 2. Repository / Service
-3. Cubit / State when needed
+3. Cubit / State
 4. UI
-5. SQL Grants when needed
-6. RLS Policies when needed
-7. Test
-8. Commit / Push
+5. SQL Grants if needed
+6. RLS Policies if needed
+7. Manual test
+8. `dart format lib`
+9. `flutter analyze`
+10. Commit / Push
 
 ## Supabase Rules
 
@@ -81,26 +127,31 @@ Follow this pattern for each feature:
   - Check real columns first.
   - Add correct grants.
   - Add safe RLS policies.
-- Storage files must be saved in Supabase Storage.
-- Database should store file paths only, not local file paths.
+- Company users must access company data only through active company membership.
+- RLS must enforce role permissions at database level, not UI only.
+- Plan limits must be enforced at database/RPC level, not UI only.
+- Subscription access must be checked securely using company subscription records.
 - Transactions should not be deleted from the system.
 - Transaction editing should not be exposed as a normal UI action.
 - Transaction corrections should be handled by corrective transactions, approval workflow, settlement workflow, or future void workflow.
 - Lost/Damaged transactions should not reduce worker custody balance while pending approval.
 - Lost/Damaged transactions should not reduce worker custody balance after approval only.
 - Lost/Damaged transactions should reduce worker custody balance only after final settlement/deduction is completed.
-- Company users must access company data only through active company membership.
-- RLS must enforce role permissions at database level, not UI only.
-- Plan limits must be enforced at database/RPC level, not UI only.
-- Subscription access must be checked securely using company subscription records.
+
+## UI / Theme Rules
+
 - Colors should be centralized inside `AppColors`.
 - Do not use direct widget-level colors like `Colors.green` or `Colors.orange` unless they are first added to `AppColors`.
+- Reusable user messages should use `AppMessage`.
+- Errors inside Bottom Sheets or Dialogs should appear inside the form/dialog when SnackBars would be hidden behind the overlay.
+- Success/error/warning/info messages should be clear, professional, and user-friendly.
+- Do not show raw technical errors to end users.
 
 ## Responsive / Adaptive Rules
 
 - Do not assume mobile is always portrait.
 - Do not assume tablet is always landscape.
-- Do not lock orientation as a shortcut unless there is a clear business reason.
+- Do not lock orientation unless there is a clear business reason.
 - Prefer adaptive layout based on available space.
 - Use:
   - `MediaQuery.sizeOf(context)`
@@ -118,19 +169,20 @@ Follow this pattern for each feature:
 - Tables must remain horizontally scrollable where needed.
 - Action buttons must wrap instead of overflowing.
 - Mobile landscape must remain a mobile experience unless there is a strong reason to switch.
-- Android/iOS tablets should remain TabletShell even when the screen width is large.
+- Android/iOS tablets should remain TabletShell even when screen width is large.
 - DesktopShell should be used for desktop platforms, not for large simulated Android/iOS tablets.
 
 ## Storage / Image Optimization Rules
 
-- Never upload large original images without compression unless there is a business reason.
+- Storage files must be saved in Supabase Storage.
+- Database should store cloud storage paths only.
+- Local file paths must not be saved in Supabase tables.
+- Never upload large original images without compression unless there is a clear business reason.
 - Transaction proof images must be compressed before upload.
 - Approval document images should be compressed before upload when they are image files.
 - PDF files should not be image-compressed.
 - Company logos should be resized/compressed carefully without destroying quality.
 - Company logos should be resized to a practical maximum dimension before upload.
-- Store only the compressed/uploaded cloud path in the database.
-- Keep the original local file path out of Supabase tables.
 - Use clear storage paths under company folders:
   - `{companyId}/transactions/...`
   - `{companyId}/logo/...`
@@ -138,12 +190,7 @@ Follow this pattern for each feature:
 - Image compression should work across Windows, Android, iOS, tablets, and future supported platforms.
 - Prefer cross-platform image processing where possible to avoid platform-specific upload failures.
 - Future storage usage must be tracked per company for plan limits.
-- Mobile and tablet users should be able to capture photos directly from the camera for transaction proof images and approval document images, not only upload existing files from device storage.
-- Camera capture should make the workflow faster:
-  - Open camera directly from the transaction/proof upload action.
-  - Capture the item/tool/document immediately.
-  - Compress the captured image before upload.
-  - Store only the uploaded cloud path in the database.
+- Mobile/tablet users should be able to capture photos directly from camera for proof/document workflows.
 - Camera capture should remain optional.
 - File upload from device storage should remain supported as a fallback.
 
@@ -151,11 +198,15 @@ Follow this pattern for each feature:
 
 - The app must not fail silently when there is no internet connection.
 - The user must see a clear offline message when connection is unavailable.
-- Saving new transactions while offline should be blocked at first until full offline sync is implemented.
-- Later, offline transaction drafts and pending sync can be added safely.
-- Network errors must be user-friendly and separated from validation/auth errors where possible.
-- Retry actions should be available on critical loading screens.
-- Offline mode must never bypass RLS, subscription limits, or business rules.
+- Offline mode must not bypass RLS, subscription limits, or business rules.
+- Save/update/delete mutations should be blocked while offline until full offline sync is implemented.
+- Supabase Storage uploads should be blocked while offline.
+- Cloud-only Storage file viewing should be blocked while offline unless a future cache system is implemented.
+- Reports may generate offline from already-loaded in-memory data.
+- Online assets inside reports, such as company logo, may be unavailable offline.
+- Critical loading screens should provide Retry actions.
+- Network errors must be user-friendly and separated from validation/auth/business-rule errors where possible.
+- Offline drafts and background sync are future features.
 
 ## Commercial / SaaS Rules
 
@@ -205,14 +256,50 @@ Follow this pattern for each feature:
 - PDF approval documents are uploaded without image compression.
 - Company logos are resized/compressed before upload.
 - Reports card responsive regression fix is completed.
+- Offline/network handling foundation is implemented.
 
-## Current Main Gap
+## Current Active Phase
 
-The next priority is offline/network handling because the roadmap requires clear behavior when the user is offline or the internet connection is unstable.
+**Phase N — Offline & Network Handling**
+
+Status:
+
+**In Progress**
+
+Completed so far:
+
+- Network status service created.
+- Network status Cubit created.
+- Global offline banner implemented.
+- Offline screen added for Current Context loading failure.
+- Retry added to critical context loading screen.
+- AppMessage system added for unified success/error/warning/info messages.
+- Transactions save is blocked while offline.
+- Signed approval document upload is blocked while offline.
+- Transaction proof image upload is blocked while offline.
+- Company logo upload is blocked while offline.
+- Cloud proof image viewing is blocked while offline.
+- Cloud signed document viewing is blocked while offline.
+- Workers add/update/delete are blocked while offline.
+- Tools add/update/delete are blocked while offline.
+- Lookups add/delete are blocked while offline.
+- Company Settings mutations are blocked while offline:
+  - Company Profile update
+  - Report Settings update
+  - Document Template update
+  - Company Logo upload
+- Settings screen no longer converts action failures into full screen failure.
+- Reports can still generate offline from already-loaded in-memory data.
+
+Next required step:
+
+- Add Friendly Network Error Mapper.
+- Convert Supabase/Socket/Storage technical errors into user-friendly messages.
+- Apply the mapper gradually to Cubits and services.
 
 ---
 
-# Auth Status
+# Auth
 
 ## Status: Done
 
@@ -229,27 +316,35 @@ Register → Confirm Email → Login → Create Company if no company exists →
 
 Required future flow after Company Users / Invitations:
 
-Register/Login
-→ Check pending invitations by email
-→ Check active company memberships
-→ If invited: Accept Invitation / Join Company
-→ If already member: Select Company or Dashboard
+Register/Login  
+→ Check pending invitations by email  
+→ Check active company memberships  
+→ If invited: Accept Invitation / Join Company  
+→ If already member: Select Company or Dashboard  
 → If no membership and no invitation: Create Company
 
 Required future flow after Subscriptions:
 
-Register/Login
-→ Load Current Context
-→ Load Current Company Subscription
-→ If subscription is active/free/trial: continue
-→ If subscription expired: show Subscription Required screen
+Register/Login  
+→ Load Current Context  
+→ Load Current Company Subscription  
+→ If subscription is active/free/trial: continue  
+→ If subscription expired: show Subscription Required screen  
 → If company has no plan: assign Free plan by default
+
+Future improvements:
+
+- Invitation acceptance flow.
+- Company membership selection.
+- Subscription check after company selection.
+- Expired subscription / limited access screen.
+- Role-based auth redirect behavior.
 
 ---
 
-# Current Context Status
+# Current Context
 
-## Status: Done
+## Status: Done / Offline-Aware
 
 Current Context is responsible for loading:
 
@@ -276,38 +371,21 @@ Important helpers:
 
 Current behavior:
 
-No company → Create Company screen
+- No company → Create Company screen
+- One company → Dashboard
+- Multiple companies → Select Company placeholder
+- No internet during initial context loading → Offline screen with Retry
 
-One company → Dashboard
+Future improvements:
 
-Multiple companies → Select Company placeholder
-
-Required future behavior:
-
-Pending invitation exists → Accept Invitation screen
-
-Active membership exists → Select Company / Dashboard
-
-No invitation and no membership → Create or Join Company screen
-
-Required future behavior after subscriptions:
-
-Current company loaded
-→ Check subscription/plan
-→ Check plan status
-→ Check usage limits
-→ Continue or show limited/expired state
-
-Required future behavior after offline handling:
-
-No internet while loading context
-→ Show offline/network error screen
-→ Retry when internet returns
-→ Later: load last cached read-only company context if offline cache is implemented
+- Pending invitation screen.
+- Select Company screen for multiple companies.
+- Cached read-only company context for future offline mode.
+- Subscription/plan check after current company is loaded.
 
 ---
 
-# Create Company Flow Status
+# Create Company Flow
 
 ## Status: Done
 
@@ -337,18 +415,40 @@ Future improvements:
 
 # Company Settings
 
-## Company Profile Status
-
-### Status: Done
+## Status: Done / Offline-Aware
 
 Implemented:
 
 - Read company profile from `companies`.
 - Update company profile.
-- Update TopBar company name without reloading the dashboard.
+- Update TopBar company name without reloading dashboard.
 - Company profile is used inside PDF report headers.
+- Upload company logo to Supabase Storage bucket `company-assets`.
+- Save `logo_path` in `companies`.
+- Delete old logo after successful new upload.
+- Company logo image compression/resizing before upload.
+- Company logo is used inside generated PDF reports.
+- PDF logo refresh works without restarting the app after changing the logo.
+- Read `company_report_settings`.
+- Update report settings.
+- Report settings are used inside PDF reports.
+- Applied `dateFormat` to PDF dates.
+- Fixed PDF date format normalization.
+- Read `company_document_templates`.
+- Update document template fields.
+- Document templates are used inside PDF Document Control section.
+- Robust PDF template matching added.
+- Document template signature labels are used inside PDF Signature Section.
+- Offline blocking for:
+  - Company Profile update
+  - Report Settings update
+  - Document Template update
+  - Company Logo upload
+- Settings action errors remain inside loaded Settings state.
+- Settings screen does not turn into full failure screen for action errors.
+- Settings messages use `AppMessage`.
 
-Fields:
+Company Profile fields:
 
 - Company Name
 - Trade Name
@@ -364,35 +464,7 @@ Fields:
 - Website
 - Logo Path
 
-Future improvements:
-
-- Add subscription section inside Company Settings for owners/admins.
-- Show current plan name.
-- Show plan status.
-- Show usage summary.
-- Show upgrade/contact message without direct mobile payment link.
-- Add billing/contact email fields if needed later.
-- Add storage usage summary after storage tracking is implemented.
-
-## Company Logo Upload Status
-
-### Status: Done
-
-Implemented:
-
-- Pick image using `file_picker`.
-- Upload image to Supabase Storage bucket: `company-assets`.
-- Save `logo_path` in `companies`.
-- Delete old logo after successful new upload.
-- Show success SnackBar.
-- Company logo is used inside generated PDF reports.
-- PDF logo refresh works without restarting the app after changing the logo.
-- Company logo image compression/resizing is implemented before upload.
-- Company logo max dimension is handled through `ImageCompressionService`.
-- Company logo upload uses compressed bytes instead of uploading the original selected image.
-- Company logo is displayed inside PDF report headers.
-
-Storage path format:
+Company Logo storage path format:
 
 `{companyId}/logo/company-logo-{timestamp}.{extension}`
 
@@ -403,73 +475,36 @@ Allowed image types:
 - JPEG
 - WEBP
 
-Current image optimization behavior:
+Current logo optimization behavior:
 
 - Logo images are resized/compressed before upload.
-- Logo max dimension is currently centralized in `ImageCompressionService`.
+- Logo max dimension is centralized in `ImageCompressionService`.
 - Current company logo max dimension: `800 px`.
 - Current company logo quality: `90`.
 - PDF files are not allowed for company logo upload.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Preserve transparency when possible for PNG/WebP logos.
 - Add max upload size validation before compression.
 - Add friendly error if logo file is too large or invalid.
 - Track logo storage usage under company storage quota.
-- Add optional visual preview/crop flow before uploading logo if needed.
-- Fine-tune PDF logo box size if future real company logos require different layout.
-
-## Report Settings Status
-
-### Status: Done
-
-Implemented:
-
-- Read `company_report_settings`.
-- Update report settings.
-- Show success SnackBar.
-- Report settings are used inside PDF reports.
-- Applied `dateFormat` to PDF dates.
-- Fixed PDF date format normalization.
-
-Pending / Future Enhancements:
-
+- Add optional visual preview/crop flow before uploading logo.
+- Fine-tune PDF logo box size if needed.
 - Apply `timeFormat` to PDF timestamps.
 - Apply `defaultTimezone` to report generation dates/times.
-- Add plan-based report watermark if company is on Free plan if needed.
-- Add report export history if required later.
-
-## Document Templates Status
-
-### Status: Done
-
-Implemented:
-
-- `CompanyDocumentTemplateModel`
-- `documentTemplates` added to `CompanySettingsState`
-- `getCompanyDocumentTemplates` added to `CompanySettingsRepo`
-- `updateCompanyDocumentTemplate` added to `CompanySettingsRepo`
-- `updateCompanyDocumentTemplate` added to `CompanySettingsCubit`
-- SQL grants and RLS policies for `company_document_templates`
-- Document Templates UI inside Company Settings
-- Read document templates by company
-- Update document template fields
-- Document templates are used inside PDF Document Control section.
-- Robust PDF template matching added.
-- Document template signature labels are used inside PDF Signature Section.
-
-Pending / Future Enhancements:
-
-- Add plan-based access to advanced template customization if needed.
-- Keep basic templates available for Free plan.
-- Keep advanced customization for paid plans if used commercially.
+- Add subscription section inside Company Settings for owners/admins.
+- Show current plan name.
+- Show plan status.
+- Show usage summary.
+- Show upgrade/contact message without direct mobile payment link.
+- Add storage usage summary after storage tracking is implemented.
 
 ---
 
 # Phase B — Lookups Supabase Integration
 
-## Status: Done
+## Status: Done / Offline-Aware
 
 Goal:
 
@@ -486,12 +521,14 @@ Implemented:
 - Models and repository.
 - Read lookups by `company_id`.
 - Load lookups after `CurrentContextLoaded`.
-- Loading state and error banner.
+- Loading state and error handling.
 - Add/Delete flows.
 - Duplicate prevention inside the same company.
 - Strong lookup name normalization.
 - Delete protection for dependent data where applicable.
-- `flutter analyze` has no errors.
+- Offline blocking for add/delete mutations.
+- User-friendly messages using `AppMessage`.
+- `flutter analyze` has no errors after implementation.
 
 Rules applied:
 
@@ -503,13 +540,13 @@ Future improvements:
 
 - Add plan-based lookup limits if needed.
 - Add import defaults from industry templates later.
-- Add offline-friendly error message if lookups fail due to no internet.
+- Optional edit/rename lookup flow if needed.
 
 ---
 
 # Phase C — Workers Supabase Integration
 
-## Status: Done
+## Status: Done / Offline-Aware
 
 Goal:
 
@@ -529,10 +566,12 @@ Implemented:
 - Prevented duplicate `hr_code` inside the same company.
 - Used real Department and Job Title IDs from Lookups.
 - Loaded workers after `CurrentContextLoaded`.
-- Added loading state and error banner.
+- Added loading/submitting/error state.
 - Connected Add / Update / Delete Worker actions to Supabase.
 - Search workers by existing search logic.
-- `flutter analyze` has no errors.
+- Offline blocking for add/update/delete mutations.
+- Worker form shows action errors inside form when opened in Bottom Sheet/Dialog.
+- `flutter analyze` has no errors after implementation.
 
 Database rules confirmed:
 
@@ -543,18 +582,19 @@ Database rules confirmed:
 - `worker_code` is unique inside the same company.
 - Department and Job Title deletion is protected by foreign key rules when workers depend on them.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Enforce plan limit before adding a worker.
 - Add friendly upgrade message when worker limit is reached.
 - Add database/RPC-level worker limit enforcement.
-- Add offline-friendly message if worker add/update/delete fails due to no internet.
+- Add stronger open-custody protection before worker deletion if needed.
+- Advanced worker profile fields if needed.
 
 ---
 
 # Phase D — Tools Supabase Integration
 
-## Status: Done
+## Status: Done / Offline-Aware
 
 Goal:
 
@@ -576,10 +616,12 @@ Implemented:
 - Prevented duplicate `tool_code` inside the same company.
 - Used real Tool Unit and Tool Category IDs from Lookups.
 - Loaded tools after `CurrentContextLoaded`.
-- Added loading/submitting state and error banner.
+- Added loading/submitting/error state.
 - Connected Add / Update / Delete Tool actions to Supabase.
 - Search tools by existing search logic.
-- `flutter analyze` has no errors.
+- Offline blocking for add/update/delete mutations.
+- Tool form shows action errors inside form when opened in Bottom Sheet/Dialog.
+- `flutter analyze` has no errors after implementation.
 
 Database rules confirmed:
 
@@ -590,19 +632,19 @@ Database rules confirmed:
 - `tool_name` has a normalized unique index inside the same company.
 - Tool Unit and Tool Category deletion is protected by foreign key constraints when tools depend on them.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Enforce plan limit before adding a tool.
 - Add friendly upgrade message when tool limit is reached.
 - Add database/RPC-level tool limit enforcement.
-- Add offline-friendly message if tool add/update/delete fails due to no internet.
 - Add stronger database-level open-custody delete protection if needed.
+- Tool status history if needed.
 
 ---
 
 # Phase E — Transactions / Custody Core Supabase Integration
 
-## Status: Done
+## Status: Done / Offline-Aware
 
 Goal:
 
@@ -635,35 +677,41 @@ Implemented:
 - Refactored `TransactionsCubit` to use Supabase.
 - Loaded transactions after `CurrentContextLoaded`.
 - Connected Add Transaction form to Supabase.
-- Added loading overlay and error banner.
-- Fixed transaction proof image display in details dialog.
-- Fixed transaction proof thumbnail display in desktop table.
-- Fullscreen proof image preview now uses resolved signed URL.
+- Added loading overlay.
 - Search/filter transactions works.
 - Custody Balance is calculated from real Supabase transactions.
 - Tool Summary is calculated from real Supabase transactions.
 - Closed Today count is calculated from real Supabase transactions.
 - Signed approval document images are compressed before upload when they are image files.
 - Signed approval document PDF files are uploaded without image compression.
-- `flutter analyze` has no errors.
+- Offline blocking for transaction save.
+- Offline blocking for proof image upload.
+- Offline blocking for signed approval document upload.
+- Offline blocking for cloud proof image viewing.
+- Offline blocking for cloud signed document viewing.
+- Transaction form shows errors inside form when opened in Bottom Sheet/Dialog.
+- Fixed transaction proof image display in details dialog.
+- Fixed transaction proof thumbnail display in desktop table.
+- Fullscreen proof image preview uses resolved signed URL.
+- `flutter analyze` has no errors after implementation.
 
 Business rules confirmed:
 
 - Transactions should not be deleted.
 - Normal edit/delete buttons should not be shown for transactions.
-- Corrections should be done by corrective transactions or a future controlled approval/void workflow.
+- Corrections should be done by corrective transactions or future controlled approval/void workflow.
 - Issue and Return are normal custody movement records.
 - Lost and Damaged enter pending approval flow.
 - Images must be stored in Supabase Storage, not as local file paths.
 
-Latest custody balance rule:
+Custody balance rule:
 
 - Pending Lost/Damaged transactions do not reduce worker custody balance.
 - Rejected Lost/Damaged transactions do not reduce worker custody balance.
 - Return transactions reduce custody balance immediately.
 - Lost/Damaged transactions reduce worker custody balance only after final settlement/deduction is completed.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Add Void/Correction workflow if needed.
 - Generate custody acknowledgement PDFs from real transactions.
@@ -675,10 +723,8 @@ Pending / Future Enhancements:
 - Add database/RPC-level transaction limit enforcement.
 - Add camera capture support on mobile/tablet for transaction proof images.
 - Add camera capture support on mobile/tablet for signed approval document images when the document is captured as a photo.
-- Keep file upload from device storage available as a fallback option.
-- Add clear offline behavior:
-  - First stage: block transaction submission while offline.
-  - Later stage: save transaction draft locally and sync later.
+- Keep file upload from device storage available as fallback.
+- Add offline transaction drafts and sync later.
 
 ---
 
@@ -720,7 +766,7 @@ Implemented:
 - Mobile Dashboard tested.
 - `flutter analyze` has no errors.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Add Dashboard loading skeletons or shimmer if needed.
 - Add Dashboard empty states with better visual design if needed.
@@ -734,7 +780,7 @@ Pending / Future Enhancements:
   - Recent Critical Activities
 - Add subscription/plan card for owners/admins.
 - Add storage usage card.
-- Add offline banner at dashboard level when connection is unavailable.
+- Add stronger dashboard behavior for unstable network requests if needed.
 
 ---
 
@@ -800,6 +846,9 @@ Implemented:
 - Fixed long PDF layout issues.
 - Tested PDF Preview on Windows, mobile, and tablet.
 - Company logo appears in PDF report header.
+- Reports responsive regression fix completed.
+- Reports can generate offline using already-loaded in-memory data.
+- If online assets such as company logo are unavailable offline, reports can still generate without crashing.
 - `flutter analyze` has no errors.
 
 Current PDF section order:
@@ -814,7 +863,7 @@ Current PDF section order:
 8. Footer Text
 9. Page X of Y
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Add PDF Approval Status Summary section.
 - Add better PDF table layouts for long reports if needed.
@@ -830,11 +879,11 @@ Pending / Future Enhancements:
 
 # Phase H — Lost/Damaged Approval & Settlement Workflow
 
-## Status: Core Workflow Implemented
+## Status: Core Workflow Implemented / Offline-Aware
 
 Goal:
 
-Build a controlled workflow for Lost/Damaged transactions so that tools remain in the worker custody until the correct business process is completed.
+Build a controlled workflow for Lost/Damaged transactions so that tools remain in worker custody until the correct business process is completed.
 
 Correct business flow:
 
@@ -864,13 +913,13 @@ Implemented:
 - Upload Signed Approval Document is working.
 - Signed approval document images are compressed before upload when the file is an image.
 - Signed approval document PDF files are uploaded without image compression.
-- View Signed Document works on Windows.
-- View Signed Document works on Android Emulator after Android signed URL fix.
+- View Signed Document works online.
+- View Signed Document is blocked offline with clear dialog message.
 - Dashboard Open Custodies / Closed Today logic updated to respect settlement rules.
 - Pending Approvals UI refactored into smaller widgets.
 - Dashboard refreshes after Approve / Reject / Settle.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Add optional signed settlement/deduction report.
 - Add audit trail entries for approval/settlement actions.
@@ -880,9 +929,121 @@ Pending / Future Enhancements:
 
 ---
 
+# Phase I — Android Signed Document Opening
+
+## Status: Done
+
+Implemented:
+
+- Added Android handling for opening signed approval document URLs.
+- Confirmed View Signed Document works on Android Emulator when online.
+- Signed document viewing is now blocked offline with a clear user message.
+
+Future improvements:
+
+- Add better in-app document preview if needed.
+- Add cached document preview later if secure offline cache is implemented.
+
+---
+
+# Phase J — Large File Refactor Checkpoint
+
+## Status: Mostly Done
+
+Goal:
+
+Keep the codebase readable, modular, and maintainable as the app grows.
+
+Implemented:
+
+- Several large feature files were split into focused widgets/services.
+- Pending Approvals UI was refactored into smaller widgets.
+- PDF generation was split into smaller files.
+- Reports services were organized under PDF-specific service folders.
+- Transaction Cubit was split into part files for load/search, CRUD, approval workflow, and calculations.
+- UI behavior was preserved during refactors.
+
+Future improvements:
+
+- Continue refactoring any file that becomes too large.
+- Keep business logic out of UI widgets where possible.
+- Continue moving repeated widgets/helpers into core or feature-specific folders.
+
+---
+
+# Phase K — Flutter SDK Upgrade Checkpoint
+
+## Status: Done
+
+Implemented:
+
+- Flutter SDK upgrade checkpoint completed.
+- New warnings and compatibility issues were handled where needed.
+- Responsive behavior was tested after upgrade.
+- Existing feature flows continued working after upgrade.
+
+Future improvements:
+
+- Re-test platform builds after future Flutter upgrades.
+- Watch for package compatibility changes, especially:
+  - Supabase
+  - file_picker
+  - printing/pdf
+  - image
+  - url_launcher
+  - connectivity_plus
+
+---
+
+# Phase L — Responsive & Orientation Hardening
+
+## Status: Done
+
+Goal:
+
+Harden the app layout across mobile and tablet orientations and prevent UI overflows when rotating between portrait and landscape.
+
+Completed:
+
+- Ran full rotation audit on:
+  - Mobile Portrait
+  - Mobile Landscape
+  - Tablet Portrait
+  - Tablet Landscape
+- Tested all main screens:
+  - Dashboard
+  - Workers
+  - Tools
+  - Transactions
+  - Reports
+  - Lookups
+  - Company Settings
+- Fixed mobile landscape shell behavior:
+  - Mobile landscape no longer switches to TabletShell.
+- Fixed tablet landscape shell behavior:
+  - Tablet landscape remains TabletShell.
+- Fixed large simulated Android/iOS tablet behavior:
+  - Large mobile/tablet simulations do not switch to DesktopShell.
+- Workers layout selection was hardened.
+- Tools layout selection was hardened.
+- Transactions layout selection was hardened.
+- Reports responsive regression fix completed.
+- Compact landscape search behavior improved.
+- Long forms remain scrollable.
+- Dialogs and bottom sheets respect available height.
+- `flutter analyze` has no errors after implementation.
+
+Future improvements:
+
+- Continue testing each new screen on all layouts.
+- Add additional responsive refinements only when needed.
+- Re-test all layouts before production release.
+
+---
+
 # Phase M — Storage & Image Optimization
 
-## Status: Step M.1 Completed / Cross-Platform Image Compression Implemented
+## Status: Done
 
 Goal:
 
@@ -896,7 +1057,7 @@ The image optimization strategy must work across:
 - iOS devices later
 - Future supported platforms where possible
 
-Completed in Step M.1:
+Completed:
 
 - Added cross-platform image compression service:
   - `lib/core/services/image_compression_service.dart`
@@ -905,11 +1066,11 @@ Completed in Step M.1:
 - Implemented compression from local `File`.
 - Implemented compression from `Uint8List` bytes.
 - Added validation for:
-  - Empty image bytes.
-  - Invalid quality range.
-  - Invalid max dimension.
-  - Unsupported file extensions.
-  - PDF files being passed to image compression.
+  - Empty image bytes
+  - Invalid quality range
+  - Invalid max dimension
+  - Unsupported file extensions
+  - PDF files being passed to image compression
 - Supported image types:
   - JPG
   - JPEG
@@ -932,8 +1093,9 @@ Completed in Step M.1:
 - Tested signed approval PDF upload without image compression.
 - Tested company logo upload after compression/resizing.
 - Tested PDF reports after logo compression.
+- `flutter analyze` has no errors after implementation.
 
-Files updated during Phase M Step M.1:
+Files updated during Phase M:
 
 - `pubspec.yaml`
 - `pubspec.lock`
@@ -956,12 +1118,12 @@ Current behavior:
   - Compress/resize image.
   - Upload compressed bytes.
   - Update `companies.logo_path`.
-  - Delete old logo after successful new upload.
+  - Delete old logo after successful upload.
 - PDF report logo:
   - Loads company logo from Supabase Storage.
   - Displays logo in PDF report header.
 
-Pending / Future Enhancements:
+Future improvements:
 
 - Add max upload size validation before compression.
 - Add friendly error messages for very large or invalid files.
@@ -980,468 +1142,249 @@ Pending / Future Enhancements:
 
 ---
 
-# Phase L — Responsive & Orientation Hardening
-
-## Status: Step L.1 Completed / Rotation Audit Passed
-
-Goal:
-
-Harden the app layout across mobile and tablet orientations and prevent UI overflows when rotating between portrait and landscape.
-
-Completed in Step L.1:
-
-- Ran full rotation audit on:
-  - Mobile Portrait
-  - Mobile Landscape
-  - Tablet Portrait
-  - Tablet Landscape
-- Tested all main screens:
-  - Dashboard
-  - Workers
-  - Tools
-  - Transactions
-  - Reports
-  - Lookups
-  - Company Settings
-- Fixed mobile landscape shell behavior:
-  - Mobile landscape no longer switches to TabletShell.
-- Fixed tablet landscape shell behavior:
-  - 13-inch tablet landscape no longer switches to DesktopShell.
-  - Tablet layout remains TabletShell on Android/iOS simulated tablets.
-- Made `ResponsiveLayout` DevicePreview-aware.
-- Fixed internal layout selection for:
-  - Workers
-  - Tools
-  - Transactions
-- Mobile landscape now keeps mobile card-based layouts instead of switching to desktop tables.
-- Fixed Reports card overflow on tablet.
-- Fixed Reports mobile RenderBox layout crash.
-- Fixed searchable selection bottom sheet behavior in compact landscape.
-- Fixed transaction search visibility while keyboard is open in mobile landscape.
-- Fixed custody balance search visibility while keyboard is open in mobile landscape.
-- Fixed tool summary search visibility while keyboard is open in mobile landscape.
-- Fixed Lookups input visibility while keyboard is open in mobile landscape.
-- Tested PDF preview on mobile and tablet.
-- Ran:
-  - `dart format lib`
-  - `flutter analyze`
-- Result:
-  - No issues found.
-
-Files updated during Phase L Step L.1:
-
-- `lib/core/responsive/responsive_layout.dart`
-- `lib/core/widgets/custom_text_form_field.dart`
-- `lib/core/widgets/searchable_selection_field.dart`
-- `lib/features/dashboard/presentation/widgets/quick_action_card.dart`
-- `lib/features/workers/presentation/screens/workers_screen.dart`
-- `lib/features/tools/presentation/screens/tools_screen.dart`
-- `lib/features/transactions/presentation/screens/transactions_screen.dart`
-- `lib/features/transactions/presentation/widgets/layouts/transactions_mobile_layout.dart`
-- `lib/features/transactions/presentation/widgets/transaction_search_field.dart`
-- `lib/features/transactions/presentation/widgets/custody_balance/custody_balance_search_field.dart`
-- `lib/features/transactions/presentation/widgets/custody_balance/layouts/custody_balance_mobile_layout.dart`
-- `lib/features/transactions/presentation/widgets/tool_custody_summary/tool_custody_summary_search_field.dart`
-- `lib/features/transactions/presentation/widgets/tool_custody_summary/layouts/tool_custody_summary_mobile_layout.dart`
-- `lib/features/reports/presentation/screens/reports_screen.dart`
-- `lib/features/reports/presentation/widgets/report_option_card.dart`
-- `lib/features/lookups/presentation/screens/lookups_screen.dart`
-- `lib/features/lookups/presentation/widgets/lookup_add_row.dart`
-- `lib/features/lookups/presentation/widgets/departments_tab.dart`
-- `lib/features/lookups/presentation/widgets/job_titles_tab.dart`
-- `lib/features/lookups/presentation/widgets/tool_units_tab.dart`
-- `lib/features/lookups/presentation/widgets/tool_categories_tab.dart`
-
-Testing result:
-
-Tablet Portrait / Tablet Landscape:
-
-- Dashboard: Passed
-- Workers: Passed
-- Tools: Passed
-- Transactions: Passed
-- Reports: Passed
-- Lookups: Passed
-- Company Settings: Passed
-
-Mobile Portrait / Mobile Landscape:
-
-- Dashboard: Passed
-- Workers: Passed
-- Tools: Passed
-- Transactions: Passed
-- Reports: Passed
-- Lookups: Passed
-- Company Settings: Passed
-
-## Phase L Regression Fix During Phase M
-
-Status: Done
-
-Reason:
-
-During company logo and PDF testing, Reports card overflow appeared again in a specific tablet layout, and a follow-up fix briefly caused a mobile list layout issue.
-
-Implemented:
-
-- Reports card layout adjusted to support both:
-  - Tablet/Desktop grid with finite card height.
-  - Mobile list with natural card height.
-- Fixed card overflow on tablet.
-- Fixed mobile `RenderBox was not laid out` issue after the first regression fix attempt.
-
-Related files updated:
-
-- `lib/features/reports/presentation/screens/reports_screen.dart`
-- `lib/features/reports/presentation/widgets/report_option_card.dart`
-
-Pending / Future Enhancements:
-
-- Re-test on real physical Android tablet if available.
-- Re-test on real physical Android phone if available.
-- Re-test on iOS simulator/device later before App Store release.
-- Consider extracting shared compact landscape keyboard behavior into a reusable helper/widget if the same pattern repeats in future screens.
-
----
-
-# Maintenance Checkpoint — Flutter SDK Upgrade
-
-## Status: Done
-
-Goal:
-
-Upgrade Flutter SDK safely after the project reached a stable checkpoint.
-
-Completed:
-
-- Upgraded Flutter SDK.
-- Flutter after upgrade: `3.41.9`.
-- Channel: `stable`.
-- Ran `flutter doctor`.
-- Result: `No issues found`.
-- Ran `flutter pub get`.
-- Ran `dart format lib`.
-- Ran `flutter analyze`.
-- Result: `No issues found`.
-- Ran the app on Windows.
-- Tested:
-  - Login
-  - Dashboard
-  - Workers
-  - Tools
-  - Transactions
-  - Company Settings
-- Flutter upgrade was committed separately.
-- Changes pushed to GitHub.
-
-Commit message:
-
-`Upgrade Flutter SDK and verify project`
-
----
-
-# Maintenance Checkpoint — Large File Refactor
-
-## Status: Mostly Done / One Deferred Model
-
-Goal:
-
-Reduce large Dart files into smaller, more maintainable modules without changing working behavior.
-
-Completed:
-
-- Refactored Pending Approvals UI into smaller widgets.
-- Refactored Report PDF table sections into smaller report-specific files.
-- Refactored Transaction Details dialog into smaller detail widgets.
-- Refactored LookupsCubit using Dart part files.
-- Refactored TransactionsCubit using Dart part files.
-- Refactored TransactionsRepo into a facade delegating to specialized services:
-  - `TransactionStorageService`
-  - `TransactionApprovalService`
-  - `TransactionCodeService`
-- Ran `dart format lib`.
-- Ran `flutter analyze`.
-- Result: no issues.
-- Changes committed and pushed.
-
-Files intentionally deferred:
-
-- `lib/features/transactions/data/models/transaction_model.dart`
-
-Reason:
-
-- It is a central model used by transactions, dashboard, reports, and approval workflow.
-- It is only slightly above 300 lines.
-- Refactor can be done later using safe part files:
-  - `transaction_model_json.dart`
-  - `transaction_model_copy_with.dart`
-  - `transaction_model_parsers.dart`
-
-Rule:
-
-- Do not refactor this model during feature work.
-- Refactor it later as a small isolated maintenance commit.
-
-Future maintenance additions:
-
-- Add dedicated network status service/cubit:
-  - `lib/core/network/network_cubit.dart`
-  - `lib/core/network/network_state.dart`
-- Add plan/limits service:
-  - `lib/features/subscriptions/...`
-- Keep commercial logic out of widgets where possible.
-- Keep image compression logic centralized inside:
-  - `lib/core/services/image_compression_service.dart`
-- Do not duplicate image compression logic inside repositories or widgets.
-
----
-
-# Maintenance Checkpoint — Android Signed Document Opening
-
-## Status: Done
-
-Goal:
-
-Fix opening signed approval documents on Android emulator / Android devices.
-
-Problem:
-
-- `View Signed Document` worked on Windows.
-- On Android emulator, `url_launcher` could not open signed Supabase URLs correctly.
-- Android logs showed messages like:
-  - `component name for https://... is null`
-
-Implemented:
-
-- Added Android package visibility queries for:
-  - `https`
-  - `http`
-- Preserved Flutter engine `PROCESS_TEXT` query.
-- Updated signed document button to use `launchUrl` directly instead of relying on `canLaunchUrl`.
-
-Files touched:
-
-- `android/app/src/main/AndroidManifest.xml`
-- `lib/features/transactions/presentation/widgets/details/transaction_signed_document_button.dart`
-
-Testing:
-
-- Tested `View Signed Document` on Android emulator.
-- Signed Supabase approval document URL opens successfully.
-- `flutter analyze` has no errors.
-
----
-
-# Next Recommended Phase — Offline / Network Handling
-
-## Suggested Phase Name
-
 # Phase N — Offline & Network Handling
+
+## Status: In Progress
+
+Goal:
+
+Provide clear, safe, and professional behavior when the user is offline or the internet connection is unstable.
+
+Completed:
+
+- `NetworkStatusService`.
+- `NetworkStatusCubit`.
+- `NetworkStatusState`.
+- `GlobalOfflineBanner`.
+- App shell integrated with network watcher.
+- Offline banner appears when app context is loaded and network is offline.
+- Offline screen appears when Current Context cannot load due to no connection.
+- Retry action added for Current Context failure/offline screen.
+- AppMessage system added:
+  - Success
+  - Error
+  - Warning
+  - Info
+- Transaction save blocked offline.
+- Transaction proof upload blocked offline.
+- Signed approval document upload blocked offline.
+- Company logo upload blocked offline.
+- Cloud proof image viewing blocked offline.
+- Cloud signed document viewing blocked offline.
+- Workers add/update/delete blocked offline.
+- Tools add/update/delete blocked offline.
+- Lookups add/delete blocked offline.
+- Company Settings mutations blocked offline:
+  - Company Profile update
+  - Report Settings update
+  - Document Template update
+  - Company Logo upload
+- Settings action failures remain inside loaded Settings screen.
+- Messages inside Bottom Sheets/Dialogs were adjusted where SnackBars would be hidden.
+
+Current behavior:
+
+- Offline does not allow new writes/mutations.
+- Offline does not allow Storage uploads.
+- Offline does not allow cloud-only Storage file viewing.
+- Reports can still generate from already-loaded data.
+- No full offline sync is implemented yet.
+
+Next implementation step:
+
+**Friendly Network Error Mapper**
+
+Purpose:
+
+Convert technical errors like:
+
+- `SocketException`
+- `Failed host lookup`
+- `ClientException`
+- `StorageException`
+- `PostgrestException` where appropriate
+
+Into user-friendly messages.
+
+Pending in Phase N:
+
+- Add centralized `AppErrorMessage`.
+- Apply it gradually to:
+  - TransactionsCubit
+  - WorkersCubit
+  - ToolsCubit
+  - LookupsCubit
+  - CompanySettingsCubit
+  - CurrentContextCubit
+  - DashboardCubit if needed
+  - Report asset loading if needed
+- Improve handling for unstable connections where connectivity exists but Supabase calls fail.
+- Keep validation/business-rule errors separate from network errors.
+
+Future offline features, not part of first-stage Phase N:
+
+- Local offline transaction drafts.
+- Pending sync queue.
+- Offline cache for proof images/documents.
+- Offline cache for company context.
+- Conflict resolution after reconnect.
+- Secure cached documents if sensitive.
+
+---
+
+# Commercial / SaaS Backlog
 
 ## Status: Not Started
 
-Goal:
+Required future features:
 
-Prevent silent failures when the app has no internet connection or unstable network access.
+- Company subscription table/model.
+- Free plan default assignment.
+- Paid plan records.
+- Plan status checks.
+- Usage counters.
+- Worker limits.
+- Tool limits.
+- Transaction limits.
+- Storage limits.
+- Feature gating.
+- Subscription required / expired screen.
+- Owner/admin subscription page.
+- “Contact your company admin to manage subscription” message.
+- Production billing approach decision:
+  - Website
+  - Invoice
+  - Customer portal
+  - Store billing review if mobile payments are ever added
 
-Why this is next:
+Future packaging/distribution:
 
-- The roadmap requires clear offline/network behavior.
-- Transactions should not be submitted while offline until full offline sync exists.
-- Current Supabase-backed flows depend on internet access.
-- Users need friendly retry/error messages instead of unclear failures.
-
-Suggested Step N.1:
-
-Add a dedicated network status foundation:
-
-- Add dependency if needed:
-  - `connectivity_plus`
-- Add:
-  - `lib/core/network/network_state.dart`
-  - `lib/core/network/network_cubit.dart`
-  - `lib/core/network/network_status_service.dart` if needed
-- Detect:
-  - Online
-  - Offline
-  - Unknown/checking
-- Show a simple app-level offline banner or screen where appropriate.
-- Do not implement offline sync yet.
-- Do not allow offline transaction submission yet.
-
-Suggested Step N.2:
-
-Block transaction submission while offline:
-
-- If offline:
-  - Do not upload proof image.
-  - Do not create transaction.
-  - Show clear message:
-    - `You are offline. Please reconnect before submitting this transaction.`
-- Keep current online flow unchanged.
-
-Suggested Step N.3:
-
-Add retry behavior for critical loading screens:
-
-- Current Context loading.
-- Dashboard loading.
-- Transactions loading.
-- Reports data loading if needed.
-
-Future Offline Enhancements:
-
-- Local read-only cache for selected data.
-- Offline transaction drafts.
-- Pending sync queue.
-- Conflict handling.
-- Secure sync after reconnect.
-- Never bypass RLS, subscriptions, or company isolation.
+- Free mobile app download.
+- Login-based access.
+- Company subscription managed outside mobile app where appropriate.
+- Desktop installer for Windows.
+- Web landing page for marketing and subscription information.
 
 ---
 
-# Future Commercial / SaaS Roadmap
+# Users / Roles / Invitations Backlog
 
-## Subscriptions / Plans
+## Status: Not Started
 
-Status: Not Started
+Required future features:
 
-Goal:
-
-Support Free and Paid company-based plans without creating separate apps.
-
-Future requirements:
-
-- Add subscription tables.
-- Add company subscription records.
-- Assign Free plan by default after company creation.
-- Check subscription during Current Context loading.
-- Show subscription status in Company Settings.
-- Show plan card in Dashboard for owners/admins.
-- Enforce limits at database/RPC level, not UI only.
-- Keep mobile app payment behavior safe:
-  - No direct payment buttons inside mobile apps until store billing rules are reviewed.
-  - Prefer website, invoice, or customer portal for B2B payments.
-
-Possible plan limits:
-
-- Workers count.
-- Tools count.
-- Monthly transactions.
-- Storage usage.
-- Advanced document template customization.
-- Advanced reports.
-- Export history.
-
-## Company Users / Invitations
-
-Status: Not Started
-
-Goal:
-
-Allow company owners/admins to invite users safely.
-
-Future requirements:
-
-- Do not call Supabase Admin Auth directly from Flutter.
-- Use secure backend / Supabase Edge Function for invitations.
-- Pending invitation flow by email.
+- Secure invitation system.
+- Supabase Edge Function for invite flow.
+- Company user management screen.
+- Role assignment.
+- Role-based UI permissions.
+- Database-level role permission enforcement.
+- Pending invitations screen.
 - Accept invitation flow.
-- Join existing company flow.
-- Role-based permissions:
-  - Owner
-  - Admin
-  - Warehouse User
-  - Viewer
-- RLS must enforce permissions at database level.
-- UI should only reflect permissions, not be the only enforcement.
+- Select company flow for users with multiple memberships.
+- Audit logs for role and membership changes.
 
-## Roles & Permissions
+Potential roles:
 
-Status: Not Started
+- Owner
+- Admin
+- Warehouse Manager
+- Storekeeper
+- Viewer / Auditor
 
-Goal:
+---
 
-Control who can view, create, approve, reject, settle, or configure data.
+# Storage Limits / Usage Backlog
 
-Future requirements:
+## Status: Not Started
 
-- Stronger role-based permissions for:
-  - Workers
-  - Tools
-  - Transactions
-  - Reports
-  - Company Settings
-  - Lost/Damaged approvals
-  - Settlements
-- RLS policies must enforce role permissions.
-- Approval and settlement actions should be restricted to authorized roles.
+Required future features:
 
-## Storage Usage Tracking
+- Track storage usage per company.
+- Track transaction proof storage.
+- Track approval document storage.
+- Track company logo storage.
+- Enforce storage quota per subscription plan.
+- Add storage usage card in Dashboard or Company Settings.
+- Add cleanup/history view if needed.
+- Prevent uploads when storage limit is reached.
+- Show friendly upgrade message when storage limit is reached.
 
-Status: Not Started
+---
 
-Goal:
+# Camera Capture Backlog
 
-Track storage usage per company and enforce plan limits.
+## Status: Not Started
 
-Future requirements:
+Required future features:
 
-- Track uploaded file sizes.
-- Track company storage usage.
-- Track storage per bucket/category:
-  - Transaction proofs
-  - Approval documents
-  - Company logos
-  - Future documents
-- Add storage usage summary in Dashboard or Company Settings.
-- Enforce storage limits based on subscription plan.
-- Add cleanup/history flow if needed.
+- Mobile/tablet camera capture for transaction proof images.
+- Mobile/tablet camera capture for signed approval document images.
+- Camera capture should remain optional.
+- File picker upload should remain supported as fallback.
+- Captured images must be compressed before upload.
+- Captured image paths must not be stored in Supabase.
+- Only uploaded cloud paths should be stored in database.
+- Add preview/retake flow if needed.
 
-## Production Release Readiness
+---
 
-Status: Not Started
+# Reports Backlog
 
-Goal:
+## Status: Partially Started
 
-Prepare the app for real production deployment.
+Future reports/features:
 
-Future requirements:
+- Worker Acknowledgment Report.
+- Settlement/Deduction Report if needed.
+- PDF Approval Status Summary.
+- Export/download history.
+- Report generation history table if required.
+- Better large PDF performance handling.
+- Server-side PDF generation if client-side generation becomes too slow.
+- Role-based report access.
+- Plan-based report limits if needed.
+
+---
+
+# Production Release Backlog
+
+## Status: Not Started
+
+Required future checklist:
 
 - Production Supabase project.
-- Separate development/testing environment.
 - Environment configuration.
 - Privacy Policy.
 - Terms of Service.
 - Support contact.
 - Demo/review account for app stores if required.
-- App icons.
-- App signing.
-- Google Play release checklist.
-- App Store release checklist.
-- Desktop installer packaging.
-- Web landing page.
-- Desktop installer download page.
+- Android release build.
+- iOS release build.
+- Desktop installer.
+- Landing page.
+- Backup/restore strategy.
+- Monitoring/logging strategy.
+- Final security/RLS review.
+- Final responsive/device testing.
+- Final offline/network testing.
+- Final storage limit testing.
+- Final subscription/plan testing.
 
 ---
 
 # Current Next Action
 
-After this roadmap update is committed and pushed, continue with:
+Continue Phase N.
 
-## Phase N — Offline & Network Handling
+Next implementation step:
 
-Recommended first step:
+**Friendly Network Error Mapper**
 
-`Step N.1 — Add network status foundation`
+Suggested commit after next step:
 
-Small step only:
+`Add friendly network error mapper`
 
-- Add network dependency if needed.
-- Create network state/cubit/service.
-- Do not change transaction submission yet.
-- Run:
-  - `dart format lib`
-  - `flutter analyze`
-- Test on Windows first.
-- Then test mobile/tablet behavior.
+After the mapper is applied and tested, update this roadmap again and commit:
+
+`Update roadmap after offline network handling`
