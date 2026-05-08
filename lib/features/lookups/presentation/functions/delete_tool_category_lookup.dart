@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
@@ -18,11 +19,14 @@ Future<bool> deleteToolCategoryLookup({
     showLookupMessage(
       context,
       'Cannot delete category because it is used by tools',
+      type: AppMessageType.warning,
     );
     return false;
   }
 
-  final isDeleted = await context.read<LookupsCubit>().deleteToolCategory(
+  final lookupsCubit = context.read<LookupsCubit>();
+
+  final isDeleted = await lookupsCubit.deleteToolCategory(
     category: cleanCategory,
   );
 
@@ -31,9 +35,17 @@ Future<bool> deleteToolCategoryLookup({
   }
 
   if (isDeleted) {
-    showLookupMessage(context, 'Category deleted successfully');
+    showLookupMessage(
+      context,
+      'Category deleted successfully',
+      type: AppMessageType.success,
+    );
   } else {
-    showLookupMessage(context, 'Category was not deleted');
+    final message =
+        lookupsCubit.state.errorMessage ?? 'Category was not deleted';
+    lookupsCubit.clearErrorMessage();
+
+    showLookupMessage(context, message, type: AppMessageType.error);
   }
 
   return isDeleted;

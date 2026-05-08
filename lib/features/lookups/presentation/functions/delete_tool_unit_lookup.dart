@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
@@ -18,22 +19,30 @@ Future<bool> deleteToolUnitLookup({
     showLookupMessage(
       context,
       'Cannot delete unit because it is used by tools',
+      type: AppMessageType.warning,
     );
     return false;
   }
 
-  final isDeleted = await context.read<LookupsCubit>().deleteToolUnit(
-    unit: cleanUnit,
-  );
+  final lookupsCubit = context.read<LookupsCubit>();
+
+  final isDeleted = await lookupsCubit.deleteToolUnit(unit: cleanUnit);
 
   if (!context.mounted) {
     return false;
   }
 
   if (isDeleted) {
-    showLookupMessage(context, 'Unit deleted successfully');
+    showLookupMessage(
+      context,
+      'Unit deleted successfully',
+      type: AppMessageType.success,
+    );
   } else {
-    showLookupMessage(context, 'Unit was not deleted');
+    final message = lookupsCubit.state.errorMessage ?? 'Unit was not deleted';
+    lookupsCubit.clearErrorMessage();
+
+    showLookupMessage(context, message, type: AppMessageType.error);
   }
 
   return isDeleted;

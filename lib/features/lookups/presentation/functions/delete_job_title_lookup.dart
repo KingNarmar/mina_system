@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
@@ -29,11 +30,14 @@ Future<bool> deleteJobTitleLookup({
     showLookupMessage(
       context,
       'Cannot delete job title because it is used by workers',
+      type: AppMessageType.warning,
     );
     return false;
   }
 
-  final isDeleted = await context.read<LookupsCubit>().deleteJobTitle(
+  final lookupsCubit = context.read<LookupsCubit>();
+
+  final isDeleted = await lookupsCubit.deleteJobTitle(
     department: cleanDepartment,
     jobTitle: cleanJobTitle,
   );
@@ -43,9 +47,17 @@ Future<bool> deleteJobTitleLookup({
   }
 
   if (isDeleted) {
-    showLookupMessage(context, 'Job title deleted successfully');
+    showLookupMessage(
+      context,
+      'Job title deleted successfully',
+      type: AppMessageType.success,
+    );
   } else {
-    showLookupMessage(context, 'Job title was not deleted');
+    final message =
+        lookupsCubit.state.errorMessage ?? 'Job title was not deleted';
+    lookupsCubit.clearErrorMessage();
+
+    showLookupMessage(context, message, type: AppMessageType.error);
   }
 
   return isDeleted;

@@ -11,6 +11,11 @@ extension LookupsCubitToolUnits on LookupsCubit {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -65,6 +70,11 @@ extension LookupsCubitToolUnits on LookupsCubit {
 
     if (toolUnitModel == null) {
       emitState(state.copyWith(errorMessage: 'Tool unit was not found'));
+      return false;
+    }
+
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
       return false;
     }
 

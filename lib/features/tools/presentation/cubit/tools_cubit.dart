@@ -1,12 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/data/repo/tools_repo.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_helpers.dart';
 
 class ToolsCubit extends Cubit<ToolsState> {
-  ToolsCubit({ToolsRepo? toolsRepo})
+  ToolsCubit({ToolsRepo? toolsRepo, NetworkStatusService? networkStatusService})
     : _toolsRepo = toolsRepo ?? ToolsRepo(),
+      _networkStatusService = networkStatusService ?? NetworkStatusService(),
       super(
         const ToolsState(
           tools: _initialTools,
@@ -16,6 +18,7 @@ class ToolsCubit extends Cubit<ToolsState> {
       );
 
   final ToolsRepo _toolsRepo;
+  final NetworkStatusService _networkStatusService;
 
   static const List<ToolModel> _initialTools = [];
 
@@ -60,6 +63,11 @@ class ToolsCubit extends Cubit<ToolsState> {
 
     if (tool.unitId == null || tool.categoryId == null) {
       emit(state.copyWith(errorMessage: 'Unit and category are required'));
+      return false;
+    }
+
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
       return false;
     }
 
@@ -147,6 +155,11 @@ class ToolsCubit extends Cubit<ToolsState> {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -221,6 +234,11 @@ class ToolsCubit extends Cubit<ToolsState> {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -257,6 +275,24 @@ class ToolsCubit extends Cubit<ToolsState> {
 
   String generateNextToolCode() {
     return generateNextToolCodeFromList(state.tools);
+  }
+
+  void clearErrorMessage() {
+    if (state.errorMessage == null) {
+      return;
+    }
+
+    emit(state.copyWith(clearErrorMessage: true));
+  }
+
+  Future<bool> _ensureOnline() async {
+    try {
+      await _networkStatusService.ensureOnline();
+      return true;
+    } on NetworkUnavailableException catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.message));
+      return false;
+    }
   }
 
   void emitUpdatedTools(

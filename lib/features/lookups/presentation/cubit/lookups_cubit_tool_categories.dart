@@ -11,6 +11,11 @@ extension LookupsCubitToolCategories on LookupsCubit {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -65,6 +70,11 @@ extension LookupsCubitToolCategories on LookupsCubit {
 
     if (toolCategoryModel == null) {
       emitState(state.copyWith(errorMessage: 'Tool category was not found'));
+      return false;
+    }
+
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
       return false;
     }
 

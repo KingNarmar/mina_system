@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/features/lookups/data/repo/lookups_repo.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit_helpers.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit_initial_data.dart';
@@ -11,19 +12,23 @@ part 'lookups_cubit_tool_units.dart';
 part 'lookups_cubit_tool_categories.dart';
 
 class LookupsCubit extends Cubit<LookupsState> {
-  LookupsCubit({LookupsRepo? lookupsRepo})
-    : _lookupsRepo = lookupsRepo ?? LookupsRepo(),
-      super(
-        const LookupsState(
-          departments: LookupsCubitInitialData.initialDepartments,
-          jobTitlesByDepartment:
-              LookupsCubitInitialData.initialJobTitlesByDepartment,
-          toolUnits: LookupsCubitInitialData.initialToolUnits,
-          toolCategories: LookupsCubitInitialData.initialToolCategories,
-        ),
-      );
+  LookupsCubit({
+    LookupsRepo? lookupsRepo,
+    NetworkStatusService? networkStatusService,
+  }) : _lookupsRepo = lookupsRepo ?? LookupsRepo(),
+       _networkStatusService = networkStatusService ?? NetworkStatusService(),
+       super(
+         const LookupsState(
+           departments: LookupsCubitInitialData.initialDepartments,
+           jobTitlesByDepartment:
+               LookupsCubitInitialData.initialJobTitlesByDepartment,
+           toolUnits: LookupsCubitInitialData.initialToolUnits,
+           toolCategories: LookupsCubitInitialData.initialToolCategories,
+         ),
+       );
 
   final LookupsRepo _lookupsRepo;
+  final NetworkStatusService _networkStatusService;
 
   void emitState(LookupsState state) => emit(state);
 
@@ -53,6 +58,29 @@ class LookupsCubit extends Cubit<LookupsState> {
       );
     } catch (error) {
       emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+    }
+  }
+
+  void clearErrorMessage() {
+    if (state.errorMessage == null) {
+      return;
+    }
+
+    emit(state.copyWith(clearErrorMessage: true));
+  }
+
+  Future<bool> _ensureOnline() async {
+    try {
+      await _networkStatusService.ensureOnline();
+      return true;
+    } on NetworkUnavailableException catch (error) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: error.message,
+        ),
+      );
+      return false;
     }
   }
 }

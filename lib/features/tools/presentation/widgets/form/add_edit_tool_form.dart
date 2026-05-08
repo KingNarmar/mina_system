@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_dropdown_form_field.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
@@ -8,6 +9,7 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
+import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_form_validators.dart';
 
 class AddEditToolForm extends StatefulWidget {
@@ -20,7 +22,7 @@ class AddEditToolForm extends StatefulWidget {
     this.isToolNameAlreadyUsed,
   });
 
-  final ValueChanged<ToolModel> onSave;
+  final Future<String?> Function(ToolModel tool) onSave;
   final ToolModel? initialTool;
   final String? generatedToolCode;
   final ToolCodeValidator? isToolCodeAlreadyUsed;
@@ -38,6 +40,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
 
   String? _selectedUnit;
   String? _selectedCategory;
+  String? _submitErrorMessage;
 
   bool get _isEditMode => widget.initialTool != null;
 
@@ -69,6 +72,8 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, lookupsState) {
+        final isSubmitting = context.watch<ToolsCubit>().state.isSubmitting;
+
         return Padding(
           padding: EdgeInsets.fromLTRB(
             20,
@@ -121,6 +126,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                     onChanged: (value) {
                       setState(() {
                         _selectedUnit = value;
+                        _submitErrorMessage = null;
                       });
                     },
                   ),
@@ -133,12 +139,18 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                     onChanged: (value) {
                       setState(() {
                         _selectedCategory = value;
+                        _submitErrorMessage = null;
                       });
                     },
                   ),
+                  if (_submitErrorMessage != null) ...[
+                    const Gap(16),
+                    _FormErrorMessage(message: _submitErrorMessage!),
+                  ],
                   const Gap(20),
                   MainButton(
                     text: _isEditMode ? 'Update Tool' : 'Save Tool',
+                    isLoading: isSubmitting,
                     onPressed: () => _onSavePressed(lookupsState),
                   ),
                 ],
@@ -150,10 +162,14 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
     );
   }
 
-  void _onSavePressed(LookupsState lookupsState) {
+  Future<void> _onSavePressed(LookupsState lookupsState) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    setState(() {
+      _submitErrorMessage = null;
+    });
 
     final selectedUnitName = _selectedUnit!.trim();
     final selectedCategoryName = _selectedCategory!.trim();
@@ -167,6 +183,9 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
         .firstOrNull;
 
     if (selectedUnitModel == null || selectedCategoryModel == null) {
+      setState(() {
+        _submitErrorMessage = 'Selected unit or category was not found.';
+      });
       return;
     }
 
@@ -188,6 +207,58 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
       updatedAt: initialTool?.updatedAt,
     );
 
-    widget.onSave(tool);
+    final errorMessage = await widget.onSave(tool);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (errorMessage != null) {
+      setState(() {
+        _submitErrorMessage = errorMessage;
+      });
+      return;
+    }
+
+    Navigator.pop(context);
+  }
+}
+
+class _FormErrorMessage extends StatelessWidget {
+  const _FormErrorMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

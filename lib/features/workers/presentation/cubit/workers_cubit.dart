@@ -1,21 +1,26 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/data/repo/workers_repo.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/functions/worker_helpers.dart';
 
 class WorkersCubit extends Cubit<WorkersState> {
-  WorkersCubit({WorkersRepo? workersRepo})
-    : _workersRepo = workersRepo ?? WorkersRepo(),
-      super(
-        const WorkersState(
-          workers: _initialWorkers,
-          filteredWorkers: _initialWorkers,
-          searchQuery: '',
-        ),
-      );
+  WorkersCubit({
+    WorkersRepo? workersRepo,
+    NetworkStatusService? networkStatusService,
+  }) : _workersRepo = workersRepo ?? WorkersRepo(),
+       _networkStatusService = networkStatusService ?? NetworkStatusService(),
+       super(
+         const WorkersState(
+           workers: _initialWorkers,
+           filteredWorkers: _initialWorkers,
+           searchQuery: '',
+         ),
+       );
 
   final WorkersRepo _workersRepo;
+  final NetworkStatusService _networkStatusService;
 
   static const List<WorkerModel> _initialWorkers = [];
 
@@ -53,6 +58,11 @@ class WorkersCubit extends Cubit<WorkersState> {
       emit(
         state.copyWith(errorMessage: 'Department and job title are required'),
       );
+      return false;
+    }
+
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
       return false;
     }
 
@@ -123,6 +133,11 @@ class WorkersCubit extends Cubit<WorkersState> {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -177,6 +192,11 @@ class WorkersCubit extends Cubit<WorkersState> {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -201,6 +221,24 @@ class WorkersCubit extends Cubit<WorkersState> {
       hrCode: hrCode,
       ignoredHrCode: ignoredHrCode,
     );
+  }
+
+  void clearErrorMessage() {
+    if (state.errorMessage == null) {
+      return;
+    }
+
+    emit(state.copyWith(clearErrorMessage: true));
+  }
+
+  Future<bool> _ensureOnline() async {
+    try {
+      await _networkStatusService.ensureOnline();
+      return true;
+    } on NetworkUnavailableException catch (error) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.message));
+      return false;
+    }
   }
 
   void emitUpdatedWorkers(

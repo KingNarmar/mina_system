@@ -11,6 +11,11 @@ extension LookupsCubitDepartments on LookupsCubit {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -53,6 +58,11 @@ extension LookupsCubitDepartments on LookupsCubit {
   }
 
   Future<bool> deleteDepartment({required String departmentId}) async {
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {

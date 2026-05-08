@@ -22,6 +22,11 @@ extension LookupsCubitJobTitles on LookupsCubit {
       return false;
     }
 
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
@@ -94,6 +99,11 @@ extension LookupsCubitJobTitles on LookupsCubit {
 
     if (jobTitleModel == null) {
       emitState(state.copyWith(errorMessage: 'Job title was not found'));
+      return false;
+    }
+
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
       return false;
     }
 

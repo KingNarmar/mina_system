@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
@@ -9,7 +10,6 @@ import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/widgets/form/add_edit_tool_form.dart';
 
 void showToolBottomSheet(BuildContext context, {ToolModel? tool}) {
-  final parentContext = context;
   final toolsCubit = context.read<ToolsCubit>();
   final lookupsCubit = context.read<LookupsCubit>();
 
@@ -34,9 +34,8 @@ void showToolBottomSheet(BuildContext context, {ToolModel? tool}) {
           isToolCodeAlreadyUsed: toolsCubit.isToolCodeAlreadyUsed,
           isToolNameAlreadyUsed: toolsCubit.isToolNameAlreadyUsed,
           onSave: (savedTool) async {
-            await _saveTool(
-              context: parentContext,
-              popContext: sheetContext,
+            return _saveTool(
+              context: context,
               currentTool: tool,
               savedTool: savedTool,
             );
@@ -48,7 +47,6 @@ void showToolBottomSheet(BuildContext context, {ToolModel? tool}) {
 }
 
 void showToolDialog(BuildContext context, {ToolModel? tool}) {
-  final parentContext = context;
   final toolsCubit = context.read<ToolsCubit>();
   final lookupsCubit = context.read<LookupsCubit>();
 
@@ -72,9 +70,8 @@ void showToolDialog(BuildContext context, {ToolModel? tool}) {
               isToolCodeAlreadyUsed: toolsCubit.isToolCodeAlreadyUsed,
               isToolNameAlreadyUsed: toolsCubit.isToolNameAlreadyUsed,
               onSave: (savedTool) async {
-                await _saveTool(
-                  context: parentContext,
-                  popContext: dialogContext,
+                return _saveTool(
+                  context: context,
                   currentTool: tool,
                   savedTool: savedTool,
                 );
@@ -87,9 +84,8 @@ void showToolDialog(BuildContext context, {ToolModel? tool}) {
   );
 }
 
-Future<void> _saveTool({
+Future<String?> _saveTool({
   required BuildContext context,
-  required BuildContext popContext,
   required ToolModel? currentTool,
   required ToolModel savedTool,
 }) async {
@@ -98,59 +94,63 @@ Future<void> _saveTool({
   final toolsCubit = context.read<ToolsCubit>();
   final dashboardCubit = context.read<DashboardCubit>();
 
-  final navigator = Navigator.of(popContext);
-  final messenger = ScaffoldMessenger.of(context);
+  if (companyId == null || companyId.trim().isEmpty) {
+    return 'Company ID was not found';
+  }
 
-  final bool isSaved;
+  if (currentTool == null && (profileId == null || profileId.trim().isEmpty)) {
+    return 'Profile ID was not found';
+  }
 
   if (currentTool == null) {
-    isSaved = await toolsCubit.addTool(
+    final isSaved = await toolsCubit.addTool(
       savedTool,
       companyId: companyId,
       createdByProfileId: profileId,
     );
 
+    if (!context.mounted) {
+      return 'Unable to save tool.';
+    }
+
     if (!isSaved) {
-      return;
+      final errorMessage =
+          toolsCubit.state.errorMessage ?? 'Tool was not added.';
+      toolsCubit.clearErrorMessage();
+      return errorMessage;
     }
 
-    if (companyId != null && companyId.trim().isNotEmpty) {
-      await dashboardCubit.loadDashboardSummary(companyId: companyId);
+    await dashboardCubit.loadDashboardSummary(companyId: companyId);
+
+    if (context.mounted) {
+      AppMessage.showSuccess(context, 'Tool added successfully');
     }
 
-    navigator.pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Tool added successfully'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    return;
+    return null;
   }
 
-  isSaved = await toolsCubit.updateTool(
+  final isSaved = await toolsCubit.updateTool(
     currentToolCode: currentTool.toolCode,
     updatedTool: savedTool,
     companyId: companyId,
   );
 
+  if (!context.mounted) {
+    return 'Unable to save tool.';
+  }
+
   if (!isSaved) {
-    return;
+    final errorMessage =
+        toolsCubit.state.errorMessage ?? 'Tool was not updated.';
+    toolsCubit.clearErrorMessage();
+    return errorMessage;
   }
 
-  if (companyId != null && companyId.trim().isNotEmpty) {
-    await dashboardCubit.loadDashboardSummary(companyId: companyId);
+  await dashboardCubit.loadDashboardSummary(companyId: companyId);
+
+  if (context.mounted) {
+    AppMessage.showSuccess(context, 'Tool updated successfully');
   }
 
-  navigator.pop();
-  messenger
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      const SnackBar(
-        content: Text('Tool updated successfully'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  return null;
 }

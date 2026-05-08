@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
@@ -17,7 +18,11 @@ Future<bool> deleteDepartmentLookup({
       .firstOrNull;
 
   if (departmentModel == null) {
-    showLookupMessage(context, 'Department was not found');
+    showLookupMessage(
+      context,
+      'Department was not found',
+      type: AppMessageType.warning,
+    );
     return false;
   }
 
@@ -29,6 +34,7 @@ Future<bool> deleteDepartmentLookup({
     showLookupMessage(
       context,
       'Cannot delete department because it has job titles',
+      type: AppMessageType.warning,
     );
     return false;
   }
@@ -43,6 +49,7 @@ Future<bool> deleteDepartmentLookup({
     showLookupMessage(
       context,
       'Cannot delete department because it is used by workers',
+      type: AppMessageType.warning,
     );
     return false;
   }
@@ -56,9 +63,17 @@ Future<bool> deleteDepartmentLookup({
   }
 
   if (isDeleted) {
-    showLookupMessage(context, 'Department deleted successfully');
+    showLookupMessage(
+      context,
+      'Department deleted successfully',
+      type: AppMessageType.success,
+    );
   } else {
-    showLookupMessage(context, 'Department was not deleted');
+    final message =
+        lookupsCubit.state.errorMessage ?? 'Department was not deleted';
+    lookupsCubit.clearErrorMessage();
+
+    showLookupMessage(context, message, type: AppMessageType.error);
   }
 
   return isDeleted;

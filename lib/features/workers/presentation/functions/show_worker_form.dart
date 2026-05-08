@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
-import 'package:mina_system/features/workers/presentation/functions/show_worker_message.dart';
 import 'package:mina_system/features/workers/presentation/widgets/add_worker_form.dart';
 
 void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
+  final workersCubit = context.read<WorkersCubit>();
+  final lookupsCubit = context.read<LookupsCubit>();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -18,11 +21,14 @@ void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (_) {
-      return BlocProvider.value(
-        value: context.read<LookupsCubit>(),
+      return MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: workersCubit),
+          BlocProvider.value(value: lookupsCubit),
+        ],
         child: AddWorkerForm(
           initialWorker: worker,
-          isHrCodeAlreadyUsed: context.read<WorkersCubit>().isHrCodeAlreadyUsed,
+          isHrCodeAlreadyUsed: workersCubit.isHrCodeAlreadyUsed,
           onSave: (savedWorker) {
             return _saveWorker(
               context: context,
@@ -37,6 +43,9 @@ void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
 }
 
 void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
+  final workersCubit = context.read<WorkersCubit>();
+  final lookupsCubit = context.read<LookupsCubit>();
+
   showDialog(
     context: context,
     builder: (_) {
@@ -44,13 +53,14 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SizedBox(
           width: 460,
-          child: BlocProvider.value(
-            value: context.read<LookupsCubit>(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: workersCubit),
+              BlocProvider.value(value: lookupsCubit),
+            ],
             child: AddWorkerForm(
               initialWorker: worker,
-              isHrCodeAlreadyUsed: context
-                  .read<WorkersCubit>()
-                  .isHrCodeAlreadyUsed,
+              isHrCodeAlreadyUsed: workersCubit.isHrCodeAlreadyUsed,
               onSave: (savedWorker) {
                 return _saveWorker(
                   context: context,
@@ -66,64 +76,72 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
   );
 }
 
-Future<bool> _saveWorker({
+Future<String?> _saveWorker({
   required BuildContext context,
   required WorkerModel? originalWorker,
   required WorkerModel savedWorker,
 }) async {
-  final companyId = context.requireCurrentCompanyId();
+  final companyId = context.currentCompanyId;
+  final profileId = context.currentProfileId;
+  final workersCubit = context.read<WorkersCubit>();
   final dashboardCubit = context.read<DashboardCubit>();
 
-  if (originalWorker == null) {
-    final profileId = context.requireCurrentProfileId();
+  if (companyId == null || companyId.isEmpty) {
+    return 'Company ID was not found';
+  }
 
-    final isAdded = await context.read<WorkersCubit>().addWorker(
+  if (originalWorker == null && (profileId == null || profileId.isEmpty)) {
+    return 'Profile ID was not found';
+  }
+
+  if (originalWorker == null) {
+    final isAdded = await workersCubit.addWorker(
       companyId: companyId,
-      createdByProfileId: profileId,
+      createdByProfileId: profileId!,
       worker: savedWorker,
     );
 
     if (!context.mounted) {
-      return false;
+      return 'Unable to save worker.';
     }
 
-    if (isAdded) {
-      await dashboardCubit.loadDashboardSummary(companyId: companyId);
+    if (!isAdded) {
+      final errorMessage =
+          workersCubit.state.errorMessage ?? 'Worker was not added.';
+      workersCubit.clearErrorMessage();
+      return errorMessage;
     }
 
-    if (!context.mounted) {
-      return false;
+    await dashboardCubit.loadDashboardSummary(companyId: companyId);
+
+    if (context.mounted) {
+      AppMessage.showSuccess(context, 'Worker added successfully');
     }
 
-    showWorkerSuccessMessage(
-      context,
-      isAdded ? 'Worker added successfully' : 'Worker was not added',
-    );
-
-    return isAdded;
+    return null;
   }
 
-  final isUpdated = await context.read<WorkersCubit>().updateWorker(
+  final isUpdated = await workersCubit.updateWorker(
     companyId: companyId,
     updatedWorker: savedWorker,
   );
 
   if (!context.mounted) {
-    return false;
+    return 'Unable to save worker.';
   }
 
-  if (isUpdated) {
-    await dashboardCubit.loadDashboardSummary(companyId: companyId);
+  if (!isUpdated) {
+    final errorMessage =
+        workersCubit.state.errorMessage ?? 'Worker was not updated.';
+    workersCubit.clearErrorMessage();
+    return errorMessage;
   }
 
-  if (!context.mounted) {
-    return false;
+  await dashboardCubit.loadDashboardSummary(companyId: companyId);
+
+  if (context.mounted) {
+    AppMessage.showSuccess(context, 'Worker updated successfully');
   }
 
-  showWorkerSuccessMessage(
-    context,
-    isUpdated ? 'Worker updated successfully' : 'Worker was not updated',
-  );
-
-  return isUpdated;
+  return null;
 }
