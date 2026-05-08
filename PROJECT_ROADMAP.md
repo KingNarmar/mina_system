@@ -28,6 +28,8 @@ The product must support:
 - Production Supabase environment separate from development/testing.
 - Safe storage usage through image compression and storage limits.
 - Clear behavior when the user is offline or the internet connection is unstable.
+- Mobile/tablet camera capture for faster proof/document upload workflows.
+- File upload fallback from device storage.
 
 ---
 
@@ -126,13 +128,24 @@ Follow this pattern for each feature:
 - Approval document images should be compressed before upload when they are image files.
 - PDF files should not be image-compressed.
 - Company logos should be resized/compressed carefully without destroying quality.
+- Company logos should be resized to a practical maximum dimension before upload.
 - Store only the compressed/uploaded cloud path in the database.
 - Keep the original local file path out of Supabase tables.
 - Use clear storage paths under company folders:
   - `{companyId}/transactions/...`
   - `{companyId}/logo/...`
   - `{companyId}/documents/...`
+- Image compression should work across Windows, Android, iOS, tablets, and future supported platforms.
+- Prefer cross-platform image processing where possible to avoid platform-specific upload failures.
 - Future storage usage must be tracked per company for plan limits.
+- Mobile and tablet users should be able to capture photos directly from the camera for transaction proof images and approval document images, not only upload existing files from device storage.
+- Camera capture should make the workflow faster:
+  - Open camera directly from the transaction/proof upload action.
+  - Capture the item/tool/document immediately.
+  - Compress the captured image before upload.
+  - Store only the uploaded cloud path in the database.
+- Camera capture should remain optional.
+- File upload from device storage should remain supported as a fallback.
 
 ## Offline / Network Rules
 
@@ -186,6 +199,16 @@ Follow this pattern for each feature:
 - Large file refactor checkpoint is mostly done.
 - Flutter SDK upgrade checkpoint is done.
 - Responsive and orientation hardening audit is completed.
+- Cross-platform image compression foundation is implemented.
+- Transaction proof images are compressed before upload.
+- Approval document images are compressed before upload when the selected file is an image.
+- PDF approval documents are uploaded without image compression.
+- Company logos are resized/compressed before upload.
+- Reports card responsive regression fix is completed.
+
+## Current Main Gap
+
+The next priority is offline/network handling because the roadmap requires clear behavior when the user is offline or the internet connection is unstable.
 
 ---
 
@@ -254,13 +277,17 @@ Important helpers:
 Current behavior:
 
 No company → Create Company screen
+
 One company → Dashboard
+
 Multiple companies → Select Company placeholder
 
 Required future behavior:
 
 Pending invitation exists → Accept Invitation screen
+
 Active membership exists → Select Company / Dashboard
+
 No invitation and no membership → Create or Join Company screen
 
 Required future behavior after subscriptions:
@@ -345,6 +372,7 @@ Future improvements:
 - Show usage summary.
 - Show upgrade/contact message without direct mobile payment link.
 - Add billing/contact email fields if needed later.
+- Add storage usage summary after storage tracking is implemented.
 
 ## Company Logo Upload Status
 
@@ -359,6 +387,10 @@ Implemented:
 - Show success SnackBar.
 - Company logo is used inside generated PDF reports.
 - PDF logo refresh works without restarting the app after changing the logo.
+- Company logo image compression/resizing is implemented before upload.
+- Company logo max dimension is handled through `ImageCompressionService`.
+- Company logo upload uses compressed bytes instead of uploading the original selected image.
+- Company logo is displayed inside PDF report headers.
 
 Storage path format:
 
@@ -371,14 +403,22 @@ Allowed image types:
 - JPEG
 - WEBP
 
+Current image optimization behavior:
+
+- Logo images are resized/compressed before upload.
+- Logo max dimension is currently centralized in `ImageCompressionService`.
+- Current company logo max dimension: `800 px`.
+- Current company logo quality: `90`.
+- PDF files are not allowed for company logo upload.
+
 Pending / Future Enhancements:
 
-- Add image compression/resizing before logo upload.
-- Recommended logo max width: `800 px`.
 - Preserve transparency when possible for PNG/WebP logos.
-- Add max upload size validation.
+- Add max upload size validation before compression.
 - Add friendly error if logo file is too large or invalid.
 - Track logo storage usage under company storage quota.
+- Add optional visual preview/crop flow before uploading logo if needed.
+- Fine-tune PDF logo box size if future real company logos require different layout.
 
 ## Report Settings Status
 
@@ -589,6 +629,7 @@ Implemented:
 - Update transaction capability exists at repo/cubit level for future controlled flows.
 - Auto-generate transaction code from Supabase records.
 - Upload proof images to Supabase Storage bucket `transaction-proofs`.
+- Transaction proof images are compressed before upload.
 - Store only cloud storage paths in `transactions.proof_image_path`.
 - Added `TransactionsState` loading/submitting/error fields.
 - Refactored `TransactionsCubit` to use Supabase.
@@ -602,6 +643,8 @@ Implemented:
 - Custody Balance is calculated from real Supabase transactions.
 - Tool Summary is calculated from real Supabase transactions.
 - Closed Today count is calculated from real Supabase transactions.
+- Signed approval document images are compressed before upload when they are image files.
+- Signed approval document PDF files are uploaded without image compression.
 - `flutter analyze` has no errors.
 
 Business rules confirmed:
@@ -626,11 +669,13 @@ Pending / Future Enhancements:
 - Generate custody acknowledgement PDFs from real transactions.
 - Use `custody_acknowledgements` and `custody_acknowledgement_items` in reports/signature flow.
 - Add database-level open-custody protection for deleting tools/workers if needed.
-- Add image compression before uploading proof images.
 - Track proof image storage usage per company.
 - Enforce monthly transaction limits by plan.
 - Add friendly upgrade message when transaction limit is reached.
 - Add database/RPC-level transaction limit enforcement.
+- Add camera capture support on mobile/tablet for transaction proof images.
+- Add camera capture support on mobile/tablet for signed approval document images when the document is captured as a photo.
+- Keep file upload from device storage available as a fallback option.
 - Add clear offline behavior:
   - First stage: block transaction submission while offline.
   - Later stage: save transaction draft locally and sync later.
@@ -754,6 +799,7 @@ Implemented:
 - Added Lost/Damaged Approval Report.
 - Fixed long PDF layout issues.
 - Tested PDF Preview on Windows, mobile, and tablet.
+- Company logo appears in PDF report header.
 - `flutter analyze` has no errors.
 
 Current PDF section order:
@@ -777,6 +823,8 @@ Pending / Future Enhancements:
 - Add export/download history flow if needed beyond `PdfPreview` printing/sharing.
 - Improve time formatting based on `company_report_settings.timeFormat`.
 - Improve timezone handling based on `company_report_settings.defaultTimezone`.
+- Consider server-side PDF optimization later if large PDFs become a real issue.
+- Do not image-compress PDF files.
 
 ---
 
@@ -814,6 +862,8 @@ Implemented:
 - Settled Lost/Damaged transactions are removed from worker custody.
 - Lost/Damaged Approval Report is working.
 - Upload Signed Approval Document is working.
+- Signed approval document images are compressed before upload when the file is an image.
+- Signed approval document PDF files are uploaded without image compression.
 - View Signed Document works on Windows.
 - View Signed Document works on Android Emulator after Android signed URL fix.
 - Dashboard Open Custodies / Closed Today logic updated to respect settlement rules.
@@ -826,133 +876,107 @@ Pending / Future Enhancements:
 - Add audit trail entries for approval/settlement actions.
 - Add stronger role-based permissions for who can approve/reject/settle.
 - Add optional notification flow for pending approvals and settlements.
+- Add mobile/tablet camera capture for signed approval document photos.
 
 ---
 
-# Maintenance Checkpoint — Flutter SDK Upgrade
+# Phase M — Storage & Image Optimization
 
-## Status: Done
-
-Goal:
-
-Upgrade Flutter SDK safely after the project reached a stable checkpoint.
-
-Completed:
-
-- Upgraded Flutter SDK.
-- Flutter after upgrade: `3.41.9`.
-- Channel: `stable`.
-- Ran `flutter doctor`.
-- Result: `No issues found`.
-- Ran `flutter pub get`.
-- Ran `dart format lib`.
-- Ran `flutter analyze`.
-- Result: `No issues found`.
-- Ran the app on Windows.
-- Tested:
-  - Login
-  - Dashboard
-  - Workers
-  - Tools
-  - Transactions
-  - Company Settings
-- Flutter upgrade was committed separately.
-- Changes pushed to GitHub.
-
-Commit message:
-
-`Upgrade Flutter SDK and verify project`
-
----
-
-# Maintenance Checkpoint — Large File Refactor
-
-## Status: Mostly Done / One Deferred Model
+## Status: Step M.1 Completed / Cross-Platform Image Compression Implemented
 
 Goal:
 
-Reduce large Dart files into smaller, more maintainable modules without changing working behavior.
+Reduce storage usage, improve upload performance, and prevent large original images from being uploaded directly to Supabase Storage.
 
-Completed:
+The image optimization strategy must work across:
 
-- Refactored Pending Approvals UI into smaller widgets.
-- Refactored Report PDF table sections into smaller report-specific files.
-- Refactored Transaction Details dialog into smaller detail widgets.
-- Refactored LookupsCubit using Dart part files.
-- Refactored TransactionsCubit using Dart part files.
-- Refactored TransactionsRepo into a facade delegating to specialized services:
-  - `TransactionStorageService`
-  - `TransactionApprovalService`
-  - `TransactionCodeService`
-- Ran `dart format lib`.
-- Ran `flutter analyze`.
-- Result: no issues.
-- Changes committed and pushed.
+- Windows Desktop
+- Android phones
+- Android tablets
+- iOS devices later
+- Future supported platforms where possible
 
-Files intentionally deferred:
+Completed in Step M.1:
 
-- `lib/features/transactions/data/models/transaction_model.dart`
-
-Reason:
-
-- It is a central model used by transactions, dashboard, reports, and approval workflow.
-- It is only slightly above 300 lines.
-- Refactor can be done later using safe part files:
-  - `transaction_model_json.dart`
-  - `transaction_model_copy_with.dart`
-  - `transaction_model_parsers.dart`
-
-Rule:
-
-- Do not refactor this model during feature work.
-- Refactor it later as a small isolated maintenance commit.
-
-Future maintenance additions:
-
-- Add dedicated image compression service:
+- Added cross-platform image compression service:
   - `lib/core/services/image_compression_service.dart`
-- Add dedicated network status service/cubit:
-  - `lib/core/network/network_cubit.dart`
-  - `lib/core/network/network_state.dart`
-- Add plan/limits service:
-  - `lib/features/subscriptions/...`
-- Keep commercial logic out of widgets where possible.
+- Used the Dart `image` package for cross-platform compression/resizing.
+- Removed dependency on platform-specific image compression after Windows support issue.
+- Implemented compression from local `File`.
+- Implemented compression from `Uint8List` bytes.
+- Added validation for:
+  - Empty image bytes.
+  - Invalid quality range.
+  - Invalid max dimension.
+  - Unsupported file extensions.
+  - PDF files being passed to image compression.
+- Supported image types:
+  - JPG
+  - JPEG
+  - PNG
+  - WEBP
+- PDF files are not image-compressed.
+- Transaction proof images are compressed before upload.
+- Signed approval document images are compressed before upload when the selected file is an image.
+- Signed approval document PDF files are uploaded as-is without image compression.
+- Company logo images are resized/compressed before upload.
+- Company logo max dimension is centralized in `ImageCompressionService`.
+- Company logo quality is centralized in `ImageCompressionService`.
+- Storage upload still saves only cloud storage paths in database records.
+- Transaction proof storage path remains under:
+  - `{companyId}/transactions/{transactionCode}/...`
+- Company logo storage path remains under:
+  - `{companyId}/logo/...`
+- Tested image upload on Windows after fixing platform compression issue.
+- Tested signed approval image upload after compression.
+- Tested signed approval PDF upload without image compression.
+- Tested company logo upload after compression/resizing.
+- Tested PDF reports after logo compression.
 
----
+Files updated during Phase M Step M.1:
 
-# Maintenance Checkpoint — Android Signed Document Opening
+- `pubspec.yaml`
+- `pubspec.lock`
+- `lib/core/services/image_compression_service.dart`
+- `lib/features/transactions/data/services/transaction_storage_service.dart`
+- `lib/features/company_settings/data/repo/company_settings_repo.dart`
 
-## Status: Done
+Current behavior:
 
-Goal:
+- Transaction proof image upload:
+  - Compress image.
+  - Resize only if needed.
+  - Upload compressed bytes.
+  - Store uploaded cloud path.
+- Approval document upload:
+  - If PDF: upload original PDF bytes.
+  - If image: compress image before upload.
+  - Store uploaded cloud path.
+- Company logo upload:
+  - Compress/resize image.
+  - Upload compressed bytes.
+  - Update `companies.logo_path`.
+  - Delete old logo after successful new upload.
+- PDF report logo:
+  - Loads company logo from Supabase Storage.
+  - Displays logo in PDF report header.
 
-Fix opening signed approval documents on Android emulator / Android devices.
+Pending / Future Enhancements:
 
-Problem:
-
-- `View Signed Document` worked on Windows.
-- On Android emulator, `url_launcher` could not open signed Supabase URLs correctly.
-- Android logs showed messages like:
-  - `component name for https://... is null`
-
-Implemented:
-
-- Added Android package visibility queries for:
-  - `https`
-  - `http`
-- Preserved Flutter engine `PROCESS_TEXT` query.
-- Updated signed document button to use `launchUrl` directly instead of relying on `canLaunchUrl`.
-
-Files touched:
-
-- `android/app/src/main/AndroidManifest.xml`
-- `lib/features/transactions/presentation/widgets/details/transaction_signed_document_button.dart`
-
-Testing:
-
-- Tested `View Signed Document` on Android emulator.
-- Signed Supabase approval document URL opens successfully.
-- `flutter analyze` has no errors.
+- Add max upload size validation before compression.
+- Add friendly error messages for very large or invalid files.
+- Add camera capture support for mobile/tablet transaction proof images.
+- Add camera capture support for mobile/tablet signed approval document images.
+- Keep existing file upload flow as a fallback.
+- Add image preview before upload if needed.
+- Add optional image crop/rotate before upload if needed.
+- Preserve PNG/WebP transparency where possible for company logos.
+- Track storage usage per company.
+- Enforce storage limits based on company subscription plan.
+- Add storage usage card in Dashboard or Company Settings.
+- Add storage cleanup/history flow if needed.
+- Consider server-side PDF optimization later if large PDFs become a real issue.
+- Do not image-compress PDF files.
 
 ---
 
@@ -1050,274 +1074,374 @@ Mobile Portrait / Mobile Landscape:
 - Lookups: Passed
 - Company Settings: Passed
 
+## Phase L Regression Fix During Phase M
+
+Status: Done
+
+Reason:
+
+During company logo and PDF testing, Reports card overflow appeared again in a specific tablet layout, and a follow-up fix briefly caused a mobile list layout issue.
+
+Implemented:
+
+- Reports card layout adjusted to support both:
+  - Tablet/Desktop grid with finite card height.
+  - Mobile list with natural card height.
+- Fixed card overflow on tablet.
+- Fixed mobile `RenderBox was not laid out` issue after the first regression fix attempt.
+
+Related files updated:
+
+- `lib/features/reports/presentation/screens/reports_screen.dart`
+- `lib/features/reports/presentation/widgets/report_option_card.dart`
+
 Pending / Future Enhancements:
 
 - Re-test on real physical Android tablet if available.
 - Re-test on real physical Android phone if available.
 - Re-test on iOS simulator/device later before App Store release.
-- Consider extracting shared compact landscape keyboard behavior into a reusable helper/widget if repeated again.
+- Consider extracting shared compact landscape keyboard behavior into a reusable helper/widget if the same pattern repeats in future screens.
 
 ---
 
-# Phase M — Company Users, Invitations & Role Management
+# Maintenance Checkpoint — Flutter SDK Upgrade
 
-## Status: Planned
+## Status: Done
 
 Goal:
 
-Add multi-user company access with secure invitations and role-based permissions.
+Upgrade Flutter SDK safely after the project reached a stable checkpoint.
 
-Planned:
+Completed:
 
-- Company users management screen.
-- Company invitations flow.
-- Invite user by email.
-- Accept invitation flow.
-- Role assignment:
-  - Owner
-  - Admin
-  - Warehouse
-  - Viewer
-- Role-based UI visibility.
-- Role-based database/RLS enforcement.
-- Secure backend / Supabase Edge Function for invitation/auth-related actions.
-- Update Current Context flow to handle:
-  - Pending invitations
-  - Active memberships
-  - Multiple companies
-  - Create company / join company decisions
+- Upgraded Flutter SDK.
+- Flutter after upgrade: `3.41.9`.
+- Channel: `stable`.
+- Ran `flutter doctor`.
+- Result: `No issues found`.
+- Ran `flutter pub get`.
+- Ran `dart format lib`.
+- Ran `flutter analyze`.
+- Result: `No issues found`.
+- Ran the app on Windows.
+- Tested:
+  - Login
+  - Dashboard
+  - Workers
+  - Tools
+  - Transactions
+  - Company Settings
+- Flutter upgrade was committed separately.
+- Changes pushed to GitHub.
 
-Important rules:
+Commit message:
 
-- Admin Auth methods must not be called directly from Flutter.
-- Role checks must not be UI-only.
-- RLS must enforce company membership and role permissions.
+`Upgrade Flutter SDK and verify project`
 
 ---
 
-# Phase N — Audit Trail & Activity Logs
+# Maintenance Checkpoint — Large File Refactor
 
-## Status: Planned
-
-Goal:
-
-Track important system actions for accountability and future enterprise readiness.
-
-Planned:
-
-- Add audit log table.
-- Log key actions:
-  - Add/update/delete worker
-  - Add/update/delete tool
-  - Add lookup
-  - Delete lookup
-  - Add transaction
-  - Approve Lost/Damaged
-  - Reject Lost/Damaged
-  - Settle Lost/Damaged
-  - Upload signed document
-  - Update company profile
-  - Update report settings
-  - Update document templates
-  - Invite user
-  - Change user role
-- Show recent activity in Dashboard.
-- Add Audit Logs screen later if needed.
-- Add filters by:
-  - User
-  - Date
-  - Action type
-  - Entity type
-- Enforce company isolation using `company_id`.
-
----
-
-# Phase O — Storage Optimization & Usage Limits
-
-## Status: Planned
+## Status: Mostly Done / One Deferred Model
 
 Goal:
 
-Control image size, storage usage, and future plan limits.
+Reduce large Dart files into smaller, more maintainable modules without changing working behavior.
 
-Planned:
+Completed:
 
-- Add image compression service:
-  - `lib/core/services/image_compression_service.dart`
-- Compress transaction proof images before upload.
-- Compress approval document images when they are image files.
-- Compress/resize company logos safely.
-- Add file size validation before upload.
-- Track storage usage per company.
-- Prepare storage usage for subscription limits.
-- Add friendly error messages for large or invalid files.
+- Refactored Pending Approvals UI into smaller widgets.
+- Refactored Report PDF table sections into smaller report-specific files.
+- Refactored Transaction Details dialog into smaller detail widgets.
+- Refactored LookupsCubit using Dart part files.
+- Refactored TransactionsCubit using Dart part files.
+- Refactored TransactionsRepo into a facade delegating to specialized services:
+  - `TransactionStorageService`
+  - `TransactionApprovalService`
+  - `TransactionCodeService`
+- Ran `dart format lib`.
+- Ran `flutter analyze`.
+- Result: no issues.
+- Changes committed and pushed.
 
-Recommended transaction proof settings:
+Files intentionally deferred:
 
-- Max width: `1280 px`
-- JPEG quality: `70–75`
-- Output format: `jpg` unless transparency is required.
+- `lib/features/transactions/data/models/transaction_model.dart`
 
-Recommended company logo settings:
+Reason:
 
-- Max width: `800 px`
-- Preserve transparency when possible for PNG/WebP.
+- It is a central model used by transactions, dashboard, reports, and approval workflow.
+- It is only slightly above 300 lines.
+- Refactor can be done later using safe part files:
+  - `transaction_model_json.dart`
+  - `transaction_model_copy_with.dart`
+  - `transaction_model_parsers.dart`
 
----
+Rule:
 
-# Phase P — Offline / Network Handling
+- Do not refactor this model during feature work.
+- Refactor it later as a small isolated maintenance commit.
 
-## Status: Planned
+Future maintenance additions:
 
-Goal:
-
-Make network failures clear and safe without bypassing business rules.
-
-Planned:
-
-- Add network status service/cubit:
+- Add dedicated network status service/cubit:
   - `lib/core/network/network_cubit.dart`
   - `lib/core/network/network_state.dart`
-- Add app-level offline banner.
-- Show user-friendly network errors.
-- Separate network errors from validation/auth errors where possible.
-- Add Retry actions on critical loading screens.
-- First stage:
-  - Block transaction submission while offline.
-  - Show clear offline message.
-- Later stage:
-  - Add offline transaction drafts.
-  - Add pending sync flow.
-  - Add safe conflict handling.
-
-Important:
-
-- Offline mode must never bypass RLS, subscription limits, or business rules.
-
----
-
-# Phase Q — Subscriptions, Plans & Usage Limits
-
-## Status: Planned
-
-Goal:
-
-Prepare Mina System as a commercial SaaS product with Free and Paid plans.
-
-Planned:
-
-- Add subscription/plan tables.
-- Add company subscription record.
-- Assign Free plan by default after company creation.
 - Add plan/limits service:
   - `lib/features/subscriptions/...`
-- Add usage counters:
-  - Workers used / allowed
-  - Tools used / allowed
-  - Transactions this month / allowed
-  - Storage used / allowed
-  - Users used / allowed
-- Enforce limits at database/RPC level.
-- Add friendly upgrade/contact messages.
-- Add subscription summary in Company Settings.
-- Add subscription summary card in Dashboard for owners/admins.
-
-Example plan limits:
-
-Free plan:
-
-- 25 workers
-- 50 tools
-- 100 transactions/month
-- Limited storage
-- Limited users
-
-Starter plan:
-
-- 300 workers
-- 500 tools
-- 1,000 transactions/month
-
-Standard plan:
-
-- 1,000 workers
-- 2,000 tools
-- 10,000 transactions/month
-
-Professional plan:
-
-- 5,000 workers
-- 10,000 tools
-- 50,000 transactions/month
-
-Important:
-
-- The app should remain free download/login-based on app stores.
-- Do not add direct payment buttons inside mobile apps until store billing rules are reviewed.
-- B2B subscription payment should preferably be handled through website, invoice, or customer portal.
+- Keep commercial logic out of widgets where possible.
+- Keep image compression logic centralized inside:
+  - `lib/core/services/image_compression_service.dart`
+- Do not duplicate image compression logic inside repositories or widgets.
 
 ---
 
-# Phase R — Production Release Preparation
+# Maintenance Checkpoint — Android Signed Document Opening
 
-## Status: Planned
+## Status: Done
 
 Goal:
 
-Prepare Mina System for real users and distribution.
+Fix opening signed approval documents on Android emulator / Android devices.
 
-Planned:
+Problem:
 
-- Create production Supabase project separate from development/testing.
-- Add environment configuration for:
-  - Development
-  - Staging if needed
-  - Production
-- Prepare app signing:
-  - Android
-  - iOS
-  - Windows installer
-- Prepare Google Play release requirements.
-- Prepare App Store release requirements.
-- Prepare desktop installer download.
-- Prepare web landing page.
-- Add:
-  - Privacy Policy
-  - Terms of Service
-  - Support contact
-  - Demo/review account if required by stores
-- Review mobile billing/payment rules before adding payment links.
-- Final test matrix:
-  - Windows
-  - Android phone
-  - Android tablet
-  - iOS simulator/device
-  - Mobile portrait
-  - Mobile landscape
-  - Tablet portrait
-  - Tablet landscape
+- `View Signed Document` worked on Windows.
+- On Android emulator, `url_launcher` could not open signed Supabase URLs correctly.
+- Android logs showed messages like:
+  - `component name for https://... is null`
+
+Implemented:
+
+- Added Android package visibility queries for:
+  - `https`
+  - `http`
+- Preserved Flutter engine `PROCESS_TEXT` query.
+- Updated signed document button to use `launchUrl` directly instead of relying on `canLaunchUrl`.
+
+Files touched:
+
+- `android/app/src/main/AndroidManifest.xml`
+- `lib/features/transactions/presentation/widgets/details/transaction_signed_document_button.dart`
+
+Testing:
+
+- Tested `View Signed Document` on Android emulator.
+- Signed Supabase approval document URL opens successfully.
+- `flutter analyze` has no errors.
 
 ---
 
-# Current Next Step
+# Next Recommended Phase — Offline / Network Handling
 
-## Recommended Next Step
+## Suggested Phase Name
 
-Commit Phase L Step L.1 changes.
+# Phase N — Offline & Network Handling
 
-Suggested commands:
+## Status: Not Started
 
-- `git status`
-- `git add .`
-- `git commit -m "Complete responsive orientation hardening audit"`
-- `git push`
+Goal:
 
-After commit:
+Prevent silent failures when the app has no internet connection or unstable network access.
 
-Move to the next planned phase based on priority:
+Why this is next:
 
-1. Phase O — Storage Optimization & Image Compression
-2. Phase P — Offline / Network Handling
-3. Phase M — Company Users, Invitations & Role Management
-4. Phase N — Audit Trail & Activity Logs
-5. Phase Q — Subscriptions, Plans & Usage Limits
+- The roadmap requires clear offline/network behavior.
+- Transactions should not be submitted while offline until full offline sync exists.
+- Current Supabase-backed flows depend on internet access.
+- Users need friendly retry/error messages instead of unclear failures.
+
+Suggested Step N.1:
+
+Add a dedicated network status foundation:
+
+- Add dependency if needed:
+  - `connectivity_plus`
+- Add:
+  - `lib/core/network/network_state.dart`
+  - `lib/core/network/network_cubit.dart`
+  - `lib/core/network/network_status_service.dart` if needed
+- Detect:
+  - Online
+  - Offline
+  - Unknown/checking
+- Show a simple app-level offline banner or screen where appropriate.
+- Do not implement offline sync yet.
+- Do not allow offline transaction submission yet.
+
+Suggested Step N.2:
+
+Block transaction submission while offline:
+
+- If offline:
+  - Do not upload proof image.
+  - Do not create transaction.
+  - Show clear message:
+    - `You are offline. Please reconnect before submitting this transaction.`
+- Keep current online flow unchanged.
+
+Suggested Step N.3:
+
+Add retry behavior for critical loading screens:
+
+- Current Context loading.
+- Dashboard loading.
+- Transactions loading.
+- Reports data loading if needed.
+
+Future Offline Enhancements:
+
+- Local read-only cache for selected data.
+- Offline transaction drafts.
+- Pending sync queue.
+- Conflict handling.
+- Secure sync after reconnect.
+- Never bypass RLS, subscriptions, or company isolation.
+
+---
+
+# Future Commercial / SaaS Roadmap
+
+## Subscriptions / Plans
+
+Status: Not Started
+
+Goal:
+
+Support Free and Paid company-based plans without creating separate apps.
+
+Future requirements:
+
+- Add subscription tables.
+- Add company subscription records.
+- Assign Free plan by default after company creation.
+- Check subscription during Current Context loading.
+- Show subscription status in Company Settings.
+- Show plan card in Dashboard for owners/admins.
+- Enforce limits at database/RPC level, not UI only.
+- Keep mobile app payment behavior safe:
+  - No direct payment buttons inside mobile apps until store billing rules are reviewed.
+  - Prefer website, invoice, or customer portal for B2B payments.
+
+Possible plan limits:
+
+- Workers count.
+- Tools count.
+- Monthly transactions.
+- Storage usage.
+- Advanced document template customization.
+- Advanced reports.
+- Export history.
+
+## Company Users / Invitations
+
+Status: Not Started
+
+Goal:
+
+Allow company owners/admins to invite users safely.
+
+Future requirements:
+
+- Do not call Supabase Admin Auth directly from Flutter.
+- Use secure backend / Supabase Edge Function for invitations.
+- Pending invitation flow by email.
+- Accept invitation flow.
+- Join existing company flow.
+- Role-based permissions:
+  - Owner
+  - Admin
+  - Warehouse User
+  - Viewer
+- RLS must enforce permissions at database level.
+- UI should only reflect permissions, not be the only enforcement.
+
+## Roles & Permissions
+
+Status: Not Started
+
+Goal:
+
+Control who can view, create, approve, reject, settle, or configure data.
+
+Future requirements:
+
+- Stronger role-based permissions for:
+  - Workers
+  - Tools
+  - Transactions
+  - Reports
+  - Company Settings
+  - Lost/Damaged approvals
+  - Settlements
+- RLS policies must enforce role permissions.
+- Approval and settlement actions should be restricted to authorized roles.
+
+## Storage Usage Tracking
+
+Status: Not Started
+
+Goal:
+
+Track storage usage per company and enforce plan limits.
+
+Future requirements:
+
+- Track uploaded file sizes.
+- Track company storage usage.
+- Track storage per bucket/category:
+  - Transaction proofs
+  - Approval documents
+  - Company logos
+  - Future documents
+- Add storage usage summary in Dashboard or Company Settings.
+- Enforce storage limits based on subscription plan.
+- Add cleanup/history flow if needed.
+
+## Production Release Readiness
+
+Status: Not Started
+
+Goal:
+
+Prepare the app for real production deployment.
+
+Future requirements:
+
+- Production Supabase project.
+- Separate development/testing environment.
+- Environment configuration.
+- Privacy Policy.
+- Terms of Service.
+- Support contact.
+- Demo/review account for app stores if required.
+- App icons.
+- App signing.
+- Google Play release checklist.
+- App Store release checklist.
+- Desktop installer packaging.
+- Web landing page.
+- Desktop installer download page.
+
+---
+
+# Current Next Action
+
+After this roadmap update is committed and pushed, continue with:
+
+## Phase N — Offline & Network Handling
+
+Recommended first step:
+
+`Step N.1 — Add network status foundation`
+
+Small step only:
+
+- Add network dependency if needed.
+- Create network state/cubit/service.
+- Do not change transaction submission yet.
+- Run:
+  - `dart format lib`
+  - `flutter analyze`
+- Test on Windows first.
+- Then test mobile/tablet behavior.
