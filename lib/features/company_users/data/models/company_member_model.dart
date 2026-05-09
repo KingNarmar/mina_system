@@ -27,7 +27,14 @@ class CompanyMemberModel {
   final String? email;
 
   factory CompanyMemberModel.fromJson(Map<String, dynamic> json) {
-    final profileJson = json['profiles'] as Map<String, dynamic>?;
+    final memberProfileJson = json['member_profile'];
+    final profilesJson = json['profiles'];
+
+    final profileJson = memberProfileJson is Map<String, dynamic>
+        ? memberProfileJson
+        : profilesJson is Map<String, dynamic>
+        ? profilesJson
+        : null;
 
     return CompanyMemberModel(
       id: json['id'] as String,

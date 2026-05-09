@@ -16,20 +16,20 @@ class CompanyUsersRepo {
     final data = await _supabase
         .from('company_members')
         .select('''
-          id,
-          company_id,
-          profile_id,
-          role,
-          status,
-          joined_at,
-          invited_by_profile_id,
-          created_at,
-          updated_at,
-          profiles(
-            full_name,
-            email
-          )
-        ''')
+      id,
+      company_id,
+      profile_id,
+      role,
+      status,
+      joined_at,
+      invited_by_profile_id,
+      created_at,
+      updated_at,
+      member_profile:profiles!company_members_profile_id_fkey(
+        full_name,
+        email
+      )
+    ''')
         .eq('company_id', companyId)
         .order('created_at');
 
