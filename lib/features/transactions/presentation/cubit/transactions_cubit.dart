@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/transactions/data/models/custody_balance_model.dart';
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';

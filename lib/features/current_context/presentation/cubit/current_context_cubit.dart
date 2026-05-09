@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 
 import '../../data/models/create_company_request.dart';
 import '../../data/repo/current_context_repo.dart';
@@ -43,7 +44,14 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         debugPrint('CurrentContext stackTrace: $stackTrace');
       }
 
-      emit(const CurrentContextFailure('Unable to load company context.'));
+      emit(
+        CurrentContextFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load company context.',
+          ),
+        ),
+      );
     }
   }
 
@@ -64,7 +72,14 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         debugPrint('CreateCompany stackTrace: $stackTrace');
       }
 
-      emit(const CurrentContextFailure('Unable to create company.'));
+      emit(
+        CurrentContextFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to create company.',
+          ),
+        ),
+      );
     }
   }
 

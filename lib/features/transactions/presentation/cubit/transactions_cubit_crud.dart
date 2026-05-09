@@ -76,7 +76,13 @@ extension TransactionsCubitCrud on TransactionsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to save transaction. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -126,7 +132,13 @@ extension TransactionsCubitCrud on TransactionsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to update transaction. Please try again.',
+          ),
+        ),
       );
       return false;
     }

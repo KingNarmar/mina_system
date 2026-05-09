@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/dashboard/data/models/dashboard_summary_model.dart';
 import 'package:mina_system/features/dashboard/data/repo/dashboard_repo.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_state.dart';
@@ -26,7 +27,15 @@ class DashboardCubit extends Cubit<DashboardState> {
         ),
       );
     } catch (error) {
-      emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load dashboard summary. Please try again.',
+          ),
+        ),
+      );
     }
   }
 }

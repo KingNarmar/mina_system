@@ -51,7 +51,13 @@ extension LookupsCubitToolUnits on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to add tool unit. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -99,7 +105,13 @@ extension LookupsCubitToolUnits on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to delete tool unit. Please try again.',
+          ),
+        ),
       );
       return false;
     }

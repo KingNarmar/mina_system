@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/lookups/data/repo/lookups_repo.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit_helpers.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit_initial_data.dart';
@@ -8,8 +9,8 @@ import 'package:mina_system/features/lookups/presentation/functions/lookup_helpe
 
 part 'lookups_cubit_departments.dart';
 part 'lookups_cubit_job_titles.dart';
-part 'lookups_cubit_tool_units.dart';
 part 'lookups_cubit_tool_categories.dart';
+part 'lookups_cubit_tool_units.dart';
 
 class LookupsCubit extends Cubit<LookupsState> {
   LookupsCubit({
@@ -57,7 +58,15 @@ class LookupsCubit extends Cubit<LookupsState> {
         ),
       );
     } catch (error) {
-      emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load lookups. Please try again.',
+          ),
+        ),
+      );
     }
   }
 
@@ -74,12 +83,7 @@ class LookupsCubit extends Cubit<LookupsState> {
       await _networkStatusService.ensureOnline();
       return true;
     } on NetworkUnavailableException catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: error.message,
-        ),
-      );
+      emit(state.copyWith(isSubmitting: false, errorMessage: error.message));
       return false;
     }
   }

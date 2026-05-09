@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
@@ -95,11 +96,28 @@ class CompanyLogoPicker extends StatelessWidget {
       return;
     }
 
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
-      withData: true,
-    );
+    FilePickerResult? result;
+
+    try {
+      result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
+        withData: true,
+      );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      AppMessage.showError(
+        context,
+        AppErrorMessage.fromError(
+          error,
+          fallback: 'Unable to select company logo. Please try again.',
+        ),
+      );
+      return;
+    }
 
     if (!context.mounted) {
       return;

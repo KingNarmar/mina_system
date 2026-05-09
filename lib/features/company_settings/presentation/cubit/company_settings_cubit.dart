@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 
 import '../../data/models/company_document_template_model.dart';
 import '../../data/models/company_profile_model.dart';
@@ -44,7 +45,14 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
         debugPrint('LoadCompanyProfile stackTrace: $stackTrace');
       }
 
-      emit(const CompanySettingsFailure('Unable to load company profile.'));
+      emit(
+        CompanySettingsFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load company profile.',
+          ),
+        ),
+      );
     }
   }
 
@@ -88,7 +96,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       emit(
         actionState.copyWith(
           action: CompanySettingsAction.none,
-          errorMessage: 'Unable to update company profile.',
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to update company profile.',
+          ),
         ),
       );
     }
@@ -136,7 +147,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       emit(
         actionState.copyWith(
           action: CompanySettingsAction.none,
-          errorMessage: 'Unable to update report settings.',
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to update report settings.',
+          ),
         ),
       );
     }
@@ -194,7 +208,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       emit(
         actionState.copyWith(
           action: CompanySettingsAction.none,
-          errorMessage: 'Unable to update document template.',
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to update document template.',
+          ),
         ),
       );
     }
@@ -248,7 +265,10 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       emit(
         actionState.copyWith(
           action: CompanySettingsAction.none,
-          errorMessage: 'Unable to upload company logo.',
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to upload company logo.',
+          ),
         ),
       );
     }

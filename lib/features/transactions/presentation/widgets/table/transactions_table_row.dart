@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
@@ -119,22 +120,25 @@ class _TransactionThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
+    return FutureBuilder<_ThumbnailImageResult>(
       future: _resolveTransactionImageUrl(imagePath),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const _ThumbnailFallback(icon: Icons.image_outlined);
         }
 
-        final imageUrl = snapshot.data;
+        final result = snapshot.data;
 
-        if (imageUrl == null || imageUrl.trim().isEmpty) {
+        if (result == null || !result.hasImageUrl) {
           return _ThumbnailFallback(
-            icon: Icons.wifi_off_rounded,
+            icon: result?.isOffline == true
+                ? Icons.wifi_off_rounded
+                : Icons.broken_image_outlined,
             onTap: () {
               AppMessage.showWarning(
                 context,
-                'Proof images are stored online and cannot be viewed while offline.',
+                result?.message ??
+                    'Unable to load proof image. Please try again.',
               );
             },
           );
@@ -143,7 +147,7 @@ class _TransactionThumbnail extends StatelessWidget {
         return InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () {
-            showTransactionImagePreview(context, imageUrl);
+            showTransactionImagePreview(context, result.imageUrl!);
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
@@ -151,11 +155,21 @@ class _TransactionThumbnail extends StatelessWidget {
               width: 44,
               height: 36,
               child: Image.network(
-                imageUrl,
+                result.imageUrl!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return const _ThumbnailFallback(
+                  return _ThumbnailFallback(
                     icon: Icons.broken_image_outlined,
+                    onTap: () {
+                      AppMessage.showWarning(
+                        context,
+                        AppErrorMessage.fromError(
+                          error,
+                          fallback:
+                              'Unable to load proof image. Please try again.',
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -166,18 +180,51 @@ class _TransactionThumbnail extends StatelessWidget {
     );
   }
 
-  Future<String?> _resolveTransactionImageUrl(String path) async {
-    if (path.startsWith('http://') || path.startsWith('https://')) {
+  Future<_ThumbnailImageResult> _resolveTransactionImageUrl(String path) async {
+    try {
       await NetworkStatusService().ensureOnline();
-      return path;
+
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return _ThumbnailImageResult.success(path);
+      }
+
+      final signedUrl = await Supabase.instance.client.storage
+          .from('transaction-proofs')
+          .createSignedUrl(path, 60 * 60);
+
+      return _ThumbnailImageResult.success(signedUrl);
+    } on NetworkUnavailableException {
+      return const _ThumbnailImageResult.failure(
+        message:
+            'Proof images are stored online and cannot be viewed while offline.',
+        isOffline: true,
+      );
+    } catch (error) {
+      return _ThumbnailImageResult.failure(
+        message: AppErrorMessage.fromError(
+          error,
+          fallback: 'Unable to load proof image. Please try again.',
+        ),
+      );
     }
-
-    await NetworkStatusService().ensureOnline();
-
-    return Supabase.instance.client.storage
-        .from('transaction-proofs')
-        .createSignedUrl(path, 60 * 60);
   }
+}
+
+class _ThumbnailImageResult {
+  const _ThumbnailImageResult.success(this.imageUrl)
+    : message = null,
+      isOffline = false;
+
+  const _ThumbnailImageResult.failure({
+    required this.message,
+    this.isOffline = false,
+  }) : imageUrl = null;
+
+  final String? imageUrl;
+  final String? message;
+  final bool isOffline;
+
+  bool get hasImageUrl => imageUrl != null && imageUrl!.trim().isNotEmpty;
 }
 
 class _ThumbnailFallback extends StatelessWidget {

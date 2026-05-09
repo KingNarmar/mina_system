@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/data/repo/tools_repo.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
@@ -30,7 +31,15 @@ class ToolsCubit extends Cubit<ToolsState> {
 
       emitUpdatedTools(tools, isLoading: false);
     } catch (error) {
-      emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load tools. Please try again.',
+          ),
+        ),
+      );
     }
   }
 
@@ -122,7 +131,15 @@ class ToolsCubit extends Cubit<ToolsState> {
 
       return true;
     } catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to add tool. Please try again.',
+          ),
+        ),
+      );
       return false;
     }
   }
@@ -218,7 +235,15 @@ class ToolsCubit extends Cubit<ToolsState> {
 
       return true;
     } catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to update tool. Please try again.',
+          ),
+        ),
+      );
       return false;
     }
   }
@@ -252,7 +277,15 @@ class ToolsCubit extends Cubit<ToolsState> {
 
       return true;
     } catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to delete tool. Please try again.',
+          ),
+        ),
+      );
       return false;
     }
   }

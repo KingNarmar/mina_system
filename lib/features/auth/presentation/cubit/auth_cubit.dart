@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
@@ -27,10 +28,15 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(AuthSuccess());
-    } on AuthException catch (error) {
-      emit(AuthFailure(error.message));
-    } catch (_) {
-      emit(AuthFailure('Something went wrong. Please try again.'));
+    } catch (error) {
+      emit(
+        AuthFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Login failed. Please try again.',
+          ),
+        ),
+      );
     }
   }
 
@@ -58,10 +64,15 @@ class AuthCubit extends Cubit<AuthState> {
           requiresEmailConfirmation: response.session == null,
         ),
       );
-    } on AuthException catch (error) {
-      emit(AuthFailure(error.message));
-    } catch (_) {
-      emit(AuthFailure('Something went wrong. Please try again.'));
+    } catch (error) {
+      emit(
+        AuthFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Registration failed. Please try again.',
+          ),
+        ),
+      );
     }
   }
 }

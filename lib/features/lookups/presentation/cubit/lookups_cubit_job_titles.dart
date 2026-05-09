@@ -64,7 +64,13 @@ extension LookupsCubitJobTitles on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to add job title. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -128,7 +134,13 @@ extension LookupsCubitJobTitles on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to delete job title. Please try again.',
+          ),
+        ),
       );
       return false;
     }

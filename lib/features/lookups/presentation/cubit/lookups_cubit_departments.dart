@@ -51,7 +51,13 @@ extension LookupsCubitDepartments on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to add department. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -88,7 +94,13 @@ extension LookupsCubitDepartments on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to delete department. Please try again.',
+          ),
+        ),
       );
       return false;
     }

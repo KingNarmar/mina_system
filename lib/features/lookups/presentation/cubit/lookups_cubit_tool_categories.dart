@@ -51,7 +51,13 @@ extension LookupsCubitToolCategories on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to add tool category. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -101,7 +107,13 @@ extension LookupsCubitToolCategories on LookupsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to delete tool category. Please try again.',
+          ),
+        ),
       );
       return false;
     }

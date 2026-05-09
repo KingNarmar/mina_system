@@ -12,7 +12,13 @@ extension TransactionsCubitLoadSearch on TransactionsCubit {
       emitUpdatedTransactions(transactions, isLoading: false);
     } catch (error) {
       emitState(
-        state.copyWith(isLoading: false, errorMessage: error.toString()),
+        state.copyWith(
+          isLoading: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load transactions. Please try again.',
+          ),
+        ),
       );
     }
   }

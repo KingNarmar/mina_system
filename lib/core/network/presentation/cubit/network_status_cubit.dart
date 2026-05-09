@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 
 import 'network_status_state.dart';
 
@@ -28,8 +29,11 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
           }
 
           emit(
-            const NetworkStatusFailure(
-              'Unable to check network connection status.',
+            NetworkStatusFailure(
+              AppErrorMessage.networkOnly(
+                error,
+                fallback: 'Unable to check network connection status.',
+              ),
             ),
           );
         },
@@ -41,8 +45,11 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
       }
 
       emit(
-        const NetworkStatusFailure(
-          'Unable to check network connection status.',
+        NetworkStatusFailure(
+          AppErrorMessage.networkOnly(
+            error,
+            fallback: 'Unable to check network connection status.',
+          ),
         ),
       );
     }
@@ -60,8 +67,11 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
       }
 
       emit(
-        const NetworkStatusFailure(
-          'Unable to refresh network connection status.',
+        NetworkStatusFailure(
+          AppErrorMessage.networkOnly(
+            error,
+            fallback: 'Unable to refresh network connection status.',
+          ),
         ),
       );
     }

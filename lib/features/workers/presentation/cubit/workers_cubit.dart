@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/data/repo/workers_repo.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
@@ -32,7 +33,15 @@ class WorkersCubit extends Cubit<WorkersState> {
 
       emitUpdatedWorkers(workers, isLoading: false);
     } catch (error) {
-      emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load workers. Please try again.',
+          ),
+        ),
+      );
     }
   }
 
@@ -103,7 +112,15 @@ class WorkersCubit extends Cubit<WorkersState> {
 
       return true;
     } catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to add worker. Please try again.',
+          ),
+        ),
+      );
       return false;
     }
   }
@@ -179,7 +196,15 @@ class WorkersCubit extends Cubit<WorkersState> {
 
       return true;
     } catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to update worker. Please try again.',
+          ),
+        ),
+      );
       return false;
     }
   }
@@ -210,7 +235,15 @@ class WorkersCubit extends Cubit<WorkersState> {
 
       return true;
     } catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to delete worker. Please try again.',
+          ),
+        ),
+      );
       return false;
     }
   }

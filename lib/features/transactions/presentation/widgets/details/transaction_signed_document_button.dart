@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -63,13 +64,16 @@ class TransactionSignedDocumentButton extends StatelessWidget {
         icon: Icons.wifi_off_rounded,
         iconColor: AppColors.warning,
       );
-    } catch (_) {
+    } catch (error) {
       if (!context.mounted) return;
 
       _showDocumentMessageDialog(
         context: context,
         title: 'Unable to open document',
-        message: 'Unable to open signed document.',
+        message: AppErrorMessage.fromError(
+          error,
+          fallback: 'Unable to open signed document. Please try again.',
+        ),
         icon: Icons.error_outline_rounded,
         iconColor: AppColors.error,
       );

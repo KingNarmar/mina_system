@@ -43,7 +43,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to upload approval document. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -96,7 +102,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to approve transaction. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -149,7 +161,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to reject transaction. Please try again.',
+          ),
+        ),
       );
       return false;
     }
@@ -218,7 +236,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return true;
     } catch (error) {
       emitState(
-        state.copyWith(isSubmitting: false, errorMessage: error.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to settle transaction. Please try again.',
+          ),
+        ),
       );
       return false;
     }
