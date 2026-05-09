@@ -12,11 +12,11 @@
 
 Latest verified pushed commit:
 
-`353b9ef4e3f2e2a9fe2f8aed66ff6a61da52f2e9`
+``
 
 Commit message:
 
-`Block offline mutations for company settings`
+`update roadmap after friendly error mapper`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -290,22 +290,6 @@ Completed so far:
   - Company Logo upload
 - Settings screen no longer converts action failures into full screen failure.
 - Reports can still generate offline from already-loaded in-memory data.
-
-Next required step:
-
-- Audit remaining services/repositories/widgets for raw technical error exposure.
-- Manually test friendly network errors across Windows, mobile, and tablet.
-- Confirm offline/unstable-network behavior for:
-  - Auth
-  - Current Context
-  - Dashboard
-  - Workers
-  - Tools
-  - Lookups
-  - Transactions
-  - Company Settings
-  - Reports
-  - Cloud file viewing
 - Friendly Network Error Mapper first pass added.
 - Supabase/Auth/Postgrest/Storage/Socket/Timeout technical errors are mapped to user-friendly messages.
 - Friendly error mapper applied to:
@@ -322,6 +306,22 @@ Next required step:
   - Signed document opening
   - Company logo picker
   - Network status Cubit
+
+Next required step:
+
+- Audit remaining services/repositories/widgets for raw technical error exposure.
+- Manually test friendly network errors across Windows, mobile, and tablet.
+- Confirm offline/unstable-network behavior for:
+  - Auth
+  - Current Context
+  - Dashboard
+  - Workers
+  - Tools
+  - Lookups
+  - Transactions
+  - Company Settings
+  - Reports
+  - Cloud file viewing
 ---
 
 # Auth
