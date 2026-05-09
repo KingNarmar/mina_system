@@ -85,6 +85,34 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
     }
   }
 
+  Future<void> loadCurrentUserPendingInvitations() async {
+    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+
+    try {
+      final invitations = await _repo.getCurrentUserPendingInvitations();
+
+      emit(
+        state.copyWith(
+          invitations: invitations,
+          isLoading: false,
+          isSubmitting: false,
+          clearErrorMessage: true,
+        ),
+      );
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to load pending invitations. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> acceptInvitation({required String invitationId}) async {
     final canContinue = await _ensureOnline();
 

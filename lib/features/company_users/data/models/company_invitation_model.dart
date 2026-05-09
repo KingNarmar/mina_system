@@ -13,6 +13,9 @@ class CompanyInvitationModel {
     this.acceptedAt,
     this.cancelledAt,
     required this.updatedAt,
+    this.companyName,
+    this.invitedByName,
+    this.invitedByEmail,
   });
 
   final String id;
@@ -29,7 +32,17 @@ class CompanyInvitationModel {
   final DateTime? cancelledAt;
   final DateTime updatedAt;
 
+  final String? companyName;
+  final String? invitedByName;
+  final String? invitedByEmail;
+
   factory CompanyInvitationModel.fromJson(Map<String, dynamic> json) {
+    final companyJson =
+        _mapOrNull(json['company']) ?? _mapOrNull(json['companies']);
+
+    final invitedByProfileJson =
+        _mapOrNull(json['invited_by_profile']) ?? _mapOrNull(json['profiles']);
+
     return CompanyInvitationModel(
       id: json['id'] as String,
       companyId: json['company_id'] as String,
@@ -44,7 +57,18 @@ class CompanyInvitationModel {
       acceptedAt: _dateTimeOrNull(json['accepted_at']),
       cancelledAt: _dateTimeOrNull(json['cancelled_at']),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      companyName: companyJson?['name'] as String?,
+      invitedByName: invitedByProfileJson?['full_name'] as String?,
+      invitedByEmail: invitedByProfileJson?['email'] as String?,
     );
+  }
+
+  static Map<String, dynamic>? _mapOrNull(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+
+    return null;
   }
 
   static DateTime? _dateTimeOrNull(dynamic value) {

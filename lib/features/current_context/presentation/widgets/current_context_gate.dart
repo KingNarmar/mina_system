@@ -5,6 +5,9 @@ import 'package:mina_system/core/network/presentation/cubit/network_status_state
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
+import 'package:mina_system/features/company_users/presentation/screens/pending_company_invitations_screen.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/screens/create_company_screen.dart';
@@ -38,7 +41,7 @@ class CurrentContextGate extends StatelessWidget {
 
         if (state is CurrentContextLoaded) {
           if (state.hasNoCompany) {
-            return const CreateCompanyScreen();
+            return const _NoCompanyInvitationGate();
           }
 
           if (state.hasMultipleCompanies) {
@@ -49,6 +52,50 @@ class CurrentContextGate extends StatelessWidget {
         }
 
         return const _CurrentContextLoadingView();
+      },
+    );
+  }
+}
+
+class _NoCompanyInvitationGate extends StatefulWidget {
+  const _NoCompanyInvitationGate();
+
+  @override
+  State<_NoCompanyInvitationGate> createState() =>
+      _NoCompanyInvitationGateState();
+}
+
+class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
+
+      context.read<CompanyUsersCubit>().loadCurrentUserPendingInvitations();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return const _CurrentContextLoadingView();
+        }
+
+        if (state.hasError) {
+          return _CurrentContextFailureView(message: state.errorMessage!);
+        }
+
+        if (state.pendingInvitations.isNotEmpty) {
+          return const PendingCompanyInvitationsScreen();
+        }
+
+        return const CreateCompanyScreen();
       },
     );
   }
