@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
-import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/widgets/layouts/workers_desktop_layout.dart';
@@ -22,56 +22,39 @@ class _WorkersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WorkersCubit, WorkersState>(
-      builder: (context, state) {
-        final workers = state.filteredWorkers;
-
-        return Stack(
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final mediaSize = MediaQuery.sizeOf(context);
-                final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
-
-                if (isMobile) {
-                  return WorkersMobileLayout(workers: workers);
-                }
-
-                return WorkersDesktopLayout(workers: workers);
-              },
-            ),
-            if (state.errorMessage != null)
-              _WorkersErrorBanner(message: state.errorMessage!),
-            if (state.isLoading) const _WorkersLoadingOverlay(),
-          ],
-        );
+    return BlocListener<WorkersCubit, WorkersState>(
+      listenWhen: (previous, current) {
+        return previous.errorMessage != current.errorMessage &&
+            current.errorMessage != null;
       },
-    );
-  }
-}
+      listener: (context, state) {
+        AppMessage.showError(context, state.errorMessage!);
+        context.read<WorkersCubit>().clearErrorMessage();
+      },
+      child: BlocBuilder<WorkersCubit, WorkersState>(
+        builder: (context, state) {
+          final workers = state.filteredWorkers;
 
-class _WorkersErrorBanner extends StatelessWidget {
-  const _WorkersErrorBanner({required this.message});
+          return Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final mediaSize = MediaQuery.sizeOf(context);
+                  final isMobile =
+                      mediaSize.shortestSide < AppBreakpoints.tablet;
 
-  final String message;
+                  if (isMobile) {
+                    return WorkersMobileLayout(workers: workers);
+                  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 12,
-      left: 16,
-      right: 16,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
-        ),
-        child: Text(
-          message,
-          style: AppTextStyles.caption.copyWith(color: AppColors.error),
-        ),
+                  return WorkersDesktopLayout(workers: workers);
+                },
+              ),
+              if (state.isLoading || state.isSubmitting)
+                const _WorkersLoadingOverlay(),
+            ],
+          );
+        },
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
@@ -36,115 +37,127 @@ class _TransactionsViewState extends State<_TransactionsView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TransactionsCubit, TransactionsState>(
-      builder: (context, state) {
-        final transactions = state.filteredTransactions;
+    return BlocListener<TransactionsCubit, TransactionsState>(
+      listenWhen: (previous, current) {
+        return previous.errorMessage != current.errorMessage &&
+            current.errorMessage != null;
+      },
+      listener: (context, state) {
+        AppMessage.showError(context, state.errorMessage!);
+        context.read<TransactionsCubit>().clearErrorMessage();
+      },
+      child: BlocBuilder<TransactionsCubit, TransactionsState>(
+        builder: (context, state) {
+          final transactions = state.filteredTransactions;
 
-        final transactionsCubit = context.read<TransactionsCubit>();
+          final transactionsCubit = context.read<TransactionsCubit>();
 
-        final custodyBalances = transactionsCubit.getFilteredCustodyBalances();
+          final custodyBalances = transactionsCubit
+              .getFilteredCustodyBalances();
 
-        final toolSummaries = transactionsCubit
-            .getFilteredToolCustodySummaries();
+          final toolSummaries = transactionsCubit
+              .getFilteredToolCustodySummaries();
 
-        final pendingApprovalTransactions = _getPendingApprovalTransactions(
-          state.transactions,
-        );
+          final pendingApprovalTransactions = _getPendingApprovalTransactions(
+            state.transactions,
+          );
 
-        return Stack(
-          children: [
-            LayoutBuilder(
-              builder: (context, _) {
-                final mediaSize = MediaQuery.sizeOf(context);
-                final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
-                final isCompactLandscape =
-                    isMobile && mediaSize.width > mediaSize.height;
-                final isAnySearchFocused =
-                    _isTransactionSearchFocused ||
-                    _isCustodyBalanceSearchFocused ||
-                    _isToolSummarySearchFocused;
-                final isCompactSearchMode =
-                    isCompactLandscape && isAnySearchFocused;
+          return Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, _) {
+                  final mediaSize = MediaQuery.sizeOf(context);
+                  final isMobile =
+                      mediaSize.shortestSide < AppBreakpoints.tablet;
+                  final isCompactLandscape =
+                      isMobile && mediaSize.width > mediaSize.height;
+                  final isAnySearchFocused =
+                      _isTransactionSearchFocused ||
+                      _isCustodyBalanceSearchFocused ||
+                      _isToolSummarySearchFocused;
+                  final isCompactSearchMode =
+                      isCompactLandscape && isAnySearchFocused;
 
-                return DefaultTabController(
-                  length: 4,
-                  child: Scaffold(
-                    backgroundColor: AppColors.background,
-                    body: Column(
-                      children: [
-                        if (!isCompactSearchMode)
-                          Container(
-                            color: AppColors.card,
-                            child: const TabBar(
-                              isScrollable: true,
-                              tabAlignment: TabAlignment.start,
-                              labelColor: AppColors.accent,
-                              unselectedLabelColor: AppColors.textSecondary,
-                              indicatorColor: AppColors.accent,
-                              tabs: [
-                                Tab(text: 'Transactions'),
-                                Tab(text: 'Pending Approvals'),
-                                Tab(text: 'Custody Balance'),
-                                Tab(text: 'Tool Summary'),
+                  return DefaultTabController(
+                    length: 4,
+                    child: Scaffold(
+                      backgroundColor: AppColors.background,
+                      body: Column(
+                        children: [
+                          if (!isCompactSearchMode)
+                            Container(
+                              color: AppColors.card,
+                              child: const TabBar(
+                                isScrollable: true,
+                                tabAlignment: TabAlignment.start,
+                                labelColor: AppColors.accent,
+                                unselectedLabelColor: AppColors.textSecondary,
+                                indicatorColor: AppColors.accent,
+                                tabs: [
+                                  Tab(text: 'Transactions'),
+                                  Tab(text: 'Pending Approvals'),
+                                  Tab(text: 'Custody Balance'),
+                                  Tab(text: 'Tool Summary'),
+                                ],
+                              ),
+                            ),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                if (isMobile)
+                                  TransactionsMobileLayout(
+                                    transactions: transactions,
+                                    selectedFilter: state.typeFilter,
+                                    isCompactSearchMode: isCompactSearchMode,
+                                    onSearchFocusChanged:
+                                        _onTransactionSearchFocusChanged,
+                                  )
+                                else
+                                  TransactionsDesktopLayout(
+                                    transactions: transactions,
+                                    selectedFilter: state.typeFilter,
+                                  ),
+                                PendingApprovalsLayout(
+                                  transactions: pendingApprovalTransactions,
+                                  isMobile: isMobile,
+                                ),
+                                if (isMobile)
+                                  CustodyBalanceMobileLayout(
+                                    balances: custodyBalances,
+                                    isCompactSearchMode: isCompactSearchMode,
+                                    onSearchFocusChanged:
+                                        _onCustodyBalanceSearchFocusChanged,
+                                  )
+                                else
+                                  CustodyBalanceDesktopLayout(
+                                    balances: custodyBalances,
+                                  ),
+                                if (isMobile)
+                                  ToolCustodySummaryMobileLayout(
+                                    summaries: toolSummaries,
+                                    isCompactSearchMode: isCompactSearchMode,
+                                    onSearchFocusChanged:
+                                        _onToolSummarySearchFocusChanged,
+                                  )
+                                else
+                                  ToolCustodySummaryDesktopLayout(
+                                    summaries: toolSummaries,
+                                  ),
                               ],
                             ),
                           ),
-                        Expanded(
-                          child: TabBarView(
-                            children: [
-                              if (isMobile)
-                                TransactionsMobileLayout(
-                                  transactions: transactions,
-                                  selectedFilter: state.typeFilter,
-                                  isCompactSearchMode: isCompactSearchMode,
-                                  onSearchFocusChanged:
-                                      _onTransactionSearchFocusChanged,
-                                )
-                              else
-                                TransactionsDesktopLayout(
-                                  transactions: transactions,
-                                  selectedFilter: state.typeFilter,
-                                ),
-                              PendingApprovalsLayout(
-                                transactions: pendingApprovalTransactions,
-                                isMobile: isMobile,
-                              ),
-                              if (isMobile)
-                                CustodyBalanceMobileLayout(
-                                  balances: custodyBalances,
-                                  isCompactSearchMode: isCompactSearchMode,
-                                  onSearchFocusChanged:
-                                      _onCustodyBalanceSearchFocusChanged,
-                                )
-                              else
-                                CustodyBalanceDesktopLayout(
-                                  balances: custodyBalances,
-                                ),
-                              if (isMobile)
-                                ToolCustodySummaryMobileLayout(
-                                  summaries: toolSummaries,
-                                  isCompactSearchMode: isCompactSearchMode,
-                                  onSearchFocusChanged:
-                                      _onToolSummarySearchFocusChanged,
-                                )
-                              else
-                                ToolCustodySummaryDesktopLayout(
-                                  summaries: toolSummaries,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            if (state.isLoading || state.isSubmitting)
-              const _TransactionsLoadingOverlay(),
-          ],
-        );
-      },
+                  );
+                },
+              ),
+              if (state.isLoading || state.isSubmitting)
+                const _TransactionsLoadingOverlay(),
+            ],
+          );
+        },
+      ),
     );
   }
 

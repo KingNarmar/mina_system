@@ -19,12 +19,15 @@ class GlobalOfflineBanner extends StatelessWidget {
         return BlocBuilder<CurrentContextCubit, CurrentContextState>(
           builder: (context, currentContextState) {
             final isOffline = networkState is NetworkStatusOffline;
+            final isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+
             final isAppContextLoaded =
                 currentContextState is CurrentContextLoaded &&
                 !currentContextState.hasNoCompany &&
                 !currentContextState.hasMultipleCompanies;
 
-            final shouldShowBanner = isOffline && isAppContextLoaded;
+            final shouldShowBanner =
+                isOffline && isAppContextLoaded && !isKeyboardOpen;
 
             return Column(
               children: [
