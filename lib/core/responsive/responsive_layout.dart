@@ -1,4 +1,4 @@
-import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 
@@ -21,10 +21,9 @@ class ResponsiveLayout extends StatelessWidget {
         final mediaSize = MediaQuery.sizeOf(context);
         final width = constraints.maxWidth;
         final shortestSide = mediaSize.shortestSide;
-        final platform = DevicePreview.platform(context);
 
         final isCompactDevice = shortestSide < AppBreakpoints.tablet;
-        final canUseDesktopLayout = _canUseDesktopLayout(platform);
+        final canUseDesktopLayout = _canUseDesktopLayout(defaultTargetPlatform);
 
         if (isCompactDevice) {
           return mobile;

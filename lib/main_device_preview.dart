@@ -1,3 +1,5 @@
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mina_system/app_root/app_root.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,5 +12,15 @@ Future<void> main() async {
     anonKey: 'sb_publishable_W17qAho0ihf9HXkiHp_MhA__-qsEFRl',
   );
 
-  runApp(const MinaSystem());
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (BuildContext context) {
+        return MinaSystem(
+          locale: DevicePreview.locale(context),
+          appBuilder: DevicePreview.appBuilder,
+        );
+      },
+    ),
+  );
 }
