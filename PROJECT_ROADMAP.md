@@ -12,11 +12,11 @@
 
 Latest verified pushed commit:
 
-`faeda85b4c2a74c16a96ca67042c49e72aff6a04`
+`23e5b44415efe0cc57e0eef02bfaef187de13055`
 
 Commit message:
 
-`finalize company invitation validation`
+`complete role-based access control`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -71,6 +71,7 @@ The product should eventually support:
 - Clear behavior when the user is offline or the internet connection is unstable
 - Mobile/tablet camera capture for proof/document upload workflows
 - File upload fallback from device storage
+- Future custom permission overrides without rebuilding the whole permission system
 
 ---
 
@@ -88,6 +89,8 @@ The product should eventually support:
 - Do not create multiple roadmap files.
 - If a file becomes too large, refactor it into smaller focused files without changing working behavior.
 - When changing existing files during guided development, provide complete file replacements when requested.
+- Keep implementation scalable and maintainable.
+- Start with simple fixed-role permissions, but keep the structure ready for future custom permission overrides.
 
 After each completed feature:
 
@@ -109,6 +112,16 @@ Every major feature should be tested on:
 - Tablet portrait
 - Tablet landscape
 
+Role-based features should be tested with:
+
+- Owner
+- Admin
+- Warehouse Manager
+- Warehouse User
+- Viewer
+
+If a role cannot be tested due to lack of email/test account, document that clearly.
+
 ## Architecture Rules
 
 Follow this pattern where applicable:
@@ -121,11 +134,12 @@ Follow this pattern where applicable:
 6. UI
 7. SQL Grants if needed
 8. RLS Policies if needed
-9. Manual test
-10. `dart format lib`
-11. `flutter analyze`
-12. Commit / Push
-13. Update roadmap
+9. Storage Policies if needed
+10. Manual test
+11. `dart format lib`
+12. `flutter analyze`
+13. Commit / Push
+14. Update roadmap
 
 ## Supabase Rules
 
@@ -140,6 +154,7 @@ Follow this pattern where applicable:
   - Add safe RLS policies.
 - Company users must access company data only through active company membership.
 - RLS must enforce role permissions at database level, not UI only.
+- Storage policies must enforce upload/read permissions at bucket level.
 - Plan limits must be enforced at database/RPC level, not UI only.
 - Subscription access must be checked securely using company subscription records.
 - Transactions should not be deleted from the system.
@@ -169,6 +184,7 @@ Follow this pattern where applicable:
 - General screen errors should use unified `AppMessage`.
 - In-page banners should be used only when they are part of the page design, not for temporary action errors.
 - Important details screens should show direct accountability data where applicable.
+- UI role restrictions must match database RLS and Storage policies.
 
 ## Responsive / Adaptive Rules
 
@@ -233,6 +249,32 @@ Follow this pattern where applicable:
 - Network errors must be user-friendly and separated from validation/auth/business-rule errors where possible.
 - Offline drafts and background sync are future features.
 
+## Role / Permission Design Rules
+
+The current implementation uses fixed role-based permissions.
+
+Current roles:
+
+- `owner`
+- `admin`
+- `warehouse_manager`
+- `warehouse_user`
+- `viewer`
+
+Current rule:
+
+- Permissions are assigned by role.
+- The owner changes a user's role to change their access level.
+- Per-user custom permission overrides are not implemented yet.
+
+Future scalable direction:
+
+- Keep the permission helper structure ready for:
+  - Base role permissions
+  - Extra allowed permissions
+  - Explicit denied permissions
+- Future custom permissions should not require rebuilding all screens from scratch.
+
 ## Data Accountability Rules
 
 Mina System must track user accountability in two levels:
@@ -272,8 +314,8 @@ Each transaction should clearly show:
 - Who uploaded the proof image, if applicable
 - Who uploaded the signed approval document, if applicable
 - Who approved the lost/damaged transaction, if applicable
-- Who rejected the lost/damaged transaction, if applicable
-- Who settled the transaction, if applicable
+- Who rejected it, if applicable
+- Who settled it, if applicable
 - Who last updated the transaction through any controlled workflow, if applicable
 
 Suggested transaction-related fields:
@@ -422,10 +464,21 @@ Both are required.
 - Duplicate pending invitations are blocked.
 - Duplicate active-member invitations are blocked at database level.
 - Company user business errors are displayed with clear user-facing messages.
+- Role-based UI permissions are implemented.
+- App navigation is filtered by current company role.
+- Workers/Tools/Transactions/Lookups/Reports/Settings actions are restricted by role in Flutter UI.
+- Supabase public table RLS write policies are aligned with the implemented RBAC matrix.
+- Supabase Storage upload policies are aligned with the implemented RBAC matrix.
+- Manual role testing completed for:
+  - Owner
+  - Warehouse Manager
+  - Warehouse User
+  - Viewer
+- Admin was not manually tested due to lack of extra email account, but current policies treat Admin with Owner/Admin access for implemented features.
 
 ## Current Active Phase
 
-**Phase P — Role-Based Access Control**
+**Phase Q — Secure Member Management & Invitation Backend**
 
 Status:
 
@@ -433,9 +486,18 @@ Status:
 
 Reason for priority:
 
-Company users and invitations are now implemented. The next required step is to restrict app actions based on the current user's role.
+Phase P completed the RBAC foundation for fixed roles across Flutter UI, Supabase RLS, and Storage policies.
 
-Role-based access must be enforced by both UI behavior and database RLS/RPC rules.
+The next required step is to improve company user management and invitation production readiness.
+
+This includes:
+
+- Secure role-change RPCs
+- Deactivate/reactivate member RPCs
+- Last-owner protection
+- Optional invitation email delivery through backend/Edge Function
+- Stronger member management UI for Owner/Admin
+- Audit readiness for company user changes
 
 ---
 
@@ -446,8 +508,8 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 ## Priority 1 — Must-Have Product Foundation
 
 1. **Phase O — Company Users, Roles & Invitations** ✅
-2. **Phase P — Role-Based Access Control**
-3. **Phase Q — Secure Invitation Backend / Edge Function**
+2. **Phase P — Role-Based Access Control** ✅
+3. **Phase Q — Secure Member Management & Invitation Backend**
 4. **Phase R — Business Accountability & Audit Trail**
 5. **Phase S — Production Environment & Secrets Setup**
 6. **Phase T — Subscription Plans, Usage Limits & Company Access Control**
@@ -472,6 +534,7 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 16. **Phase AD — Web Landing Page / Customer Portal**
 17. **Phase AE — Desktop Installer Distribution**
 18. **Phase AF — Advanced Analytics**
+19. **Phase AG — Custom Permission Overrides**
 
 ---
 
@@ -733,9 +796,6 @@ Tested and confirmed:
 
 The following items are intentionally not completed inside Phase O and should be handled in future phases:
 
-- Full role permission matrix.
-- Hide/disable UI actions by role across all screens.
-- Database-level role restrictions for every business action.
 - Change member role.
 - Deactivate/reactivate member.
 - Remove member access from company.
@@ -746,147 +806,537 @@ The following items are intentionally not completed inside Phase O and should be
 
 These belong to:
 
-- Phase P — Role-Based Access Control
-- Phase Q — Secure Invitation Backend / Edge Function
+- Phase Q — Secure Member Management & Invitation Backend
 - Phase R — Business Accountability & Audit Trail
 
 ---
 
 # Phase P — Role-Based Access Control
 
-## Status: Next / Not Started
+## Status: Done
 
 ## Goal
 
 Restrict app actions based on the current user's company role.
 
-Phase O made multi-user company access possible. Phase P must make that access safe.
+Phase O made multi-user company access possible. Phase P made that access safer by enforcing fixed-role access through:
 
-The app must not rely on UI-only restrictions. Role permissions must be enforced through:
+- Flutter UI permission helpers
+- Navigation filtering
+- Screen/action-level permission checks
+- Supabase RLS write policies
+- Supabase Storage policies
+- Manual role testing
 
-- Flutter UI helpers
-- Supabase RLS
-- RPCs where needed
-- Business-rule validation
+## Role Model Implemented
 
-## Required after Phase O
+Implemented fixed roles:
 
-Once users and memberships exist, role permissions must be enforced.
+- `owner`
+- `admin`
+- `warehouse_manager`
+- `warehouse_user`
+- `viewer`
 
-## Permission examples
+Important design decision:
 
-Owner:
+- This phase uses fixed roles.
+- The owner changes a user's role to change access.
+- Per-user custom permission overrides are future scope.
+- The permission helper is intentionally structured to allow future expansion.
 
-- Full access.
-- Manage company users.
-- Invite users.
-- Cancel invitations.
-- Change user roles.
-- Deactivate/reactivate members.
-- Remove member access where allowed.
-- Manage company settings.
-- Manage subscription later.
-- Approve/reject/settle.
-- Reports.
-- Workers/tools/lookups/transactions.
+## Implemented Permission Behavior
 
-Admin:
+### Owner
 
-- Manage most operational data.
-- Invite users if allowed.
-- Manage users except owner.
-- Reports.
-- Approvals if allowed.
-- Cannot deactivate/remove the last owner.
-- Cannot promote self to owner.
+Owner has full access to currently implemented features:
 
-Warehouse Manager:
+- Dashboard
+- Workers
+- Tools
+- Transactions
+- Pending Approvals
+- Custody Balance
+- Tool Summary
+- Reports
+- Lookups
+- Settings
+- Company Profile
+- Company Logo
+- Company Users
+- Report Settings
+- Document Templates
+- Upload transaction proof images
+- Upload signed approval documents
+- Approve/reject lost or damaged transactions
+- Settle approved lost/damaged transactions
 
-- Workers/tools/transactions/reports.
-- Approval workflow if allowed.
-- Limited company settings access.
-- No subscription management.
-- No owner/admin role changes unless explicitly allowed.
+### Admin
 
-Warehouse User:
+Admin is treated as near-owner for currently implemented features:
 
-- Create transactions.
-- View assigned screens.
-- Limited edit/delete permissions.
-- No company user management.
-- No company settings management.
+- Dashboard
+- Workers
+- Tools
+- Transactions
+- Pending Approvals
+- Custody Balance
+- Tool Summary
+- Reports
+- Lookups
+- Settings
+- Company Profile
+- Company Logo
+- Company Users
+- Report Settings
+- Document Templates
+- Upload transaction proof images
+- Upload signed approval documents
+- Approve/reject lost or damaged transactions
+- Settle approved lost/damaged transactions
 
-Viewer:
+Future difference:
 
-- Read-only dashboard/reports.
-- No mutations.
-- No user management.
-- No settings changes.
+- Owner should remain higher than Admin for sensitive actions such as:
+  - Transfer ownership
+  - Delete company
+  - Manage subscription owner-level billing
+  - Promote users to owner
+  - Remove/deactivate last owner
 
-## Important rule
+### Warehouse Manager
 
-UI restrictions are not enough.
+Warehouse Manager can:
 
-Database RLS/RPC rules must enforce permissions.
+- View Dashboard
+- View/manage Workers
+- View/manage Tools
+- View/manage Lookups
+- View/create Transactions
+- Upload transaction proof images
+- Upload signed approval documents
+- Approve/reject lost or damaged transactions
+- Settle approved lost/damaged transactions
+- View/generate Reports
 
-## Implementation order
+Warehouse Manager cannot:
+
+- See Settings tab
+- Manage Company Users
+- Invite users
+- Manage company profile/logo/report settings/templates
+- Manage subscriptions
+
+### Warehouse User
+
+Warehouse User can:
+
+- View Dashboard
+- View Workers
+- View Tools
+- View Transactions
+- Create Transactions
+- Upload transaction proof images
+- View Pending Approvals
+- View Custody Balance
+- View Tool Summary
+- View/generate Reports according to current helper configuration
+
+Warehouse User cannot:
+
+- Add/edit/delete Workers
+- Add/edit/delete Tools
+- See Lookups tab
+- See Settings tab
+- Upload signed approval documents
+- Approve/reject lost or damaged transactions
+- Settle approved lost/damaged transactions
+- Manage Company Users
+- Manage company settings
+
+### Viewer
+
+Viewer can:
+
+- View Dashboard
+- View Reports according to current helper configuration
+
+Viewer cannot:
+
+- See Workers tab
+- See Tools tab
+- See Transactions tab
+- See Lookups tab
+- See Settings tab
+- Create/update/delete any business data
+- Upload documents
+- Manage approvals
+- Manage company users/settings
+
+Future note:
+
+- If Viewer should become strictly view-only without report generation, remove `generateReports` from `viewer` permissions in `CompanyRolePermissions`.
+
+## Completed implementation
 
 ### Step P1 — Audit Current Role Usage
 
-Review:
+Completed.
 
+Reviewed:
+
+- `PROJECT_ROADMAP.md`
 - `CurrentContextRepo`
 - `CurrentContextCubit`
 - `CompanyModel`
 - `current_context_extensions.dart`
-- all screens/actions that create/update/delete data
-- existing RLS policies
-- current `private.has_company_role`
-- current `private.is_company_member`
+- `AppShell`
+- `AppNavItems`
+- Workers screens/actions
+- Tools screens/actions
+- Transactions screens/actions
+- Lookups screens/actions
+- Reports screens/actions
+- Company Settings screens/actions
+- Company Users section
+- Existing Supabase RLS policies
+- Existing Supabase helper functions
+- Existing Supabase Storage policies
 
-Expected output:
+Confirmed role source:
 
-- Confirm all places where current role is available.
-- Confirm all actions that need role checks.
-- Define role permission matrix.
+- `company_members.role`
+- `CurrentContextRepo`
+- `CompanyModel.role`
+- `context.currentUserRole`
+
+Confirmed existing helper functions:
+
+- `private.current_profile_id()`
+- `private.is_company_member(uuid)`
+- `private.has_company_role(uuid, company_member_role[])`
+- `private.company_id_from_storage_path(text)`
 
 ### Step P2 — Add Flutter Permission Helpers
 
-Add a central permission helper such as:
+Completed.
 
-- `AppPermissions`
+Added central role/permission helper:
+
+- `lib/core/permissions/company_role_permissions.dart`
+
+Implemented:
+
+- `CompanyPermission`
+- `CompanyRoles`
 - `CompanyRolePermissions`
-- `CurrentUserPermissions`
 
-Should support:
+Included permission methods for:
 
-- `canManageCompanyUsers`
-- `canInviteUsers`
-- `canCancelInvitations`
-- `canChangeMemberRole`
-- `canDeactivateMember`
-- `canReactivateMember`
-- `canManageCompanySettings`
-- `canManageLookups`
-- `canManageWorkers`
-- `canManageTools`
-- `canCreateTransactions`
-- `canViewReports`
-- `canApproveLostDamaged`
-- `canSettleLostDamaged`
+- Dashboard
+- Workers
+- Tools
+- Transactions
+- Lost/Damaged approval workflow
+- Custody balance
+- Tool summary
+- Reports
+- Lookups
+- Company settings
+- Company users
+- Invitations
+- Member management placeholders/future methods
+
+Supported role assignment helpers:
+
+- `assignableRolesFor`
+- `canAssignRole`
+- `canManageTargetRole`
+
+Important scalability decision:
+
+- The current helper uses fixed role permissions.
+- Structure is ready for future custom permission overrides.
 
 ### Step P3 — Apply UI Restrictions
 
-Update UI to:
+Completed.
 
-- Hide or disable actions that current role cannot use.
-- Show read-only states where appropriate.
-- Show clear messages where actions are restricted.
-- Keep owner/admin management actions visible only to allowed roles.
+Updated app navigation:
 
-### Step P4 — Add Secure Member Management RPCs
+- `AppNavItem`
+- `AppNavItems`
+- `DesktopShell`
+- `TabletShell`
+- `MobileShell`
 
-Add RPCs for:
+Navigation is now filtered by current user role.
+
+Updated Company Users:
+
+- Replaced local Owner/Admin check with `CompanyRolePermissions`.
+- Owner can invite Admin/Warehouse Manager/Warehouse User/Viewer.
+- Admin can invite Warehouse Manager/Warehouse User/Viewer.
+- Lower roles cannot view Company Users section.
+
+Updated Workers:
+
+- Owner/Admin/Warehouse Manager can Add/Edit/Delete.
+- Warehouse User can view only.
+- Viewer cannot see Workers tab.
+
+Updated Tools:
+
+- Owner/Admin/Warehouse Manager can Add/Edit/Delete.
+- Warehouse User can view only.
+- Viewer cannot see Tools tab.
+
+Updated Transactions:
+
+- Owner/Admin/Warehouse Manager/Warehouse User can create transactions.
+- Warehouse User can upload transaction proof images.
+- Warehouse User sees View only in Pending Approvals.
+- Owner/Admin/Warehouse Manager can upload signed approval documents.
+- Owner/Admin/Warehouse Manager can approve/reject/settle.
+- Viewer cannot see Transactions tab.
+
+Updated Lookups:
+
+- Owner/Admin/Warehouse Manager can Add/Delete lookups.
+- Warehouse User cannot see Lookups tab.
+- Viewer cannot see Lookups tab.
+- Lookup list tiles support hidden delete actions.
+
+Updated Company Settings:
+
+- Settings tab visible only to Owner/Admin.
+- Internal settings sections also use permission checks for future scalability.
+- Company Profile, Company Logo, Company Users, Report Settings, and Document Templates are permission-gated.
+
+Updated Reports:
+
+- Report cards respect `canGenerateReports`.
+- Report Builder and Preview PDF respect `canGenerateReports`.
+- Future read-only report behavior is supported.
+
+### Step P4 — Align Public Table RLS Policies
+
+Completed.
+
+Audited RLS status:
+
+- All important public tables have RLS enabled.
+
+Tables confirmed with RLS:
+
+- `companies`
+- `company_document_templates`
+- `company_invitations`
+- `company_members`
+- `company_report_settings`
+- `departments`
+- `job_titles`
+- `profiles`
+- `tool_categories`
+- `tool_units`
+- `tools`
+- `transactions`
+- `workers`
+
+Updated write policies for:
+
+- `workers`
+- `tools`
+- `departments`
+- `job_titles`
+- `tool_units`
+- `tool_categories`
+- `transactions`
+
+Implemented policy behavior:
+
+Workers:
+
+- Owner/Admin/Warehouse Manager can insert/update/delete.
+- Members can read existing workers through existing read policy.
+
+Tools:
+
+- Owner/Admin/Warehouse Manager can insert/update/delete.
+- Members can read existing tools through existing read policy.
+
+Lookups:
+
+- Owner/Admin/Warehouse Manager can insert/update/delete:
+  - departments
+  - job titles
+  - tool units
+  - tool categories
+- Members can read lookups through existing read policies.
+
+Transactions:
+
+- Owner/Admin/Warehouse Manager/Warehouse User can insert transactions.
+- Owner/Admin/Warehouse Manager can update pending transactions.
+- Owner/Admin/Warehouse Manager can upload signed approval document path.
+- Owner/Admin/Warehouse Manager can approve/reject lost/damaged transactions.
+- Owner/Admin/Warehouse Manager can settle approved lost/damaged transactions.
+- Members can read transactions through existing read policy.
+
+### Step P5 — Align Supabase Storage Policies
+
+Completed.
+
+Audited Storage buckets:
+
+- `company-assets`
+- `transaction-proofs`
+- `transaction-approval-documents`
+
+Confirmed:
+
+- Buckets are private.
+- `transaction-approval-documents` has file size limit configured.
+- `transaction-approval-documents` allows:
+  - `application/pdf`
+  - `image/jpeg`
+  - `image/png`
+  - `image/webp`
+
+Updated Storage policies:
+
+`transaction-proofs`:
+
+- Owner/Admin/Warehouse Manager/Warehouse User can upload.
+- Reason: all these roles can create transactions and upload proof images.
+
+`transaction-approval-documents`:
+
+- Owner/Admin/Warehouse Manager can upload.
+- Warehouse User cannot upload.
+- Reason: signed approval documents belong to approval workflow.
+
+Important fix:
+
+- Initial policy used a strict folder condition that caused:
+  - `new row violates row-level security policy`
+- Fixed by simplifying policy to use:
+  - `private.company_id_from_storage_path(name)`
+- Uploading signed approval documents now works for Owner and Manager roles.
+
+### Step P6 — Manual Role Testing
+
+Completed.
+
+Tested manually:
+
+Owner:
+
+- Navigation visible as expected.
+- Settings visible.
+- Workers/Tools/Lookups CRUD available.
+- Transactions available.
+- Pending approval Upload Signed works.
+- Approval workflow works after document upload.
+
+Warehouse Manager:
+
+- Settings hidden.
+- Workers/Tools/Lookups CRUD available.
+- Transactions available.
+- Pending approval Upload Signed available.
+- Approval/Reject/Settle available.
+
+Warehouse User:
+
+- Settings hidden.
+- Lookups hidden.
+- Workers/Tools visible as read-only.
+- Transactions available.
+- Can create transactions.
+- Can upload transaction proof images.
+- Pending Approvals shows View only.
+- Upload Signed/Approve/Reject/Settle hidden.
+
+Viewer:
+
+- Dashboard visible.
+- Reports visible.
+- Workers hidden.
+- Tools hidden.
+- Transactions hidden.
+- Lookups hidden.
+- Settings hidden.
+- No mutation actions visible.
+
+Admin:
+
+- Not manually tested due to no additional email account.
+- Current RLS and helper rules treat Admin with Owner/Admin access for currently implemented features.
+- Admin should still be tested once a test email/account is available.
+
+### Step P7 — Commit / Push
+
+Completed.
+
+Committed and pushed:
+
+- Flutter UI RBAC implementation
+- RLS / Storage documentation
+- Final RBAC completion checkpoint
+
+Latest verified commit:
+
+`23e5b44415efe0cc57e0eef02bfaef187de13055`
+
+Commit message:
+
+`complete role-based access control`
+
+## Remaining items moved to next phases
+
+The following items are intentionally not completed inside Phase P:
+
+- Change member role UI.
+- Change member role RPC.
+- Deactivate member RPC.
+- Reactivate member RPC.
+- Remove/deactivate company access.
+- Prevent last owner removal/deactivation.
+- Prevent owner/admin self-lockout scenarios.
+- Full Admin-specific manual test.
+- Invitation email delivery.
+- Edge Function for production invitation flow.
+- Audit logs for role/member changes.
+- Per-user custom permission overrides.
+
+Moved to:
+
+- Phase Q — Secure Member Management & Invitation Backend
+- Phase R — Business Accountability & Audit Trail
+- Phase AG — Custom Permission Overrides
+
+---
+
+# Phase Q — Secure Member Management & Invitation Backend
+
+## Status: Next / Not Started
+
+## Goal
+
+Improve company user management and production invitation handling.
+
+Phase O allowed inviting and accepting users.
+
+Phase P added role-based access control.
+
+Phase Q should add safer member lifecycle controls and production invitation readiness.
+
+## Required Features
+
+### Member Management RPCs
+
+Add secure RPCs for:
 
 - Change member role.
 - Deactivate member.
@@ -902,8 +1352,11 @@ Rules:
 - Users should not be able to promote themselves to owner.
 - Users should not be able to deactivate themselves if that would leave company without owner.
 - Member status changes should be soft changes, not hard deletes.
+- All RPCs should derive acting user/profile from authenticated context.
+- All RPCs should be protected by role checks.
+- All RPCs should be prepared for future audit logging.
 
-### Step P5 — Update Company Users UI
+### Company Users UI Enhancements
 
 Add controls for Owner/Admin:
 
@@ -914,71 +1367,13 @@ Add controls for Owner/Admin:
 - Keep accepted membership history visible.
 - Do not hard delete members by default.
 
-### Step P6 — Strengthen RLS Policies
+### Invitation Backend / Edge Function
 
-Update RLS policies for:
-
-- Workers
-- Tools
-- Lookups
-- Transactions
-- Reports-related reads
-- Company settings
-- Company users
-- Company invitations
-
-Rules:
-
-- RLS must match the permission matrix.
-- Lower roles must not mutate restricted tables.
-- Viewer must be read-only.
-- Warehouse User must not manage settings/users.
-- Owner/Admin should retain full or near-full control.
-
-### Step P7 — Manual Test
-
-Test by role:
-
-- Owner
-- Admin
-- Warehouse Manager
-- Warehouse User
-- Viewer
-
-Test:
-
-- Which screens are visible.
-- Which buttons are visible.
-- Which mutations succeed.
-- Which unauthorized mutations fail at database/RPC level.
-- Role change behavior.
-- Deactivate/reactivate behavior.
-- Last owner protection.
-
----
-
-# Phase Q — Secure Invitation Backend / Edge Function
-
-## Status: Future / High Priority
-
-## Goal
-
-Implement production-grade invitation handling without exposing service role keys in Flutter.
-
-Phase O supports invitation records and acceptance through safe client-accessible logic. Phase Q should add the production backend layer for email delivery and stronger server-side validation.
-
-## Options
-
-Preferred:
+Preferred future production approach:
 
 - Supabase Edge Function for invitation creation and optional email sending.
 
-Possible staged approach:
-
-- Phase O creates invitation records with RLS/RPC safely.
-- Phase Q adds Edge Function and email sending.
-
-## Required behavior
+Required behavior:
 
 - Owner/Admin invites email.
 - Invitation is stored.
@@ -989,7 +1384,7 @@ Possible staged approach:
 - Membership is created.
 - Invitation becomes accepted.
 
-## Security
+Security:
 
 - Edge Function uses service role key server-side only.
 - Flutter never receives service role key.
@@ -997,15 +1392,22 @@ Possible staged approach:
 - Edge Function validates target email and company.
 - Edge Function rate-limits or protects repeated invitation attempts where needed.
 
-## Implementation order
+## Suggested Implementation Order
 
-1. Decide email provider.
-2. Create Edge Function.
-3. Validate caller role inside function.
-4. Create/send invitation.
-5. Update Flutter repo to call function instead of direct insert if needed.
-6. Test invite email delivery.
-7. Keep RPC-based acceptance.
+1. Audit `company_members` columns and current member UI.
+2. Define member status behavior.
+3. Create secure RPC:
+   - `change_company_member_role`
+4. Create secure RPC:
+   - `deactivate_company_member`
+5. Create secure RPC:
+   - `reactivate_company_member`
+6. Add last-owner protection.
+7. Add repository/cubit methods.
+8. Add Company Users UI actions.
+9. Test Owner/Admin/lower roles.
+10. Add Edge Function invitation email flow if ready.
+11. Commit/push/update roadmap.
 
 ---
 
@@ -1025,8 +1427,6 @@ Track every important business action in the system so the company can clearly k
 - What important data changed
 - What the current record accountability is
 - What the historical action trail is
-
-This phase is required for real business accountability.
 
 Mina System must not only store the final data.
 
@@ -1150,78 +1550,31 @@ Examples for `action`:
 - `company.logo_uploaded`
 - `company.report_settings_updated`
 - `company.document_template_updated`
-- `user.invited`
-- `user.invitation_cancelled`
-- `user.invitation_accepted`
-- `user.role_changed`
-- `user.deactivated`
-- `user.reactivated`
-- `user.removed`
+- `company_user.invited`
+- `company_user.invitation_cancelled`
+- `company_user.invitation_accepted`
+- `company_user.role_changed`
+- `company_user.deactivated`
+- `company_user.reactivated`
+- `company_user.access_removed`
 
-## Suggested Entity Types
+## Suggested Implementation Order
 
-Examples for `entity_type`:
-
-- `worker`
-- `tool`
-- `lookup`
-- `transaction`
-- `approval_document`
-- `company`
-- `company_logo`
-- `report_settings`
-- `document_template`
-- `company_user`
-- `company_invitation`
-- `subscription`
-
-## Snapshot Rule
-
-Audit logs and direct accountability fields should store useful snapshots because the original data may change later.
-
-Examples:
-
-- If a worker name changes later, old logs should still show the name at the time of the action.
-- If a tool name changes later, old logs should still show the tool name/code at the time of the action.
-- If a user role changes later, old logs should still show the acting user's role at the time of the action.
-- If a user profile name/email changes later, old records should still show who performed the action at that time.
-
-## Security Rules
-
-- Users should not be able to edit audit logs.
-- Users should not be able to delete audit logs.
-- Audit logs should be insert-only from trusted application flows, RPCs, or backend logic.
-- Audit logs must be filtered by `company_id`.
-- Company users can only read audit logs for companies they belong to.
-- Owner/Admin can view full audit logs.
-- Lower roles may have limited or no audit log access.
-- RLS must protect audit logs at database level.
-- Direct accountability fields must not be trusted from arbitrary client input unless validated by RLS/RPC/backend logic.
-- Where possible, actor profile should be derived from authenticated user context.
-
-## Implementation Notes
-
-This phase should start after:
-
-1. Company users and invitations are implemented.
-2. Role-based access control is defined.
-3. Current user role is reliably loaded from current context.
-
-Recommended implementation approach:
-
-1. Audit current existing columns first.
-2. Identify which tables already have `created_by_profile_id` or similar fields.
-3. Add missing direct accountability fields.
-4. Create or confirm `audit_logs` table.
-5. Add SQL grants.
-6. Add RLS policies.
-7. Add `AuditLogModel`.
-8. Add `AuditLogService` or `AuditLogRepo`.
-9. Add helper method like:
-   - `recordAuditLog(...)`
-10. Call audit logging after successful business actions.
-11. Update details screens to show direct accountability fields.
-12. Add Audit Log screen later for Owner/Admin.
+1. Audit existing accountability columns.
+2. Decide which direct fields to add first.
+3. Create `audit_logs` table.
+4. Add safe grants.
+5. Add RLS policies:
+   - Members can read audit logs for their company if allowed.
+   - Normal users cannot insert arbitrary audit logs.
+   - Normal users cannot update/delete audit logs.
+6. Decide whether audit records are created by:
+   - RPCs
+   - database triggers
+   - controlled repository logic
+7. Start with transaction audit events.
+8. Add worker/tool/settings/member audit events.
+9. Add basic audit log screen later in Phase W.
 
 ---
 
@@ -1231,35 +1584,31 @@ Recommended implementation approach:
 
 ## Goal
 
-Separate development/testing from production.
+Prepare Mina System for real production use with safe environment separation.
 
-## Required
+## Required Work
 
-- Production Supabase project.
-- Development Supabase project.
-- Environment configuration.
-- No hardcoded production secrets in source code.
-- Separate app configs for:
-  - development
-  - staging if needed
-  - production
-- Safe handling for:
-  - Supabase URL
-  - anon key
-  - Edge Function URLs
-  - app identifiers
-- Prepare release build settings.
+- Create production Supabase project.
+- Keep development/test Supabase project separate.
+- Configure environment variables safely.
+- Avoid hardcoded production secrets.
+- Confirm Flutter builds use correct environment.
+- Confirm Storage buckets exist in production.
+- Confirm RLS policies are applied in production.
+- Confirm required RPCs/functions exist in production.
+- Confirm app cannot accidentally write test data to production.
+- Prepare migration/documentation process for database changes.
 
-## Flutter setup options
+## Suggested Implementation Order
 
-- `--dart-define`
-- environment config class
-- separate launch configs
-- separate build commands.
-
-## Why this is high priority
-
-Before store release or real customer usage, the app must not rely on test database or hardcoded values.
+1. List all Supabase tables/functions/policies/buckets.
+2. Create production Supabase environment.
+3. Apply schema and policies.
+4. Configure app environment switching.
+5. Test login/company creation in production.
+6. Test role-based access in production.
+7. Test Storage uploads in production.
+8. Document production setup.
 
 ---
 
@@ -1269,235 +1618,192 @@ Before store release or real customer usage, the app must not rely on test datab
 
 ## Goal
 
-Make Mina System commercially ready.
+Add SaaS subscription logic and usage limits.
 
-## Plan model
+## Required Work
 
-The same app should support:
+- Define plans:
+  - Free
+  - Trial
+  - Basic
+  - Pro
+  - Enterprise
+- Add company subscription table.
+- Add plan limits:
+  - users
+  - workers
+  - tools
+  - transactions
+  - storage usage
+  - reports
+  - advanced features
+- Enforce limits at database/RPC level.
+- Add clear UI messages for plan limits.
+- Add company access control based on active subscription.
+- Add subscription admin screen later.
+- Keep payments outside mobile app at first.
 
-- Free plan
-- Trial plan
-- Paid company plans
+## Important Rules
 
-## Suggested limits
-
-Free plan could limit:
-
-- number of workers
-- number of tools
-- number of users
-- monthly transactions
-- storage usage
-- reports
-- approval workflow access if needed
-
-## Required tables
-
-Potential:
-
-- `plans`
-- `company_subscriptions`
-- `company_usage_counters`
-
-## Required enforcement
-
-- UI can show limits.
-- Database/RPC must enforce limits.
-- Plan checks should not be UI-only.
-
-## Required UI
-
-- Company Settings → Subscription tab.
-- Current plan.
-- Plan status.
-- Usage summary.
-- Message:
-  - `Contact your company admin to manage subscription.`
-- Upgrade/contact flow outside mobile payment if needed.
-
-## Important mobile store rule
-
-Do not add direct payment buttons inside mobile apps until App Store / Google Play billing rules are reviewed.
+- Do not rely on UI-only checks.
+- Limits must be enforced server-side.
+- Mobile apps should not include direct payment buttons until store rules are reviewed.
+- B2B subscription payment can be handled through website/invoice/customer portal.
 
 ---
 
 # Phase U — Store / Release Preparation
 
-## Status: Future / High Priority
+## Status: Future
 
 ## Goal
 
-Prepare the app for real distribution.
+Prepare the app for Google Play, App Store, and future desktop release.
 
-## Required before release
+## Required Work
 
-- Production Supabase project.
-- Environment separation.
+- App icon.
+- App name.
+- App description.
 - Privacy Policy.
 - Terms of Service.
-- Support email/contact.
-- Demo/review account if required by stores.
-- App icons.
-- App name finalization.
-- Android package name review.
-- iOS bundle ID review.
+- Support email.
+- Demo/review account.
+- Production backend.
+- Release build configuration.
+- Android signing.
+- iOS release requirements.
+- Store screenshots.
+- Store listing copy.
 - App permissions review.
-- Screenshots.
-- Store descriptions.
-- Support website or landing page.
-- Error handling audit.
-- Release build testing.
-
-## Platforms
-
-- Google Play.
-- App Store.
-- Desktop installer later.
+- File/camera permissions review.
+- Ensure no debug secrets are included.
 
 ---
 
 # Phase V — Production Data Safety & Demo Account
 
-## Status: Future / High Priority
+## Status: Future
 
 ## Goal
 
-Prepare safe production/demo usage.
+Prepare safe demo/testing behavior for production and store reviewers.
 
-## Required
+## Required Work
 
-- Seed demo company.
-- Demo users by role.
-- Demo data:
-  - workers
-  - tools
-  - transactions
-  - reports
-  - approvals
-- Safe reset/cleanup flow for demo data if needed.
-- Production backup considerations.
-- Data deletion/export policy.
-- Safe separation between demo and customer data.
+- Create demo company.
+- Create demo users by role.
+- Create sample workers/tools/transactions.
+- Ensure demo data is isolated.
+- Prevent demo users from damaging production data.
+- Add demo reset process if needed.
+- Document demo credentials securely.
 
 ---
 
 # Phase W — Basic Audit Log Screen
 
-## Status: Future / High Priority
+## Status: Future
 
 ## Goal
 
-Show audit log history to Owner/Admin after the audit trail backend exists.
+Display audit history inside the app after audit logging is implemented.
 
-## Scope
+## Required Work
 
-- Audit Log screen.
-- Filter by action.
-- Filter by entity type.
-- Filter by user.
-- Filter by date.
-- View old/new values where useful.
-- Read-only access.
-- Owner/Admin only by default.
+- Audit log list screen.
+- Filter by action/entity/user/date.
+- Show actor details.
+- Show old/new values safely.
+- Add role-based visibility.
+- Add company-level audit access policies.
+- Keep UI readable and not overly technical.
 
 ---
 
 # Phase X — Mobile/Tablet Camera Capture
 
-## Status: Future / Medium Priority
+## Status: Future
 
 ## Goal
 
-Allow mobile/tablet users to capture photos directly from camera for proof/document upload workflows.
+Allow users to capture proof images and documents directly from mobile/tablet camera.
 
-## Scope
+## Required Work
 
-- Transaction proof image camera capture.
-- Approval document camera capture.
-- File picker fallback remains available.
-- Compression still applies after camera capture.
-- Works across Android/iOS tablets and phones.
-
-## Rules
-
-- Camera capture should not replace file upload.
-- Storage paths must remain cloud paths.
-- Compression rules must remain active.
-- Offline upload must still be blocked until offline sync exists.
+- Add camera capture option.
+- Keep file picker fallback.
+- Compress captured images.
+- Store cloud paths only.
+- Test Android mobile/tablet.
+- Test iOS later.
+- Respect permissions.
+- Handle denied camera permission gracefully.
 
 ---
 
 # Phase Y — Storage Usage Tracking
 
-## Status: Future / Medium Priority
+## Status: Future
 
 ## Goal
 
-Track storage usage per company for plan limits and safe SaaS operation.
+Track storage usage per company for SaaS plan limits.
 
-## Scope
+## Required Work
 
-- Track uploaded files.
-- Track file size.
-- Track storage category:
-  - transaction proof
-  - approval document
-  - logo
-  - other future document
-- Show usage summary in Company Settings / Subscription area.
-- Enforce storage limits later with subscription plans.
-
-## Possible tables
-
-- `company_storage_files`
-- `company_storage_usage`
-
-## Notes
-
-This should come after production plan/subscription design or be prepared as a foundation for it.
+- Track uploaded file sizes.
+- Store file metadata.
+- Calculate company storage usage.
+- Add usage limit checks.
+- Add admin/company usage display.
+- Prevent uploads above plan limit.
+- Prepare cleanup/delete policies where allowed.
 
 ---
 
 # Phase Z — Advanced Reports & PDF Enhancements
 
-## Status: Future / Medium Priority
+## Status: Future
 
 ## Goal
 
-Improve reports and PDF output beyond the current core reports.
+Improve report quality and add advanced reporting features.
 
-## Possible improvements
+## Required Work
 
-- More report templates.
-- Better filtering.
-- More document-control options.
-- Better PDF layout for long tables.
-- More signature sections.
-- Export/share improvements.
-- Report preview improvements.
-- Role-based report access.
+- Better PDF branding.
+- Company logo display improvements.
+- More report filters.
+- Export improvements.
+- Report templates by company.
+- PDF numbering/document control.
+- Better lost/damaged approval documents.
+- More summary reports.
+- Print-friendly layouts.
+- Possible Excel export later.
 
 ---
 
 # Phase AA — Dashboard Enhancements
 
-## Status: Future / Medium Priority
+## Status: Future
 
 ## Goal
 
-Improve dashboard usefulness for real operations.
+Make the dashboard more useful for managers and owners.
 
-## Possible improvements
+## Possible Enhancements
 
-- More KPIs.
-- Open custody balances.
-- Pending lost/damaged approvals.
-- Pending settlements.
-- Recently issued tools.
-- Recently returned tools.
-- Workers with high outstanding custody.
-- Tools frequently lost/damaged.
-- Role-based dashboard widgets.
+- Open custody count.
+- Lost/damaged pending approval count.
+- Pending settlement count.
+- Top tools in custody.
+- Workers with most open custody.
+- Recent transactions.
+- Storage usage.
+- Plan usage.
+- Role-aware dashboard cards.
 
 ---
 
@@ -1507,146 +1813,209 @@ Improve dashboard usefulness for real operations.
 
 ## Goal
 
-Allow limited offline drafting without bypassing RLS or business rules.
+Allow limited offline work without breaking data safety.
 
-## Scope
+## Important Rule
 
-- Offline drafts for selected forms only.
-- Background sync after reconnect.
-- Clear sync status.
+Offline mode must not bypass RLS, subscription limits, or business rules.
+
+## Possible Scope
+
+- Offline transaction drafts.
+- Local queue.
+- Sync when online.
 - Conflict handling.
-- No offline approval/settlement bypass.
-- No storage upload while offline unless queued safely.
-
-## Important rule
-
-Offline mode must not bypass database security, subscription limits, or business workflows.
+- Upload retry for images/documents.
+- Clear sync status.
 
 ---
 
 # Phase AC — Notifications
 
-## Status: Future / Advanced
+## Status: Future
 
 ## Goal
 
-Notify users about important events.
+Notify users about important workflow events.
 
-## Possible notifications
+## Possible Notifications
 
 - Invitation received.
-- Lost/Damaged approval pending.
-- Settlement pending.
-- Transaction created.
-- Document uploaded.
-- Role changed.
-- User deactivated/reactivated.
-- Subscription/storage warning.
-
-## Possible channels
-
-- In-app notifications.
-- Push notifications.
-- Email notifications later.
+- Lost/damaged approval pending.
+- Transaction approved.
+- Transaction rejected.
+- Settlement completed.
+- Subscription/plan warnings.
+- Storage limit warning.
+- Pending actions for owner/admin/manager.
 
 ---
 
 # Phase AD — Web Landing Page / Customer Portal
 
-## Status: Future / Advanced
+## Status: Future
 
 ## Goal
 
-Provide a public web presence and customer-facing portal for Mina System.
+Create a public-facing web/customer layer.
 
-## Scope
+## Possible Scope
 
-- Landing page.
-- Product overview.
-- Pricing information.
-- Contact/demo request.
-- Terms and Privacy links.
-- Customer portal for subscription/contact if needed.
-- Support documentation.
+- Product landing page.
+- Pricing page.
+- Contact form.
+- Company subscription management.
+- Customer portal.
+- Invoice/payment instructions.
+- Download links.
+- Support/help docs.
 
 ---
 
 # Phase AE — Desktop Installer Distribution
 
-## Status: Future / Advanced
+## Status: Future
 
 ## Goal
 
-Prepare desktop distribution for Windows users.
+Prepare desktop app distribution.
 
-## Scope
+## Possible Scope
 
 - Windows installer.
-- Versioning.
-- Update strategy.
-- Desktop app signing if needed.
-- Installer download page.
-- Production environment configuration.
+- Auto-update strategy.
+- Download page.
+- Code signing later.
+- Desktop release documentation.
+- Environment selection for production.
 
 ---
 
 # Phase AF — Advanced Analytics
 
+## Status: Future
+
+## Goal
+
+Add advanced insights for operations and management.
+
+## Possible Scope
+
+- Worker custody risk.
+- Tool loss/damage trends.
+- Department-level summaries.
+- Tool usage frequency.
+- Approval/settlement cycle time.
+- Monthly activity reports.
+- Company-level KPIs.
+
+---
+
+# Phase AG — Custom Permission Overrides
+
 ## Status: Future / Advanced
 
 ## Goal
 
-Add advanced analytics for companies after core SaaS foundation is stable.
+Allow company owners to give selected users extra permissions without changing their main role.
 
-## Possible analytics
+## Current Rule
 
-- Tool usage trends.
-- Worker custody behavior.
-- Lost/Damaged trends.
-- Department-level analysis.
-- Cost/deduction analysis later.
-- Inventory movement trends.
-- Report exports for management.
+The current implementation uses fixed roles only.
+
+## Future Direction
+
+Support:
+
+- Base role permissions
+- Extra allowed permissions
+- Explicit denied permissions
+
+Possible tables:
+
+- `company_role_permissions`
+- `company_member_permission_overrides`
+
+Important:
+
+- Flutter must not be the only enforcement layer.
+- Supabase RLS/RPC must check the final effective permission.
+- The current helper structure should be extended, not replaced.
+- This phase should happen only after fixed-role RBAC is stable.
 
 ---
 
-# Current Next Step
+# Latest Manual Test Summary
 
-The next implementation phase is:
+## Tested Roles
 
-**Phase P — Role-Based Access Control**
+Owner:
 
-Start with:
+- Passed.
 
-## Step P1 — Audit Current Role Usage
+Warehouse Manager:
 
-Review real GitHub repo and current Supabase policies.
+- Passed.
 
-Files to review first:
+Warehouse User:
 
-- `PROJECT_ROADMAP.md`
-- `lib/features/current_context/data/repo/current_context_repo.dart`
-- `lib/features/current_context/presentation/extensions/current_context_extensions.dart`
-- `lib/features/company_users/...`
-- `lib/core/layout/app_nav_items.dart`
-- all main feature screens:
-  - workers
-  - tools
-  - transactions
-  - lookups
-  - reports
-  - company settings
-- current SQL/RLS policies
+- Passed.
+
+Viewer:
+
+- Passed.
+
+Admin:
+
+- Not manually tested yet due to lack of extra email/test account.
+- Expected to behave correctly because current helper and RLS policies include Admin in Owner/Admin permission groups for implemented features.
+
+## Tested Features
+
+- Navigation filtering by role.
+- Workers role restrictions.
+- Tools role restrictions.
+- Transactions role restrictions.
+- Pending approval action restrictions.
+- Lookups role restrictions.
+- Settings visibility restrictions.
+- Report permission behavior.
+- Public table RLS write policies.
+- Storage policies for:
+  - `transaction-proofs`
+  - `transaction-approval-documents`
+- Signed approval document upload fixed and tested.
+- `dart format lib` completed.
+- `flutter analyze` completed with no issues.
+- Commit and push completed.
+
+---
+
+# Next Recommended Step
+
+Start:
+
+**Phase Q — Secure Member Management & Invitation Backend**
+
+First step:
+
+**Step Q1 — Audit Company Members Management Requirements**
+
+Review:
+
+- `company_members` table columns
+- current `CompanyUsersRepo`
+- current `CompanyUsersCubit`
+- current `CompanyUsersSection`
+- current RLS policies on `company_members`
+- existing RPCs:
+  - `accept_company_invitation`
+  - `cancel_company_invitation`
 
 Expected output:
 
-- Confirm current role source.
-- Define permission matrix.
-- Define UI restrictions.
-- Define RPC/RLS changes needed.
-- Decide first implementation step for Owner/Admin member management:
-  - change role
-  - deactivate member
-  - reactivate member
-  - protect last owner
-
+- Define exact member lifecycle rules.
+- Define who can change which role.
+- Define last-owner protection rules.
+- Define required RPCs.
+- Define UI controls for Owner/Admin.
