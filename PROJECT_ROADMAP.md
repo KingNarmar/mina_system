@@ -12,11 +12,11 @@
 
 Latest verified pushed commit:
 
-`657875346cfbe91d5b3d33d73e307a6bbec3a846`
+`94cdd97cfb97d6f31594f666b3a28d74518dc762`
 
 Commit message:
 
-`update roadmap after friendly error mapper`
+`unify messages and fix offline keyboard overflow`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -256,7 +256,7 @@ Follow this pattern where applicable:
 - PDF approval documents are uploaded without image compression.
 - Company logos are resized/compressed before upload.
 - Reports card responsive regression fix is completed.
-- Offline/network handling foundation is implemented.
+- Offline/network handling phase is completed and manually tested.
 
 ## Current Active Phase
 
@@ -264,7 +264,7 @@ Follow this pattern where applicable:
 
 Status:
 
-**In Progress**
+**Done**
 
 Completed so far:
 
@@ -306,22 +306,31 @@ Completed so far:
   - Signed document opening
   - Company logo picker
   - Network status Cubit
-
-Next required step:
-
-- Audit remaining services/repositories/widgets for raw technical error exposure.
-- Manually test friendly network errors across Windows, mobile, and tablet.
-- Confirm offline/unstable-network behavior for:
-  - Auth
-  - Current Context
-  - Dashboard
+- Friendly error messages are unified using `AppMessage` for main screens.
+- Tools, Workers, Lookups, and Transactions no longer show in-page error banners for general Cubit errors.
+- Offline banner is hidden automatically while the keyboard is open to prevent tablet/landscape overflow.
+- DevicePreview was separated into its own entry point:
+  - `lib/main.dart`
+  - `lib/main_device_preview.dart`
+- `ResponsiveLayout` no longer depends directly on `DevicePreview`.
+- Manual testing completed on:
+  - Windows
+  - Tablet landscape
+  - Tablet portrait
+- Offline behavior confirmed for:
   - Workers
   - Tools
   - Lookups
   - Transactions
-  - Company Settings
-  - Reports
-  - Cloud file viewing
+  - Reports from already-loaded data
+  - Cloud file viewing restrictions
+  - Friendly network error messages
+Next required step:
+
+- Start next phase after reviewing the real GitHub repository.
+- Recommended next phase:
+  - Mobile/tablet camera capture for transaction proof images and signed approval documents.
+  - Keep file upload from device storage as fallback.
 ---
 
 # Auth
