@@ -7,6 +7,7 @@ import 'package:mina_system/core/network/presentation/cubit/network_status_cubit
 import 'package:mina_system/core/network/presentation/widgets/global_offline_banner.dart';
 import 'package:mina_system/core/responsive/responsive_layout.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/widgets/current_context_gate.dart';
@@ -33,6 +34,7 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => TransactionsCubit()),
         BlocProvider(create: (_) => DashboardCubit()),
         BlocProvider(create: (_) => CompanySettingsCubit()),
+        BlocProvider(create: (_) => CompanyUsersCubit()),
       ],
       child: const _AppShellView(),
     );
@@ -81,6 +83,9 @@ class _AppShellView extends StatelessWidget {
           companyId: companyId,
         );
         context.read<CompanySettingsCubit>().loadCompanyProfile(
+          companyId: companyId,
+        );
+        context.read<CompanyUsersCubit>().loadCompanyUsers(
           companyId: companyId,
         );
       },

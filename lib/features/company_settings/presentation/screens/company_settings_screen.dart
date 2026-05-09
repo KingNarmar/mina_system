@@ -10,6 +10,7 @@ import 'package:mina_system/features/company_settings/presentation/widgets/compa
 import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/profile/company_logo_picker.dart';
+import 'package:mina_system/features/company_users/presentation/widgets/company_users_section.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
@@ -66,6 +67,8 @@ class _CompanySettingsView extends StatelessWidget {
                     profile: profile,
                     isSaving: state.isUploadingLogo,
                   ),
+                  const Gap(16),
+                  const CompanyUsersSection(),
                   const Gap(16),
                   CompanyReportSettingsForm(
                     reportSettings: state.reportSettings,

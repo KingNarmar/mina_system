@@ -1,0 +1,452 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:mina_system/features/company_users/data/models/company_invitation_model.dart';
+import 'package:mina_system/features/company_users/data/models/company_member_model.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+
+class CompanyUsersSection extends StatefulWidget {
+  const CompanyUsersSection({super.key});
+
+  @override
+  State<CompanyUsersSection> createState() => _CompanyUsersSectionState();
+}
+
+class _CompanyUsersSectionState extends State<CompanyUsersSection> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+
+  String _selectedRole = 'warehouse_user';
+
+  static const List<String> _allowedInviteRoles = [
+    'admin',
+    'warehouse_manager',
+    'warehouse_user',
+    'viewer',
+  ];
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final companyId = context.requireCurrentCompanyId();
+    final currentRole = context.currentUserRole ?? '';
+    final canManageUsers = currentRole == 'owner' || currentRole == 'admin';
+
+    return BlocListener<CompanyUsersCubit, CompanyUsersState>(
+      listenWhen: (previous, current) {
+        return previous.isSubmitting && !current.isSubmitting;
+      },
+      listener: (context, state) {
+        if (state.hasError) {
+          AppMessage.showError(context, state.errorMessage!);
+          context.read<CompanyUsersCubit>().clearErrorMessage();
+          return;
+        }
+
+        _emailController.clear();
+        setState(() => _selectedRole = 'warehouse_user');
+        AppMessage.showSuccess(context, 'Company users updated.');
+      },
+      child: BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
+        builder: (context, state) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Company Users', style: AppTextStyles.title),
+                const Gap(8),
+                const Text(
+                  'Manage company members and pending invitations.',
+                  style: AppTextStyles.body,
+                ),
+                const Gap(20),
+                if (state.isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (state.hasError)
+                  Text(
+                    state.errorMessage!,
+                    style: AppTextStyles.body.copyWith(color: AppColors.error),
+                  )
+                else ...[
+                  if (canManageUsers) ...[
+                    _InviteUserForm(
+                      formKey: _formKey,
+                      emailController: _emailController,
+                      selectedRole: _selectedRole,
+                      allowedRoles: _allowedInviteRoles,
+                      isSubmitting: state.isSubmitting,
+                      onRoleChanged: (role) {
+                        if (role == null) {
+                          return;
+                        }
+
+                        setState(() => _selectedRole = role);
+                      },
+                      onInvitePressed: () {
+                        if (!_formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        context.read<CompanyUsersCubit>().inviteCompanyUser(
+                          companyId: companyId,
+                          email: _emailController.text,
+                          role: _selectedRole,
+                        );
+                      },
+                    ),
+                    const Gap(24),
+                  ],
+                  _MembersList(members: state.members),
+                  const Gap(24),
+                  _InvitationsList(
+                    invitations: state.pendingInvitations,
+                    canManageUsers: canManageUsers,
+                    isSubmitting: state.isSubmitting,
+                    onCancelPressed: (invitationId) {
+                      context.read<CompanyUsersCubit>().cancelInvitation(
+                        companyId: companyId,
+                        invitationId: invitationId,
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _InviteUserForm extends StatelessWidget {
+  const _InviteUserForm({
+    required this.formKey,
+    required this.emailController,
+    required this.selectedRole,
+    required this.allowedRoles,
+    required this.isSubmitting,
+    required this.onRoleChanged,
+    required this.onInvitePressed,
+  });
+
+  final GlobalKey<FormState> formKey;
+  final TextEditingController emailController;
+  final String selectedRole;
+  final List<String> allowedRoles;
+  final bool isSubmitting;
+  final ValueChanged<String?> onRoleChanged;
+  final VoidCallback onInvitePressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: formKey,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 700;
+
+          final emailField = TextFormField(
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(
+              labelText: 'User Email',
+              border: OutlineInputBorder(),
+            ),
+            validator: _validateEmail,
+          );
+
+          final roleField = DropdownButtonFormField<String>(
+            initialValue: selectedRole,
+            decoration: const InputDecoration(
+              labelText: 'Role',
+              border: OutlineInputBorder(),
+            ),
+            items: allowedRoles.map((role) {
+              return DropdownMenuItem(
+                value: role,
+                child: Text(_roleLabel(role)),
+              );
+            }).toList(),
+            onChanged: isSubmitting ? null : onRoleChanged,
+          );
+
+          final inviteButton = SizedBox(
+            width: isCompact ? double.infinity : 160,
+            child: MainButton(
+              text: 'Invite',
+              isLoading: isSubmitting,
+              onPressed: onInvitePressed,
+            ),
+          );
+
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                emailField,
+                const Gap(12),
+                roleField,
+                const Gap(12),
+                inviteButton,
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: emailField),
+              const Gap(12),
+              Expanded(child: roleField),
+              const Gap(12),
+              inviteButton,
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  static String? _validateEmail(String? value) {
+    final email = value?.trim() ?? '';
+
+    if (email.isEmpty) {
+      return 'Email is required';
+    }
+
+    final isValidEmail = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+
+    if (!isValidEmail) {
+      return 'Enter a valid email address';
+    }
+
+    return null;
+  }
+}
+
+class _MembersList extends StatelessWidget {
+  const _MembersList({required this.members});
+
+  final List<CompanyMemberModel> members;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Members', style: AppTextStyles.title),
+        const Gap(12),
+        if (members.isEmpty)
+          const Text('No company members found.', style: AppTextStyles.body)
+        else
+          Column(
+            children: members.map((member) {
+              return _MemberRow(member: member);
+            }).toList(),
+          ),
+      ],
+    );
+  }
+}
+
+class _MemberRow extends StatelessWidget {
+  const _MemberRow({required this.member});
+
+  final CompanyMemberModel member;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = member.fullName?.trim().isNotEmpty == true
+        ? member.fullName!
+        : member.email ?? 'Unknown user';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.person_outline, color: AppColors.textSecondary),
+          const Gap(12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(displayName, style: AppTextStyles.body),
+                if (member.email != null) ...[
+                  const Gap(4),
+                  Text(member.email!, style: AppTextStyles.caption),
+                ],
+              ],
+            ),
+          ),
+          const Gap(12),
+          _StatusBadge(text: _roleLabel(member.role)),
+          const Gap(8),
+          _StatusBadge(text: member.status),
+        ],
+      ),
+    );
+  }
+}
+
+class _InvitationsList extends StatelessWidget {
+  const _InvitationsList({
+    required this.invitations,
+    required this.canManageUsers,
+    required this.isSubmitting,
+    required this.onCancelPressed,
+  });
+
+  final List<CompanyInvitationModel> invitations;
+  final bool canManageUsers;
+  final bool isSubmitting;
+  final ValueChanged<String> onCancelPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Pending Invitations', style: AppTextStyles.title),
+        const Gap(12),
+        if (invitations.isEmpty)
+          const Text('No pending invitations.', style: AppTextStyles.body)
+        else
+          Column(
+            children: invitations.map((invitation) {
+              return _InvitationRow(
+                invitation: invitation,
+                canManageUsers: canManageUsers,
+                isSubmitting: isSubmitting,
+                onCancelPressed: onCancelPressed,
+              );
+            }).toList(),
+          ),
+      ],
+    );
+  }
+}
+
+class _InvitationRow extends StatelessWidget {
+  const _InvitationRow({
+    required this.invitation,
+    required this.canManageUsers,
+    required this.isSubmitting,
+    required this.onCancelPressed,
+  });
+
+  final CompanyInvitationModel invitation;
+  final bool canManageUsers;
+  final bool isSubmitting;
+  final ValueChanged<String> onCancelPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          const Icon(Icons.mail_outline, color: AppColors.textSecondary),
+          SizedBox(
+            width: 240,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(invitation.email, style: AppTextStyles.body),
+                const Gap(4),
+                Text(
+                  'Expires: ${_formatDate(invitation.expiresAt)}',
+                  style: AppTextStyles.caption,
+                ),
+              ],
+            ),
+          ),
+          _StatusBadge(text: _roleLabel(invitation.role)),
+          _StatusBadge(text: invitation.status),
+          if (canManageUsers)
+            SizedBox(
+              width: 130,
+              child: MainButton(
+                text: 'Cancel',
+                color: AppColors.warning,
+                isLoading: isSubmitting,
+                onPressed: () => onCancelPressed(invitation.id),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(text, style: AppTextStyles.caption),
+    );
+  }
+}
+
+String _roleLabel(String role) {
+  switch (role) {
+    case 'owner':
+      return 'Owner';
+    case 'admin':
+      return 'Admin';
+    case 'warehouse_manager':
+      return 'Warehouse Manager';
+    case 'warehouse_user':
+      return 'Warehouse User';
+    case 'viewer':
+      return 'Viewer';
+    default:
+      return role;
+  }
+}
+
+String _formatDate(DateTime value) {
+  return value.toLocal().toString().split('.').first;
+}
