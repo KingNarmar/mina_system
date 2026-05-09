@@ -139,6 +139,16 @@ abstract class AppErrorMessage {
       return networkProblem;
     }
 
+    final message = error.message.trim();
+
+    if (message.isEmpty) {
+      return fallback;
+    }
+
+    if (_isSafeUserFacingDatabaseError(message)) {
+      return message;
+    }
+
     return fallback;
   }
 
@@ -180,6 +190,15 @@ abstract class AppErrorMessage {
 
     return _isSafeFileOrImageError(normalizedMessage) ||
         _isSafeTransactionBusinessError(normalizedMessage) ||
+        _isSafeCompanyUserBusinessError(normalizedMessage) ||
+        _isSafeMissingIdentifierError(normalizedMessage);
+  }
+
+  static bool _isSafeUserFacingDatabaseError(String message) {
+    final normalizedMessage = message.toLowerCase();
+
+    return _isSafeTransactionBusinessError(normalizedMessage) ||
+        _isSafeCompanyUserBusinessError(normalizedMessage) ||
         _isSafeMissingIdentifierError(normalizedMessage);
   }
 
@@ -209,6 +228,21 @@ abstract class AppErrorMessage {
         ) ||
         message.contains(
           'approval document can be uploaded only while approval is pending',
+        );
+  }
+
+  static bool _isSafeCompanyUserBusinessError(String message) {
+    return message.contains(
+          'this user is already an active member of this company',
+        ) ||
+        message.contains('this invitation is no longer pending') ||
+        message.contains('this invitation has expired') ||
+        message.contains(
+          'this invitation does not belong to the current user',
+        ) ||
+        message.contains('only pending invitations can be cancelled') ||
+        message.contains(
+          'you do not have permission to cancel this invitation',
         );
   }
 
