@@ -3,11 +3,7 @@ import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_theme.dart';
 
 class MinaSystem extends StatelessWidget {
-  const MinaSystem({
-    super.key,
-    this.locale,
-    this.appBuilder,
-  });
+  const MinaSystem({super.key, this.locale, this.appBuilder});
 
   final Locale? locale;
   final TransitionBuilder? appBuilder;
