@@ -12,11 +12,11 @@
 
 Latest verified pushed commit:
 
-`d63f6e9096e6ef85683916c72fde84559ada3e1b`
+`faeda85b4c2a74c16a96ca67042c49e72aff6a04`
 
 Commit message:
 
-`close offline network handling phase`
+`finalize company invitation validation`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -56,7 +56,7 @@ Every company must have isolated data using `company_id` and the active `current
 The product should eventually support:
 
 - Multiple users inside the same company
-- Owner/Admin/User/Viewer roles
+- Owner/Admin/Warehouse Manager/Warehouse User/Viewer roles
 - Secure invitations
 - Company-based subscriptions
 - Free plan / trial plan
@@ -87,6 +87,7 @@ The product should eventually support:
 - Update this roadmap after each completed feature or phase.
 - Do not create multiple roadmap files.
 - If a file becomes too large, refactor it into smaller focused files without changing working behavior.
+- When changing existing files during guided development, provide complete file replacements when requested.
 
 After each completed feature:
 
@@ -96,6 +97,7 @@ After each completed feature:
 4. Commit.
 5. Push.
 6. Review repo again.
+7. Update roadmap when a phase or major checkpoint is completed.
 
 ## Testing Rules
 
@@ -131,7 +133,7 @@ Follow this pattern where applicable:
 - Every company query must be filtered by `currentCompanyId`.
 - Never expose or use service role keys in Flutter.
 - Admin Auth methods must not be called directly from Flutter.
-- User invitations must be handled through secure backend logic or Supabase Edge Functions.
+- User invitations must be handled through secure backend logic, RPC, or Supabase Edge Functions.
 - Before using any Supabase table:
   - Check real columns first.
   - Add correct grants.
@@ -409,10 +411,21 @@ Both are required.
 - Unified `AppMessage` behavior is applied to main screens.
 - DevicePreview has a separate entry point.
 - Normal runtime layout no longer depends directly on DevicePreview.
+- Company Users foundation is implemented.
+- Company invitation table, grants, RLS policies, and acceptance/cancellation RPCs are implemented.
+- Company Settings includes a Company Users section.
+- Owner/Admin can invite users by email.
+- Pending invitations can be listed and cancelled.
+- Invited users can see company invitation details before joining.
+- Invited users can accept invitations and join the company.
+- Accepted users appear in Company Users with their assigned role.
+- Duplicate pending invitations are blocked.
+- Duplicate active-member invitations are blocked at database level.
+- Company user business errors are displayed with clear user-facing messages.
 
 ## Current Active Phase
 
-**Phase O — Company Users, Roles & Invitations**
+**Phase P — Role-Based Access Control**
 
 Status:
 
@@ -420,9 +433,9 @@ Status:
 
 Reason for priority:
 
-This phase is required before Mina System can become a real company SaaS product.
+Company users and invitations are now implemented. The next required step is to restrict app actions based on the current user's role.
 
-Camera capture, dashboard improvements, and other enhancements are useful, but multi-user company access, roles, permissions, and accountability are more important for real business usage.
+Role-based access must be enforced by both UI behavior and database RLS/RPC rules.
 
 ---
 
@@ -432,7 +445,7 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 
 ## Priority 1 — Must-Have Product Foundation
 
-1. **Phase O — Company Users, Roles & Invitations**
+1. **Phase O — Company Users, Roles & Invitations** ✅
 2. **Phase P — Role-Based Access Control**
 3. **Phase Q — Secure Invitation Backend / Edge Function**
 4. **Phase R — Business Accountability & Audit Trail**
@@ -464,73 +477,62 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 
 # Phase O — Company Users, Roles & Invitations
 
-## Status: Next / Not Started
+## Status: Done
 
 ## Goal
 
 Allow a company owner to add users to the company so the system can be used by more than one person.
 
-This phase should support:
+This phase supports:
 
-- Owner can invite users by email.
-- Invited user can join the company.
-- User membership is stored safely.
+- Owner/Admin can invite users by email.
+- Invited user can see pending invitation details.
+- Invited user can join the company through a secure RPC.
+- User membership is stored safely in `company_members`.
 - Company role is connected to current context.
-- App should load current user companies and roles correctly.
-- Users should only access companies they belong to.
+- App loads current user companies and roles correctly.
+- Users can access only companies they belong to.
+- Duplicate pending invitations are blocked.
+- Invitations to already active company members are blocked.
+- Owner/Admin can cancel pending invitations.
 
-## Why this phase comes first
+## Completed implementation
 
-Mina System is intended to be a real company system, not a single-user app.
+### Step O1 — Audit Current Company/User Structure
 
-Before adding more operational features, the app needs:
+Completed.
 
-- Company users
-- Memberships
-- Roles
-- Permissions
-- Secure invitation flow
+Confirmed current Supabase structure:
 
-## Required investigation first
+- `profiles` exists.
+- `companies` exists.
+- `company_members` exists.
+- `company_members.role` uses `company_member_role`.
+- `company_members.status` uses `member_status`.
+- `company_members` already stores current company role source.
+- Current context already loads companies and role from `company_members`.
+- `company_invitations` did not exist before this phase.
 
-Before writing code:
+Confirmed current app structure:
 
-- Review current Supabase tables:
-  - `profiles`
-  - `companies`
-  - existing company membership tables if any
-  - current RPCs
-  - current RLS policies
-- Review:
-  - `CurrentContextRepo`
-  - `CurrentContextCubit`
-  - `CurrentContextState`
-  - `CompanyModel`
-  - `ProfileModel`
-  - current role loading
-  - current company settings structure
-- Confirm whether a company membership table already exists.
-- Confirm whether current company role is already stored and where.
-- Confirm whether invitation-related tables exist.
-- Confirm whether Edge Function is needed immediately or can be staged.
+- `CurrentContextRepo` loads current profile and company memberships.
+- `CompanyModel` stores company role.
+- `CurrentContextGate` controls company creation / app entry flow.
+- Company Settings existed but did not include user management before this phase.
 
-## Suggested database structure
+### Step O2 — Database Tables, Grants, RLS, RPCs
 
-Potential tables:
+Completed.
 
-- `company_members`
-  - `id`
-  - `company_id`
-  - `profile_id`
-  - `role`
-  - `status`
-  - `created_at`
-  - `updated_at`
-  - `created_by_profile_id`
-  - `updated_by_profile_id`
+Implemented / confirmed:
 
-- `company_invitations`
-  - `id`
+- Added missing role:
+  - `warehouse_manager`
+- Created invitation status enum:
+  - `company_invitation_status`
+- Created table:
+  - `company_invitations`
+- Added fields:
   - `company_id`
   - `email`
   - `role`
@@ -542,160 +544,230 @@ Potential tables:
   - `created_at`
   - `accepted_at`
   - `cancelled_at`
+  - `updated_at`
+- Added indexes:
+  - company lookup index
+  - lower-email lookup index
+  - status index
+  - unique pending invitation index per company/email
+- Added safe grants:
+  - authenticated can `select`
+  - authenticated can `insert`
+  - direct `update` removed
+- Added RLS policies:
+  - Owner/Admin can read company invitations.
+  - Invited users can read their pending invitations.
+  - Owner/Admin can create pending invitations.
+  - Invited users can read invited company basic data.
+  - Invited users can read inviter profile.
+  - Company members can read profiles of active members in the same company.
+- Added secure RPCs:
+  - `accept_company_invitation(uuid)`
+  - `cancel_company_invitation(uuid)`
+- Added trigger/function:
+  - Prevent inviting an email that already belongs to an active company member.
 
-Suggested roles:
+Important security behavior:
 
-- `owner`
-- `admin`
-- `warehouse_manager`
-- `warehouse_user`
-- `viewer`
-
-Suggested invitation statuses:
-
-- `pending`
-- `accepted`
-- `cancelled`
-- `expired`
-
-## Security rules
-
-- Owner can invite users.
-- Admin may invite users if allowed by owner.
-- Users cannot add themselves to companies.
-- Flutter must not call Supabase Admin Auth methods.
-- Flutter must not use service role key.
-- Invitation acceptance must be protected by:
-  - RLS
-  - RPC
-  - or Edge Function
-- User access must be enforced by database RLS, not UI only.
-
-## UI Scope
-
-Start simple:
-
-- Company Settings → Users tab
-- Show current company members
-- Show pending invitations
-- Invite user by email
-- Select role
-- Cancel pending invitation
-- Optional: remove user from company
-- Optional: change role
-
-## Current phase steps
-
-### Step O1 — Audit Current Company/User Structure
-
-Review real GitHub repo and real Supabase structure.
-
-Files to review:
-
-- `PROJECT_ROADMAP.md`
-- `lib/features/current_context/data/repo/current_context_repo.dart`
-- `lib/features/current_context/presentation/cubit/current_context_cubit.dart`
-- `lib/features/current_context/presentation/cubit/current_context_state.dart`
-- `lib/features/current_context/data/models/company_model.dart`
-- `lib/features/current_context/data/models/profile_model.dart`
-- `lib/features/company_settings/...`
-- `lib/core/routes/...`
-- SQL/RLS if stored in repo
-
-Expected output:
-
-- Confirm existing tables.
-- Confirm missing tables.
-- Confirm current role source.
-- Define safe implementation plan.
-
-### Step O2 — Add/Confirm Database Tables
-
-Only after audit.
-
-Potential SQL:
-
-- Create/confirm `company_members`.
-- Create/confirm `company_invitations`.
-- Add indexes.
-- Add constraints.
-- Add grants.
-- Add RLS policies.
+- Flutter does not use service role key.
+- Flutter does not call Supabase Admin Auth methods.
+- Accepting invitation is handled by RPC.
+- Cancelling invitation is handled by RPC.
+- Users cannot directly insert themselves into arbitrary companies.
+- Users cannot directly update invitation status from Flutter.
 
 ### Step O3 — Models
 
-Add models:
+Completed.
+
+Added:
 
 - `CompanyMemberModel`
 - `CompanyInvitationModel`
 - `InviteCompanyUserRequest`
 
+Implemented model support for:
+
+- Company member profile details.
+- Invitation company details.
+- Inviter profile details.
+- Invitation status/date fields.
+- Role display data.
+
 ### Step O4 — Repository
 
-Add repository:
+Completed.
+
+Added:
 
 - `CompanyUsersRepo`
-  - get members
-  - get invitations
-  - create invitation
-  - cancel invitation
-  - update role
-  - remove member
+
+Implemented:
+
+- `getCompanyMembers`
+- `getCompanyInvitations`
+- `getCurrentUserPendingInvitations`
+- `inviteCompanyUser`
+- `acceptCompanyInvitation`
+- `cancelCompanyInvitation`
+
+Important fixes:
+
+- `company_members` profile join uses explicit FK:
+  - `member_profile:profiles!company_members_profile_id_fkey`
+- `company_invitations` joins company and inviter profile details using explicit embedded selects.
 
 ### Step O5 — Cubit / State
 
-Add:
+Completed.
+
+Added:
 
 - `CompanyUsersCubit`
 - `CompanyUsersState`
 
-State should support:
+State supports:
 
-- loading
-- submitting
 - members
 - invitations
+- loading
+- submitting
 - error message
 - clear error message
+- pending invitation filtering
 
-### Step O6 — UI
+Cubit supports:
 
-Add Company Users screen/tab under Company Settings.
+- Load company users.
+- Load current user pending invitations.
+- Invite company user.
+- Accept invitation.
+- Cancel invitation.
+- Online check before mutations.
+
+### Step O6 — Company Users UI
+
+Completed.
+
+Added Company Users section under Company Settings.
+
+The UI supports:
+
+- Display company members.
+- Display member name/email/role/status.
+- Invite users by email.
+- Select invite role.
+- Display pending invitations.
+- Cancel pending invitations.
+- Show clear messages on success/error.
+- Responsive layout for compact/tablet screens.
+
+Completed UI fixes:
+
+- Fixed `Expanded` inside compact `Column` layout issue.
+- Fixed company member profile display.
+- Fixed unknown member caused by profile RLS.
+- Added visible error text for failed loading.
 
 ### Step O7 — Invitation Acceptance Flow
 
-Add flow after login/current context:
+Completed.
 
-- Check pending invitations by email.
-- If invitation exists:
-  - show pending invitation screen
-  - accept invitation
-  - join company
-- If no company and no invitation:
-  - create company flow
+Added:
+
+- `PendingCompanyInvitationsScreen`
+- No-company invitation gate inside `CurrentContextGate`
+
+Flow now works as follows:
+
+- User logs in.
+- Current context loads.
+- If user has company membership, app opens normally.
+- If user has no company, app checks pending invitations.
+- If pending invitation exists, app shows invitation details.
+- If no pending invitation exists, app shows Create Company screen.
+- User can accept invitation.
+- RPC creates/activates company membership.
+- Invitation becomes accepted.
+- Current context reloads.
+- User enters the company workspace.
+
+Invitation screen displays:
+
+- Company name.
+- Invited email.
+- Invited by name.
+- Invited by email.
+- Assigned role.
+- Expiration date.
+- Accept Invitation button.
+
+Completed flow fixes:
+
+- Fixed blinking/loading loop by keeping invitation loading inside the gate only.
+- Added RLS policies so invited users can read company/inviter details before accepting.
+- Added profile RLS so company members can see member names/emails.
 
 ### Step O8 — Manual Test
 
-Test:
+Completed.
 
-- Owner invites user.
-- Invited email sees invitation.
-- Invited user accepts invitation.
-- User gets correct role.
-- User sees company data.
-- User cannot access other company data.
-- Owner can cancel invitation.
-- Owner/admin permissions work.
+Tested and confirmed:
+
+- Owner can invite a user.
+- Pending invitation appears in Company Users.
+- Owner can cancel pending invitation.
+- Cancelled invitations are removed from pending UI.
+- Invited email can see pending invitation.
+- Invitation details show company and inviter information.
+- Invited user can accept invitation.
+- Accepted user joins company.
+- Accepted user gets correct role.
+- Accepted user appears in Company Users.
+- Owner can see accepted user's name/email.
+- Duplicate pending invitation is blocked by unique index.
+- Inviting an already active company member is blocked at database level.
+- Business-rule database errors are shown clearly to the user.
+
+## Remaining items moved to next phases
+
+The following items are intentionally not completed inside Phase O and should be handled in future phases:
+
+- Full role permission matrix.
+- Hide/disable UI actions by role across all screens.
+- Database-level role restrictions for every business action.
+- Change member role.
+- Deactivate/reactivate member.
+- Remove member access from company.
+- Prevent last owner deactivation/removal.
+- Audit logs for invite/cancel/accept/role-change/deactivate/reactivate/remove actions.
+- Email delivery for invitations.
+- Supabase Edge Function for production invitation email sending.
+
+These belong to:
+
+- Phase P — Role-Based Access Control
+- Phase Q — Secure Invitation Backend / Edge Function
+- Phase R — Business Accountability & Audit Trail
 
 ---
 
 # Phase P — Role-Based Access Control
 
-## Status: Future / High Priority
+## Status: Next / Not Started
 
 ## Goal
 
-Restrict app actions based on role.
+Restrict app actions based on the current user's company role.
+
+Phase O made multi-user company access possible. Phase P must make that access safe.
+
+The app must not rely on UI-only restrictions. Role permissions must be enforced through:
+
+- Flutter UI helpers
+- Supabase RLS
+- RPCs where needed
+- Business-rule validation
 
 ## Required after Phase O
 
@@ -705,35 +777,51 @@ Once users and memberships exist, role permissions must be enforced.
 
 Owner:
 
-- Full access
-- Manage company users
-- Manage settings
-- Manage subscription
-- Approve/reject/settle
-- Reports
-- Workers/tools/lookups/transactions
+- Full access.
+- Manage company users.
+- Invite users.
+- Cancel invitations.
+- Change user roles.
+- Deactivate/reactivate members.
+- Remove member access where allowed.
+- Manage company settings.
+- Manage subscription later.
+- Approve/reject/settle.
+- Reports.
+- Workers/tools/lookups/transactions.
 
 Admin:
 
-- Manage most operational data
-- Manage users except owner
-- Reports
-- Approvals if allowed
+- Manage most operational data.
+- Invite users if allowed.
+- Manage users except owner.
+- Reports.
+- Approvals if allowed.
+- Cannot deactivate/remove the last owner.
+- Cannot promote self to owner.
 
 Warehouse Manager:
 
-- Workers/tools/transactions/reports
-- Approval workflow if allowed
+- Workers/tools/transactions/reports.
+- Approval workflow if allowed.
+- Limited company settings access.
+- No subscription management.
+- No owner/admin role changes unless explicitly allowed.
 
 Warehouse User:
 
-- Create transactions
-- View assigned screens
-- Limited edit/delete permissions
+- Create transactions.
+- View assigned screens.
+- Limited edit/delete permissions.
+- No company user management.
+- No company settings management.
 
 Viewer:
 
-- Read-only dashboard/reports
+- Read-only dashboard/reports.
+- No mutations.
+- No user management.
+- No settings changes.
 
 ## Important rule
 
@@ -743,15 +831,129 @@ Database RLS/RPC rules must enforce permissions.
 
 ## Implementation order
 
-1. Define role permission matrix.
-2. Add helper functions in Supabase:
-   - `private.is_company_member`
-   - `private.has_company_role`
-   - any needed permission helpers
-3. Update RLS policies.
-4. Add Flutter permission helpers.
-5. Hide/disable UI actions based on role.
-6. Test unauthorized access.
+### Step P1 — Audit Current Role Usage
+
+Review:
+
+- `CurrentContextRepo`
+- `CurrentContextCubit`
+- `CompanyModel`
+- `current_context_extensions.dart`
+- all screens/actions that create/update/delete data
+- existing RLS policies
+- current `private.has_company_role`
+- current `private.is_company_member`
+
+Expected output:
+
+- Confirm all places where current role is available.
+- Confirm all actions that need role checks.
+- Define role permission matrix.
+
+### Step P2 — Add Flutter Permission Helpers
+
+Add a central permission helper such as:
+
+- `AppPermissions`
+- `CompanyRolePermissions`
+- `CurrentUserPermissions`
+
+Should support:
+
+- `canManageCompanyUsers`
+- `canInviteUsers`
+- `canCancelInvitations`
+- `canChangeMemberRole`
+- `canDeactivateMember`
+- `canReactivateMember`
+- `canManageCompanySettings`
+- `canManageLookups`
+- `canManageWorkers`
+- `canManageTools`
+- `canCreateTransactions`
+- `canViewReports`
+- `canApproveLostDamaged`
+- `canSettleLostDamaged`
+
+### Step P3 — Apply UI Restrictions
+
+Update UI to:
+
+- Hide or disable actions that current role cannot use.
+- Show read-only states where appropriate.
+- Show clear messages where actions are restricted.
+- Keep owner/admin management actions visible only to allowed roles.
+
+### Step P4 — Add Secure Member Management RPCs
+
+Add RPCs for:
+
+- Change member role.
+- Deactivate member.
+- Reactivate member.
+- Remove/deactivate company access.
+
+Rules:
+
+- Owner can manage most roles.
+- Admin may manage lower roles only if allowed.
+- No user can deactivate/remove the last owner.
+- No user can change the last owner away from owner.
+- Users should not be able to promote themselves to owner.
+- Users should not be able to deactivate themselves if that would leave company without owner.
+- Member status changes should be soft changes, not hard deletes.
+
+### Step P5 — Update Company Users UI
+
+Add controls for Owner/Admin:
+
+- Change role.
+- Deactivate member.
+- Reactivate member.
+- Show active/inactive members clearly.
+- Keep accepted membership history visible.
+- Do not hard delete members by default.
+
+### Step P6 — Strengthen RLS Policies
+
+Update RLS policies for:
+
+- Workers
+- Tools
+- Lookups
+- Transactions
+- Reports-related reads
+- Company settings
+- Company users
+- Company invitations
+
+Rules:
+
+- RLS must match the permission matrix.
+- Lower roles must not mutate restricted tables.
+- Viewer must be read-only.
+- Warehouse User must not manage settings/users.
+- Owner/Admin should retain full or near-full control.
+
+### Step P7 — Manual Test
+
+Test by role:
+
+- Owner
+- Admin
+- Warehouse Manager
+- Warehouse User
+- Viewer
+
+Test:
+
+- Which screens are visible.
+- Which buttons are visible.
+- Which mutations succeed.
+- Which unauthorized mutations fail at database/RPC level.
+- Role change behavior.
+- Deactivate/reactivate behavior.
+- Last owner protection.
 
 ---
 
@@ -761,7 +963,9 @@ Database RLS/RPC rules must enforce permissions.
 
 ## Goal
 
-Implement secure invitation flow without exposing service role keys in Flutter.
+Implement production-grade invitation handling without exposing service role keys in Flutter.
+
+Phase O supports invitation records and acceptance through safe client-accessible logic. Phase Q should add the production backend layer for email delivery and stronger server-side validation.
 
 ## Options
 
@@ -771,14 +975,14 @@ Preferred:
 
 Possible staged approach:
 
-- Phase O can create invitation records with RLS/RPC if safe.
+- Phase O creates invitation records with RLS/RPC safely.
 - Phase Q adds Edge Function and email sending.
 
 ## Required behavior
 
 - Owner/Admin invites email.
 - Invitation is stored.
-- Optional email is sent.
+- Email is sent to invited user.
 - User signs up/logs in with invited email.
 - App detects pending invitation.
 - User accepts invitation.
@@ -791,6 +995,17 @@ Possible staged approach:
 - Flutter never receives service role key.
 - Edge Function validates caller membership and role.
 - Edge Function validates target email and company.
+- Edge Function rate-limits or protects repeated invitation attempts where needed.
+
+## Implementation order
+
+1. Decide email provider.
+2. Create Edge Function.
+3. Validate caller role inside function.
+4. Create/send invitation.
+5. Update Flutter repo to call function instead of direct insert if needed.
+6. Test invite email delivery.
+7. Keep RPC-based acceptance.
 
 ---
 
@@ -838,7 +1053,10 @@ The system should answer questions like:
 - Who settled it?
 - Who changed company settings?
 - Who invited this user?
+- Who cancelled this invitation?
+- Who accepted this invitation?
 - Who changed this user role?
+- Who deactivated/reactivated this user?
 - Who removed this user from the company?
 - What exactly changed over time?
 
@@ -848,10 +1066,10 @@ Audit logs should be created for:
 
 - Add worker
 - Update worker
-- Delete worker
+- Delete/deactivate worker if supported
 - Add tool
 - Update tool
-- Delete tool
+- Delete/deactivate tool if supported
 - Add lookup item
 - Delete lookup item
 - Create transaction
@@ -868,7 +1086,9 @@ Audit logs should be created for:
 - Cancel invitation
 - Accept invitation
 - Change user role
-- Remove user from company
+- Deactivate user
+- Reactivate user
+- Remove user access
 - Subscription/plan changes later
 - Storage-limit related actions later
 
@@ -885,40 +1105,6 @@ Direct accountability fields should be added or confirmed for:
 - Company logo uploads
 - Company members
 - Company invitations
-
-## Suggested Direct Accountability Fields
-
-Common fields:
-
-- `created_by_profile_id`
-- `created_by_name_snapshot`
-- `created_by_email_snapshot`
-- `updated_by_profile_id`
-- `updated_by_name_snapshot`
-- `updated_by_email_snapshot`
-- `created_at`
-- `updated_at`
-
-Transaction-specific fields:
-
-- `created_by_profile_id`
-- `created_by_name_snapshot`
-- `created_by_email_snapshot`
-- `proof_uploaded_by_profile_id`
-- `proof_uploaded_by_name_snapshot`
-- `proof_uploaded_by_email_snapshot`
-- `approval_document_uploaded_by_profile_id`
-- `approval_document_uploaded_by_name_snapshot`
-- `approval_document_uploaded_by_email_snapshot`
-- `approval_decided_by_profile_id`
-- `approval_decided_by_name_snapshot`
-- `approval_decided_by_email_snapshot`
-- `settled_by_profile_id`
-- `settled_by_name_snapshot`
-- `settled_by_email_snapshot`
-- `updated_by_profile_id`
-- `updated_by_name_snapshot`
-- `updated_by_email_snapshot`
 
 ## Suggested Audit Log Table
 
@@ -968,6 +1154,8 @@ Examples for `action`:
 - `user.invitation_cancelled`
 - `user.invitation_accepted`
 - `user.role_changed`
+- `user.deactivated`
+- `user.reactivated`
 - `user.removed`
 
 ## Suggested Entity Types
@@ -997,46 +1185,6 @@ Examples:
 - If a tool name changes later, old logs should still show the tool name/code at the time of the action.
 - If a user role changes later, old logs should still show the acting user's role at the time of the action.
 - If a user profile name/email changes later, old records should still show who performed the action at that time.
-
-## UI Display Rule
-
-Important details screens should show accountability data.
-
-Examples:
-
-Transaction Details:
-
-- Created by
-- Created at
-- Proof uploaded by
-- Signed document uploaded by
-- Approval decided by
-- Settlement completed by
-- Last updated by
-
-Worker Details:
-
-- Created by
-- Last updated by
-
-Tool Details:
-
-- Created by
-- Last updated by
-
-Company Settings:
-
-- Last updated by
-- Logo uploaded by
-- Report settings updated by
-- Document templates updated by
-
-Company Users:
-
-- Invited by
-- Accepted by
-- Role changed by
-- Removed by
 
 ## Security Rules
 
@@ -1075,14 +1223,6 @@ Recommended implementation approach:
 11. Update details screens to show direct accountability fields.
 12. Add Audit Log screen later for Owner/Admin.
 
-## Priority Note
-
-This phase should happen before serious production usage.
-
-It is not just a UI enhancement.
-
-It is a business accountability feature.
-
 ---
 
 # Phase S — Production Environment & Secrets Setup
@@ -1115,7 +1255,7 @@ Separate development/testing from production.
 - `--dart-define`
 - environment config class
 - separate launch configs
-- separate build commands
+- separate build commands.
 
 ## Why this is high priority
 
@@ -1167,10 +1307,10 @@ Potential:
 
 ## Required UI
 
-- Company Settings → Subscription tab
-- Current plan
-- Plan status
-- Usage summary
+- Company Settings → Subscription tab.
+- Current plan.
+- Plan status.
+- Usage summary.
 - Message:
   - `Contact your company admin to manage subscription.`
 - Upgrade/contact flow outside mobile payment if needed.
@@ -1210,9 +1350,9 @@ Prepare the app for real distribution.
 
 ## Platforms
 
-- Google Play
-- App Store
-- Desktop installer later
+- Google Play.
+- App Store.
+- Desktop installer later.
 
 ---
 
@@ -1237,6 +1377,7 @@ Prepare safe production/demo usage.
 - Safe reset/cleanup flow for demo data if needed.
 - Production backup considerations.
 - Data deletion/export policy.
+- Safe separation between demo and customer data.
 
 ---
 
@@ -1267,35 +1408,22 @@ Show audit log history to Owner/Admin after the audit trail backend exists.
 
 ## Goal
 
-Allow mobile/tablet users to capture photos directly.
+Allow mobile/tablet users to capture photos directly from camera for proof/document upload workflows.
 
-## Use cases
+## Scope
 
-- Transaction proof image.
-- Signed approval document image.
+- Transaction proof image camera capture.
+- Approval document camera capture.
+- File picker fallback remains available.
+- Compression still applies after camera capture.
+- Works across Android/iOS tablets and phones.
 
-## Requirements
+## Rules
 
-- Keep file upload from device storage as fallback.
-- Add camera capture option.
-- Compress captured images before upload.
-- Block capture/upload while offline if upload is required immediately.
-- Do not store local paths in Supabase tables.
-- Store cloud paths only.
-- Add Android camera permission.
-- Add iOS camera permission when preparing iOS.
-
-## Suggested UI
-
-When choosing proof/document:
-
-- Take Photo
-- Choose File
-- Cancel
-
-## Important
-
-This is useful, but it comes after Company Users/Roles/Accountability because multi-user company access and user accountability are more critical for SaaS readiness.
+- Camera capture should not replace file upload.
+- Storage paths must remain cloud paths.
+- Compression rules must remain active.
+- Offline upload must still be blocked until offline sync exists.
 
 ---
 
@@ -1305,23 +1433,28 @@ This is useful, but it comes after Company Users/Roles/Accountability because mu
 
 ## Goal
 
-Track storage usage per company for plan limits.
+Track storage usage per company for plan limits and safe SaaS operation.
 
-## Requirements
+## Scope
 
-- Track uploaded file size.
-- Track company storage usage.
-- Apply plan storage limit.
-- Show storage usage in Company Settings.
-- Prevent upload when limit is exceeded.
-- Add friendly upgrade/contact message.
+- Track uploaded files.
+- Track file size.
+- Track storage category:
+  - transaction proof
+  - approval document
+  - logo
+  - other future document
+- Show usage summary in Company Settings / Subscription area.
+- Enforce storage limits later with subscription plans.
 
-## Relevant uploads
+## Possible tables
 
-- Transaction proof images
-- Approval documents
-- Company logos
-- Future document templates/assets
+- `company_storage_files`
+- `company_storage_usage`
+
+## Notes
+
+This should come after production plan/subscription design or be prepared as a foundation for it.
 
 ---
 
@@ -1329,21 +1462,20 @@ Track storage usage per company for plan limits.
 
 ## Status: Future / Medium Priority
 
-## Goals
+## Goal
 
-Improve reports after product foundation is stable.
+Improve reports and PDF output beyond the current core reports.
 
-## Improvements
+## Possible improvements
 
-- Worker Acknowledgment Report.
-- Optional settlement/deduction report.
-- PDF Approval Status Summary section.
-- Better PDF table layouts for long reports.
-- Export/download history.
-- Apply `timeFormat` to PDF timestamps.
-- Apply `defaultTimezone` to report generation dates/times.
-- Improve online/offline logo handling if needed.
-- Consider server-side PDF optimization later if large PDFs become an issue.
+- More report templates.
+- Better filtering.
+- More document-control options.
+- Better PDF layout for long tables.
+- More signature sections.
+- Export/share improvements.
+- Report preview improvements.
+- Role-based report access.
 
 ---
 
@@ -1351,23 +1483,21 @@ Improve reports after product foundation is stable.
 
 ## Status: Future / Medium Priority
 
-## Goals
+## Goal
 
-Improve dashboard after role/subscription foundation.
+Improve dashboard usefulness for real operations.
 
-## Improvements
+## Possible improvements
 
-- Dashboard loading skeletons/shimmer.
-- Better empty states.
-- Trends/percentages.
-- Role-based dashboard cards.
-- Dashboard date filters.
-- Pending invitations card.
-- Pending approvals card.
-- Pending settlements card.
-- Recent critical activities.
-- Subscription/plan card for owners/admins.
-- Storage usage card.
+- More KPIs.
+- Open custody balances.
+- Pending lost/damaged approvals.
+- Pending settlements.
+- Recently issued tools.
+- Recently returned tools.
+- Workers with high outstanding custody.
+- Tools frequently lost/damaged.
+- Role-based dashboard widgets.
 
 ---
 
@@ -1377,26 +1507,20 @@ Improve dashboard after role/subscription foundation.
 
 ## Goal
 
-Allow offline draft creation and later sync.
+Allow limited offline drafting without bypassing RLS or business rules.
 
-## Important
+## Scope
 
-This is advanced and must not be started until:
+- Offline drafts for selected forms only.
+- Background sync after reconnect.
+- Clear sync status.
+- Conflict handling.
+- No offline approval/settlement bypass.
+- No storage upload while offline unless queued safely.
 
-- users/roles are stable
-- RLS is stable
-- subscription limits are stable
-- online mutation rules are stable
-- conflict handling is designed
+## Important rule
 
-## Possible scope
-
-- Offline transaction drafts.
-- Draft proof images stored locally.
-- Sync when online.
-- Conflict detection.
-- Failed sync recovery.
-- Clear user status.
+Offline mode must not bypass database security, subscription limits, or business workflows.
 
 ---
 
@@ -1404,65 +1528,65 @@ This is advanced and must not be started until:
 
 ## Status: Future / Advanced
 
-## Goals
+## Goal
 
 Notify users about important events.
 
 ## Possible notifications
 
-- Pending approval.
-- Pending settlement.
 - Invitation received.
+- Lost/Damaged approval pending.
+- Settlement pending.
 - Transaction created.
-- Storage limit reached.
-- Subscription expiring.
+- Document uploaded.
+- Role changed.
+- User deactivated/reactivated.
+- Subscription/storage warning.
 
-## Channels
+## Possible channels
 
 - In-app notifications.
-- Push notifications later.
+- Push notifications.
 - Email notifications later.
 
 ---
 
 # Phase AD — Web Landing Page / Customer Portal
 
-## Status: Future / Business
+## Status: Future / Advanced
 
-## Goals
+## Goal
 
-Support SaaS/business usage outside the app.
+Provide a public web presence and customer-facing portal for Mina System.
 
-## Possible features
+## Scope
 
 - Landing page.
-- Pricing page.
-- Contact form.
-- Customer portal.
-- Subscription management.
-- Download desktop installer.
-- Support links.
-- Privacy Policy.
-- Terms of Service.
+- Product overview.
+- Pricing information.
+- Contact/demo request.
+- Terms and Privacy links.
+- Customer portal for subscription/contact if needed.
+- Support documentation.
 
 ---
 
 # Phase AE — Desktop Installer Distribution
 
-## Status: Future / Business
+## Status: Future / Advanced
 
-## Goals
+## Goal
 
-Make desktop app distribution easier.
+Prepare desktop distribution for Windows users.
 
-## Possible tasks
+## Scope
 
 - Windows installer.
-- Auto-update strategy.
-- Download page.
-- Code signing if needed.
 - Versioning.
-- Release notes.
+- Update strategy.
+- Desktop app signing if needed.
+- Installer download page.
+- Production environment configuration.
 
 ---
 
@@ -1470,850 +1594,59 @@ Make desktop app distribution easier.
 
 ## Status: Future / Advanced
 
-## Possible features
+## Goal
 
-- Worker custody trends.
-- Lost/damaged trends.
-- Tool usage frequency.
-- Department-level usage.
-- Monthly transaction analytics.
-- Cost/deduction analytics.
-- Company-level KPI dashboard.
+Add advanced analytics for companies after core SaaS foundation is stable.
 
----
+## Possible analytics
 
-# Completed Feature Sections
-
----
-
-# Auth
-
-## Status: Done
-
-Implemented:
-
-- Login is working.
-- Register is working.
-- Email confirmation is working.
-- Auth redirect between Login / Register / Dashboard is working.
-
-Current flow:
-
-Register → Confirm Email → Login → Create Company if no company exists → Dashboard
-
-Required future flow after Company Users / Invitations:
-
-Register/Login  
-→ Check pending invitations by email  
-→ Check active company memberships  
-→ If invited: Accept Invitation / Join Company  
-→ If already member: Select Company or Dashboard  
-→ If no membership and no invitation: Create Company
-
-Required future flow after Subscriptions:
-
-Register/Login  
-→ Load Current Context  
-→ Load Current Company Subscription  
-→ If subscription is active/free/trial: continue  
-→ If subscription expired: show Subscription Required screen  
-→ If company has no plan: assign Free plan by default
+- Tool usage trends.
+- Worker custody behavior.
+- Lost/Damaged trends.
+- Department-level analysis.
+- Cost/deduction analysis later.
+- Inventory movement trends.
+- Report exports for management.
 
 ---
 
-# Current Context
+# Current Next Step
 
-## Status: Done / Offline-Aware
+The next implementation phase is:
 
-Current Context is responsible for loading:
+**Phase P — Role-Based Access Control**
 
-- Current profile
-- Current user companies
-- Current company
-- Current role
+Start with:
 
-Implemented:
+## Step P1 — Audit Current Role Usage
 
-- `CurrentContextCubit`
-- `CurrentContextRepo`
-- `CurrentContextGate`
-- `current_context_extensions.dart`
+Review real GitHub repo and current Supabase policies.
 
-Important helpers:
+Files to review first:
 
-- `context.currentCompanyId`
-- `context.currentProfileId`
-- `context.currentUserRole`
-- `context.requireCurrentCompanyId()`
-- `context.requireCurrentProfileId()`
-- `context.requireCurrentUserRole()`
+- `PROJECT_ROADMAP.md`
+- `lib/features/current_context/data/repo/current_context_repo.dart`
+- `lib/features/current_context/presentation/extensions/current_context_extensions.dart`
+- `lib/features/company_users/...`
+- `lib/core/layout/app_nav_items.dart`
+- all main feature screens:
+  - workers
+  - tools
+  - transactions
+  - lookups
+  - reports
+  - company settings
+- current SQL/RLS policies
 
-Current behavior:
+Expected output:
 
-- No company → Create Company screen
-- One company → Dashboard
-- Multiple companies → Select Company placeholder
-- No internet during initial context loading → Offline screen with Retry
-
-Future priority:
-
-- Pending invitation screen.
-- Select Company screen for multiple companies.
-- Subscription/plan check after current company is loaded.
-
----
-
-# Create Company Flow
-
-## Status: Done
-
-Implemented:
-
-- Create Company screen.
-- RPC call to `create_company_with_defaults`.
-- Company created with defaults.
-- Dashboard opens after creation.
-- Company name appears in TopBar.
-
-Future priority:
-
-- Add company onboarding checklist after creation.
-- Prevent accidental company creation as much as possible.
-- Assign Free plan automatically after company creation.
-- Create default subscription record after company creation.
-
----
-
-# Company Settings
-
-## Status: Done / Offline-Aware
-
-Implemented:
-
-- Read company profile from `companies`.
-- Update company profile.
-- Update TopBar company name without reloading dashboard.
-- Company profile is used inside PDF report headers.
-- Upload company logo to Supabase Storage bucket `company-assets`.
-- Save `logo_path` in `companies`.
-- Delete old logo after successful new upload.
-- Company logo image compression/resizing before upload.
-- Company logo is used inside generated PDF reports.
-- PDF logo refresh works without restarting the app after changing the logo.
-- Read `company_report_settings`.
-- Update report settings.
-- Report settings are used inside PDF reports.
-- Applied `dateFormat` to PDF dates.
-- Fixed PDF date format normalization.
-- Read `company_document_templates`.
-- Update document template fields.
-- Document templates are used inside PDF Document Control section.
-- Robust PDF template matching added.
-- Document template signature labels are used inside PDF Signature Section.
-- Offline blocking for:
-  - Company Profile update
-  - Report Settings update
-  - Document Template update
-  - Company Logo upload
-- Settings action errors remain inside loaded Settings state.
-- Settings screen does not turn into full failure screen for action errors.
-- Settings messages use `AppMessage`.
-
-Future priority:
-
-- Add Company Users tab.
-- Add Subscription tab.
-- Show current plan name.
-- Show plan status.
-- Show usage summary.
-- Add direct accountability fields:
-  - profile updated by
-  - report settings updated by
-  - document template updated by
-  - logo uploaded by
-- Add storage usage summary after storage tracking is implemented.
-
-Future enhancement:
-
-- Preserve transparency when possible for PNG/WebP logos.
-- Add optional visual preview/crop flow before uploading logo.
-- Fine-tune PDF logo box size if needed.
-
----
-
-# Phase B — Lookups Supabase Integration
-
-## Status: Done / Offline-Aware
-
-Implemented:
-
-- Real Supabase-backed lookup tables:
-  - `departments`
-  - `job_titles`
-  - `tool_units`
-  - `tool_categories`
-- SQL grants and RLS policies.
-- Models and repository.
-- Read lookups by `company_id`.
-- Load lookups after `CurrentContextLoaded`.
-- Loading state and error handling.
-- Add/Delete flows.
-- Duplicate prevention inside the same company.
-- Strong lookup name normalization.
-- Delete protection for dependent data where applicable.
-- Offline blocking for add/delete mutations.
-- User-friendly messages using `AppMessage`.
-- Main screen error messages unified through `AppMessage`.
-- `flutter analyze` has no errors after implementation.
-
-Future priority:
-
-- Add role-based permissions.
-- Add plan-based lookup limits if needed.
-- Add accountability/audit support for add/delete actions.
-
-Future enhancement:
-
-- Add import defaults from industry templates.
-- Optional edit/rename lookup flow if needed.
-
----
-
-# Phase C — Workers Supabase Integration
-
-## Status: Done / Offline-Aware
-
-Implemented:
-
-- Checked real Supabase columns for `workers`.
-- Checked workers RLS / grants / constraints.
-- Updated `WorkerModel`.
-- Created `WorkersRepo`.
-- Read workers by `company_id`.
-- Added worker.
-- Updated worker.
-- Deleted worker.
-- Generated `worker_code` automatically.
-- Prevented duplicate `hr_code` inside the same company.
-- Used real Department and Job Title IDs from Lookups.
-- Loaded workers after `CurrentContextLoaded`.
-- Added loading/submitting/error state.
-- Connected Add / Update / Delete Worker actions to Supabase.
-- Search workers by existing search logic.
-- Offline blocking for add/update/delete mutations.
-- Worker form shows action errors inside form when opened in Bottom Sheet/Dialog.
-- Main screen error messages unified through `AppMessage`.
-- `flutter analyze` has no errors after implementation.
-
-Database rules confirmed:
-
-- `workers.company_id` references `companies(id)`.
-- `workers.department_id` references `departments`.
-- `workers.job_title_id` is constrained to match the selected department.
-- `hr_code` is unique inside the same company.
-- `worker_code` is unique inside the same company.
-- Department and Job Title deletion is protected by foreign key rules when workers depend on them.
-
-Future priority:
-
-- Add role-based permissions.
-- Enforce plan limit before adding a worker.
-- Add database/RPC-level worker limit enforcement.
-- Add direct accountability fields:
-  - created by
-  - last updated by
-- Show accountability in Worker details.
-- Add audit logs for create/update/delete worker actions.
-
-Future enhancement:
-
-- Add stronger open-custody protection before worker deletion if needed.
-- Advanced worker profile fields if needed.
-
----
-
-# Phase D — Tools Supabase Integration
-
-## Status: Done / Offline-Aware
-
-Implemented:
-
-- Checked real Supabase columns for `tools`, `tool_units`, and `tool_categories`.
-- Checked tools RLS / grants / constraints / indexes / enum values.
-- Updated `ToolModel`.
-- Created `ToolsRepo`.
-- Read tools by `company_id`.
-- Read related Unit and Category names through Supabase relationships.
-- Added tool.
-- Updated tool.
-- Deleted tool.
-- Generated `tool_code` automatically.
-- Prevented duplicate `tool_name` inside the same company.
-- Prevented duplicate `tool_code` inside the same company.
-- Used real Tool Unit and Tool Category IDs from Lookups.
-- Loaded tools after `CurrentContextLoaded`.
-- Added loading/submitting/error state.
-- Connected Add / Update / Delete Tool actions to Supabase.
-- Search tools by existing search logic.
-- Offline blocking for add/update/delete mutations.
-- Tool form shows action errors inside form when opened in Bottom Sheet/Dialog.
-- Main screen error messages unified through `AppMessage`.
-- `flutter analyze` has no errors after implementation.
-
-Database rules confirmed:
-
-- `tools.company_id` references `companies(id)`.
-- `tools.unit_id` is constrained to match a valid `tool_units` record for the same company.
-- `tools.category_id` is constrained to match a valid `tool_categories` record for the same company.
-- `tool_code` is unique inside the same company.
-- `tool_name` has a normalized unique index inside the same company.
-- Tool Unit and Tool Category deletion is protected by foreign key constraints when tools depend on them.
-
-Future priority:
-
-- Add role-based permissions.
-- Enforce plan limit before adding a tool.
-- Add database/RPC-level tool limit enforcement.
-- Add direct accountability fields:
-  - created by
-  - last updated by
-- Show accountability in Tool details.
-- Add audit logs for create/update/delete tool actions.
-
-Future enhancement:
-
-- Add stronger database-level open-custody delete protection if needed.
-- Tool status history if needed.
-
----
-
-# Phase E — Transactions / Custody Core Supabase Integration
-
-## Status: Done / Offline-Aware
-
-Transaction types:
-
-- Issue
-- Return
-- Lost
-- Damaged
-
-Implemented:
-
-- Checked real Supabase columns for transaction/custody-related tables.
-- Checked enum values.
-- Checked transactions RLS / grants / constraints.
-- Fixed transactions grants for authenticated SELECT / INSERT / UPDATE.
-- No DELETE grant was added for transactions.
-- Updated `TransactionModel`.
-- Created `TransactionsRepo`.
-- Read transactions by `company_id`.
-- Add transaction to Supabase.
-- Update transaction capability exists at repo/cubit level for future controlled flows.
-- Auto-generate transaction code from Supabase records.
-- Upload proof images to Supabase Storage bucket `transaction-proofs`.
-- Transaction proof images are compressed before upload.
-- Store only cloud storage paths in `transactions.proof_image_path`.
-- Added `TransactionsState` loading/submitting/error fields.
-- Refactored `TransactionsCubit` to use Supabase.
-- Loaded transactions after `CurrentContextLoaded`.
-- Connected Add Transaction form to Supabase.
-- Added loading overlay.
-- Search/filter transactions works.
-- Custody Balance is calculated from real Supabase transactions.
-- Tool Summary is calculated from real Supabase transactions.
-- Closed Today count is calculated from real Supabase transactions.
-- Signed approval document images are compressed before upload when they are image files.
-- Signed approval document PDF files are uploaded without image compression.
-- Offline blocking for transaction save.
-- Offline blocking for proof image upload.
-- Offline blocking for signed approval document upload.
-- Offline blocking for cloud proof image viewing.
-- Offline blocking for cloud signed document viewing.
-- Transaction form shows errors inside form when opened in Bottom Sheet/Dialog.
-- Main screen error messages unified through `AppMessage`.
-- Fixed transaction proof image display in details dialog.
-- Fixed transaction proof thumbnail display in desktop table.
-- Fullscreen proof image preview uses resolved signed URL.
-- `flutter analyze` has no errors after implementation.
-
-Business rules confirmed:
-
-- Transactions should not be deleted.
-- Normal edit/delete buttons should not be shown for transactions.
-- Corrections should be done by corrective transactions or future controlled approval/void workflow.
-- Issue and Return are normal custody movement records.
-- Lost and Damaged enter pending approval flow.
-- Images must be stored in Supabase Storage, not as local file paths.
-
-Custody balance rule:
-
-- Pending Lost/Damaged transactions do not reduce worker custody balance.
-- Rejected Lost/Damaged transactions do not reduce worker custody balance.
-- Return transactions reduce custody balance immediately.
-- Lost/Damaged transactions reduce worker custody balance only after final settlement/deduction is completed.
-
-Future priority:
-
-- Add role-based permissions.
-- Enforce monthly transaction limits by plan.
-- Add database/RPC-level transaction limit enforcement.
-- Add direct transaction accountability fields:
-  - created by
-  - proof uploaded by
-  - signed document uploaded by
-  - approved/rejected by
-  - settled by
-  - last updated by
-- Show accountability in Transaction details.
-- Add audit logs for:
-  - transaction creation
-  - proof upload
-  - signed document upload
-  - approval/rejection
-  - settlement
-- Add controlled correction/void workflow if needed for production.
-
-Future enhancement:
-
-- Add camera capture support on mobile/tablet for transaction proof images.
-- Add offline transaction drafts and sync later.
-
----
-
-# Phase F — Dashboard Supabase Data
-
-## Status: Done
-
-Implemented:
-
-- Created `DashboardSummaryModel`.
-- Created `DashboardRepo`.
-- Created `DashboardState`.
-- Created `DashboardCubit`.
-- Added `DashboardCubit` to `AppShell`.
-- Loaded dashboard summary after `CurrentContextLoaded`.
-- Dashboard summary reads real data by `company_id`.
-- Total Workers comes from Supabase `workers`.
-- Total Tools comes from Supabase `tools`.
-- Open Custodies comes from real transactions.
-- Closed Today comes from real closing transactions.
-- Fixed Closed Today timezone handling.
-- Dashboard Closed Today logic updated after settlement workflow.
-- Recent Transactions comes from real Supabase transactions.
-- Dashboard Stats Grid accepts real values.
-- Recent Transactions Card accepts real transaction data.
-- Dashboard refreshes after adding transactions, approving/rejecting/settling, adding workers, and adding tools.
-- Dashboard Quick Actions are working:
-  - Issue Tool
-  - Return Tool
-  - Add Worker
-  - Add Tool
-- Added centralized colors for Dashboard stat cards.
-- Desktop Dashboard tested.
-- Tablet Dashboard tested.
-- Mobile Dashboard tested.
-- `flutter analyze` has no errors.
-
-Future priority:
-
-- Add role-based dashboard behavior.
-- Add subscription/plan card for owners/admins.
-- Add storage usage card after storage tracking.
-- Add audit/accountability summaries if useful.
-
-Future enhancement:
-
-- Add loading skeletons/shimmer.
-- Add better empty states.
-- Add trends/percentages.
-- Add dashboard date filters.
-- Add pending invitations/approvals/settlements cards.
-
----
-
-# Phase G — Reports / PDF
-
-## Status: Core Reports Implemented
-
-Reports available / planned:
-
-- Worker Custody Report
-- Tool History Report
-- Transactions Report
-- Lost & Damaged Report
-- Tool Summary Report
-- Lost/Damaged Approval Report
-- Worker Acknowledgment Report
-- Future signed settlement report if needed
-
-Implemented:
-
-- Added PDF dependencies:
-  - `pdf`
-  - `printing`
-- Added `url_launcher` dependency to open signed approval documents.
-- Created `ReportPdfService`.
-- Refactored PDF generation into smaller files under:
-  - `lib/features/reports/presentation/services/pdf/`
-- Created `show_report_pdf_preview.dart`.
-- Connected Reports UI to PDF preview.
-- Added `PdfPreview` with print/share support.
-- Hidden PDF preview debug toggle.
-- Made `CompanySettingsCubit` global inside `AppShell`.
-- Passed company profile, report settings, and document templates to PDF generation.
-- Loaded company logo bytes from Supabase Storage bucket `company-assets`.
-- Added company header to PDF reports.
-- Added report title and generated date.
-- Added Document Control section.
-- Added Filters section.
-- Added real data tables.
-- Added Approval column to transaction-based PDF tables.
-- Added Responsibility Statement section.
-- Added Signature Section.
-- Added page numbers to every PDF page.
-- Applied `dateFormat` to PDF dates.
-- Added Approval Status Filter in Reports UI.
-- Added Lost/Damaged Approval Report.
-- Fixed long PDF layout issues.
-- Tested PDF Preview on Windows, mobile, and tablet.
-- Company logo appears in PDF report header.
-- Reports responsive regression fix completed.
-- Reports can generate offline using already-loaded in-memory data.
-- If online assets such as company logo are unavailable offline, reports can still generate without crashing.
-- `flutter analyze` has no errors.
-
-Current PDF section order:
-
-1. Company Header
-2. Report Title / Generated Date
-3. Document Control
-4. Filters
-5. Report Data / Approval Form
-6. Responsibility Statement
-7. Signature Section
-8. Footer Text
-9. Page X of Y
-
-Future priority:
-
-- Add role-based report access.
-- Add Worker Acknowledgment Report.
-- Add audit/export history if needed for production.
-- Add accountability fields into relevant reports where needed.
-
-Future enhancement:
-
-- Add PDF Approval Status Summary section.
-- Add better PDF table layouts for long reports.
-- Add optional settlement/deduction report.
-- Apply `timeFormat`.
-- Apply `defaultTimezone`.
-- Consider server-side PDF optimization later.
-
----
-
-# Phase H — Lost/Damaged Approval & Settlement Workflow
-
-## Status: Core Workflow Implemented / Offline-Aware
-
-Correct business flow:
-
-1. Warehouse creates Lost or Damaged transaction.
-2. Transaction status becomes Pending Approval.
-3. Tool remains in worker custody.
-4. Warehouse prints Lost/Damaged Approval Report.
-5. Worker signs the report.
-6. Manager reviews and signs Approve or Reject.
-7. Signed document is uploaded to the system.
-8. If rejected:
-   - Transaction becomes Rejected.
-   - Tool remains in worker custody.
-9. If approved:
-   - Transaction becomes Approved.
-   - Tool still remains in worker custody until financial/administrative settlement is completed.
-10. After salary deduction or final settlement:
-   - Settlement becomes Settled.
-   - Tool is removed from worker custody balance.
-
-Implemented:
-
-- Pending Lost/Damaged transactions remain in worker custody.
-- Approved Lost/Damaged transactions pending settlement remain in worker custody.
-- Settled Lost/Damaged transactions are removed from worker custody.
-- Lost/Damaged Approval Report is working.
-- Upload Signed Approval Document is working.
-- Signed approval document images are compressed before upload when the file is an image.
-- Signed approval document PDF files are uploaded without image compression.
-- View Signed Document works online.
-- View Signed Document is blocked offline with clear dialog message.
-- Dashboard Open Custodies / Closed Today logic updated to respect settlement rules.
-- Pending Approvals UI refactored into smaller widgets.
-- Dashboard refreshes after Approve / Reject / Settle.
-
-Future priority:
-
-- Add role-based permissions for approve/reject/settle.
-- Add direct accountability fields for approval/rejection/settlement actions.
-- Add audit trail entries for approval/settlement actions.
-
-Future enhancement:
-
-- Add optional signed settlement/deduction report.
-- Add optional notification flow for pending approvals and settlements.
-- Add mobile/tablet camera capture for signed approval document photos.
-
----
-
-# Phase I — Android Signed Document Opening
-
-## Status: Done
-
-Implemented:
-
-- Added Android handling for opening signed approval document URLs.
-- Confirmed View Signed Document works on Android Emulator when online.
-- Signed document viewing is now blocked offline with a clear user message.
-
-Future enhancement:
-
-- Add better in-app document preview if needed.
-- Add cached document preview later if secure offline cache is implemented.
-
----
-
-# Phase J — Large File Refactor Checkpoint
-
-## Status: Mostly Done
-
-Implemented:
-
-- Several large feature files were split into focused widgets/services.
-- Pending Approvals UI was refactored into smaller widgets.
-- PDF generation was split into smaller files.
-- Reports services were organized under PDF-specific service folders.
-- Transaction Cubit was split into part files for load/search, CRUD, approval workflow, and calculations.
-- UI behavior was preserved during refactors.
-
-Future ongoing rule:
-
-- Continue refactoring any file that becomes too large.
-- Keep business logic out of UI widgets where possible.
-- Continue moving repeated widgets/helpers into core or feature-specific folders.
-
----
-
-# Phase K — Flutter SDK Upgrade Checkpoint
-
-## Status: Done
-
-Implemented:
-
-- Flutter SDK upgrade checkpoint completed.
-- New warnings and compatibility issues were handled where needed.
-- Responsive behavior was tested after upgrade.
-- Existing feature flows continued working after upgrade.
-
-Future ongoing rule:
-
-- Re-test platform builds after future Flutter upgrades.
-- Watch for package compatibility changes, especially:
-  - Supabase
-  - file_picker
-  - printing/pdf
-  - image
-  - url_launcher
-  - connectivity_plus
-  - device_preview
-
----
-
-# Phase L — Responsive & Orientation Hardening
-
-## Status: Done
-
-Goal:
-
-Harden the app layout across mobile and tablet orientations and prevent UI overflows when rotating between portrait and landscape.
-
-Completed:
-
-- Responsive and orientation hardening audit completed.
-- Mobile landscape behavior improved.
-- Tablet portrait/landscape behavior reviewed.
-- DevicePreview separated from normal runtime layout.
-- `ResponsiveLayout` no longer depends directly on DevicePreview.
-- Offline banner no longer causes keyboard overflow.
-- Search/input fields tested with keyboard in tablet portrait and landscape.
-
-Future ongoing rule:
-
-- Every new form must be tested in portrait and landscape.
-- Every new form must remain scrollable when keyboard is open.
-- Do not introduce fixed-height layouts for long forms.
-
----
-
-# Phase M — Storage & Image Optimization
-
-## Status: Done
-
-Implemented:
-
-- Cross-platform image compression foundation.
-- Transaction proof image compression before upload.
-- Approval document image compression before upload when selected file is an image.
-- PDF approval documents uploaded without image compression.
-- Company logo resize/compression before upload.
-- Storage paths saved under company folders.
-- Database stores cloud storage paths only.
-- Local file paths are not saved in Supabase tables.
-
-Future priority:
-
-- Storage usage tracking per company.
-- Enforce storage limits by plan.
-
-Future enhancement:
-
-- Optional preview/crop flow.
-- Preserve PNG/WebP transparency where possible.
-- Camera capture integration.
-
----
-
-# Phase N — Offline & Network Handling
-
-## Status: Done
-
-Completed:
-
-- Network status service created.
-- Network status Cubit created.
-- Global offline banner implemented.
-- Offline screen added for Current Context loading failure.
-- Retry added to critical context loading screen.
-- AppMessage system added for unified success/error/warning/info messages.
-- Transactions save is blocked while offline.
-- Signed approval document upload is blocked while offline.
-- Transaction proof image upload is blocked while offline.
-- Company logo upload is blocked while offline.
-- Cloud proof image viewing is blocked while offline.
-- Cloud signed document viewing is blocked while offline.
-- Workers add/update/delete are blocked while offline.
-- Tools add/update/delete are blocked while offline.
-- Lookups add/delete are blocked while offline.
-- Company Settings mutations are blocked while offline:
-  - Company Profile update
-  - Report Settings update
-  - Document Template update
-  - Company Logo upload
-- Settings screen no longer converts action failures into full screen failure.
-- Reports can still generate offline from already-loaded in-memory data.
-- Friendly Network Error Mapper first pass added.
-- Supabase/Auth/Postgrest/Storage/Socket/Timeout technical errors are mapped to user-friendly messages.
-- Friendly error mapper applied to:
-  - Auth
-  - Current Context
-  - Dashboard
-  - Workers
-  - Tools
-  - Lookups
-  - Company Settings
-  - Transactions load/save/approval workflow
-  - Cloud proof image preview
-  - Cloud proof image thumbnails
-  - Signed document opening
-  - Company logo picker
-  - Network status Cubit
-- Friendly error messages are unified using `AppMessage` for main screens.
-- Tools, Workers, Lookups, and Transactions no longer show in-page error banners for general Cubit errors.
-- Offline banner is hidden automatically while the keyboard is open to prevent tablet/landscape overflow.
-- DevicePreview was separated into its own entry point:
-  - `lib/main.dart`
-  - `lib/main_device_preview.dart`
-- `ResponsiveLayout` no longer depends directly on `DevicePreview`.
-- Manual testing completed on:
-  - Windows
-  - Tablet landscape
-  - Tablet portrait
-- Offline behavior confirmed for:
-  - Workers
-  - Tools
-  - Lookups
-  - Transactions
-  - Reports from already-loaded data
-  - Cloud file viewing restrictions
-  - Friendly network error messages
-
-Future enhancement:
-
-- Offline drafts and sync later.
-- Offline cached file previews later if secure and needed.
-
----
-
-# Low Priority / Deferred Backlog
-
-These items are useful but should not be started before the high-priority SaaS/product foundation unless there is a clear reason.
-
-## UI Enhancements
-
-- Better loading skeletons.
-- More polished empty states.
-- Better animation.
-- Optional table column customization.
-- Optional theme customization.
-- Optional dark mode.
-
-## Operational Enhancements
-
-- Import workers/tools from Excel/CSV.
-- Export reports history.
-- Bulk actions.
-- Tool maintenance history.
-- Worker advanced profiles.
-- More advanced filters.
-
-## Advanced Approval Enhancements
-
-- Multi-level approval.
-- Approval notifications.
-- Digital signature support.
-- In-app PDF signing.
-- Settlement/deduction report.
-
-## Advanced SaaS Enhancements
-
-- Customer portal.
-- Online billing integration.
-- In-app usage analytics.
-- Admin dashboard for all companies.
-- Multi-tenant admin console.
-
----
-
-# Immediate Next Step
-
-Start **Phase O — Company Users, Roles & Invitations**.
-
-First step:
-
-**Step O1 — Audit Current Company/User Structure**
-
-Before writing code:
-
-- Review the real GitHub repo.
-- Review current Supabase company/profile/membership structure.
-- Confirm existing tables.
-- Confirm missing tables.
 - Confirm current role source.
-- Decide whether invitation creation can start with RLS/RPC or must use Edge Function immediately.
+- Define permission matrix.
+- Define UI restrictions.
+- Define RPC/RLS changes needed.
+- Decide first implementation step for Owner/Admin member management:
+  - change role
+  - deactivate member
+  - reactivate member
+  - protect last owner
 
-After updating this roadmap:
-
-1. Run `git status`.
-2. Commit:
-   - `update roadmap priorities and accountability plan`
-3. Push.
-4. Review the real GitHub repo before starting Step O1.
