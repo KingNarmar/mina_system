@@ -16,12 +16,14 @@ class TransactionsMobileLayout extends StatelessWidget {
     super.key,
     required this.transactions,
     required this.selectedFilter,
+    required this.canCreateTransactions,
     this.isCompactSearchMode = false,
     this.onSearchFocusChanged,
   });
 
   final List<TransactionModel> transactions;
   final TransactionTypeFilter selectedFilter;
+  final bool canCreateTransactions;
   final bool isCompactSearchMode;
   final ValueChanged<bool>? onSearchFocusChanged;
 
@@ -29,7 +31,8 @@ class TransactionsMobileLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final keyboardBottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final isKeyboardOpen = keyboardBottomInset > 0;
-    final shouldHideFloatingButton = isKeyboardOpen || isCompactSearchMode;
+    final shouldHideFloatingButton =
+        isKeyboardOpen || isCompactSearchMode || !canCreateTransactions;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -73,11 +76,12 @@ class TransactionsMobileLayout extends StatelessWidget {
           }
 
           if (transactions.isEmpty) {
-            return const AppEmptyState(
+            return AppEmptyState(
               icon: Icons.swap_horiz_outlined,
               title: 'No transactions found',
-              message:
-                  'Add your first custody transaction to start tracking issued and closed tools.',
+              message: canCreateTransactions
+                  ? 'Add your first custody transaction to start tracking issued and closed tools.'
+                  : 'No transactions are currently available for your company.',
             );
           }
 

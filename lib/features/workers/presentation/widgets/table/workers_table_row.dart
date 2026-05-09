@@ -7,11 +7,13 @@ class WorkersTableRow extends StatelessWidget {
   const WorkersTableRow({
     super.key,
     required this.worker,
+    required this.showActions,
     this.onEdit,
     this.onDelete,
   });
 
   final WorkerModel worker;
+  final bool showActions;
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
 
@@ -27,33 +29,32 @@ class WorkersTableRow extends StatelessWidget {
               WorkersTableBodyCell(value: worker.hrCode, flex: 2),
               WorkersTableBodyCell(value: worker.department, flex: 2),
               WorkersTableBodyCell(value: worker.jobTitle, flex: 2),
-              Expanded(
-                flex: 2,
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: onEdit == null
-                          ? null
-                          : () {
-                              onEdit!(worker);
-                            },
-                      icon: const Icon(Icons.edit_outlined),
-                      color: AppColors.accent,
-                      tooltip: 'Edit',
-                    ),
-                    IconButton(
-                      onPressed: onDelete == null
-                          ? null
-                          : () {
-                              onDelete!(worker);
-                            },
-                      icon: const Icon(Icons.delete_outline),
-                      color: AppColors.error,
-                      tooltip: 'Delete',
-                    ),
-                  ],
+              if (showActions)
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    children: [
+                      if (onEdit != null)
+                        IconButton(
+                          onPressed: () {
+                            onEdit!(worker);
+                          },
+                          icon: const Icon(Icons.edit_outlined),
+                          color: AppColors.accent,
+                          tooltip: 'Edit',
+                        ),
+                      if (onDelete != null)
+                        IconButton(
+                          onPressed: () {
+                            onDelete!(worker);
+                          },
+                          icon: const Icon(Icons.delete_outline),
+                          color: AppColors.error,
+                          tooltip: 'Delete',
+                        ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),

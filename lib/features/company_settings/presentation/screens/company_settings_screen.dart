@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
@@ -27,6 +28,25 @@ class _CompanySettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+
+    final canManageCompanyProfile =
+        CompanyRolePermissions.canManageCompanyProfile(currentRole);
+
+    final canUploadCompanyLogo = CompanyRolePermissions.canUploadCompanyLogo(
+      currentRole,
+    );
+
+    final canViewCompanyUsers = CompanyRolePermissions.canViewCompanyUsers(
+      currentRole,
+    );
+
+    final canManageReportSettings =
+        CompanyRolePermissions.canManageReportSettings(currentRole);
+
+    final canManageDocumentTemplates =
+        CompanyRolePermissions.canManageDocumentTemplates(currentRole);
+
     return BlocBuilder<CompanySettingsCubit, CompanySettingsState>(
       builder: (context, state) {
         if (state is CompanySettingsLoading ||
@@ -58,27 +78,42 @@ class _CompanySettingsView extends StatelessWidget {
                     style: AppTextStyles.body,
                   ),
                   const Gap(24),
-                  CompanyProfileForm(
-                    profile: profile,
-                    isSaving: state.isUpdatingProfile,
-                  ),
-                  const Gap(16),
-                  CompanyLogoPicker(
-                    profile: profile,
-                    isSaving: state.isUploadingLogo,
-                  ),
-                  const Gap(16),
-                  const CompanyUsersSection(),
-                  const Gap(16),
-                  CompanyReportSettingsForm(
-                    reportSettings: state.reportSettings,
-                    isSaving: state.isUpdatingReportSettings,
-                  ),
-                  const Gap(16),
-                  CompanyDocumentTemplatesForm(
-                    documentTemplates: state.documentTemplates,
-                    isSaving: state.isUpdatingDocumentTemplate,
-                  ),
+                  if (canManageCompanyProfile) ...[
+                    CompanyProfileForm(
+                      profile: profile,
+                      isSaving: state.isUpdatingProfile,
+                    ),
+                    const Gap(16),
+                  ],
+                  if (canUploadCompanyLogo) ...[
+                    CompanyLogoPicker(
+                      profile: profile,
+                      isSaving: state.isUploadingLogo,
+                    ),
+                    const Gap(16),
+                  ],
+                  if (canViewCompanyUsers) ...[
+                    const CompanyUsersSection(),
+                    const Gap(16),
+                  ],
+                  if (canManageReportSettings) ...[
+                    CompanyReportSettingsForm(
+                      reportSettings: state.reportSettings,
+                      isSaving: state.isUpdatingReportSettings,
+                    ),
+                    const Gap(16),
+                  ],
+                  if (canManageDocumentTemplates)
+                    CompanyDocumentTemplatesForm(
+                      documentTemplates: state.documentTemplates,
+                      isSaving: state.isUpdatingDocumentTemplate,
+                    ),
+                  if (!canManageCompanyProfile &&
+                      !canUploadCompanyLogo &&
+                      !canViewCompanyUsers &&
+                      !canManageReportSettings &&
+                      !canManageDocumentTemplates)
+                    const _NoCompanySettingsPermissionView(),
                 ],
               ),
             ),
@@ -143,6 +178,33 @@ class _CompanySettingsFailureView extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _NoCompanySettingsPermissionView extends StatelessWidget {
+  const _NoCompanySettingsPermissionView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('No settings available', style: AppTextStyles.title),
+          Gap(8),
+          Text(
+            'Your current role does not have permission to manage company settings.',
+            style: AppTextStyles.body,
+          ),
+        ],
       ),
     );
   }

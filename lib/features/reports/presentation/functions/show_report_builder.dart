@@ -11,6 +11,7 @@ import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.da
 void showReportBuilder(
   BuildContext context, {
   required ReportOptionModel report,
+  required bool canGenerateReports,
 }) {
   final width = MediaQuery.sizeOf(context).width;
   final isMobile = width < AppBreakpoints.tablet;
@@ -27,7 +28,10 @@ void showReportBuilder(
       BlocProvider.value(value: toolsCubit),
       BlocProvider.value(value: companySettingsCubit),
     ],
-    child: ReportBuilderPanel(report: report),
+    child: ReportBuilderPanel(
+      report: report,
+      canGenerateReports: canGenerateReports,
+    ),
   );
 
   if (isMobile) {

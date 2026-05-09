@@ -9,11 +9,13 @@ class WorkersTable extends StatelessWidget {
   const WorkersTable({
     super.key,
     required this.workers,
+    required this.showActions,
     this.onEdit,
     this.onDelete,
   });
 
   final List<WorkerModel> workers;
+  final bool showActions;
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
 
@@ -28,7 +30,7 @@ class WorkersTable extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const WorkersTableHeader(),
+          WorkersTableHeader(showActions: showActions),
           const Divider(height: 1, color: AppColors.border),
           if (workers.isEmpty)
             const Padding(
@@ -39,6 +41,7 @@ class WorkersTable extends StatelessWidget {
             ...workers.map((worker) {
               return WorkersTableRow(
                 worker: worker,
+                showActions: showActions,
                 onEdit: onEdit,
                 onDelete: onDelete,
               );

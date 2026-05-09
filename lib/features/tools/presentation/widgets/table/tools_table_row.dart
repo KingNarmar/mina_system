@@ -7,11 +7,13 @@ class ToolsTableRow extends StatelessWidget {
   const ToolsTableRow({
     super.key,
     required this.tool,
+    required this.showActions,
     this.onEdit,
     this.onDelete,
   });
 
   final ToolModel tool;
+  final bool showActions;
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
 
@@ -27,33 +29,32 @@ class ToolsTableRow extends StatelessWidget {
               ToolsTableBodyCell(value: tool.toolName, flex: 3),
               ToolsTableBodyCell(value: tool.unit, flex: 1),
               ToolsTableBodyCell(value: tool.category, flex: 2),
-              Expanded(
-                flex: 2,
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: onEdit == null
-                          ? null
-                          : () {
-                              onEdit!(tool);
-                            },
-                      icon: const Icon(Icons.edit_outlined),
-                      color: AppColors.accent,
-                      tooltip: 'Edit',
-                    ),
-                    IconButton(
-                      onPressed: onDelete == null
-                          ? null
-                          : () {
-                              onDelete!(tool);
-                            },
-                      icon: const Icon(Icons.delete_outline),
-                      color: AppColors.error,
-                      tooltip: 'Delete',
-                    ),
-                  ],
+              if (showActions)
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    children: [
+                      if (onEdit != null)
+                        IconButton(
+                          onPressed: () {
+                            onEdit!(tool);
+                          },
+                          icon: const Icon(Icons.edit_outlined),
+                          color: AppColors.accent,
+                          tooltip: 'Edit',
+                        ),
+                      if (onDelete != null)
+                        IconButton(
+                          onPressed: () {
+                            onDelete!(tool);
+                          },
+                          icon: const Icon(Icons.delete_outline),
+                          color: AppColors.error,
+                          tooltip: 'Delete',
+                        ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),

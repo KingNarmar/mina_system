@@ -8,17 +8,37 @@ class PendingApprovalsLayout extends StatelessWidget {
     super.key,
     required this.transactions,
     required this.isMobile,
+    required this.canUploadApprovalDocument,
+    required this.canApproveLostDamaged,
+    required this.canRejectLostDamaged,
+    required this.canSettleLostDamaged,
   });
 
   final List<TransactionModel> transactions;
   final bool isMobile;
+  final bool canUploadApprovalDocument;
+  final bool canApproveLostDamaged;
+  final bool canRejectLostDamaged;
+  final bool canSettleLostDamaged;
 
   @override
   Widget build(BuildContext context) {
     if (isMobile) {
-      return PendingApprovalsMobileList(transactions: transactions);
+      return PendingApprovalsMobileList(
+        transactions: transactions,
+        canUploadApprovalDocument: canUploadApprovalDocument,
+        canApproveLostDamaged: canApproveLostDamaged,
+        canRejectLostDamaged: canRejectLostDamaged,
+        canSettleLostDamaged: canSettleLostDamaged,
+      );
     }
 
-    return PendingApprovalsDesktopTable(transactions: transactions);
+    return PendingApprovalsDesktopTable(
+      transactions: transactions,
+      canUploadApprovalDocument: canUploadApprovalDocument,
+      canApproveLostDamaged: canApproveLostDamaged,
+      canRejectLostDamaged: canRejectLostDamaged,
+      canSettleLostDamaged: canSettleLostDamaged,
+    );
   }
 }

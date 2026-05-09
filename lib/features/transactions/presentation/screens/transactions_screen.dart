@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
@@ -37,6 +39,27 @@ class _TransactionsViewState extends State<_TransactionsView> {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+
+    final canCreateTransactions = CompanyRolePermissions.canCreateTransactions(
+      currentRole,
+    );
+
+    final canUploadApprovalDocument =
+        CompanyRolePermissions.canUploadApprovalDocument(currentRole);
+
+    final canApproveLostDamaged = CompanyRolePermissions.canApproveLostDamaged(
+      currentRole,
+    );
+
+    final canRejectLostDamaged = CompanyRolePermissions.canRejectLostDamaged(
+      currentRole,
+    );
+
+    final canSettleLostDamaged = CompanyRolePermissions.canSettleLostDamaged(
+      currentRole,
+    );
+
     return BlocListener<TransactionsCubit, TransactionsState>(
       listenWhen: (previous, current) {
         return previous.errorMessage != current.errorMessage &&
@@ -108,6 +131,8 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                   TransactionsMobileLayout(
                                     transactions: transactions,
                                     selectedFilter: state.typeFilter,
+                                    canCreateTransactions:
+                                        canCreateTransactions,
                                     isCompactSearchMode: isCompactSearchMode,
                                     onSearchFocusChanged:
                                         _onTransactionSearchFocusChanged,
@@ -116,10 +141,17 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                   TransactionsDesktopLayout(
                                     transactions: transactions,
                                     selectedFilter: state.typeFilter,
+                                    canCreateTransactions:
+                                        canCreateTransactions,
                                   ),
                                 PendingApprovalsLayout(
                                   transactions: pendingApprovalTransactions,
                                   isMobile: isMobile,
+                                  canUploadApprovalDocument:
+                                      canUploadApprovalDocument,
+                                  canApproveLostDamaged: canApproveLostDamaged,
+                                  canRejectLostDamaged: canRejectLostDamaged,
+                                  canSettleLostDamaged: canSettleLostDamaged,
                                 ),
                                 if (isMobile)
                                   CustodyBalanceMobileLayout(

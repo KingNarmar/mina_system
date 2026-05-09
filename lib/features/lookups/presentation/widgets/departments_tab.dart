@@ -14,10 +14,14 @@ import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_ti
 class DepartmentsTab extends StatefulWidget {
   const DepartmentsTab({
     super.key,
+    required this.canCreateLookups,
+    required this.canDeleteLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
+  final bool canCreateLookups;
+  final bool canDeleteLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -53,24 +57,26 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
             title: 'Manage Departments',
             child: Column(
               children: [
-                LookupAddRow(
-                  hint: 'Department Name',
-                  controller: _departmentController,
-                  isCompactInputMode: widget.isCompactInputMode,
-                  onFocusChanged: widget.onLookupInputFocusChanged,
-                  onAdd: () async {
-                    final isAdded = await addDepartmentLookup(
-                      context: context,
-                      department: _departmentController.text,
-                      departments: state.departments,
-                    );
+                if (widget.canCreateLookups) ...[
+                  LookupAddRow(
+                    hint: 'Department Name',
+                    controller: _departmentController,
+                    isCompactInputMode: widget.isCompactInputMode,
+                    onFocusChanged: widget.onLookupInputFocusChanged,
+                    onAdd: () async {
+                      final isAdded = await addDepartmentLookup(
+                        context: context,
+                        department: _departmentController.text,
+                        departments: state.departments,
+                      );
 
-                    if (isAdded) {
-                      _departmentController.clear();
-                    }
-                  },
-                ),
-                const Gap(20),
+                      if (isAdded) {
+                        _departmentController.clear();
+                      }
+                    },
+                  ),
+                  const Gap(20),
+                ],
                 if (state.departments.isEmpty)
                   const EmptyLookupMessage(message: 'No departments found')
                 else
@@ -78,20 +84,22 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                     return LookupListTile(
                       title: department,
                       subtitle: 'Department',
-                      onDelete: () {
-                        confirmDeleteLookup(
-                          context: context,
-                          title: 'Delete Department',
-                          message:
-                              'Are you sure you want to delete $department?',
-                          onConfirm: () async {
-                            await deleteDepartmentLookup(
-                              context: context,
-                              department: department,
-                            );
-                          },
-                        );
-                      },
+                      onDelete: widget.canDeleteLookups
+                          ? () {
+                              confirmDeleteLookup(
+                                context: context,
+                                title: 'Delete Department',
+                                message:
+                                    'Are you sure you want to delete $department?',
+                                onConfirm: () async {
+                                  await deleteDepartmentLookup(
+                                    context: context,
+                                    department: department,
+                                  );
+                                },
+                              );
+                            }
+                          : null,
                     );
                   }),
               ],

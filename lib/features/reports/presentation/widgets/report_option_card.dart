@@ -8,11 +8,13 @@ class ReportOptionCard extends StatelessWidget {
   const ReportOptionCard({
     super.key,
     required this.report,
-    required this.onTap,
+    required this.canGenerateReports,
+    this.onTap,
   });
 
   final ReportOptionModel report;
-  final VoidCallback onTap;
+  final bool canGenerateReports;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -33,37 +35,42 @@ class ReportOptionCard extends StatelessWidget {
         final actionGap = isTightHeight ? 6.0 : 10.0;
         final descriptionMaxLines = isTightHeight ? 2 : 3;
 
-        return Card(
-          margin: EdgeInsets.zero,
-          elevation: 0,
-          color: AppColors.card,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: AppColors.border),
-          ),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(18),
-            child: Padding(
-              padding: EdgeInsets.all(padding),
-              child: hasFiniteHeight
-                  ? _FiniteHeightCardContent(
-                      report: report,
-                      iconBoxSize: iconBoxSize,
-                      iconSize: iconSize,
-                      horizontalGap: horizontalGap,
-                      contentGap: contentGap,
-                      actionGap: actionGap,
-                      descriptionMaxLines: descriptionMaxLines,
-                    )
-                  : _NaturalHeightCardContent(
-                      report: report,
-                      iconBoxSize: iconBoxSize,
-                      iconSize: iconSize,
-                      horizontalGap: horizontalGap,
-                      contentGap: contentGap,
-                      actionGap: actionGap,
-                    ),
+        return Opacity(
+          opacity: canGenerateReports ? 1 : 0.72,
+          child: Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            color: AppColors.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: const BorderSide(color: AppColors.border),
+            ),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(18),
+              child: Padding(
+                padding: EdgeInsets.all(padding),
+                child: hasFiniteHeight
+                    ? _FiniteHeightCardContent(
+                        report: report,
+                        canGenerateReports: canGenerateReports,
+                        iconBoxSize: iconBoxSize,
+                        iconSize: iconSize,
+                        horizontalGap: horizontalGap,
+                        contentGap: contentGap,
+                        actionGap: actionGap,
+                        descriptionMaxLines: descriptionMaxLines,
+                      )
+                    : _NaturalHeightCardContent(
+                        report: report,
+                        canGenerateReports: canGenerateReports,
+                        iconBoxSize: iconBoxSize,
+                        iconSize: iconSize,
+                        horizontalGap: horizontalGap,
+                        contentGap: contentGap,
+                        actionGap: actionGap,
+                      ),
+              ),
             ),
           ),
         );
@@ -75,6 +82,7 @@ class ReportOptionCard extends StatelessWidget {
 class _FiniteHeightCardContent extends StatelessWidget {
   const _FiniteHeightCardContent({
     required this.report,
+    required this.canGenerateReports,
     required this.iconBoxSize,
     required this.iconSize,
     required this.horizontalGap,
@@ -84,6 +92,7 @@ class _FiniteHeightCardContent extends StatelessWidget {
   });
 
   final ReportOptionModel report;
+  final bool canGenerateReports;
   final double iconBoxSize;
   final double iconSize;
   final double horizontalGap;
@@ -112,7 +121,7 @@ class _FiniteHeightCardContent extends StatelessWidget {
           ),
         ),
         Gap(actionGap),
-        const _ConfigureReportText(),
+        _ReportCardActionText(canGenerateReports: canGenerateReports),
       ],
     );
   }
@@ -121,6 +130,7 @@ class _FiniteHeightCardContent extends StatelessWidget {
 class _NaturalHeightCardContent extends StatelessWidget {
   const _NaturalHeightCardContent({
     required this.report,
+    required this.canGenerateReports,
     required this.iconBoxSize,
     required this.iconSize,
     required this.horizontalGap,
@@ -129,6 +139,7 @@ class _NaturalHeightCardContent extends StatelessWidget {
   });
 
   final ReportOptionModel report;
+  final bool canGenerateReports;
   final double iconBoxSize;
   final double iconSize;
   final double horizontalGap;
@@ -155,7 +166,7 @@ class _NaturalHeightCardContent extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         Gap(actionGap),
-        const _ConfigureReportText(),
+        _ReportCardActionText(canGenerateReports: canGenerateReports),
       ],
     );
   }
@@ -202,15 +213,17 @@ class _ReportCardHeader extends StatelessWidget {
   }
 }
 
-class _ConfigureReportText extends StatelessWidget {
-  const _ConfigureReportText();
+class _ReportCardActionText extends StatelessWidget {
+  const _ReportCardActionText({required this.canGenerateReports});
+
+  final bool canGenerateReports;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      'Configure report',
+      canGenerateReports ? 'Configure report' : 'View only',
       style: AppTextStyles.body.copyWith(
-        color: AppColors.accent,
+        color: canGenerateReports ? AppColors.accent : AppColors.textSecondary,
         fontWeight: FontWeight.w600,
       ),
       maxLines: 1,

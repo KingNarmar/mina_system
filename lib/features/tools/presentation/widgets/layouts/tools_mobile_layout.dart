@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
@@ -8,12 +9,20 @@ import 'package:mina_system/features/tools/presentation/functions/confirm_delete
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_card.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
-import 'package:gap/gap.dart';
 
 class ToolsMobileLayout extends StatelessWidget {
-  const ToolsMobileLayout({super.key, required this.tools});
+  const ToolsMobileLayout({
+    super.key,
+    required this.tools,
+    required this.canCreateTools,
+    required this.canUpdateTools,
+    required this.canDeleteTools,
+  });
 
   final List<ToolModel> tools;
+  final bool canCreateTools;
+  final bool canUpdateTools;
+  final bool canDeleteTools;
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +44,12 @@ class ToolsMobileLayout extends StatelessWidget {
           }
 
           if (tools.isEmpty) {
-            return const AppEmptyState(
+            return AppEmptyState(
               icon: Icons.build_outlined,
               title: 'No tools found',
-              message:
-                  'Add your first tool type to start recording custody transactions.',
+              message: canCreateTools
+                  ? 'Add your first tool type to start recording custody transactions.'
+                  : 'No tools are currently available for your company.',
             );
           }
 
@@ -47,21 +57,27 @@ class ToolsMobileLayout extends StatelessWidget {
 
           return ToolCard(
             tool: tool,
-            onEdit: () {
-              showToolBottomSheet(context, tool: tool);
-            },
-            onDelete: () {
-              confirmDeleteTool(context: context, tool: tool);
-            },
+            onEdit: canUpdateTools
+                ? () {
+                    showToolBottomSheet(context, tool: tool);
+                  }
+                : null,
+            onDelete: canDeleteTools
+                ? () {
+                    confirmDeleteTool(context: context, tool: tool);
+                  }
+                : null,
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showToolBottomSheet(context);
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canCreateTools
+          ? FloatingActionButton(
+              onPressed: () {
+                showToolBottomSheet(context);
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

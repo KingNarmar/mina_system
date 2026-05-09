@@ -9,9 +9,20 @@ import 'package:mina_system/features/transactions/presentation/cubit/transaction
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 
 class PendingApprovalActions extends StatelessWidget {
-  const PendingApprovalActions({super.key, required this.transaction});
+  const PendingApprovalActions({
+    super.key,
+    required this.transaction,
+    required this.canUploadApprovalDocument,
+    required this.canApproveLostDamaged,
+    required this.canRejectLostDamaged,
+    required this.canSettleLostDamaged,
+  });
 
   final TransactionModel transaction;
+  final bool canUploadApprovalDocument;
+  final bool canApproveLostDamaged;
+  final bool canRejectLostDamaged;
+  final bool canSettleLostDamaged;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +41,7 @@ class PendingApprovalActions extends StatelessWidget {
           icon: const Icon(Icons.visibility_outlined, size: 18),
           label: const Text('View'),
         ),
-        if (transaction.isApprovalPending)
+        if (transaction.isApprovalPending && canUploadApprovalDocument)
           OutlinedButton.icon(
             onPressed: () {
               _pickAndUploadApprovalDocument(context, transaction);
@@ -40,7 +51,7 @@ class PendingApprovalActions extends StatelessWidget {
               hasApprovalDocument ? 'Replace Signed' : 'Upload Signed',
             ),
           ),
-        if (transaction.isApprovalPending)
+        if (transaction.isApprovalPending && canApproveLostDamaged)
           ElevatedButton.icon(
             onPressed: hasApprovalDocument
                 ? () {
@@ -50,7 +61,7 @@ class PendingApprovalActions extends StatelessWidget {
             icon: const Icon(Icons.check_circle_outline, size: 18),
             label: const Text('Approve'),
           ),
-        if (transaction.isApprovalPending)
+        if (transaction.isApprovalPending && canRejectLostDamaged)
           OutlinedButton.icon(
             onPressed: hasApprovalDocument
                 ? () {
@@ -60,7 +71,9 @@ class PendingApprovalActions extends StatelessWidget {
             icon: const Icon(Icons.cancel_outlined, size: 18),
             label: const Text('Reject'),
           ),
-        if (transaction.isApprovalApproved && transaction.isPendingSettlement)
+        if (transaction.isApprovalApproved &&
+            transaction.isPendingSettlement &&
+            canSettleLostDamaged)
           ElevatedButton.icon(
             onPressed: () {
               _settleTransaction(context, transaction);

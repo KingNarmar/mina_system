@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
@@ -7,15 +8,25 @@ import 'package:mina_system/features/workers/presentation/functions/confirm_dele
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
-import 'package:gap/gap.dart';
 
 class WorkersDesktopLayout extends StatelessWidget {
-  const WorkersDesktopLayout({super.key, required this.workers});
+  const WorkersDesktopLayout({
+    super.key,
+    required this.workers,
+    required this.canCreateWorkers,
+    required this.canUpdateWorkers,
+    required this.canDeleteWorkers,
+  });
 
   final List<WorkerModel> workers;
+  final bool canCreateWorkers;
+  final bool canUpdateWorkers;
+  final bool canDeleteWorkers;
 
   @override
   Widget build(BuildContext context) {
+    final canShowActions = canUpdateWorkers || canDeleteWorkers;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -29,37 +40,46 @@ class WorkersDesktopLayout extends StatelessWidget {
                   },
                 ),
               ),
-              const Gap(16),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    showWorkerDialog(context);
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Worker'),
+              if (canCreateWorkers) ...[
+                const Gap(16),
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      showWorkerDialog(context);
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Worker'),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           const Gap(16),
           if (workers.isEmpty)
-            const AppEmptyState(
+            AppEmptyState(
               icon: Icons.people_outline,
               title: 'No workers found',
-              message: 'Add your first worker to start tracking tool custody.',
+              message: canCreateWorkers
+                  ? 'Add your first worker to start tracking tool custody.'
+                  : 'No workers are currently available for your company.',
             )
           else
             SizedBox(
               width: double.infinity,
               child: WorkersTable(
                 workers: workers,
-                onEdit: (worker) {
-                  showWorkerDialog(context, worker: worker);
-                },
-                onDelete: (worker) {
-                  confirmDeleteWorker(context, worker);
-                },
+                showActions: canShowActions,
+                onEdit: canUpdateWorkers
+                    ? (worker) {
+                        showWorkerDialog(context, worker: worker);
+                      }
+                    : null,
+                onDelete: canDeleteWorkers
+                    ? (worker) {
+                        confirmDeleteWorker(context, worker);
+                      }
+                    : null,
               ),
             ),
         ],

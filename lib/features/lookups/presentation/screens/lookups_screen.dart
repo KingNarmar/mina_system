@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/departments_tab.dart';
@@ -31,6 +33,16 @@ class _LookupsViewState extends State<_LookupsView> {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+
+    final canCreateLookups = CompanyRolePermissions.canCreateLookups(
+      currentRole,
+    );
+
+    final canDeleteLookups = CompanyRolePermissions.canDeleteLookups(
+      currentRole,
+    );
+
     final mediaSize = MediaQuery.sizeOf(context);
     final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
     final isCompactLandscape = isMobile && mediaSize.width > mediaSize.height;
@@ -77,21 +89,29 @@ class _LookupsViewState extends State<_LookupsView> {
                         TabBarView(
                           children: [
                             DepartmentsTab(
+                              canCreateLookups: canCreateLookups,
+                              canDeleteLookups: canDeleteLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,
                             ),
                             JobTitlesTab(
+                              canCreateLookups: canCreateLookups,
+                              canDeleteLookups: canDeleteLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,
                             ),
                             ToolUnitsTab(
+                              canCreateLookups: canCreateLookups,
+                              canDeleteLookups: canDeleteLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,
                             ),
                             ToolCategoriesTab(
+                              canCreateLookups: canCreateLookups,
+                              canDeleteLookups: canDeleteLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,

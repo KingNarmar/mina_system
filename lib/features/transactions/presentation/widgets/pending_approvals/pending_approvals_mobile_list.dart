@@ -10,9 +10,20 @@ import 'package:mina_system/features/transactions/presentation/widgets/pending_a
 import 'package:mina_system/features/transactions/presentation/widgets/pending_approvals/pending_approvals_header.dart';
 
 class PendingApprovalsMobileList extends StatelessWidget {
-  const PendingApprovalsMobileList({super.key, required this.transactions});
+  const PendingApprovalsMobileList({
+    super.key,
+    required this.transactions,
+    required this.canUploadApprovalDocument,
+    required this.canApproveLostDamaged,
+    required this.canRejectLostDamaged,
+    required this.canSettleLostDamaged,
+  });
 
   final List<TransactionModel> transactions;
+  final bool canUploadApprovalDocument;
+  final bool canApproveLostDamaged;
+  final bool canRejectLostDamaged;
+  final bool canSettleLostDamaged;
 
   @override
   Widget build(BuildContext context) {
@@ -38,16 +49,32 @@ class PendingApprovalsMobileList extends StatelessWidget {
 
         final transaction = transactions[index - 1];
 
-        return _PendingApprovalCard(transaction: transaction);
+        return _PendingApprovalCard(
+          transaction: transaction,
+          canUploadApprovalDocument: canUploadApprovalDocument,
+          canApproveLostDamaged: canApproveLostDamaged,
+          canRejectLostDamaged: canRejectLostDamaged,
+          canSettleLostDamaged: canSettleLostDamaged,
+        );
       },
     );
   }
 }
 
 class _PendingApprovalCard extends StatelessWidget {
-  const _PendingApprovalCard({required this.transaction});
+  const _PendingApprovalCard({
+    required this.transaction,
+    required this.canUploadApprovalDocument,
+    required this.canApproveLostDamaged,
+    required this.canRejectLostDamaged,
+    required this.canSettleLostDamaged,
+  });
 
   final TransactionModel transaction;
+  final bool canUploadApprovalDocument;
+  final bool canApproveLostDamaged;
+  final bool canRejectLostDamaged;
+  final bool canSettleLostDamaged;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +146,13 @@ class _PendingApprovalCard extends StatelessWidget {
               ],
             ),
             const Gap(12),
-            PendingApprovalActions(transaction: transaction),
+            PendingApprovalActions(
+              transaction: transaction,
+              canUploadApprovalDocument: canUploadApprovalDocument,
+              canApproveLostDamaged: canApproveLostDamaged,
+              canRejectLostDamaged: canRejectLostDamaged,
+              canSettleLostDamaged: canSettleLostDamaged,
+            ),
           ],
         ),
       ),

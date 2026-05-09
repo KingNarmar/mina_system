@@ -14,10 +14,14 @@ import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_ti
 class ToolUnitsTab extends StatefulWidget {
   const ToolUnitsTab({
     super.key,
+    required this.canCreateLookups,
+    required this.canDeleteLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
+  final bool canCreateLookups;
+  final bool canDeleteLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -53,24 +57,26 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
             title: 'Manage Tool Units',
             child: Column(
               children: [
-                LookupAddRow(
-                  hint: 'Unit Name',
-                  controller: _unitController,
-                  isCompactInputMode: widget.isCompactInputMode,
-                  onFocusChanged: widget.onLookupInputFocusChanged,
-                  onAdd: () async {
-                    final isAdded = await addToolUnitLookup(
-                      context: context,
-                      unit: _unitController.text,
-                      units: state.toolUnits,
-                    );
+                if (widget.canCreateLookups) ...[
+                  LookupAddRow(
+                    hint: 'Unit Name',
+                    controller: _unitController,
+                    isCompactInputMode: widget.isCompactInputMode,
+                    onFocusChanged: widget.onLookupInputFocusChanged,
+                    onAdd: () async {
+                      final isAdded = await addToolUnitLookup(
+                        context: context,
+                        unit: _unitController.text,
+                        units: state.toolUnits,
+                      );
 
-                    if (isAdded) {
-                      _unitController.clear();
-                    }
-                  },
-                ),
-                const Gap(20),
+                      if (isAdded) {
+                        _unitController.clear();
+                      }
+                    },
+                  ),
+                  const Gap(20),
+                ],
                 if (state.toolUnits.isEmpty)
                   const EmptyLookupMessage(message: 'No tool units found')
                 else
@@ -78,19 +84,22 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                     return LookupListTile(
                       title: unit,
                       subtitle: 'Tool Unit',
-                      onDelete: () {
-                        confirmDeleteLookup(
-                          context: context,
-                          title: 'Delete Tool Unit',
-                          message: 'Are you sure you want to delete $unit?',
-                          onConfirm: () async {
-                            await deleteToolUnitLookup(
-                              context: context,
-                              unit: unit,
-                            );
-                          },
-                        );
-                      },
+                      onDelete: widget.canDeleteLookups
+                          ? () {
+                              confirmDeleteLookup(
+                                context: context,
+                                title: 'Delete Tool Unit',
+                                message:
+                                    'Are you sure you want to delete $unit?',
+                                onConfirm: () async {
+                                  await deleteToolUnitLookup(
+                                    context: context,
+                                    unit: unit,
+                                  );
+                                },
+                              );
+                            }
+                          : null,
                     );
                   }),
               ],

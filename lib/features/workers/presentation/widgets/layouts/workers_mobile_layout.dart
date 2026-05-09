@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
@@ -8,12 +9,20 @@ import 'package:mina_system/features/workers/presentation/functions/confirm_dele
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_card.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
-import 'package:gap/gap.dart';
 
 class WorkersMobileLayout extends StatelessWidget {
-  const WorkersMobileLayout({super.key, required this.workers});
+  const WorkersMobileLayout({
+    super.key,
+    required this.workers,
+    required this.canCreateWorkers,
+    required this.canUpdateWorkers,
+    required this.canDeleteWorkers,
+  });
 
   final List<WorkerModel> workers;
+  final bool canCreateWorkers;
+  final bool canUpdateWorkers;
+  final bool canDeleteWorkers;
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +44,12 @@ class WorkersMobileLayout extends StatelessWidget {
           }
 
           if (workers.isEmpty) {
-            return const AppEmptyState(
+            return AppEmptyState(
               icon: Icons.people_outline,
               title: 'No workers found',
-              message: 'Add your first worker to start tracking tool custody.',
+              message: canCreateWorkers
+                  ? 'Add your first worker to start tracking tool custody.'
+                  : 'No workers are currently available for your company.',
             );
           }
 
@@ -46,21 +57,27 @@ class WorkersMobileLayout extends StatelessWidget {
 
           return WorkerCard(
             worker: worker,
-            onEdit: () {
-              showWorkerBottomSheet(context, worker: worker);
-            },
-            onDelete: () {
-              confirmDeleteWorker(context, worker);
-            },
+            onEdit: canUpdateWorkers
+                ? () {
+                    showWorkerBottomSheet(context, worker: worker);
+                  }
+                : null,
+            onDelete: canDeleteWorkers
+                ? () {
+                    confirmDeleteWorker(context, worker);
+                  }
+                : null,
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showWorkerBottomSheet(context);
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canCreateWorkers
+          ? FloatingActionButton(
+              onPressed: () {
+                showWorkerBottomSheet(context);
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

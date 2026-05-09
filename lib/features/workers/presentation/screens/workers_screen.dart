@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/widgets/layouts/workers_desktop_layout.dart';
@@ -22,6 +24,20 @@ class _WorkersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+
+    final canCreateWorkers = CompanyRolePermissions.canCreateWorkers(
+      currentRole,
+    );
+
+    final canUpdateWorkers = CompanyRolePermissions.canUpdateWorkers(
+      currentRole,
+    );
+
+    final canDeleteWorkers = CompanyRolePermissions.canDeleteWorkers(
+      currentRole,
+    );
+
     return BlocListener<WorkersCubit, WorkersState>(
       listenWhen: (previous, current) {
         return previous.errorMessage != current.errorMessage &&
@@ -44,10 +60,20 @@ class _WorkersView extends StatelessWidget {
                       mediaSize.shortestSide < AppBreakpoints.tablet;
 
                   if (isMobile) {
-                    return WorkersMobileLayout(workers: workers);
+                    return WorkersMobileLayout(
+                      workers: workers,
+                      canCreateWorkers: canCreateWorkers,
+                      canUpdateWorkers: canUpdateWorkers,
+                      canDeleteWorkers: canDeleteWorkers,
+                    );
                   }
 
-                  return WorkersDesktopLayout(workers: workers);
+                  return WorkersDesktopLayout(
+                    workers: workers,
+                    canCreateWorkers: canCreateWorkers,
+                    canUpdateWorkers: canUpdateWorkers,
+                    canDeleteWorkers: canDeleteWorkers,
+                  );
                 },
               ),
               if (state.isLoading || state.isSubmitting)

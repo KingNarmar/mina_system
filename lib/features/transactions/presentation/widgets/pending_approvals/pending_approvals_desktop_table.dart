@@ -12,9 +12,20 @@ import 'package:mina_system/features/transactions/presentation/widgets/pending_a
 import 'package:mina_system/features/transactions/presentation/widgets/pending_approvals/pending_approvals_header.dart';
 
 class PendingApprovalsDesktopTable extends StatelessWidget {
-  const PendingApprovalsDesktopTable({super.key, required this.transactions});
+  const PendingApprovalsDesktopTable({
+    super.key,
+    required this.transactions,
+    required this.canUploadApprovalDocument,
+    required this.canApproveLostDamaged,
+    required this.canRejectLostDamaged,
+    required this.canSettleLostDamaged,
+  });
 
   final List<TransactionModel> transactions;
+  final bool canUploadApprovalDocument;
+  final bool canApproveLostDamaged;
+  final bool canRejectLostDamaged;
+  final bool canSettleLostDamaged;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +66,11 @@ class PendingApprovalsDesktopTable extends StatelessWidget {
                           ...transactions.map((transaction) {
                             return _PendingApprovalsTableRow(
                               transaction: transaction,
+                              canUploadApprovalDocument:
+                                  canUploadApprovalDocument,
+                              canApproveLostDamaged: canApproveLostDamaged,
+                              canRejectLostDamaged: canRejectLostDamaged,
+                              canSettleLostDamaged: canSettleLostDamaged,
                             );
                           }),
                         ],
@@ -94,9 +110,19 @@ class _PendingApprovalsTableHeader extends StatelessWidget {
 }
 
 class _PendingApprovalsTableRow extends StatelessWidget {
-  const _PendingApprovalsTableRow({required this.transaction});
+  const _PendingApprovalsTableRow({
+    required this.transaction,
+    required this.canUploadApprovalDocument,
+    required this.canApproveLostDamaged,
+    required this.canRejectLostDamaged,
+    required this.canSettleLostDamaged,
+  });
 
   final TransactionModel transaction;
+  final bool canUploadApprovalDocument;
+  final bool canApproveLostDamaged;
+  final bool canRejectLostDamaged;
+  final bool canSettleLostDamaged;
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +184,13 @@ class _PendingApprovalsTableRow extends StatelessWidget {
             ),
             Expanded(
               flex: 4,
-              child: PendingApprovalActions(transaction: transaction),
+              child: PendingApprovalActions(
+                transaction: transaction,
+                canUploadApprovalDocument: canUploadApprovalDocument,
+                canApproveLostDamaged: canApproveLostDamaged,
+                canRejectLostDamaged: canRejectLostDamaged,
+                canSettleLostDamaged: canSettleLostDamaged,
+              ),
             ),
           ],
         ),

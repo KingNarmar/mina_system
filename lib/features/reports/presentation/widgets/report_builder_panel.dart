@@ -13,9 +13,14 @@ import 'package:mina_system/features/reports/presentation/widgets/report_preview
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 
 class ReportBuilderPanel extends StatefulWidget {
-  const ReportBuilderPanel({super.key, required this.report});
+  const ReportBuilderPanel({
+    super.key,
+    required this.report,
+    required this.canGenerateReports,
+  });
 
   final ReportOptionModel report;
+  final bool canGenerateReports;
 
   @override
   State<ReportBuilderPanel> createState() => _ReportBuilderPanelState();
@@ -47,7 +52,11 @@ class _ReportBuilderPanelState extends State<ReportBuilderPanel> {
               filters: _filters,
             ),
             const Gap(24),
-            _ReportBuilderActions(report: widget.report, filters: _filters),
+            _ReportBuilderActions(
+              report: widget.report,
+              filters: _filters,
+              canGenerateReports: widget.canGenerateReports,
+            ),
           ],
         ),
       ),
@@ -101,10 +110,15 @@ class _ReportBuilderHeader extends StatelessWidget {
 }
 
 class _ReportBuilderActions extends StatelessWidget {
-  const _ReportBuilderActions({required this.report, required this.filters});
+  const _ReportBuilderActions({
+    required this.report,
+    required this.filters,
+    required this.canGenerateReports,
+  });
 
   final ReportOptionModel report;
   final ReportFilterModel filters;
+  final bool canGenerateReports;
 
   @override
   Widget build(BuildContext context) {
@@ -119,41 +133,43 @@ class _ReportBuilderActions extends StatelessWidget {
         const Gap(12),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {
-              final transactions = context
-                  .read<TransactionsCubit>()
-                  .state
-                  .transactions;
+            onPressed: canGenerateReports
+                ? () {
+                    final transactions = context
+                        .read<TransactionsCubit>()
+                        .state
+                        .transactions;
 
-              final companySettingsState = context
-                  .read<CompanySettingsCubit>()
-                  .state;
+                    final companySettingsState = context
+                        .read<CompanySettingsCubit>()
+                        .state;
 
-              if (companySettingsState is! CompanySettingsLoaded) {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Company settings are still loading. Please try again.',
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+                    if (companySettingsState is! CompanySettingsLoaded) {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Company settings are still loading. Please try again.',
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
 
-                return;
-              }
+                      return;
+                    }
 
-              showReportPdfPreview(
-                context,
-                reportType: report.type,
-                filters: filters,
-                transactions: transactions,
-                companyProfile: companySettingsState.profile,
-                reportSettings: companySettingsState.reportSettings,
-                documentTemplates: companySettingsState.documentTemplates,
-              );
-            },
+                    showReportPdfPreview(
+                      context,
+                      reportType: report.type,
+                      filters: filters,
+                      transactions: transactions,
+                      companyProfile: companySettingsState.profile,
+                      reportSettings: companySettingsState.reportSettings,
+                      documentTemplates: companySettingsState.documentTemplates,
+                    );
+                  }
+                : null,
             icon: const Icon(Icons.picture_as_pdf_outlined),
             label: const Text('Preview PDF'),
           ),

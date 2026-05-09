@@ -9,11 +9,13 @@ class ToolsTable extends StatelessWidget {
   const ToolsTable({
     super.key,
     required this.tools,
+    required this.showActions,
     this.onEdit,
     this.onDelete,
   });
 
   final List<ToolModel> tools;
+  final bool showActions;
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
 
@@ -28,7 +30,7 @@ class ToolsTable extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const ToolsTableHeader(),
+          ToolsTableHeader(showActions: showActions),
           const Divider(height: 1, color: AppColors.border),
           if (tools.isEmpty)
             const Padding(
@@ -39,6 +41,7 @@ class ToolsTable extends StatelessWidget {
             ...tools.map((tool) {
               return ToolsTableRow(
                 tool: tool,
+                showActions: showActions,
                 onEdit: onEdit,
                 onDelete: onDelete,
               );

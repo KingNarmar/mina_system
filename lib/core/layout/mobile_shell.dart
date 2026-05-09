@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
 import 'package:mina_system/core/routes/routes.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MobileShell extends StatefulWidget {
@@ -24,9 +28,17 @@ class _MobileShellState extends State<MobileShell> {
 
   @override
   Widget build(BuildContext context) {
+    final navItems = AppNavItems.itemsForRole(context.currentUserRole);
+
+    if (navItems.isEmpty) {
+      return const _NoAvailablePagesView();
+    }
+
+    final selectedIndex = _safeSelectedIndex(navItems);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppNavItems.items[_selectedIndex].title),
+        title: Text(navItems[selectedIndex].title),
         actions: [
           IconButton(
             tooltip: 'Logout',
@@ -35,16 +47,16 @@ class _MobileShellState extends State<MobileShell> {
           ),
         ],
       ),
-      body: SafeArea(child: AppNavItems.items[_selectedIndex].page),
+      body: SafeArea(child: navItems[selectedIndex].page),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
+        selectedIndex: selectedIndex,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         onDestinationSelected: (value) {
           setState(() {
             _selectedIndex = value;
           });
         },
-        destinations: AppNavItems.items
+        destinations: navItems
             .map(
               (item) => NavigationDestination(
                 icon: Icon(item.icon),
@@ -54,6 +66,14 @@ class _MobileShellState extends State<MobileShell> {
             .toList(),
       ),
     );
+  }
+
+  int _safeSelectedIndex(List<AppNavItem> navItems) {
+    if (_selectedIndex < navItems.length) {
+      return _selectedIndex;
+    }
+
+    return 0;
   }
 
   String _getMobileLabel(String title) {
@@ -69,5 +89,26 @@ class _MobileShellState extends State<MobileShell> {
       default:
         return title;
     }
+  }
+}
+
+class _NoAvailablePagesView extends StatelessWidget {
+  const _NoAvailablePagesView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No available pages for your current role.',
+            style: AppTextStyles.title,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_message.dart';
@@ -22,14 +23,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
 
-  String _selectedRole = 'warehouse_user';
-
-  static const List<String> _allowedInviteRoles = [
-    'admin',
-    'warehouse_manager',
-    'warehouse_user',
-    'viewer',
-  ];
+  String _selectedRole = CompanyRoles.warehouseUser;
 
   @override
   void dispose() {
@@ -40,8 +34,28 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
   @override
   Widget build(BuildContext context) {
     final companyId = context.requireCurrentCompanyId();
-    final currentRole = context.currentUserRole ?? '';
-    final canManageUsers = currentRole == 'owner' || currentRole == 'admin';
+    final currentRole = context.currentUserRole;
+
+    final canViewCompanyUsers = CompanyRolePermissions.canViewCompanyUsers(
+      currentRole,
+    );
+
+    if (!canViewCompanyUsers) {
+      return const SizedBox.shrink();
+    }
+
+    final canInviteUsers = CompanyRolePermissions.canInviteUsers(currentRole);
+    final canCancelInvitations = CompanyRolePermissions.canCancelInvitations(
+      currentRole,
+    );
+
+    final allowedInviteRoles = CompanyRolePermissions.assignableRolesFor(
+      currentRole,
+    );
+
+    final selectedRole = allowedInviteRoles.contains(_selectedRole)
+        ? _selectedRole
+        : allowedInviteRoles.firstOrNull ?? CompanyRoles.warehouseUser;
 
     return BlocListener<CompanyUsersCubit, CompanyUsersState>(
       listenWhen: (previous, current) {
@@ -55,7 +69,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
         }
 
         _emailController.clear();
-        setState(() => _selectedRole = 'warehouse_user');
+        setState(() => _selectedRole = CompanyRoles.warehouseUser);
         AppMessage.showSuccess(context, 'Company users updated.');
       },
       child: BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
@@ -85,12 +99,12 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                     style: AppTextStyles.body.copyWith(color: AppColors.error),
                   )
                 else ...[
-                  if (canManageUsers) ...[
+                  if (canInviteUsers && allowedInviteRoles.isNotEmpty) ...[
                     _InviteUserForm(
                       formKey: _formKey,
                       emailController: _emailController,
-                      selectedRole: _selectedRole,
-                      allowedRoles: _allowedInviteRoles,
+                      selectedRole: selectedRole,
+                      allowedRoles: allowedInviteRoles,
                       isSubmitting: state.isSubmitting,
                       onRoleChanged: (role) {
                         if (role == null) {
@@ -107,7 +121,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                         context.read<CompanyUsersCubit>().inviteCompanyUser(
                           companyId: companyId,
                           email: _emailController.text,
-                          role: _selectedRole,
+                          role: selectedRole,
                         );
                       },
                     ),
@@ -117,7 +131,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                   const Gap(24),
                   _InvitationsList(
                     invitations: state.pendingInvitations,
-                    canManageUsers: canManageUsers,
+                    canCancelInvitations: canCancelInvitations,
                     isSubmitting: state.isSubmitting,
                     onCancelPressed: (invitationId) {
                       context.read<CompanyUsersCubit>().cancelInvitation(
@@ -182,7 +196,7 @@ class _InviteUserForm extends StatelessWidget {
             items: allowedRoles.map((role) {
               return DropdownMenuItem(
                 value: role,
-                child: Text(_roleLabel(role)),
+                child: Text(CompanyRoles.label(role)),
               );
             }).toList(),
             onChanged: isSubmitting ? null : onRoleChanged,
@@ -303,7 +317,7 @@ class _MemberRow extends StatelessWidget {
             ),
           ),
           const Gap(12),
-          _StatusBadge(text: _roleLabel(member.role)),
+          _StatusBadge(text: CompanyRoles.label(member.role)),
           const Gap(8),
           _StatusBadge(text: member.status),
         ],
@@ -315,13 +329,13 @@ class _MemberRow extends StatelessWidget {
 class _InvitationsList extends StatelessWidget {
   const _InvitationsList({
     required this.invitations,
-    required this.canManageUsers,
+    required this.canCancelInvitations,
     required this.isSubmitting,
     required this.onCancelPressed,
   });
 
   final List<CompanyInvitationModel> invitations;
-  final bool canManageUsers;
+  final bool canCancelInvitations;
   final bool isSubmitting;
   final ValueChanged<String> onCancelPressed;
 
@@ -339,7 +353,7 @@ class _InvitationsList extends StatelessWidget {
             children: invitations.map((invitation) {
               return _InvitationRow(
                 invitation: invitation,
-                canManageUsers: canManageUsers,
+                canCancelInvitations: canCancelInvitations,
                 isSubmitting: isSubmitting,
                 onCancelPressed: onCancelPressed,
               );
@@ -353,13 +367,13 @@ class _InvitationsList extends StatelessWidget {
 class _InvitationRow extends StatelessWidget {
   const _InvitationRow({
     required this.invitation,
-    required this.canManageUsers,
+    required this.canCancelInvitations,
     required this.isSubmitting,
     required this.onCancelPressed,
   });
 
   final CompanyInvitationModel invitation;
-  final bool canManageUsers;
+  final bool canCancelInvitations;
   final bool isSubmitting;
   final ValueChanged<String> onCancelPressed;
 
@@ -393,9 +407,9 @@ class _InvitationRow extends StatelessWidget {
               ],
             ),
           ),
-          _StatusBadge(text: _roleLabel(invitation.role)),
+          _StatusBadge(text: CompanyRoles.label(invitation.role)),
           _StatusBadge(text: invitation.status),
-          if (canManageUsers)
+          if (canCancelInvitations)
             SizedBox(
               width: 130,
               child: MainButton(
@@ -427,23 +441,6 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(text, style: AppTextStyles.caption),
     );
-  }
-}
-
-String _roleLabel(String role) {
-  switch (role) {
-    case 'owner':
-      return 'Owner';
-    case 'admin':
-      return 'Admin';
-    case 'warehouse_manager':
-      return 'Warehouse Manager';
-    case 'warehouse_user':
-      return 'Warehouse User';
-    case 'viewer':
-      return 'Viewer';
-    default:
-      return role;
   }
 }
 

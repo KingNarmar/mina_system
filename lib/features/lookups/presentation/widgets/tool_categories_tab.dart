@@ -14,10 +14,14 @@ import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_ti
 class ToolCategoriesTab extends StatefulWidget {
   const ToolCategoriesTab({
     super.key,
+    required this.canCreateLookups,
+    required this.canDeleteLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
+  final bool canCreateLookups;
+  final bool canDeleteLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -53,24 +57,26 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
             title: 'Manage Tool Categories',
             child: Column(
               children: [
-                LookupAddRow(
-                  hint: 'Category Name',
-                  controller: _categoryController,
-                  isCompactInputMode: widget.isCompactInputMode,
-                  onFocusChanged: widget.onLookupInputFocusChanged,
-                  onAdd: () async {
-                    final isAdded = await addToolCategoryLookup(
-                      context: context,
-                      category: _categoryController.text,
-                      categories: state.toolCategories,
-                    );
+                if (widget.canCreateLookups) ...[
+                  LookupAddRow(
+                    hint: 'Category Name',
+                    controller: _categoryController,
+                    isCompactInputMode: widget.isCompactInputMode,
+                    onFocusChanged: widget.onLookupInputFocusChanged,
+                    onAdd: () async {
+                      final isAdded = await addToolCategoryLookup(
+                        context: context,
+                        category: _categoryController.text,
+                        categories: state.toolCategories,
+                      );
 
-                    if (isAdded) {
-                      _categoryController.clear();
-                    }
-                  },
-                ),
-                const Gap(20),
+                      if (isAdded) {
+                        _categoryController.clear();
+                      }
+                    },
+                  ),
+                  const Gap(20),
+                ],
                 if (state.toolCategories.isEmpty)
                   const EmptyLookupMessage(message: 'No tool categories found')
                 else
@@ -78,19 +84,22 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                     return LookupListTile(
                       title: category,
                       subtitle: 'Tool Category',
-                      onDelete: () {
-                        confirmDeleteLookup(
-                          context: context,
-                          title: 'Delete Tool Category',
-                          message: 'Are you sure you want to delete $category?',
-                          onConfirm: () async {
-                            await deleteToolCategoryLookup(
-                              context: context,
-                              category: category,
-                            );
-                          },
-                        );
-                      },
+                      onDelete: widget.canDeleteLookups
+                          ? () {
+                              confirmDeleteLookup(
+                                context: context,
+                                title: 'Delete Tool Category',
+                                message:
+                                    'Are you sure you want to delete $category?',
+                                onConfirm: () async {
+                                  await deleteToolCategoryLookup(
+                                    context: context,
+                                    category: category,
+                                  );
+                                },
+                              );
+                            }
+                          : null,
                     );
                   }),
               ],

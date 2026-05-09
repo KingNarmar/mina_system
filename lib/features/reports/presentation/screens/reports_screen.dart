@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/functions/show_report_builder.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_option_card.dart';
@@ -56,6 +58,10 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canGenerateReports = CompanyRolePermissions.canGenerateReports(
+      context.currentUserRole,
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final mediaSize = MediaQuery.sizeOf(context);
@@ -68,15 +74,24 @@ class ReportsScreen extends StatelessWidget {
             children: [
               const Text('Reports Center', style: AppTextStyles.heading),
               const Gap(8),
-              const Text(
-                'Generate custody tracking reports based on workers, tools, transactions, and custody status.',
+              Text(
+                canGenerateReports
+                    ? 'Generate custody tracking reports based on workers, tools, transactions, and custody status.'
+                    : 'You can view available report types, but your current role cannot generate reports.',
                 style: AppTextStyles.body,
               ),
               const Gap(24),
               if (isMobile)
-                const _ReportsList(reports: _reports)
+                _ReportsList(
+                  reports: _reports,
+                  canGenerateReports: canGenerateReports,
+                )
               else
-                _ReportsGrid(reports: _reports, width: constraints.maxWidth),
+                _ReportsGrid(
+                  reports: _reports,
+                  width: constraints.maxWidth,
+                  canGenerateReports: canGenerateReports,
+                ),
             ],
           ),
         );
@@ -86,9 +101,10 @@ class ReportsScreen extends StatelessWidget {
 }
 
 class _ReportsList extends StatelessWidget {
-  const _ReportsList({required this.reports});
+  const _ReportsList({required this.reports, required this.canGenerateReports});
 
   final List<ReportOptionModel> reports;
+  final bool canGenerateReports;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +114,16 @@ class _ReportsList extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 16),
           child: ReportOptionCard(
             report: report,
-            onTap: () => showReportBuilder(context, report: report),
+            canGenerateReports: canGenerateReports,
+            onTap: canGenerateReports
+                ? () {
+                    showReportBuilder(
+                      context,
+                      report: report,
+                      canGenerateReports: canGenerateReports,
+                    );
+                  }
+                : null,
           ),
         );
       }).toList(),
@@ -107,10 +132,15 @@ class _ReportsList extends StatelessWidget {
 }
 
 class _ReportsGrid extends StatelessWidget {
-  const _ReportsGrid({required this.reports, required this.width});
+  const _ReportsGrid({
+    required this.reports,
+    required this.width,
+    required this.canGenerateReports,
+  });
 
   final List<ReportOptionModel> reports;
   final double width;
+  final bool canGenerateReports;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +162,16 @@ class _ReportsGrid extends StatelessWidget {
 
         return ReportOptionCard(
           report: report,
-          onTap: () => showReportBuilder(context, report: report),
+          canGenerateReports: canGenerateReports,
+          onTap: canGenerateReports
+              ? () {
+                  showReportBuilder(
+                    context,
+                    report: report,
+                    canGenerateReports: canGenerateReports,
+                  );
+                }
+              : null,
         );
       },
     );

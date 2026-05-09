@@ -19,6 +19,8 @@ class WorkerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showActions = onEdit != null || onDelete != null;
+
     return Card(
       elevation: 0,
       color: AppColors.card,
@@ -50,18 +52,22 @@ class WorkerCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined),
-                  color: AppColors.accent,
-                  tooltip: 'Edit',
-                ),
-                IconButton(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline),
-                  color: AppColors.error,
-                  tooltip: 'Delete',
-                ),
+                if (showActions) ...[
+                  if (onEdit != null)
+                    IconButton(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined),
+                      color: AppColors.accent,
+                      tooltip: 'Edit',
+                    ),
+                  if (onDelete != null)
+                    IconButton(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline),
+                      color: AppColors.error,
+                      tooltip: 'Delete',
+                    ),
+                ],
               ],
             ),
             const Gap(16),

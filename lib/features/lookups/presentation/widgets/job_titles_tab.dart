@@ -16,10 +16,14 @@ import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_ti
 class JobTitlesTab extends StatefulWidget {
   const JobTitlesTab({
     super.key,
+    required this.canCreateLookups,
+    required this.canDeleteLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
+  final bool canCreateLookups;
+  final bool canDeleteLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -82,25 +86,27 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                     },
                   ),
                 ],
-                Gap(widget.isCompactInputMode ? 8 : 12),
-                LookupAddRow(
-                  hint: 'Job Title',
-                  controller: _jobTitleController,
-                  isCompactInputMode: widget.isCompactInputMode,
-                  onFocusChanged: widget.onLookupInputFocusChanged,
-                  onAdd: () async {
-                    final isAdded = await addJobTitleLookup(
-                      context: context,
-                      department: _selectedDepartment,
-                      jobTitle: _jobTitleController.text,
-                      jobTitles: jobTitles,
-                    );
+                if (widget.canCreateLookups) ...[
+                  Gap(widget.isCompactInputMode ? 8 : 12),
+                  LookupAddRow(
+                    hint: 'Job Title',
+                    controller: _jobTitleController,
+                    isCompactInputMode: widget.isCompactInputMode,
+                    onFocusChanged: widget.onLookupInputFocusChanged,
+                    onAdd: () async {
+                      final isAdded = await addJobTitleLookup(
+                        context: context,
+                        department: _selectedDepartment,
+                        jobTitle: _jobTitleController.text,
+                        jobTitles: jobTitles,
+                      );
 
-                    if (isAdded) {
-                      _jobTitleController.clear();
-                    }
-                  },
-                ),
+                      if (isAdded) {
+                        _jobTitleController.clear();
+                      }
+                    },
+                  ),
+                ],
                 const Gap(20),
                 if (_selectedDepartment == null)
                   const EmptyLookupMessage(
@@ -115,20 +121,23 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                     return LookupListTile(
                       title: jobTitle,
                       subtitle: _selectedDepartment!,
-                      onDelete: () {
-                        confirmDeleteLookup(
-                          context: context,
-                          title: 'Delete Job Title',
-                          message: 'Are you sure you want to delete $jobTitle?',
-                          onConfirm: () async {
-                            await deleteJobTitleLookup(
-                              context: context,
-                              department: _selectedDepartment!,
-                              jobTitle: jobTitle,
-                            );
-                          },
-                        );
-                      },
+                      onDelete: widget.canDeleteLookups
+                          ? () {
+                              confirmDeleteLookup(
+                                context: context,
+                                title: 'Delete Job Title',
+                                message:
+                                    'Are you sure you want to delete $jobTitle?',
+                                onConfirm: () async {
+                                  await deleteJobTitleLookup(
+                                    context: context,
+                                    department: _selectedDepartment!,
+                                    jobTitle: jobTitle,
+                                  );
+                                },
+                              );
+                            }
+                          : null,
                     );
                   }),
               ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
 import 'package:mina_system/features/tools/presentation/widgets/layouts/tools_desktop_layout.dart';
@@ -22,6 +24,12 @@ class _ToolsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+
+    final canCreateTools = CompanyRolePermissions.canCreateTools(currentRole);
+    final canUpdateTools = CompanyRolePermissions.canUpdateTools(currentRole);
+    final canDeleteTools = CompanyRolePermissions.canDeleteTools(currentRole);
+
     return BlocListener<ToolsCubit, ToolsState>(
       listenWhen: (previous, current) {
         return previous.errorMessage != current.errorMessage &&
@@ -44,10 +52,20 @@ class _ToolsView extends StatelessWidget {
                       mediaSize.shortestSide < AppBreakpoints.tablet;
 
                   if (isMobile) {
-                    return ToolsMobileLayout(tools: tools);
+                    return ToolsMobileLayout(
+                      tools: tools,
+                      canCreateTools: canCreateTools,
+                      canUpdateTools: canUpdateTools,
+                      canDeleteTools: canDeleteTools,
+                    );
                   }
 
-                  return ToolsDesktopLayout(tools: tools);
+                  return ToolsDesktopLayout(
+                    tools: tools,
+                    canCreateTools: canCreateTools,
+                    canUpdateTools: canUpdateTools,
+                    canDeleteTools: canDeleteTools,
+                  );
                 },
               ),
               if (state.isLoading || state.isSubmitting)
