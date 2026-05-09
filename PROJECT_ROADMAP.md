@@ -293,10 +293,35 @@ Completed so far:
 
 Next required step:
 
-- Add Friendly Network Error Mapper.
-- Convert Supabase/Socket/Storage technical errors into user-friendly messages.
-- Apply the mapper gradually to Cubits and services.
-
+- Audit remaining services/repositories/widgets for raw technical error exposure.
+- Manually test friendly network errors across Windows, mobile, and tablet.
+- Confirm offline/unstable-network behavior for:
+  - Auth
+  - Current Context
+  - Dashboard
+  - Workers
+  - Tools
+  - Lookups
+  - Transactions
+  - Company Settings
+  - Reports
+  - Cloud file viewing
+- Friendly Network Error Mapper first pass added.
+- Supabase/Auth/Postgrest/Storage/Socket/Timeout technical errors are mapped to user-friendly messages.
+- Friendly error mapper applied to:
+  - Auth
+  - Current Context
+  - Dashboard
+  - Workers
+  - Tools
+  - Lookups
+  - Company Settings
+  - Transactions load/save/approval workflow
+  - Cloud proof image preview
+  - Cloud proof image thumbnails
+  - Signed document opening
+  - Company logo picker
+  - Network status Cubit
 ---
 
 # Auth
