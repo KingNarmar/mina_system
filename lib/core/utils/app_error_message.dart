@@ -35,6 +35,10 @@ abstract class AppErrorMessage {
       return networkProblem;
     }
 
+    if (error is StateError) {
+      return _fromStateError(error, fallback: fallback);
+    }
+
     if (error is StorageException) {
       return _fromStorageException(error, fallback: fallback);
     }
@@ -151,6 +155,73 @@ abstract class AppErrorMessage {
     }
 
     return cloudStorageProblem;
+  }
+
+  static String _fromStateError(StateError error, {required String fallback}) {
+    final message = _cleanStateErrorMessage(error);
+
+    if (message.isEmpty) {
+      return fallback;
+    }
+
+    if (_isSafeUserFacingStateError(message)) {
+      return message;
+    }
+
+    return fallback;
+  }
+
+  static String _cleanStateErrorMessage(StateError error) {
+    return error.message.trim();
+  }
+
+  static bool _isSafeUserFacingStateError(String message) {
+    final normalizedMessage = message.toLowerCase();
+
+    return _isSafeFileOrImageError(normalizedMessage) ||
+        _isSafeTransactionBusinessError(normalizedMessage) ||
+        _isSafeMissingIdentifierError(normalizedMessage);
+  }
+
+  static bool _isSafeFileOrImageError(String message) {
+    return message.contains('file was not found') ||
+        message.contains('file is empty') ||
+        message.contains('unable to decode image file') ||
+        message.contains('unsupported image file type') ||
+        message.contains('supported types are') ||
+        message.contains('must be pdf') ||
+        message.contains('must have an extension') ||
+        message.contains('pdf files should not be image-compressed') ||
+        message.contains('image compression quality') ||
+        message.contains('image max dimension');
+  }
+
+  static bool _isSafeTransactionBusinessError(String message) {
+    return message.contains('only lost or damaged transactions') ||
+        message.contains('only pending transactions') ||
+        message.contains('only approved lost or damaged transactions') ||
+        message.contains('only transactions pending settlement') ||
+        message.contains('signed approval document must be uploaded') ||
+        message.contains('signed approval document was not found') ||
+        message.contains('invalid approval document storage path') ||
+        message.contains(
+          'approval document can be uploaded only for lost or damaged transactions',
+        ) ||
+        message.contains(
+          'approval document can be uploaded only while approval is pending',
+        );
+  }
+
+  static bool _isSafeMissingIdentifierError(String message) {
+    return message.contains('transaction id was not found') ||
+        message.contains('company id was not found') ||
+        message.contains('profile id was not found') ||
+        message.contains('approver profile id was not found') ||
+        message.contains('rejector profile id was not found') ||
+        message.contains('settlement profile id was not found') ||
+        message.contains('current profile is not loaded') ||
+        message.contains('current company is not selected') ||
+        message.contains('current user role is not loaded');
   }
 
   static String _normalizedErrorMessage(Object error) {
