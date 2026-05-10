@@ -11,6 +11,7 @@ import 'package:mina_system/features/company_users/presentation/screens/pending_
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/screens/create_company_screen.dart';
+import 'package:mina_system/features/current_context/presentation/screens/select_company_screen.dart';
 
 class CurrentContextGate extends StatelessWidget {
   const CurrentContextGate({super.key, required this.child});
@@ -44,11 +45,7 @@ class CurrentContextGate extends StatelessWidget {
             return const _NoCompanyInvitationGate();
           }
 
-          if (state.hasMultipleCompanies) {
-            return const _SelectCompanyPlaceholderView();
-          }
-
-          return child;
+          return _ExistingCompanyGate(state: state, child: child);
         }
 
         return const _CurrentContextLoadingView();
@@ -83,7 +80,7 @@ class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
   Widget build(BuildContext context) {
     return BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
       builder: (context, state) {
-        if (state.isLoading) {
+        if (state.isCurrentUserInvitationsLoading) {
           return const _CurrentContextLoadingView();
         }
 
@@ -91,12 +88,91 @@ class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
           return _CurrentContextFailureView(message: state.errorMessage!);
         }
 
-        if (state.pendingInvitations.isNotEmpty) {
+        if (state.pendingCurrentUserInvitations.isNotEmpty) {
           return const PendingCompanyInvitationsScreen();
         }
 
         return const CreateCompanyScreen();
       },
+    );
+  }
+}
+
+class _ExistingCompanyGate extends StatefulWidget {
+  const _ExistingCompanyGate({required this.state, required this.child});
+
+  final CurrentContextLoaded state;
+  final Widget child;
+
+  @override
+  State<_ExistingCompanyGate> createState() => _ExistingCompanyGateState();
+}
+
+class _ExistingCompanyGateState extends State<_ExistingCompanyGate> {
+  bool _hasChosenWorkspace = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
+
+      context.read<CompanyUsersCubit>().loadCurrentUserPendingInvitations();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
+      builder: (context, companyUsersState) {
+        final currentCompany = widget.state.currentCompany;
+
+        if (_hasChosenWorkspace && currentCompany != null) {
+          return widget.child;
+        }
+
+        if (companyUsersState.isCurrentUserInvitationsLoading) {
+          return const _CurrentContextLoadingView();
+        }
+
+        if (companyUsersState.hasError) {
+          if (currentCompany != null) {
+            return widget.child;
+          }
+
+          return SelectCompanyScreen(
+            companies: widget.state.companies,
+            onCompanySelected: _selectCompany,
+          );
+        }
+
+        if (widget.state.hasMultipleCompanies && currentCompany == null) {
+          return SelectCompanyScreen(
+            companies: widget.state.companies,
+            onCompanySelected: _selectCompany,
+          );
+        }
+
+        if (companyUsersState.pendingCurrentUserInvitations.isNotEmpty) {
+          return SelectCompanyScreen(
+            companies: widget.state.companies,
+            onCompanySelected: _selectCompany,
+          );
+        }
+
+        return widget.child;
+      },
+    );
+  }
+
+  void _selectCompany(String companyId) {
+    setState(() => _hasChosenWorkspace = true);
+
+    context.read<CurrentContextCubit>().selectCurrentCompany(
+      companyId: companyId,
     );
   }
 }
@@ -216,27 +292,6 @@ class _CurrentContextFailureView extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SelectCompanyPlaceholderView extends StatelessWidget {
-  const _SelectCompanyPlaceholderView();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Select Company screen will be added next.',
-            style: AppTextStyles.title,
-            textAlign: TextAlign.center,
           ),
         ),
       ),

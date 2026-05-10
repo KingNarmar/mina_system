@@ -54,9 +54,18 @@ class CompanyUsersRepo {
 
   Future<List<CompanyInvitationModel>>
   getCurrentUserPendingInvitations() async {
+    final currentUserEmail = _supabase.auth.currentUser?.email
+        ?.trim()
+        .toLowerCase();
+
+    if (currentUserEmail == null || currentUserEmail.isEmpty) {
+      throw Exception('Current user email was not found.');
+    }
+
     final data = await _supabase
         .from('company_invitations')
         .select(_companyInvitationSelect)
+        .eq('email', currentUserEmail)
         .eq('status', 'pending')
         .gt('expires_at', DateTime.now().toUtc().toIso8601String())
         .order('created_at', ascending: false);
@@ -66,16 +75,17 @@ class CompanyUsersRepo {
     }).toList();
   }
 
-  Future<CompanyInvitationModel> inviteCompanyUser({
+  Future<void> inviteCompanyUser({
     required InviteCompanyUserRequest request,
   }) async {
-    final data = await _supabase
-        .from('company_invitations')
-        .insert(request.toJson())
-        .select(_companyInvitationSelect)
-        .single();
-
-    return CompanyInvitationModel.fromJson(data);
+    await _supabase.rpc(
+      'invite_company_user',
+      params: {
+        'p_company_id': request.companyId,
+        'p_email': request.email,
+        'p_role': request.role,
+      },
+    );
   }
 
   Future<String> acceptCompanyInvitation({required String invitationId}) async {

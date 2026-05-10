@@ -130,7 +130,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                   _MembersList(members: state.members),
                   const Gap(24),
                   _InvitationsList(
-                    invitations: state.pendingInvitations,
+                    invitations: state.pendingCompanyInvitations,
                     canCancelInvitations: canCancelInvitations,
                     isSubmitting: state.isSubmitting,
                     onCancelPressed: (invitationId) {

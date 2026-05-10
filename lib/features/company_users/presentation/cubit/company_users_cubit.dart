@@ -22,14 +22,14 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
 
     try {
       final members = await _repo.getCompanyMembers(companyId: companyId);
-      final invitations = await _repo.getCompanyInvitations(
+      final companyInvitations = await _repo.getCompanyInvitations(
         companyId: companyId,
       );
 
       emit(
         state.copyWith(
           members: members,
-          invitations: invitations,
+          companyInvitations: companyInvitations,
           isLoading: false,
           isSubmitting: false,
           clearErrorMessage: true,
@@ -86,15 +86,22 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
   }
 
   Future<void> loadCurrentUserPendingInvitations() async {
-    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isCurrentUserInvitationsLoading: true,
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
-      final invitations = await _repo.getCurrentUserPendingInvitations();
+      final currentUserInvitations = await _repo
+          .getCurrentUserPendingInvitations();
 
       emit(
         state.copyWith(
-          invitations: invitations,
-          isLoading: false,
+          currentUserInvitations: currentUserInvitations,
+          isCurrentUserInvitationsLoading: false,
+          hasLoadedCurrentUserInvitations: true,
           isSubmitting: false,
           clearErrorMessage: true,
         ),
@@ -102,7 +109,8 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
     } catch (error) {
       emit(
         state.copyWith(
-          isLoading: false,
+          isCurrentUserInvitationsLoading: false,
+          hasLoadedCurrentUserInvitations: true,
           isSubmitting: false,
           errorMessage: AppErrorMessage.fromError(
             error,
@@ -125,7 +133,16 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
     try {
       await _repo.acceptCompanyInvitation(invitationId: invitationId);
 
-      emit(state.copyWith(isSubmitting: false, clearErrorMessage: true));
+      final currentUserInvitations = await _repo
+          .getCurrentUserPendingInvitations();
+
+      emit(
+        state.copyWith(
+          currentUserInvitations: currentUserInvitations,
+          isSubmitting: false,
+          clearErrorMessage: true,
+        ),
+      );
     } catch (error) {
       emit(
         state.copyWith(

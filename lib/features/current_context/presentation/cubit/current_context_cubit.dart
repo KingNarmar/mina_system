@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 
+import '../../data/models/company_model.dart';
 import '../../data/models/create_company_request.dart';
 import '../../data/repo/current_context_repo.dart';
 import 'current_context_state.dart';
@@ -83,6 +84,31 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     }
   }
 
+  void selectCurrentCompany({required String companyId}) {
+    final currentState = state;
+
+    if (currentState is! CurrentContextLoaded) {
+      return;
+    }
+
+    final selectedCompany = _findCompanyById(
+      companies: currentState.companies,
+      companyId: companyId,
+    );
+
+    if (selectedCompany == null) {
+      return;
+    }
+
+    emit(
+      CurrentContextLoaded(
+        profile: currentState.profile,
+        companies: currentState.companies,
+        currentCompany: selectedCompany,
+      ),
+    );
+  }
+
   void updateCurrentCompanyName(String companyName) {
     final currentState = state;
 
@@ -113,5 +139,18 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         currentCompany: updatedCurrentCompany,
       ),
     );
+  }
+
+  CompanyModel? _findCompanyById({
+    required List<CompanyModel> companies,
+    required String companyId,
+  }) {
+    for (final company in companies) {
+      if (company.id == companyId) {
+        return company;
+      }
+    }
+
+    return null;
   }
 }
