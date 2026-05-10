@@ -46,9 +46,26 @@ class AppTopBar extends StatelessWidget {
 
               if (state is CurrentContextLoaded) {
                 if (state.currentCompany != null) {
-                  return Text(
-                    state.currentCompany!.name,
-                    style: AppTextStyles.body,
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        state.currentCompany!.name,
+                        style: AppTextStyles.body,
+                      ),
+                      if (state.hasMultipleCompanies) ...[
+                        const Gap(8),
+                        TextButton.icon(
+                          onPressed: () {
+                            context
+                                .read<CurrentContextCubit>()
+                                .openCompanySelection();
+                          },
+                          icon: const Icon(Icons.swap_horiz, size: 18),
+                          label: const Text('Switch Company'),
+                        ),
+                      ],
+                    ],
                   );
                 }
 

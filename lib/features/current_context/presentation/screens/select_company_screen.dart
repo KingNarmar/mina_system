@@ -48,7 +48,9 @@ class SelectCompanyScreen extends StatelessWidget {
           return;
         }
 
-        context.read<CurrentContextCubit>().loadCurrentContext();
+        context.read<CurrentContextCubit>().loadCurrentContext(
+          restoreLastSelectedCompany: false,
+        );
       },
       child: Scaffold(
         backgroundColor: AppColors.background,

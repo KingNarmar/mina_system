@@ -6,20 +6,27 @@ import 'package:mina_system/core/utils/app_error_message.dart';
 import '../../data/models/company_model.dart';
 import '../../data/models/create_company_request.dart';
 import '../../data/repo/current_context_repo.dart';
+import '../../data/services/current_company_storage_service.dart';
 import 'current_context_state.dart';
 
 class CurrentContextCubit extends Cubit<CurrentContextState> {
   CurrentContextCubit({
     CurrentContextRepo? repo,
+    CurrentCompanyStorageService? currentCompanyStorageService,
     NetworkStatusService? networkStatusService,
   }) : _repo = repo ?? CurrentContextRepo(),
+       _currentCompanyStorageService =
+           currentCompanyStorageService ?? const CurrentCompanyStorageService(),
        _networkStatusService = networkStatusService ?? NetworkStatusService(),
        super(const CurrentContextInitial());
 
   final CurrentContextRepo _repo;
+  final CurrentCompanyStorageService _currentCompanyStorageService;
   final NetworkStatusService _networkStatusService;
 
-  Future<void> loadCurrentContext() async {
+  Future<void> loadCurrentContext({
+    bool restoreLastSelectedCompany = true,
+  }) async {
     emit(const CurrentContextLoading());
 
     try {
@@ -30,11 +37,17 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         profileId: profile.id,
       );
 
+      final currentCompany = await _resolveCurrentCompany(
+        profileId: profile.id,
+        companies: companies,
+        restoreLastSelectedCompany: restoreLastSelectedCompany,
+      );
+
       emit(
         CurrentContextLoaded(
           profile: profile,
           companies: companies,
-          currentCompany: companies.length == 1 ? companies.first : null,
+          currentCompany: currentCompany,
         ),
       );
     } on NetworkUnavailableException catch (error) {
@@ -84,7 +97,7 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     }
   }
 
-  void selectCurrentCompany({required String companyId}) {
+  Future<void> selectCurrentCompany({required String companyId}) async {
     final currentState = state;
 
     if (currentState is! CurrentContextLoaded) {
@@ -100,11 +113,36 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       return;
     }
 
+    await _currentCompanyStorageService.saveLastSelectedCompanyId(
+      profileId: currentState.profile.id,
+      companyId: selectedCompany.id,
+    );
+
     emit(
       CurrentContextLoaded(
         profile: currentState.profile,
         companies: currentState.companies,
         currentCompany: selectedCompany,
+      ),
+    );
+  }
+
+  void openCompanySelection() {
+    final currentState = state;
+
+    if (currentState is! CurrentContextLoaded) {
+      return;
+    }
+
+    if (!currentState.hasMultipleCompanies) {
+      return;
+    }
+
+    emit(
+      CurrentContextLoaded(
+        profile: currentState.profile,
+        companies: currentState.companies,
+        currentCompany: null,
       ),
     );
   }
@@ -139,6 +177,57 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         currentCompany: updatedCurrentCompany,
       ),
     );
+  }
+
+  Future<CompanyModel?> _resolveCurrentCompany({
+    required String profileId,
+    required List<CompanyModel> companies,
+    required bool restoreLastSelectedCompany,
+  }) async {
+    if (companies.isEmpty) {
+      await _currentCompanyStorageService.clearLastSelectedCompanyId(
+        profileId: profileId,
+      );
+
+      return null;
+    }
+
+    if (companies.length == 1) {
+      final onlyCompany = companies.first;
+
+      await _currentCompanyStorageService.saveLastSelectedCompanyId(
+        profileId: profileId,
+        companyId: onlyCompany.id,
+      );
+
+      return onlyCompany;
+    }
+
+    if (!restoreLastSelectedCompany) {
+      return null;
+    }
+
+    final lastSelectedCompanyId = await _currentCompanyStorageService
+        .getLastSelectedCompanyId(profileId: profileId);
+
+    if (lastSelectedCompanyId == null) {
+      return null;
+    }
+
+    final savedCompany = _findCompanyById(
+      companies: companies,
+      companyId: lastSelectedCompanyId,
+    );
+
+    if (savedCompany == null) {
+      await _currentCompanyStorageService.clearLastSelectedCompanyId(
+        profileId: profileId,
+      );
+
+      return null;
+    }
+
+    return savedCompany;
   }
 
   CompanyModel? _findCompanyById({

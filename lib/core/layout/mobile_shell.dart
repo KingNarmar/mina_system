@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -40,6 +43,23 @@ class _MobileShellState extends State<MobileShell> {
       appBar: AppBar(
         title: Text(navItems[selectedIndex].title),
         actions: [
+          BlocBuilder<CurrentContextCubit, CurrentContextState>(
+            builder: (context, state) {
+              if (state is CurrentContextLoaded &&
+                  state.hasMultipleCompanies &&
+                  state.currentCompany != null) {
+                return IconButton(
+                  tooltip: 'Switch Company',
+                  onPressed: () {
+                    context.read<CurrentContextCubit>().openCompanySelection();
+                  },
+                  icon: const Icon(Icons.swap_horiz),
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
           IconButton(
             tooltip: 'Logout',
             onPressed: _logout,
