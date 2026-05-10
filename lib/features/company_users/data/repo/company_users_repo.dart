@@ -88,6 +88,21 @@ class CompanyUsersRepo {
     );
   }
 
+  Future<void> changeCompanyMemberRole({
+    required String companyId,
+    required String memberId,
+    required String newRole,
+  }) async {
+    await _supabase.rpc(
+      'change_company_member_role',
+      params: {
+        'p_company_id': companyId,
+        'p_member_id': memberId,
+        'p_new_role': newRole,
+      },
+    );
+  }
+
   Future<String> acceptCompanyInvitation({required String invitationId}) async {
     final companyId = await _supabase.rpc(
       'accept_company_invitation',

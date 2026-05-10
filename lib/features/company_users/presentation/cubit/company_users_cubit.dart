@@ -85,6 +85,40 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
     }
   }
 
+  Future<void> changeCompanyMemberRole({
+    required String companyId,
+    required String memberId,
+    required String newRole,
+  }) async {
+    final canContinue = await _ensureOnline();
+
+    if (!canContinue) {
+      return;
+    }
+
+    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      await _repo.changeCompanyMemberRole(
+        companyId: companyId,
+        memberId: memberId,
+        newRole: newRole,
+      );
+
+      await loadCompanyUsers(companyId: companyId);
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to change member role. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> loadCurrentUserPendingInvitations() async {
     emit(
       state.copyWith(

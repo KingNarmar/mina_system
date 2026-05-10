@@ -34,6 +34,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
   @override
   Widget build(BuildContext context) {
     final companyId = context.requireCurrentCompanyId();
+    final currentProfileId = context.requireCurrentProfileId();
     final currentRole = context.currentUserRole;
 
     final canViewCompanyUsers = CompanyRolePermissions.canViewCompanyUsers(
@@ -46,6 +47,9 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
 
     final canInviteUsers = CompanyRolePermissions.canInviteUsers(currentRole);
     final canCancelInvitations = CompanyRolePermissions.canCancelInvitations(
+      currentRole,
+    );
+    final canChangeMemberRoles = CompanyRolePermissions.canChangeMemberRole(
       currentRole,
     );
 
@@ -127,7 +131,21 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                     ),
                     const Gap(24),
                   ],
-                  _MembersList(members: state.members),
+                  _MembersList(
+                    members: state.members,
+                    actorRole: currentRole,
+                    currentProfileId: currentProfileId,
+                    canChangeMemberRoles: canChangeMemberRoles,
+                    isSubmitting: state.isSubmitting,
+                    onChangeRolePressed: (member) {
+                      _showChangeRoleDialog(
+                        parentContext: context,
+                        companyId: companyId,
+                        actorRole: currentRole,
+                        member: member,
+                      );
+                    },
+                  ),
                   const Gap(24),
                   _InvitationsList(
                     invitations: state.pendingCompanyInvitations,
@@ -146,6 +164,94 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
           );
         },
       ),
+    );
+  }
+
+  Future<void> _showChangeRoleDialog({
+    required BuildContext parentContext,
+    required String companyId,
+    required String? actorRole,
+    required CompanyMemberModel member,
+  }) async {
+    final availableRoles = CompanyRolePermissions.assignableRolesFor(
+      actorRole,
+    ).where((role) => role != CompanyRoles.normalize(member.role)).toList();
+
+    if (availableRoles.isEmpty) {
+      return;
+    }
+
+    var selectedRole = availableRoles.first;
+
+    await showDialog<void>(
+      context: parentContext,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Change Member Role'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    member.fullName?.trim().isNotEmpty == true
+                        ? member.fullName!
+                        : member.email ?? 'Selected member',
+                    style: AppTextStyles.body,
+                  ),
+                  const Gap(12),
+                  Text(
+                    'Current role: ${CompanyRoles.label(member.role)}',
+                    style: AppTextStyles.caption,
+                  ),
+                  const Gap(16),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'New Role',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: availableRoles.map((role) {
+                      return DropdownMenuItem(
+                        value: role,
+                        child: Text(CompanyRoles.label(role)),
+                      );
+                    }).toList(),
+                    onChanged: (role) {
+                      if (role == null) {
+                        return;
+                      }
+
+                      setDialogState(() => selectedRole = role);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+
+                    parentContext
+                        .read<CompanyUsersCubit>()
+                        .changeCompanyMemberRole(
+                          companyId: companyId,
+                          memberId: member.id,
+                          newRole: selectedRole,
+                        );
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -257,9 +363,21 @@ class _InviteUserForm extends StatelessWidget {
 }
 
 class _MembersList extends StatelessWidget {
-  const _MembersList({required this.members});
+  const _MembersList({
+    required this.members,
+    required this.actorRole,
+    required this.currentProfileId,
+    required this.canChangeMemberRoles,
+    required this.isSubmitting,
+    required this.onChangeRolePressed,
+  });
 
   final List<CompanyMemberModel> members;
+  final String? actorRole;
+  final String currentProfileId;
+  final bool canChangeMemberRoles;
+  final bool isSubmitting;
+  final ValueChanged<CompanyMemberModel> onChangeRolePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -273,7 +391,22 @@ class _MembersList extends StatelessWidget {
         else
           Column(
             children: members.map((member) {
-              return _MemberRow(member: member);
+              final isCurrentUser = member.profileId == currentProfileId;
+              final canManageTargetRole =
+                  CompanyRolePermissions.canManageTargetRole(
+                    actorRole: actorRole,
+                    targetRole: member.role,
+                  );
+
+              final canChangeRole =
+                  canChangeMemberRoles && !isCurrentUser && canManageTargetRole;
+
+              return _MemberRow(
+                member: member,
+                canChangeRole: canChangeRole,
+                isSubmitting: isSubmitting,
+                onChangeRolePressed: () => onChangeRolePressed(member),
+              );
             }).toList(),
           ),
       ],
@@ -282,9 +415,17 @@ class _MembersList extends StatelessWidget {
 }
 
 class _MemberRow extends StatelessWidget {
-  const _MemberRow({required this.member});
+  const _MemberRow({
+    required this.member,
+    required this.canChangeRole,
+    required this.isSubmitting,
+    required this.onChangeRolePressed,
+  });
 
   final CompanyMemberModel member;
+  final bool canChangeRole;
+  final bool isSubmitting;
+  final VoidCallback onChangeRolePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -300,11 +441,14 @@ class _MemberRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           const Icon(Icons.person_outline, color: AppColors.textSecondary),
-          const Gap(12),
-          Expanded(
+          SizedBox(
+            width: 220,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -316,10 +460,17 @@ class _MemberRow extends StatelessWidget {
               ],
             ),
           ),
-          const Gap(12),
           _StatusBadge(text: CompanyRoles.label(member.role)),
-          const Gap(8),
           _StatusBadge(text: member.status),
+          if (canChangeRole)
+            SizedBox(
+              width: 150,
+              child: MainButton(
+                text: 'Change Role',
+                isLoading: isSubmitting,
+                onPressed: onChangeRolePressed,
+              ),
+            ),
         ],
       ),
     );
