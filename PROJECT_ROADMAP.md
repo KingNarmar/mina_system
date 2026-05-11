@@ -8,15 +8,13 @@
 
 ---
 
-## Last Verified GitHub State
-
 Latest verified pushed commit:
 
-`697bc76454743ebe0ff176a1c5ccf8131898263a`
+`6ab81d26a655cb9db9a47de451b89a0c6be40773`
 
 Commit message:
 
-`add secure company member role management`
+`complete team member lifecycle ui`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -538,7 +536,30 @@ Both are required.
   - Self-deactivation prevention
   - Owner protection
   - Same-level management blocking
-
+- Dedicated `Team` area is implemented for company users and member lifecycle management.
+- Company user management has been moved out of `Settings`.
+- `Team` navigation is role-aware:
+  - Owner/Admin can access Team.
+  - Warehouse Manager can access Team without gaining Settings access.
+  - Warehouse User/Viewer cannot access Team.
+- Flutter member lifecycle flow is wired through Repo, Cubit, and UI for:
+  - `deactivateCompanyMember`
+  - `reactivateCompanyMember`
+- Responsive member lifecycle UI is implemented for:
+  - Change Role
+  - Deactivate
+  - Reactivate
+- Team UI uses silent refresh after mutations instead of rebuilding the full section.
+- Team action buttons use per-action loading instead of global button loading.
+- Team success messages are action-specific, and invite form reset happens only after successful invitation creation.
+- Manual lifecycle UI testing completed for:
+  - Owner
+  - Admin
+  - Warehouse Manager
+- Multi-company inactive-membership behavior was manually verified:
+  - If a user is deactivated from one company but still has another active company, the app opens the remaining active company automatically.
+  - Company switching disappears when only one active company remains.
+  
 ## Current Active Phase
 
 **Phase Q — Secure Member Management & Invitation Backend**
@@ -554,10 +575,10 @@ Completed in current phase:
 - Step Q2A — Multi-company invitation/workspace flow completed.
 - Step Q3 — Secure member role-change backend + Flutter flow completed.
 - Step Q4 backend foundation — Secure deactivate/reactivate RPCs completed and direct SQL security tests passed.
-
+- Step Q4.7 — Team access refactor and member lifecycle UI completed.
 Current active checkpoint:
 
-**Step Q4.7 — Team Access Refactor & Member Lifecycle UI**
+**Step Q4.8 — Decide invitation email delivery scope**
 
 Current decision:
 
@@ -568,22 +589,18 @@ Current decision:
   - `warehouse_user`
   - `viewer`
 
+:
 Next required work:
 
-- Update `CompanyRolePermissions` for new Team access and Warehouse Manager lifecycle permissions.
-- Add dedicated Team / Company Users screen.
-- Add `Team` navigation item.
-- Remove `CompanyUsersSection` from `CompanySettingsScreen`.
-- Wire Flutter methods for:
-  - `deactivateCompanyMember`
-  - `reactivateCompanyMember`
-- Add responsive member lifecycle UI:
-  - Change Role
-  - Deactivate
-  - Reactivate
-- Manually test lifecycle UI by role.
-- Re-run direct DB/RPC security verification after UI connection if needed.
 - Decide whether invitation email delivery belongs inside the remaining Phase Q scope or a later production-readiness checkpoint.
+- If kept inside Phase Q:
+  - Define the production invitation email flow.
+  - Choose the backend delivery approach.
+  - Implement secure invitation email sending without exposing privileged keys in Flutter.
+- If moved out of Phase Q:
+  - Document it clearly as a later production-readiness item.
+  - Close Phase Q after confirming no other member-management work is required now.
+- Decide whether direct DB/RPC security re-verification is needed after the completed UI connection. The backend RPC logic itself was not changed during Step Q4.7.
 
 Reason for priority:
 
