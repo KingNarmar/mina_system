@@ -11,6 +11,7 @@ class CompanyUsersState {
     this.hasLoadedCurrentUserInvitations = false,
     this.isSubmitting = false,
     this.submittingActionKey,
+    this.completedActionKey,
     this.errorMessage,
   });
 
@@ -41,6 +42,10 @@ class CompanyUsersState {
   /// Identifies the exact mutation currently in progress so the UI can
   /// show loading only on the button that started the action.
   final String? submittingActionKey;
+
+  /// Identifies the last mutation that completed successfully so the UI can
+  /// show the correct success behavior after the silent refresh finishes.
+  final String? completedActionKey;
 
   final String? errorMessage;
 
@@ -74,6 +79,8 @@ class CompanyUsersState {
     bool? isSubmitting,
     String? submittingActionKey,
     bool clearSubmittingActionKey = false,
+    String? completedActionKey,
+    bool clearCompletedActionKey = false,
     String? errorMessage,
     bool clearErrorMessage = false,
   }) {
@@ -93,6 +100,9 @@ class CompanyUsersState {
       submittingActionKey: clearSubmittingActionKey
           ? null
           : submittingActionKey ?? this.submittingActionKey,
+      completedActionKey: clearCompletedActionKey
+          ? null
+          : completedActionKey ?? this.completedActionKey,
       errorMessage: clearErrorMessage
           ? null
           : errorMessage ?? this.errorMessage,

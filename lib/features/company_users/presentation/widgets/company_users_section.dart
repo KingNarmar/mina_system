@@ -50,6 +50,12 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
     final canChangeMemberRoles = CompanyRolePermissions.canChangeMemberRole(
       currentRole,
     );
+    final canDeactivateMembers = CompanyRolePermissions.canDeactivateMember(
+      currentRole,
+    );
+    final canReactivateMembers = CompanyRolePermissions.canReactivateMember(
+      currentRole,
+    );
 
     final allowedInviteRoles = CompanyRolePermissions.assignableRolesFor(
       currentRole,
@@ -70,9 +76,15 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
           return;
         }
 
-        _emailController.clear();
-        setState(() => _selectedRole = CompanyRoles.warehouseUser);
-        AppMessage.showSuccess(context, 'Company users updated.');
+        if (state.completedActionKey == CompanyUsersSubmissionKey.invite) {
+          _emailController.clear();
+          setState(() => _selectedRole = CompanyRoles.warehouseUser);
+        }
+
+        AppMessage.showSuccess(
+          context,
+          _successMessageForActionKey(state.completedActionKey),
+        );
       },
       child: BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
         builder: (context, state) {
@@ -136,12 +148,28 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                     actorRole: currentRole,
                     currentProfileId: currentProfileId,
                     canChangeMemberRoles: canChangeMemberRoles,
+                    canDeactivateMembers: canDeactivateMembers,
+                    canReactivateMembers: canReactivateMembers,
                     isActionSubmitting: state.isActionSubmitting,
                     onChangeRolePressed: (member) {
                       _showChangeRoleDialog(
                         parentContext: context,
                         companyId: companyId,
                         actorRole: currentRole,
+                        member: member,
+                      );
+                    },
+                    onDeactivatePressed: (member) {
+                      _showDeactivateMemberDialog(
+                        parentContext: context,
+                        companyId: companyId,
+                        member: member,
+                      );
+                    },
+                    onReactivatePressed: (member) {
+                      _showReactivateMemberDialog(
+                        parentContext: context,
+                        companyId: companyId,
                         member: member,
                       );
                     },
@@ -250,6 +278,82 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeactivateMemberDialog({
+    required BuildContext parentContext,
+    required String companyId,
+    required CompanyMemberModel member,
+  }) async {
+    await showDialog<void>(
+      context: parentContext,
+      builder: (dialogContext) {
+        final displayName = _memberDisplayName(member);
+
+        return AlertDialog(
+          title: const Text('Deactivate Member'),
+          content: Text(
+            '$displayName will lose access to this company until reactivated.',
+            style: AppTextStyles.body,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+
+                parentContext.read<CompanyUsersCubit>().deactivateCompanyMember(
+                  companyId: companyId,
+                  memberId: member.id,
+                );
+              },
+              child: const Text('Deactivate'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showReactivateMemberDialog({
+    required BuildContext parentContext,
+    required String companyId,
+    required CompanyMemberModel member,
+  }) async {
+    await showDialog<void>(
+      context: parentContext,
+      builder: (dialogContext) {
+        final displayName = _memberDisplayName(member);
+
+        return AlertDialog(
+          title: const Text('Reactivate Member'),
+          content: Text(
+            '$displayName will regain company access according to their assigned role.',
+            style: AppTextStyles.body,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+
+                parentContext.read<CompanyUsersCubit>().reactivateCompanyMember(
+                  companyId: companyId,
+                  memberId: member.id,
+                );
+              },
+              child: const Text('Reactivate'),
+            ),
+          ],
         );
       },
     );
@@ -368,16 +472,24 @@ class _MembersList extends StatelessWidget {
     required this.actorRole,
     required this.currentProfileId,
     required this.canChangeMemberRoles,
+    required this.canDeactivateMembers,
+    required this.canReactivateMembers,
     required this.isActionSubmitting,
     required this.onChangeRolePressed,
+    required this.onDeactivatePressed,
+    required this.onReactivatePressed,
   });
 
   final List<CompanyMemberModel> members;
   final String? actorRole;
   final String currentProfileId;
   final bool canChangeMemberRoles;
+  final bool canDeactivateMembers;
+  final bool canReactivateMembers;
   final bool Function(String actionKey) isActionSubmitting;
   final ValueChanged<CompanyMemberModel> onChangeRolePressed;
+  final ValueChanged<CompanyMemberModel> onDeactivatePressed;
+  final ValueChanged<CompanyMemberModel> onReactivatePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -398,18 +510,48 @@ class _MembersList extends StatelessWidget {
                     targetRole: member.role,
                   );
 
+              final normalizedStatus = member.status.trim().toLowerCase();
+              final isActiveMember = normalizedStatus == 'active';
+              final isInactiveMember = normalizedStatus == 'inactive';
+
               final canChangeRole =
                   canChangeMemberRoles && !isCurrentUser && canManageTargetRole;
+
+              final canDeactivate =
+                  canDeactivateMembers &&
+                  !isCurrentUser &&
+                  canManageTargetRole &&
+                  isActiveMember;
+
+              final canReactivate =
+                  canReactivateMembers &&
+                  !isCurrentUser &&
+                  canManageTargetRole &&
+                  isInactiveMember;
 
               final isChangeRoleSubmitting = isActionSubmitting(
                 CompanyUsersSubmissionKey.changeRole(member.id),
               );
 
+              final isDeactivateSubmitting = isActionSubmitting(
+                CompanyUsersSubmissionKey.deactivateMember(member.id),
+              );
+
+              final isReactivateSubmitting = isActionSubmitting(
+                CompanyUsersSubmissionKey.reactivateMember(member.id),
+              );
+
               return _MemberRow(
                 member: member,
                 canChangeRole: canChangeRole,
+                canDeactivate: canDeactivate,
+                canReactivate: canReactivate,
                 isChangeRoleSubmitting: isChangeRoleSubmitting,
+                isDeactivateSubmitting: isDeactivateSubmitting,
+                isReactivateSubmitting: isReactivateSubmitting,
                 onChangeRolePressed: () => onChangeRolePressed(member),
+                onDeactivatePressed: () => onDeactivatePressed(member),
+                onReactivatePressed: () => onReactivatePressed(member),
               );
             }).toList(),
           ),
@@ -422,20 +564,30 @@ class _MemberRow extends StatelessWidget {
   const _MemberRow({
     required this.member,
     required this.canChangeRole,
+    required this.canDeactivate,
+    required this.canReactivate,
     required this.isChangeRoleSubmitting,
+    required this.isDeactivateSubmitting,
+    required this.isReactivateSubmitting,
     required this.onChangeRolePressed,
+    required this.onDeactivatePressed,
+    required this.onReactivatePressed,
   });
 
   final CompanyMemberModel member;
   final bool canChangeRole;
+  final bool canDeactivate;
+  final bool canReactivate;
   final bool isChangeRoleSubmitting;
+  final bool isDeactivateSubmitting;
+  final bool isReactivateSubmitting;
   final VoidCallback onChangeRolePressed;
+  final VoidCallback onDeactivatePressed;
+  final VoidCallback onReactivatePressed;
 
   @override
   Widget build(BuildContext context) {
-    final displayName = member.fullName?.trim().isNotEmpty == true
-        ? member.fullName!
-        : member.email ?? 'Unknown user';
+    final displayName = _memberDisplayName(member);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -473,6 +625,26 @@ class _MemberRow extends StatelessWidget {
                 text: 'Change Role',
                 isLoading: isChangeRoleSubmitting,
                 onPressed: onChangeRolePressed,
+              ),
+            ),
+          if (canDeactivate)
+            SizedBox(
+              width: 130,
+              child: MainButton(
+                text: 'Deactivate',
+                color: AppColors.warning,
+                isLoading: isDeactivateSubmitting,
+                onPressed: onDeactivatePressed,
+              ),
+            ),
+          if (canReactivate)
+            SizedBox(
+              width: 130,
+              child: MainButton(
+                text: 'Reactivate',
+                color: AppColors.success,
+                isLoading: isReactivateSubmitting,
+                onPressed: onReactivatePressed,
               ),
             ),
         ],
@@ -601,6 +773,36 @@ class _StatusBadge extends StatelessWidget {
       child: Text(text, style: AppTextStyles.caption),
     );
   }
+}
+
+String _memberDisplayName(CompanyMemberModel member) {
+  return member.fullName?.trim().isNotEmpty == true
+      ? member.fullName!
+      : member.email ?? 'Unknown user';
+}
+
+String _successMessageForActionKey(String? actionKey) {
+  if (actionKey == CompanyUsersSubmissionKey.invite) {
+    return 'Invitation sent successfully.';
+  }
+
+  if (actionKey?.startsWith('change-role:') == true) {
+    return 'Member role updated successfully.';
+  }
+
+  if (actionKey?.startsWith('deactivate-member:') == true) {
+    return 'Member deactivated successfully.';
+  }
+
+  if (actionKey?.startsWith('reactivate-member:') == true) {
+    return 'Member reactivated successfully.';
+  }
+
+  if (actionKey?.startsWith('cancel-invitation:') == true) {
+    return 'Invitation cancelled successfully.';
+  }
+
+  return 'Company users updated.';
 }
 
 String _formatDate(DateTime value) {

@@ -20,9 +20,16 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
   Future<void> loadCompanyUsers({
     required String companyId,
     bool showLoader = true,
+    String? completedActionKey,
   }) async {
     if (showLoader) {
-      emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+      emit(
+        state.copyWith(
+          isLoading: true,
+          clearCompletedActionKey: true,
+          clearErrorMessage: true,
+        ),
+      );
     } else {
       emit(state.copyWith(clearErrorMessage: true));
     }
@@ -40,6 +47,8 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           isLoading: false,
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          completedActionKey: completedActionKey,
+          clearCompletedActionKey: completedActionKey == null,
           clearErrorMessage: true,
         ),
       );
@@ -49,6 +58,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           isLoading: false,
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to load company users. Please try again.',
@@ -73,6 +83,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       state.copyWith(
         isSubmitting: true,
         submittingActionKey: CompanyUsersSubmissionKey.invite,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -86,12 +97,17 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         ),
       );
 
-      await loadCompanyUsers(companyId: companyId, showLoader: false);
+      await loadCompanyUsers(
+        companyId: companyId,
+        showLoader: false,
+        completedActionKey: CompanyUsersSubmissionKey.invite,
+      );
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to invite user. Please try again.',
@@ -112,10 +128,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
+    final actionKey = CompanyUsersSubmissionKey.changeRole(memberId);
+
     emit(
       state.copyWith(
         isSubmitting: true,
-        submittingActionKey: CompanyUsersSubmissionKey.changeRole(memberId),
+        submittingActionKey: actionKey,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -127,12 +146,17 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         newRole: newRole,
       );
 
-      await loadCompanyUsers(companyId: companyId, showLoader: false);
+      await loadCompanyUsers(
+        companyId: companyId,
+        showLoader: false,
+        completedActionKey: actionKey,
+      );
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to change member role. Please try again.',
@@ -152,12 +176,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
+    final actionKey = CompanyUsersSubmissionKey.deactivateMember(memberId);
+
     emit(
       state.copyWith(
         isSubmitting: true,
-        submittingActionKey: CompanyUsersSubmissionKey.deactivateMember(
-          memberId,
-        ),
+        submittingActionKey: actionKey,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -168,12 +193,17 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         memberId: memberId,
       );
 
-      await loadCompanyUsers(companyId: companyId, showLoader: false);
+      await loadCompanyUsers(
+        companyId: companyId,
+        showLoader: false,
+        completedActionKey: actionKey,
+      );
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to deactivate member. Please try again.',
@@ -193,12 +223,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
+    final actionKey = CompanyUsersSubmissionKey.reactivateMember(memberId);
+
     emit(
       state.copyWith(
         isSubmitting: true,
-        submittingActionKey: CompanyUsersSubmissionKey.reactivateMember(
-          memberId,
-        ),
+        submittingActionKey: actionKey,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -209,12 +240,17 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         memberId: memberId,
       );
 
-      await loadCompanyUsers(companyId: companyId, showLoader: false);
+      await loadCompanyUsers(
+        companyId: companyId,
+        showLoader: false,
+        completedActionKey: actionKey,
+      );
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to reactivate member. Please try again.',
@@ -228,6 +264,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
     emit(
       state.copyWith(
         isCurrentUserInvitationsLoading: true,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -243,6 +280,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           hasLoadedCurrentUserInvitations: true,
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           clearErrorMessage: true,
         ),
       );
@@ -253,6 +291,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           hasLoadedCurrentUserInvitations: true,
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to load pending invitations. Please try again.',
@@ -269,12 +308,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
+    final actionKey = CompanyUsersSubmissionKey.acceptInvitation(invitationId);
+
     emit(
       state.copyWith(
         isSubmitting: true,
-        submittingActionKey: CompanyUsersSubmissionKey.acceptInvitation(
-          invitationId,
-        ),
+        submittingActionKey: actionKey,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -290,6 +330,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           currentUserInvitations: currentUserInvitations,
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          completedActionKey: actionKey,
           clearErrorMessage: true,
         ),
       );
@@ -298,6 +339,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to accept invitation. Please try again.',
@@ -317,12 +359,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
+    final actionKey = CompanyUsersSubmissionKey.cancelInvitation(invitationId);
+
     emit(
       state.copyWith(
         isSubmitting: true,
-        submittingActionKey: CompanyUsersSubmissionKey.cancelInvitation(
-          invitationId,
-        ),
+        submittingActionKey: actionKey,
+        clearCompletedActionKey: true,
         clearErrorMessage: true,
       ),
     );
@@ -330,12 +373,17 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
     try {
       await _repo.cancelCompanyInvitation(invitationId: invitationId);
 
-      await loadCompanyUsers(companyId: companyId, showLoader: false);
+      await loadCompanyUsers(
+        companyId: companyId,
+        showLoader: false,
+        completedActionKey: actionKey,
+      );
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to cancel invitation. Please try again.',
@@ -362,6 +410,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         state.copyWith(
           isSubmitting: false,
           clearSubmittingActionKey: true,
+          clearCompletedActionKey: true,
           errorMessage: error.message,
         ),
       );
