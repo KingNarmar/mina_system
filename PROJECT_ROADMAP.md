@@ -23,9 +23,9 @@ It is based on the real GitHub repository, not the README.
 Current high-level state:
 
 - Current product phase:
-  - **Phase Q — Secure Member Management & Invitation Backend (Suggested for Closure)**
+  - **Auth UX Checkpoint — Email-First Authentication Flow**
 - Current product checkpoint:
-  - **Phase Q Closure Recommendation (Step Q4.8 Completed)**
+  - **Auth UX Checkpoint — Email-First Authentication Flow**
 - Current parallel engineering checkpoint:
   - **None (Completed)**
 
@@ -726,45 +726,41 @@ Completed.
 
 # Current Active Product Phase
 
-## Phase Q — Secure Member Management & Invitation Backend
+## Auth UX Checkpoint — Email-First Authentication Flow
 
 Status:
 
-**Done (Suggested for Closure)**
+**In Progress**
 
-Completed in current phase:
+Goal:
 
-- Step Q1 — Member lifecycle audit completed.
-- Step Q2 — Secure invitation creation backend completed.
-- Step Q2A — Multi-company invitation/workspace flow completed.
-- Step Q3 — Secure member role-change backend + Flutter flow completed.
-- Step Q4 backend foundation — Secure deactivate/reactivate RPCs completed and direct SQL security tests passed.
-- Step Q4.7 — Team access refactor and member lifecycle UI completed.
-- Step Q4.8 — Decide invitation email delivery scope completed (Decision: Deferred to Phase S).
+Replace the current ambiguous register-first behavior with a clearer SaaS-style authentication entry flow.
+
+Completed in current checkpoint:
+
+- None yet (checkpoint just initiated).
 
 Current product checkpoint:
 
-**Phase Q Closure Recommendation (Step Q4.8 Completed)**
+**Auth UX Checkpoint — Email-First Authentication Flow**
 
-Current decisions already made:
+Planned UX:
 
-- Member management lives in a dedicated `Team` area, not inside `Settings`.
-- `Settings` remains focused on company configuration.
-- Warehouse Manager can manage lifecycle access for lower roles only:
-  - `warehouse_user`
-  - `viewer`
-- **Invitation Email Delivery Scope:** Real email delivery is deferred to Phase S (Production Environment & Secrets Setup). The in-app invitation flow is fully functional and safe via pending invitations and RPCs; building out an SMTP provider, Edge Functions, templates, and error handling now would block core feature progress.
-- **Deactivation Strategy:** Soft deactivate only is maintained. Remove-access remains a future enhancement if a business need arises.
-
-Next required product decisions:
-
-- None. All Phase Q requirements have been successfully completed.
+1. User first enters only email.
+2. Backend determines whether an account already exists.
+3. If account exists:
+   - Route user to login.
+   - Show clear message: `An account already exists for this email. Please log in.`
+4. If account does not exist:
+   - Route user to registration.
+5. Invitations remain linked to the same account/email model.
+6. Existing users invited to additional companies log in with the same account and accept the invitation.
 
 Reason for priority:
 
-Phase P completed the RBAC foundation for fixed roles across Flutter UI, Supabase RLS, and Storage policies.
-
-Phase Q is hardening company-user management through secure backend mutations, protected member lifecycle operations, multi-company flows, and a cleaner Team architecture before audit logging and release-readiness work begin.
+- Current Supabase signup behavior may return an obfuscated/fake user object for an already registered email under some auth-confirmation settings.
+- The current product UX should become clearer and more professional.
+- Mina System uses one account with multi-company membership, so email-first flow matches the product model better than separate blind register/login paths.
 
 ---
 
@@ -814,8 +810,8 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 
 1. **Phase O — Company Users, Roles & Invitations** ✅
 2. **Phase P — Role-Based Access Control** ✅
-3. **Phase Q — Secure Member Management & Invitation Backend** ✅ *(Suggested for Closure)*
-4. **Auth UX Checkpoint — Email-First Authentication Flow**
+3. **Phase Q — Secure Member Management & Invitation Backend** ✅
+4. **Auth UX Checkpoint — Email-First Authentication Flow** 🚧
 5. **Phase R — Business Accountability & Audit Trail**
 6. **Phase S — Production Environment & Secrets Setup**
 7. **Phase T — Subscription Plans, Usage Limits & Company Access Control**
@@ -963,7 +959,7 @@ Created:
 
 # Phase Q — Secure Member Management & Invitation Backend
 
-## Status: In Progress
+## Status: Done (Closed)
 
 ## Goal
 
@@ -1121,7 +1117,7 @@ Completed.
 
 Decision:
 - **Defer real invitation email delivery to Phase S (Production Environment & Secrets Setup).**
-- Phase Q retains the highly secure **in-app invitation flow** only (invitations are managed, accepted, and cancelled safely through the pending invitation flow and backend RPCs.).
+- Phase Q retains the highly secure **in-app invitation flow** only (invitations are managed, accepted, and cancelled safely through the pending invitation flow and backend RPCs).
 - Establishing a real email provider, Supabase Edge Functions, email templates, custom domain verification, resend behaviors, and email error handling is production-readiness work that does not block core product features.
 
 Status of Remaining Phase Q items:
@@ -1131,15 +1127,13 @@ Status of Remaining Phase Q items:
 - **Prepare Phase R audit integration:** Transferred as a required target mapping for Phase R (Business Accountability & Audit Trail).
 
 Recommendation:
-- Since all currently scoped Phase Q deliverables have been implemented and the remaining email-delivery work has been deferred to Phase S, 
-
-**Phase Q is recommended for formal closure.**
+- All currently scoped Phase Q deliverables have been implemented and the remaining email-delivery work has been deferred to Phase S. **Phase Q was formally closed following the Step Q4.8 decision.**
 
 ---
 
 # Auth UX Checkpoint — Email-First Authentication Flow
 
-## Status: Planned After Phase Q
+## Status: In Progress
 
 ## Goal
 
@@ -1522,5 +1516,4 @@ These items are intentionally not forgotten even when they are not the current a
 
 # Current Next Action
 
-- Formally close Phase Q and proceed to:
-  - **Auth UX Checkpoint — Email-First Authentication Flow**
+- Begin **Auth UX Checkpoint — Email-First Authentication Flow** to replace the current ambiguous register-first behavior with a cleaner SaaS-style authentication entry flow.
