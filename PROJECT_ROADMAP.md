@@ -738,7 +738,12 @@ Replace the current ambiguous register-first behavior with a clearer SaaS-style 
 
 Completed in current checkpoint:
 
-- None yet (checkpoint just initiated).
+- **Email Entry Route:** Added safe Email Entry screen at `/` as the unauthenticated entry route using `AppValidators.validateEmail`.
+- **Safe Choice Step:** Added client-side choice wizard (without calling Supabase or revealing account existence) offering 'I already have an account' and 'Create a new account' options, strictly avoiding account-enumeration risks.
+- **Prefilled & Locked Forms:** Integrated validated, read-only email passing to `/login` and `/register` via GoRouter state extra.
+- **Direct Route Guards:** Implemented robust routing guards to automatically redirect direct unauthenticated access attempts on `/login` or `/register` back to `/` unless a valid email is passed.
+- **Logout Behavior:** Adjusted logout behaviors to route back to Email Entry screen.
+- **No backend account-existence detection was added (deferred to Phase S).**
 
 Current product checkpoint:
 
@@ -1131,11 +1136,20 @@ Recommendation:
 
 # Auth UX Checkpoint — Email-First Authentication Flow
 
-## Status: In Progress
+## Status: In Progress (Safe Email-First Foundation Completed)
 
 ## Goal
 
 Replace the current ambiguous register-first behavior with a clearer SaaS-style authentication entry flow.
+
+## Completed Foundation Steps
+
+- **Email Entry Route:** Added safe Email Entry screen at `/` as the unauthenticated entry route using `AppValidators.validateEmail`.
+- **Safe Choice Step:** Added client-side choice wizard (without calling Supabase or revealing account existence) offering 'I already have an account' and 'Create a new account' options, strictly avoiding account-enumeration risks.
+- **Prefilled & Locked Forms:** Integrated validated, read-only email passing to `/login` and `/register` via GoRouter state extra.
+- **Direct Route Guards:** Implemented robust routing guards to automatically redirect direct unauthenticated access attempts on `/login` or `/register` back to `/` unless a valid email is passed.
+- **Next Steps / Next Action:** Review remaining Auth UX polish and styling items (e.g., layout spacing, field labels) if any, and perform comprehensive validation across all mobile/tablet/desktop layouts.
+- **Note on backend:** No backend account-existence check/RPC was implemented (deferred to Phase S).
 
 ## Planned Safe UX
 
