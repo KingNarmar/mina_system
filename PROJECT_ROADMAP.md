@@ -27,7 +27,7 @@ Current high-level state:
 - Current product checkpoint:
   - **Step Q4.8 — Decide invitation email delivery scope**
 - Current parallel engineering checkpoint:
-  - **Maintainability Refactor Pass — Post-Batch-6 audit**
+  - **None (Completed)**
 
 ---
 
@@ -780,7 +780,7 @@ Phase Q is hardening company-user management through secure backend mutations, p
 
 Status:
 
-**In Progress**
+**Completed**
 
 Goal:
 
@@ -796,6 +796,7 @@ Completed in this checkpoint:
 - Batch 5 — Tools Cubit modularization + sorting/search-state fixes
 - Cross-feature search-state fix
 - Batch 6 — Workers Cubit modularization + sorting + normalized unique worker names
+- **Post-Batch-6 Maintainability & Scalability Audit:** Centralized scattered PDF colors and styles successfully under `lib/core/theme/app_pdf_colors.dart` and `lib/core/theme/app_pdf_text_styles.dart` without modifying normal Flutter UI themes or changing visual presentation. Verified quality with clean `flutter analyze` report.
 
 Known decisions from the checkpoint:
 
@@ -806,19 +807,8 @@ Known decisions from the checkpoint:
   - `add_worker_form.dart`
 - Prefer feature-by-feature refactors.
 - Prefer part-file extensions for large Cubits when mutation flows are genuinely separate.
-
-Current next maintenance work:
-
-1. Run a fresh audit of the remaining large files after Batch 6.
-2. Rank candidates by maintainability value, not line count alone.
-3. Re-evaluate whether the Transactions feature deserves the next batch.
-4. Decide whether another coherent refactor batch is justified or whether this maintainability checkpoint is already sufficient to close.
-5. If no further batch is justified now, close the checkpoint and return to the product roadmap from **Step Q4.8**.
-
-Important guardrail:
-
-- This checkpoint must not become an endless cleanup loop.
-- Product progress should resume once the codebase reaches a practical maintainability standard.
+- **No Batch 7 required:** The codebase has reached a practical maintainability and scalability standard for the current product stage. Future refactors should only be opened when tied to real product or maintenance value, rather than line-count reduction alone.
+- **Verification:** PDF visual review passed, `dart format lib` completed successfully, and `flutter analyze` reported no issues.
 
 ---
 
@@ -1557,16 +1547,5 @@ These items are intentionally not forgotten even when they are not the current a
 
 # Current Next Action
 
-Before resuming product work from **Step Q4.8**, complete the next maintainability decision step:
-
-1. Review the real repository after Batch 6.
-2. Run a fresh audit of remaining large files.
-3. Rank candidates by maintainability value, not line count alone.
-4. Decide whether:
-   - another coherent refactor batch is justified, or
-   - the maintainability checkpoint is now sufficient to close.
-5. If another batch is justified:
-   - continue one feature at a time
-   - preserve working behavior unless an approved bug fix or rule change is explicitly included
-6. If the checkpoint is closed:
-   - return to **Step Q4.8 — Decide invitation email delivery scope**
+Resume product work from Phase Q:
+- **Step Q4.8 — Decide invitation email delivery scope**
