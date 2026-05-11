@@ -1,6 +1,8 @@
+import 'package:mina_system/core/theme/app_pdf_text_styles.dart';
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 import 'report_pdf_empty_message.dart';
 import 'report_pdf_formatters.dart';
@@ -39,8 +41,8 @@ pw.Widget buildTransactionsPdfTableSection({
         ),
       ];
     }).toList(),
-    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-    headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+    headerStyle: AppPdfTextStyles.sectionTitle,
+    headerDecoration: const pw.BoxDecoration(color: AppPdfColors.grey300),
     cellStyle: const pw.TextStyle(fontSize: 8),
     cellAlignment: pw.Alignment.centerLeft,
     cellPadding: const pw.EdgeInsets.all(5),

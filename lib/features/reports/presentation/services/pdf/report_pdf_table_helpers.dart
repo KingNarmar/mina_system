@@ -1,4 +1,6 @@
-import 'package:pdf/pdf.dart';
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
+import 'package:mina_system/core/theme/app_pdf_text_styles.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 
 class ReportPdfTableHelpers {
@@ -7,7 +9,7 @@ class ReportPdfTableHelpers {
       width: double.infinity,
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: pw.BoxDecoration(
-        color: PdfColors.grey200,
+        color: AppPdfColors.grey200,
         borderRadius: pw.BorderRadius.circular(5),
       ),
       child: pw.Text(
@@ -15,7 +17,7 @@ class ReportPdfTableHelpers {
         style: pw.TextStyle(
           fontSize: 9.5,
           fontWeight: pw.FontWeight.bold,
-          color: PdfColors.blueGrey900,
+          color: AppPdfColors.blueGrey900,
         ),
       ),
     );
@@ -36,7 +38,7 @@ class ReportPdfTableHelpers {
     }
 
     return pw.Table(
-      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      border: pw.TableBorder.all(color: AppPdfColors.grey300, width: 0.5),
       columnWidths: const {0: pw.FlexColumnWidth(1), 1: pw.FlexColumnWidth(1)},
       children: rows,
     );
@@ -56,7 +58,7 @@ class ReportPdfTableHelpers {
             item.label,
             style: const pw.TextStyle(
               fontSize: 7,
-              color: PdfColors.blueGrey500,
+              color: AppPdfColors.blueGrey500,
             ),
           ),
           pw.SizedBox(height: 2),
@@ -65,7 +67,7 @@ class ReportPdfTableHelpers {
             style: pw.TextStyle(
               fontSize: 8.5,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blueGrey900,
+              color: AppPdfColors.blueGrey900,
             ),
           ),
         ],
@@ -79,14 +81,11 @@ class ReportPdfTableHelpers {
       constraints: pw.BoxConstraints(minHeight: minHeight),
       padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
-        color: PdfColors.grey100,
-        border: pw.Border.all(color: PdfColors.grey300),
+        color: AppPdfColors.grey100,
+        border: pw.Border.all(color: AppPdfColors.grey300),
         borderRadius: pw.BorderRadius.circular(6),
       ),
-      child: pw.Text(
-        text,
-        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.blueGrey800),
-      ),
+      child: pw.Text(text, style: AppPdfTextStyles.tableHeader),
     );
   }
 
@@ -95,12 +94,9 @@ class ReportPdfTableHelpers {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.SizedBox(height: 20),
-        pw.Container(height: 0.7, color: PdfColors.blueGrey500),
+        pw.Container(height: 0.7, color: AppPdfColors.blueGrey500),
         pw.SizedBox(height: 3),
-        pw.Text(
-          label,
-          style: const pw.TextStyle(fontSize: 7, color: PdfColors.blueGrey600),
-        ),
+        pw.Text(label, style: AppPdfTextStyles.small),
       ],
     );
   }
@@ -115,7 +111,7 @@ class ReportPdfTableHelpers {
           width: 9,
           height: 9,
           decoration: pw.BoxDecoration(
-            border: pw.Border.all(color: PdfColors.blueGrey700),
+            border: pw.Border.all(color: AppPdfColors.blueGrey700),
           ),
           child: checked
               ? pw.Center(
@@ -130,10 +126,7 @@ class ReportPdfTableHelpers {
               : pw.SizedBox(),
         ),
         pw.SizedBox(width: 5),
-        pw.Text(
-          label,
-          style: const pw.TextStyle(fontSize: 8, color: PdfColors.blueGrey800),
-        ),
+        pw.Text(label, style: AppPdfTextStyles.tableCell),
       ],
     );
   }

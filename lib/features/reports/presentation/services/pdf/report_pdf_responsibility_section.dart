@@ -1,6 +1,7 @@
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 
 class ReportPdfResponsibilitySection {
@@ -23,9 +24,9 @@ class ReportPdfResponsibilitySection {
         width: double.infinity,
         padding: const pw.EdgeInsets.all(12),
         decoration: pw.BoxDecoration(
-          color: PdfColors.grey100,
+          color: AppPdfColors.grey100,
           borderRadius: pw.BorderRadius.circular(8),
-          border: pw.Border.all(color: PdfColors.grey300),
+          border: pw.Border.all(color: AppPdfColors.grey300),
         ),
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -35,7 +36,7 @@ class ReportPdfResponsibilitySection {
               style: pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
-                color: PdfColors.blueGrey900,
+                color: AppPdfColors.blueGrey900,
               ),
             ),
             pw.SizedBox(height: 6),
@@ -43,7 +44,7 @@ class ReportPdfResponsibilitySection {
               statement.trim(),
               style: const pw.TextStyle(
                 fontSize: 9,
-                color: PdfColors.blueGrey700,
+                color: AppPdfColors.blueGrey700,
               ),
             ),
           ],

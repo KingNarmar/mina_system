@@ -1,6 +1,7 @@
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 import 'report_pdf_empty_message.dart';
 import 'report_pdf_formatters.dart';
@@ -115,7 +116,7 @@ pw.Widget buildLostDamagedApprovalPdfSection({
         pw.SizedBox(height: 6),
         _buildDecisionBox(transaction),
         pw.SizedBox(height: 16),
-        pw.Divider(color: PdfColors.grey300),
+        pw.Divider(color: AppPdfColors.grey300),
         pw.SizedBox(height: 12),
       ],
     ],
@@ -131,7 +132,7 @@ pw.Widget _buildApprovalFormHeader(TransactionModel transaction) {
     width: double.infinity,
     padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     decoration: pw.BoxDecoration(
-      color: PdfColors.blueGrey800,
+      color: AppPdfColors.blueGrey800,
       borderRadius: pw.BorderRadius.circular(8),
     ),
     child: pw.Row(
@@ -142,7 +143,7 @@ pw.Widget _buildApprovalFormHeader(TransactionModel transaction) {
             style: pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.white,
+              color: AppPdfColors.white,
             ),
           ),
         ),
@@ -151,7 +152,7 @@ pw.Widget _buildApprovalFormHeader(TransactionModel transaction) {
           style: pw.TextStyle(
             fontSize: 10,
             fontWeight: pw.FontWeight.bold,
-            color: PdfColors.white,
+            color: AppPdfColors.white,
           ),
         ),
       ],
@@ -172,7 +173,7 @@ pw.Widget _buildDecisionBox(TransactionModel transaction) {
     width: double.infinity,
     padding: const pw.EdgeInsets.all(8),
     decoration: pw.BoxDecoration(
-      border: pw.Border.all(color: PdfColors.grey300),
+      border: pw.Border.all(color: AppPdfColors.grey300),
       borderRadius: pw.BorderRadius.circular(6),
     ),
     child: pw.Column(
@@ -202,7 +203,7 @@ pw.Widget _buildDecisionBox(TransactionModel transaction) {
           style: pw.TextStyle(
             fontSize: 8,
             fontWeight: pw.FontWeight.bold,
-            color: PdfColors.blueGrey900,
+            color: AppPdfColors.blueGrey900,
           ),
         ),
         pw.SizedBox(height: 4),

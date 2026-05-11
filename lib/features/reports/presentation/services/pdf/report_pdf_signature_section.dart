@@ -1,5 +1,6 @@
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 import 'report_pdf_formatters.dart';
 
@@ -27,7 +28,7 @@ class ReportPdfSignatureSection {
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
         borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: PdfColors.grey300),
+        border: pw.Border.all(color: AppPdfColors.grey300),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -37,7 +38,7 @@ class ReportPdfSignatureSection {
             style: pw.TextStyle(
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blueGrey900,
+              color: AppPdfColors.blueGrey900,
             ),
           ),
           pw.SizedBox(height: 18),
@@ -69,27 +70,27 @@ class ReportPdfSignatureSection {
             style: pw.TextStyle(
               fontSize: 9,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blueGrey900,
+              color: AppPdfColors.blueGrey900,
             ),
           ),
           pw.SizedBox(height: 28),
-          pw.Container(height: 1, color: PdfColors.grey500),
+          pw.Container(height: 1, color: AppPdfColors.grey500),
           pw.SizedBox(height: 5),
           pw.Text(
             'Signature',
             style: const pw.TextStyle(
               fontSize: 7,
-              color: PdfColors.blueGrey500,
+              color: AppPdfColors.blueGrey500,
             ),
           ),
           pw.SizedBox(height: 16),
-          pw.Container(height: 1, color: PdfColors.grey500),
+          pw.Container(height: 1, color: AppPdfColors.grey500),
           pw.SizedBox(height: 5),
           pw.Text(
             'Date',
             style: const pw.TextStyle(
               fontSize: 7,
-              color: PdfColors.blueGrey500,
+              color: AppPdfColors.blueGrey500,
             ),
           ),
         ],

@@ -1,6 +1,9 @@
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
+import 'package:mina_system/core/theme/app_pdf_text_styles.dart';
+
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 
 import 'report_pdf_formatters.dart';
@@ -23,17 +26,14 @@ class ReportPdfFiltersSection {
       width: double.infinity,
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        color: PdfColors.grey100,
+        color: AppPdfColors.grey100,
         borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: PdfColors.grey300),
+        border: pw.Border.all(color: AppPdfColors.grey300),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(
-            'Filters',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-          ),
+          pw.Text('Filters', style: AppPdfTextStyles.sectionTitle),
           pw.SizedBox(height: 8),
           ...rows.map(
             (row) => pw.Padding(

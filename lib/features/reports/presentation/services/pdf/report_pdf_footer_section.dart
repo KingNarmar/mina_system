@@ -1,5 +1,7 @@
+import 'package:mina_system/core/theme/app_pdf_text_styles.dart';
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 
 class ReportPdfFooterSection {
@@ -14,12 +16,12 @@ class ReportPdfFooterSection {
       width: double.infinity,
       padding: const pw.EdgeInsets.only(top: 10),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+        border: pw.Border(top: pw.BorderSide(color: AppPdfColors.grey300)),
       ),
       child: pw.Text(
         footerText,
         textAlign: pw.TextAlign.center,
-        style: const pw.TextStyle(fontSize: 9, color: PdfColors.blueGrey600),
+        style: AppPdfTextStyles.bodyTertiary,
       ),
     );
   }
@@ -29,13 +31,13 @@ class ReportPdfFooterSection {
       width: double.infinity,
       padding: const pw.EdgeInsets.only(top: 8),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+        border: pw.Border(top: pw.BorderSide(color: AppPdfColors.grey300)),
       ),
       child: pw.Align(
         alignment: pw.Alignment.centerRight,
         child: pw.Text(
           'Page ${context.pageNumber} of ${context.pagesCount}',
-          style: const pw.TextStyle(fontSize: 8, color: PdfColors.blueGrey500),
+          style: AppPdfTextStyles.caption,
         ),
       ),
     );

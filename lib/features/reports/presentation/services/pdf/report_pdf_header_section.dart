@@ -1,9 +1,12 @@
+import 'package:mina_system/core/theme/app_pdf_colors.dart';
+import 'package:mina_system/core/theme/app_pdf_text_styles.dart';
+
 import 'dart:typed_data';
 
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 
 import 'report_pdf_formatters.dart';
@@ -33,7 +36,7 @@ class ReportPdfHeaderSection {
                 height: _logoBoxHeight,
                 padding: const pw.EdgeInsets.all(_logoBoxPadding),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey300),
+                  border: pw.Border.all(color: AppPdfColors.grey300),
                   borderRadius: pw.BorderRadius.circular(8),
                 ),
                 child: pw.Center(
@@ -53,7 +56,7 @@ class ReportPdfHeaderSection {
                     style: pw.TextStyle(
                       fontSize: 18,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blueGrey900,
+                      color: AppPdfColors.blueGrey900,
                     ),
                   ),
                   if (reportSettings.showCompanyDetails) ...[
@@ -86,7 +89,7 @@ class ReportPdfHeaderSection {
           ],
         ),
         pw.SizedBox(height: 18),
-        pw.Container(height: 1, color: PdfColors.grey300),
+        pw.Container(height: 1, color: AppPdfColors.grey300),
         pw.SizedBox(height: 14),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -98,7 +101,7 @@ class ReportPdfHeaderSection {
                 style: pw.TextStyle(
                   fontSize: 20,
                   fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.blueGrey900,
+                  color: AppPdfColors.blueGrey900,
                 ),
               ),
             ),
@@ -107,7 +110,7 @@ class ReportPdfHeaderSection {
                 'Generated: ${ReportPdfFormatters.formatDate(DateTime.now(), dateFormat: reportSettings.dateFormat)}',
                 style: const pw.TextStyle(
                   fontSize: 9,
-                  color: PdfColors.blueGrey600,
+                  color: AppPdfColors.blueGrey600,
                 ),
               ),
           ],
@@ -119,10 +122,7 @@ class ReportPdfHeaderSection {
   static pw.Widget _buildSmallHeaderText(String value) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(top: 3),
-      child: pw.Text(
-        value.trim(),
-        style: const pw.TextStyle(fontSize: 9, color: PdfColors.blueGrey700),
-      ),
+      child: pw.Text(value.trim(), style: AppPdfTextStyles.bodySecondary),
     );
   }
 
