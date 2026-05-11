@@ -1,4 +1,6 @@
 typedef HrCodeValidator = bool Function(String hrCode, {String? ignoredHrCode});
+typedef WorkerNameValidator =
+    bool Function(String name, {String? ignoredWorkerId});
 
 class WorkerFormValidators {
   static String? requiredWorkerTextValidator(String? value) {
@@ -37,6 +39,31 @@ class WorkerFormValidators {
 
     if (isDuplicated == true) {
       return 'HR Code already exists';
+    }
+
+    return null;
+  }
+
+  static String? workerNameValidator(
+    String? value, {
+    required WorkerNameValidator? isWorkerNameAlreadyUsed,
+    required String? initialWorkerId,
+  }) {
+    final requiredError = requiredWorkerTextValidator(value);
+
+    if (requiredError != null) {
+      return requiredError;
+    }
+
+    final name = value!.trim();
+
+    final isDuplicated = isWorkerNameAlreadyUsed?.call(
+      name,
+      ignoredWorkerId: initialWorkerId,
+    );
+
+    if (isDuplicated == true) {
+      return 'Worker name already exists';
     }
 
     return null;

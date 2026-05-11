@@ -29,6 +29,7 @@ void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
         child: AddWorkerForm(
           initialWorker: worker,
           isHrCodeAlreadyUsed: workersCubit.isHrCodeAlreadyUsed,
+          isWorkerNameAlreadyUsed: workersCubit.isWorkerNameAlreadyUsed,
           onSave: (savedWorker) {
             return _saveWorker(
               context: context,
@@ -61,6 +62,7 @@ void showWorkerDialog(BuildContext context, {WorkerModel? worker}) {
             child: AddWorkerForm(
               initialWorker: worker,
               isHrCodeAlreadyUsed: workersCubit.isHrCodeAlreadyUsed,
+              isWorkerNameAlreadyUsed: workersCubit.isWorkerNameAlreadyUsed,
               onSave: (savedWorker) {
                 return _saveWorker(
                   context: context,

@@ -4,6 +4,33 @@ String normalizeText(String value) {
   return value.trim().toLowerCase();
 }
 
+String normalizeWorkerName(String name) {
+  return name.trim().toLowerCase().replaceAll(
+    RegExp(r'[^\p{L}\p{N}]+', unicode: true),
+    '',
+  );
+}
+
+bool checkIsWorkerNameAlreadyUsed({
+  required List<WorkerModel> workers,
+  required String workerName,
+  String? ignoredWorkerId,
+}) {
+  final normalizedInput = normalizeWorkerName(workerName);
+
+  if (normalizedInput.isEmpty) {
+    return false;
+  }
+
+  return workers.any((worker) {
+    if (ignoredWorkerId != null && worker.id == ignoredWorkerId) {
+      return false;
+    }
+
+    return normalizeWorkerName(worker.name) == normalizedInput;
+  });
+}
+
 bool isSameHrCode(String firstHrCode, String secondHrCode) {
   return normalizeText(firstHrCode) == normalizeText(secondHrCode);
 }
@@ -51,4 +78,12 @@ List<WorkerModel> filterWorkers({
         department.contains(searchQuery) ||
         jobTitle.contains(searchQuery);
   }).toList();
+}
+
+List<WorkerModel> sortWorkersAlphabetically(List<WorkerModel> workers) {
+  final sortedWorkers = List<WorkerModel>.from(workers);
+  sortedWorkers.sort(
+    (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+  );
+  return sortedWorkers;
 }

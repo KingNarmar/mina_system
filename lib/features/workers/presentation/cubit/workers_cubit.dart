@@ -6,6 +6,10 @@ import 'package:mina_system/features/workers/data/repo/workers_repo.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/functions/worker_helpers.dart';
 
+part 'workers_cubit_add.dart';
+part 'workers_cubit_delete.dart';
+part 'workers_cubit_update.dart';
+
 class WorkersCubit extends Cubit<WorkersState> {
   WorkersCubit({
     WorkersRepo? workersRepo,
@@ -51,208 +55,19 @@ class WorkersCubit extends Cubit<WorkersState> {
     emit(state.copyWith(searchQuery: query, filteredWorkers: filteredWorkers));
   }
 
-  Future<bool> addWorker({
-    required String companyId,
-    required String createdByProfileId,
-    required WorkerModel worker,
-  }) async {
-    final cleanName = worker.name.trim();
-    final cleanHrCode = worker.hrCode.trim();
-
-    if (cleanName.isEmpty || cleanHrCode.isEmpty) {
-      return false;
-    }
-
-    if (worker.departmentId == null || worker.jobTitleId == null) {
-      emit(
-        state.copyWith(errorMessage: 'Department and job title are required'),
-      );
-      return false;
-    }
-
-    final canContinue = await _ensureOnline();
-    if (!canContinue) {
-      return false;
-    }
-
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
-    try {
-      final isDuplicatedHrCode = await _workersRepo.hrCodeExists(
-        companyId: companyId,
-        hrCode: cleanHrCode,
-      );
-
-      if (isDuplicatedHrCode) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            errorMessage: 'HR Code already exists',
-          ),
-        );
-        return false;
-      }
-
-      final workerCode = await _workersRepo.generateNextWorkerCode(
-        companyId: companyId,
-      );
-
-      final workerToInsert = worker.copyWith(
-        companyId: companyId,
-        workerCode: workerCode,
-        name: cleanName,
-        hrCode: cleanHrCode,
-        createdByProfileId: createdByProfileId,
-        status: 'active',
-      );
-
-      final addedWorker = await _workersRepo.addWorker(worker: workerToInsert);
-
-      emitUpdatedWorkers([...state.workers, addedWorker], isSubmitting: false);
-
-      return true;
-    } catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to add worker. Please try again.',
-          ),
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> updateWorker({
-    required String companyId,
-    required WorkerModel updatedWorker,
-  }) async {
-    final workerId = updatedWorker.id;
-    final cleanName = updatedWorker.name.trim();
-    final cleanHrCode = updatedWorker.hrCode.trim();
-
-    if (workerId == null || workerId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Worker ID was not found'));
-      return false;
-    }
-
-    if (cleanName.isEmpty || cleanHrCode.isEmpty) {
-      return false;
-    }
-
-    if (updatedWorker.departmentId == null ||
-        updatedWorker.jobTitleId == null) {
-      emit(
-        state.copyWith(errorMessage: 'Department and job title are required'),
-      );
-      return false;
-    }
-
-    final canContinue = await _ensureOnline();
-    if (!canContinue) {
-      return false;
-    }
-
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
-    try {
-      final isDuplicatedHrCode = await _workersRepo.hrCodeExists(
-        companyId: companyId,
-        hrCode: cleanHrCode,
-        ignoredWorkerId: workerId,
-      );
-
-      if (isDuplicatedHrCode) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            errorMessage: 'HR Code already exists',
-          ),
-        );
-        return false;
-      }
-
-      final workerToUpdate = updatedWorker.copyWith(
-        name: cleanName,
-        hrCode: cleanHrCode,
-      );
-
-      final savedWorker = await _workersRepo.updateWorker(
-        workerId: workerId,
-        worker: workerToUpdate,
-      );
-
-      final updatedWorkers = state.workers.map((worker) {
-        if (worker.id == workerId) {
-          return savedWorker;
-        }
-
-        return worker;
-      }).toList();
-
-      emitUpdatedWorkers(updatedWorkers, isSubmitting: false);
-
-      return true;
-    } catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to update worker. Please try again.',
-          ),
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> deleteWorker({required WorkerModel worker}) async {
-    final workerId = worker.id;
-
-    if (workerId == null || workerId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Worker ID was not found'));
-      return false;
-    }
-
-    final canContinue = await _ensureOnline();
-    if (!canContinue) {
-      return false;
-    }
-
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
-    try {
-      await _workersRepo.deleteWorker(workerId: workerId);
-
-      final updatedWorkers = state.workers.where((item) {
-        return item.id != workerId;
-      }).toList();
-
-      emitUpdatedWorkers(updatedWorkers, isSubmitting: false);
-
-      return true;
-    } catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to delete worker. Please try again.',
-          ),
-        ),
-      );
-      return false;
-    }
-  }
-
   bool isHrCodeAlreadyUsed(String hrCode, {String? ignoredHrCode}) {
     return checkIsHrCodeAlreadyUsed(
       workers: state.workers,
       hrCode: hrCode,
       ignoredHrCode: ignoredHrCode,
+    );
+  }
+
+  bool isWorkerNameAlreadyUsed(String name, {String? ignoredWorkerId}) {
+    return checkIsWorkerNameAlreadyUsed(
+      workers: state.workers,
+      workerName: name,
+      ignoredWorkerId: ignoredWorkerId,
     );
   }
 
@@ -263,6 +78,8 @@ class WorkersCubit extends Cubit<WorkersState> {
 
     emit(state.copyWith(clearErrorMessage: true));
   }
+
+  void emitState(WorkersState state) => emit(state);
 
   Future<bool> _ensureOnline() async {
     try {
@@ -279,11 +96,12 @@ class WorkersCubit extends Cubit<WorkersState> {
     bool? isLoading,
     bool? isSubmitting,
   }) {
+    final sortedWorkers = sortWorkersAlphabetically(workers);
     emit(
       state.copyWith(
-        workers: workers,
+        workers: sortedWorkers,
         filteredWorkers: filterWorkers(
-          workers: workers,
+          workers: sortedWorkers,
           query: state.searchQuery,
         ),
         isLoading: isLoading,

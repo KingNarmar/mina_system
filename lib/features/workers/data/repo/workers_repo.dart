@@ -128,6 +128,41 @@ class WorkersRepo {
     });
   }
 
+  Future<bool> workerNameExists({
+    required String companyId,
+    required String workerName,
+    String? ignoredWorkerId,
+  }) async {
+    final cleanName = workerName.trim();
+
+    if (cleanName.isEmpty) {
+      return false;
+    }
+
+    final normalizedInput = _normalizeWorkerName(cleanName);
+
+    if (normalizedInput.isEmpty) {
+      return false;
+    }
+
+    final data = await _supabase
+        .from('workers')
+        .select('id, full_name')
+        .eq('company_id', companyId)
+        .eq('status', 'active');
+
+    return data.any((item) {
+      final workerId = item['id'] as String?;
+      final existingName = item['full_name'] as String? ?? '';
+
+      if (ignoredWorkerId != null && workerId == ignoredWorkerId) {
+        return false;
+      }
+
+      return _normalizeWorkerName(existingName) == normalizedInput;
+    });
+  }
+
   Future<bool> workerCodeExists({
     required String companyId,
     required String workerCode,
@@ -188,6 +223,13 @@ class WorkersRepo {
 
   String _normalizeWorkerCode(String value) {
     return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+  }
+
+  String _normalizeWorkerName(String value) {
+    return value.trim().toLowerCase().replaceAll(
+      RegExp(r'[^\p{L}\p{N}]+', unicode: true),
+      '',
+    );
   }
 
   int _extractEndingNumber(String? value) {

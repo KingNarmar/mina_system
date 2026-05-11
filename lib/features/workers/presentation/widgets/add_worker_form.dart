@@ -18,11 +18,13 @@ class AddWorkerForm extends StatefulWidget {
     required this.onSave,
     this.initialWorker,
     this.isHrCodeAlreadyUsed,
+    this.isWorkerNameAlreadyUsed,
   });
 
   final Future<String?> Function(WorkerModel worker) onSave;
   final WorkerModel? initialWorker;
   final HrCodeValidator? isHrCodeAlreadyUsed;
+  final WorkerNameValidator? isWorkerNameAlreadyUsed;
 
   @override
   State<AddWorkerForm> createState() => _AddWorkerFormState();
@@ -92,7 +94,13 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
                   CustomTextFormField(
                     hint: 'Worker Name',
                     controller: _nameController,
-                    validator: WorkerFormValidators.requiredWorkerTextValidator,
+                    validator: (value) =>
+                        WorkerFormValidators.workerNameValidator(
+                          value,
+                          isWorkerNameAlreadyUsed:
+                              widget.isWorkerNameAlreadyUsed,
+                          initialWorkerId: widget.initialWorker?.id,
+                        ),
                   ),
                   const Gap(12),
                   CustomTextFormField(
