@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/layout/app_shell.dart';
+import 'package:mina_system/core/validators/app_validators.dart';
 import 'package:mina_system/features/auth/presentation/screens/email_entry_screen.dart';
 import 'package:mina_system/features/auth/presentation/screens/login_screen.dart';
 import 'package:mina_system/features/auth/presentation/screens/register_screen.dart';
@@ -11,6 +12,11 @@ abstract class Routes {
   static const String register = '/register';
   static const String dashboard = '/dashboard';
 
+  static bool _hasValidEmailExtra(Object? extra) {
+    if (extra is! String) return false;
+    return AppValidators.validateEmail(extra.trim()) == null;
+  }
+
   static final router = GoRouter(
     initialLocation: emailEntry,
     redirect: (context, state) {
@@ -21,12 +27,22 @@ abstract class Routes {
       final isGoingToAuthPage =
           isGoingToEmailEntry || isGoingToLogin || isGoingToRegister;
 
+      // Authenticated users cannot access any auth page.
+      if (isLoggedIn && isGoingToAuthPage) {
+        return dashboard;
+      }
+
+      // Unauthenticated users must not reach protected app pages.
       if (!isLoggedIn && !isGoingToAuthPage) {
         return emailEntry;
       }
 
-      if (isLoggedIn && isGoingToAuthPage) {
-        return dashboard;
+      // Guard /login and /register: require a valid email passed as extra.
+      // Without it, the form would show an empty locked email field.
+      if (!isLoggedIn && (isGoingToLogin || isGoingToRegister)) {
+        if (!_hasValidEmailExtra(state.extra)) {
+          return emailEntry;
+        }
       }
 
       return null;
@@ -39,14 +55,14 @@ abstract class Routes {
       GoRoute(
         path: login,
         builder: (context, state) {
-          final email = state.extra as String? ?? '';
+          final email = state.extra as String;
           return LoginScreen(email: email);
         },
       ),
       GoRoute(
         path: register,
         builder: (context, state) {
-          final email = state.extra as String? ?? '';
+          final email = state.extra as String;
           return RegisterScreen(email: email);
         },
       ),
