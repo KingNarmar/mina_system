@@ -10,20 +10,21 @@ class CompanyUsersState {
     this.isCurrentUserInvitationsLoading = false,
     this.hasLoadedCurrentUserInvitations = false,
     this.isSubmitting = false,
+    this.submittingActionKey,
     this.errorMessage,
   });
 
   final List<CompanyMemberModel> members;
 
   /// Invitations created for the currently managed company.
-  /// Used inside Company Users section by Owner/Admin.
+  /// Used inside Company Users / Team management by allowed roles.
   final List<CompanyInvitationModel> companyInvitations;
 
   /// Invitations addressed to the currently signed-in user.
   /// Used by invitation acceptance / workspace selection flows.
   final List<CompanyInvitationModel> currentUserInvitations;
 
-  /// General loading for the Company Users management section.
+  /// General loading for the initial Company Users / Team data load.
   final bool isLoading;
 
   /// Dedicated loading for entry-flow invitations that belong
@@ -34,7 +35,13 @@ class CompanyUsersState {
   /// "not loaded yet" after the request has already completed.
   final bool hasLoadedCurrentUserInvitations;
 
+  /// General mutation flag.
   final bool isSubmitting;
+
+  /// Identifies the exact mutation currently in progress so the UI can
+  /// show loading only on the button that started the action.
+  final String? submittingActionKey;
+
   final String? errorMessage;
 
   List<CompanyInvitationModel> get pendingCompanyInvitations {
@@ -53,6 +60,10 @@ class CompanyUsersState {
     return errorMessage != null && errorMessage!.trim().isNotEmpty;
   }
 
+  bool isActionSubmitting(String actionKey) {
+    return isSubmitting && submittingActionKey == actionKey;
+  }
+
   CompanyUsersState copyWith({
     List<CompanyMemberModel>? members,
     List<CompanyInvitationModel>? companyInvitations,
@@ -61,6 +72,8 @@ class CompanyUsersState {
     bool? isCurrentUserInvitationsLoading,
     bool? hasLoadedCurrentUserInvitations,
     bool? isSubmitting,
+    String? submittingActionKey,
+    bool clearSubmittingActionKey = false,
     String? errorMessage,
     bool clearErrorMessage = false,
   }) {
@@ -77,9 +90,36 @@ class CompanyUsersState {
           hasLoadedCurrentUserInvitations ??
           this.hasLoadedCurrentUserInvitations,
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      submittingActionKey: clearSubmittingActionKey
+          ? null
+          : submittingActionKey ?? this.submittingActionKey,
       errorMessage: clearErrorMessage
           ? null
           : errorMessage ?? this.errorMessage,
     );
+  }
+}
+
+abstract class CompanyUsersSubmissionKey {
+  static const String invite = 'invite';
+
+  static String changeRole(String memberId) {
+    return 'change-role:$memberId';
+  }
+
+  static String deactivateMember(String memberId) {
+    return 'deactivate-member:$memberId';
+  }
+
+  static String reactivateMember(String memberId) {
+    return 'reactivate-member:$memberId';
+  }
+
+  static String cancelInvitation(String invitationId) {
+    return 'cancel-invitation:$invitationId';
+  }
+
+  static String acceptInvitation(String invitationId) {
+    return 'accept-invitation:$invitationId';
   }
 }

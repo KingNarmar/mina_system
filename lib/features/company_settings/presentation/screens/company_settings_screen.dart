@@ -11,7 +11,6 @@ import 'package:mina_system/features/company_settings/presentation/widgets/compa
 import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/profile/company_logo_picker.dart';
-import 'package:mina_system/features/company_users/presentation/widgets/company_users_section.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
@@ -34,10 +33,6 @@ class _CompanySettingsView extends StatelessWidget {
         CompanyRolePermissions.canManageCompanyProfile(currentRole);
 
     final canUploadCompanyLogo = CompanyRolePermissions.canUploadCompanyLogo(
-      currentRole,
-    );
-
-    final canViewCompanyUsers = CompanyRolePermissions.canViewCompanyUsers(
       currentRole,
     );
 
@@ -92,10 +87,6 @@ class _CompanySettingsView extends StatelessWidget {
                     ),
                     const Gap(16),
                   ],
-                  if (canViewCompanyUsers) ...[
-                    const CompanyUsersSection(),
-                    const Gap(16),
-                  ],
                   if (canManageReportSettings) ...[
                     CompanyReportSettingsForm(
                       reportSettings: state.reportSettings,
@@ -110,7 +101,6 @@ class _CompanySettingsView extends StatelessWidget {
                     ),
                   if (!canManageCompanyProfile &&
                       !canUploadCompanyLogo &&
-                      !canViewCompanyUsers &&
                       !canManageReportSettings &&
                       !canManageDocumentTemplates)
                     const _NoCompanySettingsPermissionView(),

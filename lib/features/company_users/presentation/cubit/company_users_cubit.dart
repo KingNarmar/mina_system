@@ -17,8 +17,15 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
   final CompanyUsersRepo _repo;
   final NetworkStatusService _networkStatusService;
 
-  Future<void> loadCompanyUsers({required String companyId}) async {
-    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+  Future<void> loadCompanyUsers({
+    required String companyId,
+    bool showLoader = true,
+  }) async {
+    if (showLoader) {
+      emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+    } else {
+      emit(state.copyWith(clearErrorMessage: true));
+    }
 
     try {
       final members = await _repo.getCompanyMembers(companyId: companyId);
@@ -32,6 +39,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           companyInvitations: companyInvitations,
           isLoading: false,
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           clearErrorMessage: true,
         ),
       );
@@ -40,6 +48,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         state.copyWith(
           isLoading: false,
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to load company users. Please try again.',
@@ -60,7 +69,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: CompanyUsersSubmissionKey.invite,
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _repo.inviteCompanyUser(
@@ -71,11 +86,12 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         ),
       );
 
-      await loadCompanyUsers(companyId: companyId);
+      await loadCompanyUsers(companyId: companyId, showLoader: false);
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to invite user. Please try again.',
@@ -96,7 +112,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: CompanyUsersSubmissionKey.changeRole(memberId),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _repo.changeCompanyMemberRole(
@@ -105,14 +127,97 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         newRole: newRole,
       );
 
-      await loadCompanyUsers(companyId: companyId);
+      await loadCompanyUsers(companyId: companyId, showLoader: false);
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to change member role. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> deactivateCompanyMember({
+    required String companyId,
+    required String memberId,
+  }) async {
+    final canContinue = await _ensureOnline();
+
+    if (!canContinue) {
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: CompanyUsersSubmissionKey.deactivateMember(
+          memberId,
+        ),
+        clearErrorMessage: true,
+      ),
+    );
+
+    try {
+      await _repo.deactivateCompanyMember(
+        companyId: companyId,
+        memberId: memberId,
+      );
+
+      await loadCompanyUsers(companyId: companyId, showLoader: false);
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          clearSubmittingActionKey: true,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to deactivate member. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> reactivateCompanyMember({
+    required String companyId,
+    required String memberId,
+  }) async {
+    final canContinue = await _ensureOnline();
+
+    if (!canContinue) {
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: CompanyUsersSubmissionKey.reactivateMember(
+          memberId,
+        ),
+        clearErrorMessage: true,
+      ),
+    );
+
+    try {
+      await _repo.reactivateCompanyMember(
+        companyId: companyId,
+        memberId: memberId,
+      );
+
+      await loadCompanyUsers(companyId: companyId, showLoader: false);
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          clearSubmittingActionKey: true,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to reactivate member. Please try again.',
           ),
         ),
       );
@@ -137,6 +242,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           isCurrentUserInvitationsLoading: false,
           hasLoadedCurrentUserInvitations: true,
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           clearErrorMessage: true,
         ),
       );
@@ -146,6 +252,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           isCurrentUserInvitationsLoading: false,
           hasLoadedCurrentUserInvitations: true,
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to load pending invitations. Please try again.',
@@ -162,7 +269,15 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: CompanyUsersSubmissionKey.acceptInvitation(
+          invitationId,
+        ),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _repo.acceptCompanyInvitation(invitationId: invitationId);
@@ -174,6 +289,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
         state.copyWith(
           currentUserInvitations: currentUserInvitations,
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           clearErrorMessage: true,
         ),
       );
@@ -181,6 +297,7 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       emit(
         state.copyWith(
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to accept invitation. Please try again.',
@@ -200,16 +317,25 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       return;
     }
 
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: CompanyUsersSubmissionKey.cancelInvitation(
+          invitationId,
+        ),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _repo.cancelCompanyInvitation(invitationId: invitationId);
 
-      await loadCompanyUsers(companyId: companyId);
+      await loadCompanyUsers(companyId: companyId, showLoader: false);
     } catch (error) {
       emit(
         state.copyWith(
           isSubmitting: false,
+          clearSubmittingActionKey: true,
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to cancel invitation. Please try again.',
@@ -232,7 +358,13 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       await _networkStatusService.ensureOnline();
       return true;
     } on NetworkUnavailableException catch (error) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: error.message));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          clearSubmittingActionKey: true,
+          errorMessage: error.message,
+        ),
+      );
       return false;
     }
   }

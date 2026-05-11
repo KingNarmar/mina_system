@@ -103,6 +103,26 @@ class CompanyUsersRepo {
     );
   }
 
+  Future<void> deactivateCompanyMember({
+    required String companyId,
+    required String memberId,
+  }) async {
+    await _supabase.rpc(
+      'deactivate_company_member',
+      params: {'p_company_id': companyId, 'p_member_id': memberId},
+    );
+  }
+
+  Future<void> reactivateCompanyMember({
+    required String companyId,
+    required String memberId,
+  }) async {
+    await _supabase.rpc(
+      'reactivate_company_member',
+      params: {'p_company_id': companyId, 'p_member_id': memberId},
+    );
+  }
+
   Future<String> acceptCompanyInvitation({required String invitationId}) async {
     final companyId = await _supabase.rpc(
       'accept_company_invitation',

@@ -5,6 +5,7 @@ import 'package:mina_system/features/company_settings/presentation/screens/compa
 import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:mina_system/features/lookups/presentation/screens/lookups_screen.dart';
 import 'package:mina_system/features/reports/presentation/screens/reports_screen.dart';
+import 'package:mina_system/features/team/presentation/screens/team_screen.dart';
 import 'package:mina_system/features/tools/presentation/screens/tools_screen.dart';
 import 'package:mina_system/features/transactions/presentation/screens/transactions_screen.dart';
 import 'package:mina_system/features/workers/presentation/screens/workers_screen.dart';
@@ -46,6 +47,12 @@ abstract class AppNavItems {
       icon: Icons.tune_outlined,
       page: LookupsScreen(),
       permission: CompanyPermission.viewLookups,
+    ),
+    AppNavItem(
+      title: 'Team',
+      icon: Icons.groups_outlined,
+      page: TeamScreen(),
+      permission: CompanyPermission.viewTeam,
     ),
     AppNavItem(
       title: 'Settings',

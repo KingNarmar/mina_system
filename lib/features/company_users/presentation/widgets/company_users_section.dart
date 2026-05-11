@@ -37,11 +37,9 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
     final currentProfileId = context.requireCurrentProfileId();
     final currentRole = context.currentUserRole;
 
-    final canViewCompanyUsers = CompanyRolePermissions.canViewCompanyUsers(
-      currentRole,
-    );
+    final canViewTeam = CompanyRolePermissions.canViewTeam(currentRole);
 
-    if (!canViewCompanyUsers) {
+    if (!canViewTeam) {
       return const SizedBox.shrink();
     }
 
@@ -109,7 +107,9 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                       emailController: _emailController,
                       selectedRole: selectedRole,
                       allowedRoles: allowedInviteRoles,
-                      isSubmitting: state.isSubmitting,
+                      isSubmitting: state.isActionSubmitting(
+                        CompanyUsersSubmissionKey.invite,
+                      ),
                       onRoleChanged: (role) {
                         if (role == null) {
                           return;
@@ -136,7 +136,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                     actorRole: currentRole,
                     currentProfileId: currentProfileId,
                     canChangeMemberRoles: canChangeMemberRoles,
-                    isSubmitting: state.isSubmitting,
+                    isActionSubmitting: state.isActionSubmitting,
                     onChangeRolePressed: (member) {
                       _showChangeRoleDialog(
                         parentContext: context,
@@ -150,7 +150,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                   _InvitationsList(
                     invitations: state.pendingCompanyInvitations,
                     canCancelInvitations: canCancelInvitations,
-                    isSubmitting: state.isSubmitting,
+                    isActionSubmitting: state.isActionSubmitting,
                     onCancelPressed: (invitationId) {
                       context.read<CompanyUsersCubit>().cancelInvitation(
                         companyId: companyId,
@@ -368,7 +368,7 @@ class _MembersList extends StatelessWidget {
     required this.actorRole,
     required this.currentProfileId,
     required this.canChangeMemberRoles,
-    required this.isSubmitting,
+    required this.isActionSubmitting,
     required this.onChangeRolePressed,
   });
 
@@ -376,7 +376,7 @@ class _MembersList extends StatelessWidget {
   final String? actorRole;
   final String currentProfileId;
   final bool canChangeMemberRoles;
-  final bool isSubmitting;
+  final bool Function(String actionKey) isActionSubmitting;
   final ValueChanged<CompanyMemberModel> onChangeRolePressed;
 
   @override
@@ -401,10 +401,14 @@ class _MembersList extends StatelessWidget {
               final canChangeRole =
                   canChangeMemberRoles && !isCurrentUser && canManageTargetRole;
 
+              final isChangeRoleSubmitting = isActionSubmitting(
+                CompanyUsersSubmissionKey.changeRole(member.id),
+              );
+
               return _MemberRow(
                 member: member,
                 canChangeRole: canChangeRole,
-                isSubmitting: isSubmitting,
+                isChangeRoleSubmitting: isChangeRoleSubmitting,
                 onChangeRolePressed: () => onChangeRolePressed(member),
               );
             }).toList(),
@@ -418,13 +422,13 @@ class _MemberRow extends StatelessWidget {
   const _MemberRow({
     required this.member,
     required this.canChangeRole,
-    required this.isSubmitting,
+    required this.isChangeRoleSubmitting,
     required this.onChangeRolePressed,
   });
 
   final CompanyMemberModel member;
   final bool canChangeRole;
-  final bool isSubmitting;
+  final bool isChangeRoleSubmitting;
   final VoidCallback onChangeRolePressed;
 
   @override
@@ -467,7 +471,7 @@ class _MemberRow extends StatelessWidget {
               width: 150,
               child: MainButton(
                 text: 'Change Role',
-                isLoading: isSubmitting,
+                isLoading: isChangeRoleSubmitting,
                 onPressed: onChangeRolePressed,
               ),
             ),
@@ -481,13 +485,13 @@ class _InvitationsList extends StatelessWidget {
   const _InvitationsList({
     required this.invitations,
     required this.canCancelInvitations,
-    required this.isSubmitting,
+    required this.isActionSubmitting,
     required this.onCancelPressed,
   });
 
   final List<CompanyInvitationModel> invitations;
   final bool canCancelInvitations;
-  final bool isSubmitting;
+  final bool Function(String actionKey) isActionSubmitting;
   final ValueChanged<String> onCancelPressed;
 
   @override
@@ -502,10 +506,14 @@ class _InvitationsList extends StatelessWidget {
         else
           Column(
             children: invitations.map((invitation) {
+              final isCancelSubmitting = isActionSubmitting(
+                CompanyUsersSubmissionKey.cancelInvitation(invitation.id),
+              );
+
               return _InvitationRow(
                 invitation: invitation,
                 canCancelInvitations: canCancelInvitations,
-                isSubmitting: isSubmitting,
+                isCancelSubmitting: isCancelSubmitting,
                 onCancelPressed: onCancelPressed,
               );
             }).toList(),
@@ -519,13 +527,13 @@ class _InvitationRow extends StatelessWidget {
   const _InvitationRow({
     required this.invitation,
     required this.canCancelInvitations,
-    required this.isSubmitting,
+    required this.isCancelSubmitting,
     required this.onCancelPressed,
   });
 
   final CompanyInvitationModel invitation;
   final bool canCancelInvitations;
-  final bool isSubmitting;
+  final bool isCancelSubmitting;
   final ValueChanged<String> onCancelPressed;
 
   @override
@@ -566,7 +574,7 @@ class _InvitationRow extends StatelessWidget {
               child: MainButton(
                 text: 'Cancel',
                 color: AppColors.warning,
-                isLoading: isSubmitting,
+                isLoading: isCancelSubmitting,
                 onPressed: () => onCancelPressed(invitation.id),
               ),
             ),

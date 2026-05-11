@@ -39,6 +39,9 @@ enum CompanyPermission {
   manageReportSettings,
   manageDocumentTemplates,
 
+  viewTeam,
+  manageTeam,
+
   viewCompanyUsers,
   manageCompanyUsers,
   inviteUsers,
@@ -135,6 +138,9 @@ abstract class CompanyRolePermissions {
       CompanyPermission.manageReportSettings,
       CompanyPermission.manageDocumentTemplates,
 
+      CompanyPermission.viewTeam,
+      CompanyPermission.manageTeam,
+
       CompanyPermission.viewCompanyUsers,
       CompanyPermission.manageCompanyUsers,
       CompanyPermission.inviteUsers,
@@ -179,6 +185,11 @@ abstract class CompanyRolePermissions {
       CompanyPermission.manageLookups,
       CompanyPermission.createLookups,
       CompanyPermission.deleteLookups,
+
+      CompanyPermission.viewTeam,
+      CompanyPermission.manageTeam,
+      CompanyPermission.deactivateMember,
+      CompanyPermission.reactivateMember,
     },
 
     CompanyRoles.warehouseUser: {
@@ -366,6 +377,14 @@ abstract class CompanyRolePermissions {
     return hasPermission(role, CompanyPermission.manageDocumentTemplates);
   }
 
+  static bool canViewTeam(String? role) {
+    return hasPermission(role, CompanyPermission.viewTeam);
+  }
+
+  static bool canManageTeam(String? role) {
+    return hasPermission(role, CompanyPermission.manageTeam);
+  }
+
   static bool canViewCompanyUsers(String? role) {
     return hasPermission(role, CompanyPermission.viewCompanyUsers);
   }
@@ -392,6 +411,10 @@ abstract class CompanyRolePermissions {
 
   static bool canReactivateMember(String? role) {
     return hasPermission(role, CompanyPermission.reactivateMember);
+  }
+
+  static bool canManageMemberLifecycle(String? role) {
+    return canDeactivateMember(role) || canReactivateMember(role);
   }
 
   static bool canRemoveMemberAccess(String? role) {
@@ -429,23 +452,37 @@ abstract class CompanyRolePermissions {
     ).contains(CompanyRoles.normalize(targetRole));
   }
 
+  static List<String> manageableTargetRolesFor(String? actorRole) {
+    switch (CompanyRoles.normalize(actorRole)) {
+      case CompanyRoles.owner:
+        return const [
+          CompanyRoles.admin,
+          CompanyRoles.warehouseManager,
+          CompanyRoles.warehouseUser,
+          CompanyRoles.viewer,
+        ];
+
+      case CompanyRoles.admin:
+        return const [
+          CompanyRoles.warehouseManager,
+          CompanyRoles.warehouseUser,
+          CompanyRoles.viewer,
+        ];
+
+      case CompanyRoles.warehouseManager:
+        return const [CompanyRoles.warehouseUser, CompanyRoles.viewer];
+
+      default:
+        return const [];
+    }
+  }
+
   static bool canManageTargetRole({
     required String? actorRole,
     required String? targetRole,
   }) {
-    final normalizedActorRole = CompanyRoles.normalize(actorRole);
     final normalizedTargetRole = CompanyRoles.normalize(targetRole);
 
-    if (normalizedActorRole == CompanyRoles.owner) {
-      return normalizedTargetRole != CompanyRoles.owner;
-    }
-
-    if (normalizedActorRole == CompanyRoles.admin) {
-      return normalizedTargetRole == CompanyRoles.warehouseManager ||
-          normalizedTargetRole == CompanyRoles.warehouseUser ||
-          normalizedTargetRole == CompanyRoles.viewer;
-    }
-
-    return false;
+    return manageableTargetRolesFor(actorRole).contains(normalizedTargetRole);
   }
 }
