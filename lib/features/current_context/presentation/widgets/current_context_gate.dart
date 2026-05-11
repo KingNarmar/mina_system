@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/network/presentation/cubit/network_status_cubit.dart';
 import 'package:mina_system/core/network/presentation/cubit/network_status_state.dart';
-import 'package:mina_system/core/theme/app_colors.dart';
-import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 import 'package:mina_system/features/company_users/presentation/screens/pending_company_invitations_screen.dart';
@@ -12,6 +9,10 @@ import 'package:mina_system/features/current_context/presentation/cubit/current_
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/screens/create_company_screen.dart';
 import 'package:mina_system/features/current_context/presentation/screens/select_company_screen.dart';
+
+import 'views/current_context_failure_view.dart';
+import 'views/current_context_loading_view.dart';
+import 'views/current_context_offline_view.dart';
 
 class CurrentContextGate extends StatelessWidget {
   const CurrentContextGate({super.key, required this.child});
@@ -23,7 +24,7 @@ class CurrentContextGate extends StatelessWidget {
     return BlocBuilder<CurrentContextCubit, CurrentContextState>(
       builder: (context, state) {
         if (state is CurrentContextInitial || state is CurrentContextLoading) {
-          return const _CurrentContextLoadingView();
+          return const CurrentContextLoadingView();
         }
 
         if (state is CurrentContextFailure) {
@@ -32,10 +33,10 @@ class CurrentContextGate extends StatelessWidget {
               final isOffline = networkState is NetworkStatusOffline;
 
               if (isOffline) {
-                return const _CurrentContextOfflineView();
+                return const CurrentContextOfflineView();
               }
 
-              return _CurrentContextFailureView(message: state.message);
+              return CurrentContextFailureView(message: state.message);
             },
           );
         }
@@ -48,7 +49,7 @@ class CurrentContextGate extends StatelessWidget {
           return _ExistingCompanyGate(state: state, child: child);
         }
 
-        return const _CurrentContextLoadingView();
+        return const CurrentContextLoadingView();
       },
     );
   }
@@ -81,11 +82,11 @@ class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
     return BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
       builder: (context, state) {
         if (state.isCurrentUserInvitationsLoading) {
-          return const _CurrentContextLoadingView();
+          return const CurrentContextLoadingView();
         }
 
         if (state.hasError) {
-          return _CurrentContextFailureView(message: state.errorMessage!);
+          return CurrentContextFailureView(message: state.errorMessage!);
         }
 
         if (state.pendingCurrentUserInvitations.isNotEmpty) {
@@ -135,7 +136,7 @@ class _ExistingCompanyGateState extends State<_ExistingCompanyGate> {
         }
 
         if (companyUsersState.isCurrentUserInvitationsLoading) {
-          return const _CurrentContextLoadingView();
+          return const CurrentContextLoadingView();
         }
 
         if (companyUsersState.hasError) {
@@ -173,128 +174,6 @@ class _ExistingCompanyGateState extends State<_ExistingCompanyGate> {
 
     context.read<CurrentContextCubit>().selectCurrentCompany(
       companyId: companyId,
-    );
-  }
-}
-
-class _CurrentContextLoadingView extends StatelessWidget {
-  const _CurrentContextLoadingView();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-class _CurrentContextOfflineView extends StatelessWidget {
-  const _CurrentContextOfflineView();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.wifi_off_rounded,
-                  size: 52,
-                  color: AppColors.warning,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'You are offline',
-                  style: AppTextStyles.title,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'No internet connection detected. Please reconnect and try again.',
-                  style: AppTextStyles.body,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                MainButton(
-                  text: 'Retry',
-                  onPressed: () async {
-                    await context.read<NetworkStatusCubit>().refresh();
-
-                    if (!context.mounted) {
-                      return;
-                    }
-
-                    context.read<CurrentContextCubit>().loadCurrentContext();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CurrentContextFailureView extends StatelessWidget {
-  const _CurrentContextFailureView({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: AppColors.error,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Unable to load company context',
-                  style: AppTextStyles.title,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  message,
-                  style: AppTextStyles.body,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                MainButton(
-                  text: 'Retry',
-                  onPressed: () async {
-                    await context.read<NetworkStatusCubit>().refresh();
-
-                    if (!context.mounted) {
-                      return;
-                    }
-
-                    context.read<CurrentContextCubit>().loadCurrentContext();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
