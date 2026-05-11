@@ -744,17 +744,15 @@ Current product checkpoint:
 
 **Auth UX Checkpoint — Email-First Authentication Flow**
 
-Planned UX:
+Planned Safe UX:
 
 1. User first enters only email.
-2. Backend determines whether an account already exists.
-3. If account exists:
-   - Route user to login.
-   - Show clear message: `An account already exists for this email. Please log in.`
-4. If account does not exist:
-   - Route user to registration.
-5. Invitations remain linked to the same account/email model.
-6. Existing users invited to additional companies log in with the same account and accept the invitation.
+2. App continues to a safe email-first choice step without revealing whether the email already has an account (to avoid account-enumeration risk).
+3. User chooses:
+   - I already have an account (goes to Login screen with email prefilled and locked).
+   - Create a new account (goes to Register screen with email prefilled and locked).
+4. CurrentContextGate and pending company invitation behavior remain unchanged after successful authentication.
+5. True backend account-existence detection is deferred to a later secure Auth Security / Phase S checkpoint where Edge Functions, rate limiting, abuse protection, logs, and possible captcha can be designed properly. No public unauthenticated check_account_exists(email) RPC should be implemented in this checkpoint.
 
 Reason for priority:
 
@@ -1139,30 +1137,32 @@ Recommendation:
 
 Replace the current ambiguous register-first behavior with a clearer SaaS-style authentication entry flow.
 
-## Planned UX
+## Planned Safe UX
 
 1. User first enters only email.
-2. Backend determines whether an account already exists.
-3. If account exists:
-   - Route user to login.
-   - Show clear message:
-     - `An account already exists for this email. Please log in.`
-4. If account does not exist:
-   - Route user to registration.
-5. Invitations remain linked to the same account/email model.
-6. Existing users invited to additional companies log in with the same account and accept the invitation.
+2. App continues to a safe email-first choice step without revealing whether the email already has an account. This avoids any account-enumeration risk.
+3. User chooses:
+   - I already have an account (routes to Login screen with email prefilled and locked).
+   - Create a new account (routes to Register screen with email prefilled and locked).
+4. CurrentContextGate and pending company invitation behavior remain unchanged after successful authentication.
+5. True backend account-existence detection is deferred to a later secure Auth Security / Phase S checkpoint where Edge Functions, rate limiting, abuse protection, logs, and possible captcha can be designed properly.
+
+## Security Constraints & Design Rules
+
+- **No Public RPC:** Do not implement a public, unauthenticated `check_account_exists(email)` RPC in this checkpoint. We must strictly avoid account-enumeration risk.
+- **Backend Architecture:** Supabase remains the backend; future secure checks should use server-side Supabase capabilities such as Edge Functions, not Flutter client logic.
 
 ## Reason for checkpoint
 
-- Current Supabase signup behavior may return an obfuscated/fake user object for an already registered email under some auth-confirmation settings.
 - The current product UX should become clearer and more professional.
 - Mina System uses one account with multi-company membership, so email-first flow matches the product model better than separate blind register/login paths.
+- Preparing the step-by-step layout split (Email Entry -> Choice/Form) builds the UX foundation for future server-side checks.
 
 ## Likely technical direction
 
-- Server-side account-status check through a secure backend function/Edge Function.
-- No service-role logic in Flutter.
-- Rate limiting and abuse protection required because explicit account-existence checks create email-enumeration risk.
+- Build a stateful, interactive step-by-step wizard or router flow in Flutter.
+- Cache the entered email locally during the login/registration sub-flows.
+- Disable and lock the email input fields on both login and register screens once navigated from the entry step.
 - Integrate invitation-aware guidance into auth copy and routing.
 
 ---
