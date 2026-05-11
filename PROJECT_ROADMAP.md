@@ -23,9 +23,9 @@ It is based on the real GitHub repository, not the README.
 Current high-level state:
 
 - Current product phase:
-  - **Phase Q — Secure Member Management & Invitation Backend**
+  - **Phase Q — Secure Member Management & Invitation Backend (Suggested for Closure)**
 - Current product checkpoint:
-  - **Step Q4.8 — Decide invitation email delivery scope**
+  - **Phase Q Closure Recommendation (Step Q4.8 Completed)**
 - Current parallel engineering checkpoint:
   - **None (Completed)**
 
@@ -730,7 +730,7 @@ Completed.
 
 Status:
 
-**In Progress**
+**Done (Suggested for Closure)**
 
 Completed in current phase:
 
@@ -740,10 +740,11 @@ Completed in current phase:
 - Step Q3 — Secure member role-change backend + Flutter flow completed.
 - Step Q4 backend foundation — Secure deactivate/reactivate RPCs completed and direct SQL security tests passed.
 - Step Q4.7 — Team access refactor and member lifecycle UI completed.
+- Step Q4.8 — Decide invitation email delivery scope completed (Decision: Deferred to Phase S).
 
 Current product checkpoint:
 
-**Step Q4.8 — Decide invitation email delivery scope**
+**Phase Q Closure Recommendation (Step Q4.8 Completed)**
 
 Current decisions already made:
 
@@ -752,19 +753,12 @@ Current decisions already made:
 - Warehouse Manager can manage lifecycle access for lower roles only:
   - `warehouse_user`
   - `viewer`
+- **Invitation Email Delivery Scope:** Real email delivery is deferred to Phase S (Production Environment & Secrets Setup). The in-app invitation flow is fully functional and safe via pending invitations and RPCs; building out an SMTP provider, Edge Functions, templates, and error handling now would block core feature progress.
+- **Deactivation Strategy:** Soft deactivate only is maintained. Remove-access remains a future enhancement if a business need arises.
 
 Next required product decisions:
 
-- Decide whether invitation email delivery belongs inside the remaining Phase Q scope or a later production-readiness checkpoint.
-- If kept inside Phase Q:
-  - Define the production invitation email flow.
-  - Choose the backend delivery approach.
-  - Implement secure invitation email sending without exposing privileged keys in Flutter.
-- If moved out of Phase Q:
-  - Document it clearly as a later production-readiness item.
-  - Close Phase Q after confirming no other member-management work is required now.
-- Decide whether direct DB/RPC security re-verification is needed after the completed UI connection.
-  - The backend RPC logic itself was not changed during Step Q4.7.
+- None. All Phase Q requirements have been successfully completed.
 
 Reason for priority:
 
@@ -820,7 +814,7 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 
 1. **Phase O — Company Users, Roles & Invitations** ✅
 2. **Phase P — Role-Based Access Control** ✅
-3. **Phase Q — Secure Member Management & Invitation Backend** 🚧
+3. **Phase Q — Secure Member Management & Invitation Backend** ✅ *(Suggested for Closure)*
 4. **Auth UX Checkpoint — Email-First Authentication Flow**
 5. **Phase R — Business Accountability & Audit Trail**
 6. **Phase S — Production Environment & Secrets Setup**
@@ -894,13 +888,13 @@ Allow a company owner to add users to the company so the system can be used by m
 
 ## Items intentionally deferred from Phase O
 
-- Change member role — completed later in Phase Q.
-- Deactivate/reactivate member — completed later in Phase Q.
+- Change member role — completed in Phase Q.
+- Deactivate/reactivate member — completed in Phase Q.
 - Remove member access — still future scope.
 - Prevent last owner deactivation/removal — deactivation protected now; future remove/transfer flow still needs dedicated safeguards.
 - Audit logs for member lifecycle actions — planned in Phase R.
-- Invitation email delivery — still pending decision.
-- Production invitation email backend / Edge Function — still pending decision.
+- Invitation email delivery — deferred to Phase S.
+- Production invitation email backend / Edge Function — deferred to Phase S.
 
 ---
 
@@ -1123,43 +1117,23 @@ Implemented:
 
 ### Step Q4.8 — Decide Invitation Email Delivery Scope
 
-Current active product checkpoint.
+Completed.
 
-Open decision:
+Decision:
+- **Defer real invitation email delivery to Phase S (Production Environment & Secrets Setup).**
+- Phase Q retains the highly secure **in-app invitation flow** only (invitations are managed, accepted, and cancelled safely through the pending invitation flow and backend RPCs.).
+- Establishing a real email provider, Supabase Edge Functions, email templates, custom domain verification, resend behaviors, and email error handling is production-readiness work that does not block core product features.
 
-- Decide whether invitation email delivery belongs inside the remaining Phase Q scope or a later production-readiness checkpoint.
+Status of Remaining Phase Q items:
+- **Decide invitation email delivery scope:** Completed (deferred to Phase S).
+- **Decide future remove-access strategy:** Completed. Soft deactivate is sufficient for now; full removal can be introduced later if business necessity dictates.
+- **Preserve future last-owner protections:** Transferred as a design rule to future ownership transfer/removal features.
+- **Prepare Phase R audit integration:** Transferred as a required target mapping for Phase R (Business Accountability & Audit Trail).
 
-If kept inside Phase Q:
+Recommendation:
+- Since all currently scoped Phase Q deliverables have been implemented and the remaining email-delivery work has been deferred to Phase S, 
 
-- Define the production invitation email flow.
-- Choose the backend delivery approach.
-- Implement secure invitation email sending without exposing privileged keys in Flutter.
-
-If moved out of Phase Q:
-
-- Document it clearly as later production-readiness work.
-- Close Phase Q after confirming no other member-management work is required now.
-
-Also decide:
-
-- Whether direct DB/RPC security re-verification is needed after the completed UI connection.
-
-## Remaining Phase Q items
-
-- Decide invitation email delivery scope.
-- Implement invitation email delivery only if it remains inside Phase Q.
-- Decide future remove-access strategy:
-  - Keep soft deactivate only for now
-  - Add remove access later only if business need is clear
-- Preserve future last-owner protections for any later ownership transfer/remove-access flow.
-- Prepare Phase R audit integration for:
-  - invite
-  - cancel invitation
-  - accept invitation
-  - role change
-  - deactivate
-  - reactivate
-  - future remove-access action
+**Phase Q is recommended for formal closure.**
 
 ---
 
@@ -1248,6 +1222,7 @@ Prepare the project for safe production deployment.
 - Production storage review.
 - Production auth/site URL review.
 - Production email/redirect review.
+- **Invitation email delivery integration:** Setup an SMTP/email delivery provider, secure backend Edge Functions, invitation email templates, custom sender verification, and resend/error handling.
 - Release-safe configuration documentation.
 
 ---
@@ -1522,7 +1497,7 @@ Support more flexible permissions beyond fixed roles.
 
 These items are intentionally not forgotten even when they are not the current active step:
 
-- Invitation email delivery decision and possible production email backend.
+- **Invitation email delivery & production backend (SMTP / Edge Functions)** — deferred from Phase Q to Phase S.
 - Future remove-access flow if business need becomes clear.
 - Last-owner protections for future ownership transfer/remove-access flows.
 - Direct accountability and audit trail implementation.
@@ -1547,5 +1522,5 @@ These items are intentionally not forgotten even when they are not the current a
 
 # Current Next Action
 
-Resume product work from Phase Q:
-- **Step Q4.8 — Decide invitation email delivery scope**
+- Formally close Phase Q and proceed to:
+  - **Auth UX Checkpoint — Email-First Authentication Flow**
