@@ -8,17 +8,26 @@
 
 ---
 
-Latest verified pushed commit:
+Latest verified pushed **code** commit:
 
-`6ab81d26a655cb9db9a47de451b89a0c6be40773`
+`5e7394bdbd7932c90f338dee8e9cf207b46e598a`
 
 Commit message:
 
-`complete team member lifecycle ui`
+`refactor(workers): split cubit mutations and enforce unique names`
 
 This roadmap is the single source of truth for the Mina System project.
 
 It is based on the real GitHub repository, not the README.
+
+Current high-level state:
+
+- Current product phase:
+  - **Phase Q — Secure Member Management & Invitation Backend**
+- Current product checkpoint:
+  - **Step Q4.8 — Decide invitation email delivery scope**
+- Current parallel engineering checkpoint:
+  - **Maintainability Refactor Pass — Post-Batch-6 audit**
 
 ---
 
@@ -88,13 +97,16 @@ The product should eventually support:
 - Update this roadmap after each completed feature or major checkpoint.
 - Do not create multiple roadmap files.
 - If a file becomes too large, refactor it into smaller focused files without changing working behavior.
+- Do not split files only to reduce line count; split only when responsibilities are mixed or maintainability clearly improves.
+- Large but cohesive files may remain as-is when splitting them would create unnecessary fragmentation.
+- During maintainability refactors, preserve the current UI, workflow, permissions, validation, and business logic unless an explicitly approved bug fix or rule change is part of the batch.
 - When changing existing files during guided development, provide complete file replacements when requested.
 - Keep implementation scalable and maintainable.
 - Start with simple fixed-role permissions, but keep the structure ready for future custom permission overrides.
 - Prefer completing one coherent feature/checkpoint before opening a different large area.
 - Avoid mixing unrelated architecture changes inside the same checkpoint.
 
-After each completed feature:
+After each completed feature or major checkpoint:
 
 1. Test manually.
 2. Run `dart format lib`.
@@ -199,6 +211,9 @@ Follow this pattern where applicable:
   - A clear initial workspace selection flow when needed.
   - Persistent last selected workspace behavior.
   - A visible manual `Switch Company` action.
+- If a Cubit intentionally preserves search state across navigation, the visible search field must restore the same query when the screen is rebuilt.
+- If the backend loads a list in a defined order, local add/update state should preserve the same order unless a product decision explicitly changes sorting behavior.
+- Long scrollable screens that rebuild after mutations should preserve scroll position when practical.
 
 ## Responsive / Adaptive Rules
 
@@ -308,6 +323,34 @@ Future scalable direction:
   - Extra allowed permissions
   - Explicit denied permissions
 - Future custom permissions should not require rebuilding all screens from scratch.
+
+## Data Quality Rules
+
+- HR Code remains the technical unique identifier for workers.
+- Worker names must also remain unique inside the same company in the current app flow to prevent accidental duplicate worker records.
+- Worker-name duplicate comparison uses Unicode-safe normalization.
+- Current worker-name duplicate normalization ignores:
+  - Case differences
+  - Extra spaces
+  - Separators and punctuation such as spaces, hyphens, dots, underscores, slashes, and commas
+- Examples treated as the same normalized worker name:
+  - `Ahmed Ali`
+  - `ahmed ali`
+  - `AHMED   ALI`
+  - `Ahmed-Ali`
+  - `Ahmed.Ali`
+  - `Ahmed_Ali`
+  - `Ahmed/Ali`
+  - `Ahmed, Ali`
+- If two real workers genuinely share the same apparent name, the entered name should be made more complete or more specific so both records remain clearly distinguishable.
+- Worker-name duplicate protection is currently enforced in:
+  - Form validation
+  - In-memory helper validation
+  - Cubit add flow
+  - Cubit update flow
+  - Repository backend checks
+- Future hardening consideration:
+  - Decide later whether production requires an additional database-level unique protection for normalized worker names.
 
 ## Data Accountability Rules
 
@@ -475,7 +518,6 @@ Both are required.
 - Reports / PDF core reports are working.
 - Lost/Damaged approval and settlement workflow core flow is working.
 - Android signed approval document opening is working.
-- Large file refactor checkpoint is mostly done.
 - Flutter SDK upgrade checkpoint is done.
 - Responsive and orientation hardening audit is completed.
 - Cross-platform image compression foundation is implemented.
@@ -559,10 +601,132 @@ Both are required.
 - Multi-company inactive-membership behavior was manually verified:
   - If a user is deactivated from one company but still has another active company, the app opens the remaining active company automatically.
   - Company switching disappears when only one active company remains.
-  
-## Current Active Phase
+- Tools now preserve alphabetical order after load/add/update.
+- Workers now preserve alphabetical order after load/add/update.
+- Worker names are protected against duplicate normalized names inside the same company through local and repository checks.
+- Visible search-query state remains synchronized after navigation for:
+  - Tools
+  - Workers
+  - Transactions
+  - Custody Balance
+  - Tool Summary
 
-**Phase Q — Secure Member Management & Invitation Backend**
+## Recently Completed Maintainability / Stability Work
+
+### Batch 1 — Company Users UI Modularization
+
+Completed.
+
+- `company_users_section.dart` was reduced by extracting focused UI/helper files:
+  - `company_users_helpers.dart`
+  - `company_users_dialogs.dart`
+  - `invite_company_user_form.dart`
+  - `company_members_list.dart`
+  - `company_invitations_list.dart`
+
+### Batch 2 — Company Users Cubit + Pending Invitations Modularization
+
+Completed.
+
+- `company_users_cubit.dart` was split into focused part files:
+  - `company_users_cubit_members.dart`
+  - `company_users_cubit_invitations.dart`
+- `pending_company_invitations_screen.dart` was reduced by extracting:
+  - `pending_company_invitation_card.dart`
+  - `pending_invitations_views.dart`
+
+### UX Fix — Team Scroll Preservation
+
+Completed.
+
+- Team page scroll position is preserved after:
+  - Change Role
+  - Deactivate
+  - Reactivate
+- Implemented with `PageStorageKey`.
+
+### Batch 3 — Company Settings Modularization
+
+Completed.
+
+- `company_settings_cubit.dart` was split into:
+  - `company_settings_cubit_profile.dart`
+  - `company_settings_cubit_reports.dart`
+  - `company_settings_cubit_documents.dart`
+- `company_report_settings_form.dart` was split into:
+  - `report_settings_format_fields.dart`
+  - `report_settings_visibility_switches.dart`
+  - `report_settings_statement_fields.dart`
+- `document_template_card.dart` was split into:
+  - `document_template_general_fields.dart`
+  - `document_template_signature_fields.dart`
+- `company_settings_screen.dart` now preserves scroll position using `PageStorageKey`.
+
+### Batch 4 — Current Context Modularization
+
+Completed.
+
+- `current_context_gate.dart` was reduced by extracting:
+  - `current_context_loading_view.dart`
+  - `current_context_offline_view.dart`
+  - `current_context_failure_view.dart`
+- `select_company_screen.dart` was reduced by extracting:
+  - `company_selection_list.dart`
+  - `pending_company_invitations_section.dart`
+- Existing `PendingCompanyInvitationCard` was reused instead of duplicated.
+- `current_context_cubit.dart` was intentionally left unchanged because it remained cohesive.
+
+### Batch 5 — Tools Cubit Modularization + State Consistency
+
+Completed.
+
+- `tools_cubit.dart` was split into:
+  - `tools_cubit_add.dart`
+  - `tools_cubit_update.dart`
+  - `tools_cubit_delete.dart`
+- `add_edit_tool_form.dart` was intentionally left unchanged because it remained cohesive.
+- Added centralized alphabetical ordering:
+  - `sortToolsAlphabetically`
+- `emitUpdatedTools(...)` now preserves alphabetical order after load/add/update.
+- Fixed visible search-state desynchronization in Tools:
+  - Preserved Cubit query state is now visibly restored in the search field after navigation.
+
+### Cross-Feature Search-State Fix
+
+Completed.
+
+- Visible query state is now restored correctly after navigation for:
+  - Workers
+  - Transactions
+  - Custody Balance
+  - Tool Summary
+- Search fields now remain visually synchronized with Cubit state instead of appearing empty while the list stays filtered.
+
+### Batch 6 — Workers Cubit Modularization + Data Quality Hardening
+
+Completed.
+
+- `workers_cubit.dart` was split into:
+  - `workers_cubit_add.dart`
+  - `workers_cubit_update.dart`
+  - `workers_cubit_delete.dart`
+- `add_worker_form.dart` was intentionally kept as a cohesive form instead of being fragmented for line-count reasons.
+- Added centralized alphabetical ordering:
+  - `sortWorkersAlphabetically`
+- `emitUpdatedWorkers(...)` now preserves alphabetical order after load/add/update.
+- Added strong normalized duplicate worker-name prevention inside the same company.
+- Worker-name duplicate prevention now covers:
+  - Form validation
+  - In-memory helper validation
+  - Cubit add flow
+  - Cubit update flow
+  - Repository backend checks
+
+---
+
+# Current Active Product Phase
+
+## Phase Q — Secure Member Management & Invitation Backend
 
 Status:
 
@@ -576,21 +740,20 @@ Completed in current phase:
 - Step Q3 — Secure member role-change backend + Flutter flow completed.
 - Step Q4 backend foundation — Secure deactivate/reactivate RPCs completed and direct SQL security tests passed.
 - Step Q4.7 — Team access refactor and member lifecycle UI completed.
-Current active checkpoint:
+
+Current product checkpoint:
 
 **Step Q4.8 — Decide invitation email delivery scope**
 
-Current decision:
+Current decisions already made:
 
-- Move member management out of `Settings`.
-- Add a dedicated `Team` area for company users/member lifecycle.
-- Keep `Settings` focused on company configuration only.
-- Allow Warehouse Manager to manage lifecycle access for lower roles only:
+- Member management lives in a dedicated `Team` area, not inside `Settings`.
+- `Settings` remains focused on company configuration.
+- Warehouse Manager can manage lifecycle access for lower roles only:
   - `warehouse_user`
   - `viewer`
 
-:
-Next required work:
+Next required product decisions:
 
 - Decide whether invitation email delivery belongs inside the remaining Phase Q scope or a later production-readiness checkpoint.
 - If kept inside Phase Q:
@@ -600,13 +763,62 @@ Next required work:
 - If moved out of Phase Q:
   - Document it clearly as a later production-readiness item.
   - Close Phase Q after confirming no other member-management work is required now.
-- Decide whether direct DB/RPC security re-verification is needed after the completed UI connection. The backend RPC logic itself was not changed during Step Q4.7.
+- Decide whether direct DB/RPC security re-verification is needed after the completed UI connection.
+  - The backend RPC logic itself was not changed during Step Q4.7.
 
 Reason for priority:
 
 Phase P completed the RBAC foundation for fixed roles across Flutter UI, Supabase RLS, and Storage policies.
 
-Phase Q is now hardening company-user management through secure backend mutations, protected member lifecycle operations, multi-company flows, and a cleaner Team architecture before audit logging and release-readiness work begin.
+Phase Q is hardening company-user management through secure backend mutations, protected member lifecycle operations, multi-company flows, and a cleaner Team architecture before audit logging and release-readiness work begin.
+
+---
+
+# Current Active Engineering Checkpoint
+
+## Maintainability Refactor Pass — Post-Batch-6 Audit
+
+Status:
+
+**In Progress**
+
+Goal:
+
+Improve readability and future maintainability of large files without changing approved product behavior unless a separately approved bug fix or rule change is included.
+
+Completed in this checkpoint:
+
+- Batch 1 — Company Users UI modularization
+- Batch 2 — Company Users Cubit + pending invitations modularization
+- Team scroll-preservation fix
+- Batch 3 — Company Settings modularization
+- Batch 4 — Current Context modularization
+- Batch 5 — Tools Cubit modularization + sorting/search-state fixes
+- Cross-feature search-state fix
+- Batch 6 — Workers Cubit modularization + sorting + normalized unique worker names
+
+Known decisions from the checkpoint:
+
+- Leave cohesive large files unchanged when splitting would add fragmentation without real maintainability value.
+- Current examples intentionally left cohesive:
+  - `current_context_cubit.dart`
+  - `add_edit_tool_form.dart`
+  - `add_worker_form.dart`
+- Prefer feature-by-feature refactors.
+- Prefer part-file extensions for large Cubits when mutation flows are genuinely separate.
+
+Current next maintenance work:
+
+1. Run a fresh audit of the remaining large files after Batch 6.
+2. Rank candidates by maintainability value, not line count alone.
+3. Re-evaluate whether the Transactions feature deserves the next batch.
+4. Decide whether another coherent refactor batch is justified or whether this maintainability checkpoint is already sufficient to close.
+5. If no further batch is justified now, close the checkpoint and return to the product roadmap from **Step Q4.8**.
+
+Important guardrail:
+
+- This checkpoint must not become an endless cleanup loop.
+- Product progress should resume once the codebase reaches a practical maintainability standard.
 
 ---
 
@@ -656,278 +868,49 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 
 Allow a company owner to add users to the company so the system can be used by more than one person.
 
-This phase supports:
+## Delivered capabilities
 
 - Owner/Admin can invite users by email.
-- Invited user can see pending invitation details.
-- Invited user can join the company through a secure RPC.
-- User membership is stored safely in `company_members`.
+- Invited users can see pending invitation details.
+- Invited users can accept invitations and join a company through secure RPC flow.
+- Membership is stored in `company_members`.
 - Company role is connected to current context.
-- App loads current user companies and roles correctly.
-- Users can access only companies they belong to.
+- App loads companies and roles from membership data.
 - Duplicate pending invitations are blocked.
-- Invitations to already active company members are blocked.
-- Owner/Admin can cancel pending invitations.
+- Invitations to already active members are blocked.
+- Pending invitations can be cancelled.
 
-## Completed implementation
+## Important implementation results
 
-### Step O1 — Audit Current Company/User Structure
+- Added `warehouse_manager` role support.
+- Added `company_invitations` structure and supporting invitation status model.
+- Added secure RPCs for:
+  - `accept_company_invitation`
+  - `cancel_company_invitation`
+- Added models for:
+  - Company members
+  - Company invitations
+  - Invite requests
+- Added `CompanyUsersRepo`, `CompanyUsersCubit`, and Company Users UI foundation.
+- Added no-company invitation handling through `CurrentContextGate`.
+- Added the pending-invitation screen and successful acceptance flow.
 
-Completed.
+## Important security behavior
 
-Confirmed current Supabase structure:
+- Flutter does not use service role keys.
+- Flutter does not call Admin Auth methods directly.
+- Users cannot insert themselves into arbitrary companies.
+- Invitation acceptance/cancellation runs through backend-controlled RPCs.
 
-- `profiles` exists.
-- `companies` exists.
-- `company_members` exists.
-- `company_members.role` uses `company_member_role`.
-- `company_members.status` uses `member_status`.
-- `company_members` already stores current company role source.
-- Current context already loads companies and role from `company_members`.
-- `company_invitations` did not exist before this phase.
+## Items intentionally deferred from Phase O
 
-Confirmed current app structure:
-
-- `CurrentContextRepo` loads current profile and company memberships.
-- `CompanyModel` stores company role.
-- `CurrentContextGate` controls company creation / app entry flow.
-- Company Settings existed but did not include user management before this phase.
-
-### Step O2 — Database Tables, Grants, RLS, RPCs
-
-Completed.
-
-Implemented / confirmed:
-
-- Added missing role:
-  - `warehouse_manager`
-- Created invitation status enum:
-  - `company_invitation_status`
-- Created table:
-  - `company_invitations`
-- Added fields:
-  - `company_id`
-  - `email`
-  - `role`
-  - `status`
-  - `invited_by_profile_id`
-  - `accepted_by_profile_id`
-  - `cancelled_by_profile_id`
-  - `expires_at`
-  - `created_at`
-  - `accepted_at`
-  - `cancelled_at`
-  - `updated_at`
-- Added indexes:
-  - company lookup index
-  - lower-email lookup index
-  - status index
-  - unique pending invitation index per company/email
-- Added safe grants at the time of Phase O:
-  - authenticated can `select`
-  - authenticated can `insert`
-  - direct `update` removed
-- Added RLS policies:
-  - Owner/Admin can read company invitations.
-  - Invited users can read their pending invitations.
-  - Owner/Admin can create pending invitations.
-  - Invited users can read invited company basic data.
-  - Invited users can read inviter profile.
-  - Company members can read profiles of active members in the same company.
-- Added secure RPCs:
-  - `accept_company_invitation(uuid)`
-  - `cancel_company_invitation(uuid)`
-- Added trigger/function:
-  - Prevent inviting an email that already belongs to an active company member.
-
-Important historical note:
-
-- Direct authenticated insert access was later closed in Phase Q after invitation creation moved to the secure `invite_company_user` RPC.
-
-Important security behavior:
-
-- Flutter does not use service role key.
-- Flutter does not call Supabase Admin Auth methods.
-- Accepting invitation is handled by RPC.
-- Cancelling invitation is handled by RPC.
-- Users cannot directly insert themselves into arbitrary companies.
-- Users cannot directly update invitation status from Flutter.
-
-### Step O3 — Models
-
-Completed.
-
-Added:
-
-- `CompanyMemberModel`
-- `CompanyInvitationModel`
-- `InviteCompanyUserRequest`
-
-Implemented model support for:
-
-- Company member profile details.
-- Invitation company details.
-- Inviter profile details.
-- Invitation status/date fields.
-- Role display data.
-
-### Step O4 — Repository
-
-Completed.
-
-Added:
-
-- `CompanyUsersRepo`
-
-Implemented:
-
-- `getCompanyMembers`
-- `getCompanyInvitations`
-- `getCurrentUserPendingInvitations`
-- `inviteCompanyUser`
-- `acceptCompanyInvitation`
-- `cancelCompanyInvitation`
-
-Important fixes:
-
-- `company_members` profile join uses explicit FK:
-  - `member_profile:profiles!company_members_profile_id_fkey`
-- `company_invitations` joins company and inviter profile details using explicit embedded selects.
-
-### Step O5 — Cubit / State
-
-Completed.
-
-Added:
-
-- `CompanyUsersCubit`
-- `CompanyUsersState`
-
-State supports:
-
-- members
-- invitations
-- loading
-- submitting
-- error message
-- clear error message
-- pending invitation filtering
-
-Cubit supports:
-
-- Load company users.
-- Load current user pending invitations.
-- Invite company user.
-- Accept invitation.
-- Cancel invitation.
-- Online check before mutations.
-
-### Step O6 — Company Users UI
-
-Completed.
-
-Added Company Users section under Company Settings.
-
-The UI supports:
-
-- Display company members.
-- Display member name/email/role/status.
-- Invite users by email.
-- Select invite role.
-- Display pending invitations.
-- Cancel pending invitations.
-- Show clear messages on success/error.
-- Responsive layout for compact/tablet screens.
-
-Completed UI fixes:
-
-- Fixed `Expanded` inside compact `Column` layout issue.
-- Fixed company member profile display.
-- Fixed unknown member caused by profile RLS.
-- Added visible error text for failed loading.
-
-### Step O7 — Invitation Acceptance Flow
-
-Completed.
-
-Added:
-
-- `PendingCompanyInvitationsScreen`
-- No-company invitation gate inside `CurrentContextGate`
-
-Flow now works as follows:
-
-- User logs in.
-- Current context loads.
-- If user has company membership, app opens normally.
-- If user has no company, app checks pending invitations.
-- If pending invitation exists, app shows invitation details.
-- If no pending invitation exists, app shows Create Company screen.
-- User can accept invitation.
-- RPC creates/activates company membership.
-- Invitation becomes accepted.
-- Current context reloads.
-- User enters the company workspace.
-
-Invitation screen displays:
-
-- Company name.
-- Invited email.
-- Invited by name.
-- Invited by email.
-- Assigned role.
-- Expiration date.
-- Accept Invitation button.
-
-Completed flow fixes:
-
-- Fixed blinking/loading loop by keeping invitation loading inside the gate only.
-- Added RLS policies so invited users can read company/inviter details before accepting.
-- Added profile RLS so company members can see member names/emails.
-
-### Step O8 — Manual Test
-
-Completed.
-
-Tested and confirmed:
-
-- Owner can invite a user.
-- Pending invitation appears in Company Users.
-- Owner can cancel pending invitation.
-- Cancelled invitations are removed from pending UI.
-- Invited email can see pending invitation.
-- Invitation details show company and inviter information.
-- Invited user can accept invitation.
-- Accepted user joins company.
-- Accepted user gets correct role.
-- Accepted user appears in Company Users.
-- Owner can see accepted user's name/email.
-- Duplicate pending invitation is blocked by unique index.
-- Inviting an already active company member is blocked at database level.
-- Business-rule database errors are shown clearly to the user.
-
-## Items moved out of Phase O
-
-The following items were intentionally deferred from Phase O:
-
-- Change member role.
-- Deactivate/reactivate member.
-- Remove member access from company.
-- Prevent last owner deactivation/removal.
-- Audit logs for invite/cancel/accept/role-change/deactivate/reactivate/remove actions.
-- Email delivery for invitations.
-- Supabase Edge Function for production invitation email sending.
-
-Current follow-up status:
-
-- Change member role: completed in Phase Q.
-- Deactivate/reactivate backend RPCs: completed in Phase Q.
-- Remove member access: still pending.
-- Last owner protection for deactivation: covered because owner deactivation is blocked.
-- Last owner protection for future remove/transfer flows: still pending.
-- Audit logs: pending Phase R.
-- Invitation email delivery: still pending.
-- Production invitation email sending backend/Edge Function: still pending.
+- Change member role — completed later in Phase Q.
+- Deactivate/reactivate member — completed later in Phase Q.
+- Remove member access — still future scope.
+- Prevent last owner deactivation/removal — deactivation protected now; future remove/transfer flow still needs dedicated safeguards.
+- Audit logs for member lifecycle actions — planned in Phase R.
+- Invitation email delivery — still pending decision.
+- Production invitation email backend / Edge Function — still pending decision.
 
 ---
 
@@ -939,18 +922,7 @@ Current follow-up status:
 
 Restrict app actions based on the current user's company role.
 
-Phase O made multi-user company access possible. Phase P made that access safer by enforcing fixed-role access through:
-
-- Flutter UI permission helpers
-- Navigation filtering
-- Screen/action-level permission checks
-- Supabase RLS write policies
-- Supabase Storage policies
-- Manual role testing
-
-## Role Model Implemented
-
-Implemented fixed roles:
+## Role model implemented
 
 - `owner`
 - `admin`
@@ -958,407 +930,46 @@ Implemented fixed roles:
 - `warehouse_user`
 - `viewer`
 
-Important design decision:
+## Delivered capabilities
 
-- This phase uses fixed roles.
-- The owner changes a user's role to change access.
-- Per-user custom permission overrides are future scope.
-- The permission helper is intentionally structured to allow future expansion.
+- Central permission helper structure through `CompanyRolePermissions`.
+- Navigation filtered by current company role.
+- Screen and action permissions enforced in Flutter UI.
+- Supabase public-table write policies aligned with the fixed-role matrix.
+- Supabase Storage upload policies aligned with the fixed-role matrix.
+- Manual testing completed across all implemented roles.
 
-## Implemented Permission Behavior
+## Current role behavior summary
 
 ### Owner
 
-Owner has full access to currently implemented features:
-
-- Dashboard
-- Workers
-- Tools
-- Transactions
-- Pending Approvals
-- Custody Balance
-- Tool Summary
-- Reports
-- Lookups
-- Settings
-- Company Profile
-- Company Logo
-- Company Users
-- Report Settings
-- Document Templates
-- Upload transaction proof images
-- Upload signed approval documents
-- Approve/reject lost or damaged transactions
-- Settle approved lost/damaged transactions
+Full access to currently implemented features.
 
 ### Admin
 
-Admin is treated as near-owner for currently implemented features:
-
-- Dashboard
-- Workers
-- Tools
-- Transactions
-- Pending Approvals
-- Custody Balance
-- Tool Summary
-- Reports
-- Lookups
-- Settings
-- Company Profile
-- Company Logo
-- Company Users
-- Report Settings
-- Document Templates
-- Upload transaction proof images
-- Upload signed approval documents
-- Approve/reject lost or damaged transactions
-- Settle approved lost/damaged transactions
-
-Future difference:
-
-- Owner should remain higher than Admin for sensitive actions such as:
-  - Transfer ownership
-  - Delete company
-  - Manage subscription owner-level billing
-  - Promote users to owner
-  - Remove/deactivate last owner
+Near-owner access to currently implemented features, but not future owner-only actions such as ownership transfer, delete company, or owner-level billing control.
 
 ### Warehouse Manager
 
-Warehouse Manager can:
+Can manage operational data and workflows, including workers, tools, lookups, transactions, approvals, settlements, and reports.
 
-- View Dashboard
-- View/manage Workers
-- View/manage Tools
-- View/manage Lookups
-- View/create Transactions
-- Upload transaction proof images
-- Upload signed approval documents
-- Approve/reject lost or damaged transactions
-- Settle approved lost/damaged transactions
-- View/generate Reports
-
-Warehouse Manager cannot in the Phase P implementation:
-
-- See Settings tab
-- Manage Company Users
-- Invite users
-- Manage company profile/logo/report settings/templates
-- Manage subscriptions
-
-Phase Q follow-up decision:
-
-- Warehouse Manager should be able to manage lifecycle access for lower roles:
-  - `warehouse_user`
-  - `viewer`
-- This will be exposed through a dedicated `Team` area, not by opening the whole Settings area.
+After Phase Q decisions, Warehouse Manager can also manage Team lifecycle access for lower roles only through the dedicated `Team` area.
 
 ### Warehouse User
 
-Warehouse User can:
-
-- View Dashboard
-- View Workers
-- View Tools
-- View Transactions
-- Create Transactions
-- Upload transaction proof images
-- View Pending Approvals
-- View Custody Balance
-- View Tool Summary
-- View/generate Reports according to current helper configuration
-
-Warehouse User cannot:
-
-- Add/edit/delete Workers
-- Add/edit/delete Tools
-- See Lookups tab
-- See Settings tab
-- Upload signed approval documents
-- Approve/reject lost or damaged transactions
-- Settle approved lost/damaged transactions
-- Manage Company Users
-- Manage company settings
+Can use operational flows allowed by the current product design, including transaction creation and proof upload, but cannot manage settings, team, approvals, or master-data mutations.
 
 ### Viewer
 
-Viewer can:
+Read-only access limited to allowed areas.
 
-- View Dashboard
-- View Reports according to current helper configuration
+## Security rule carried forward
 
-Viewer cannot:
+UI restrictions are not enough on their own.
 
-- See Workers tab
-- See Tools tab
-- See Transactions tab
-- See Lookups tab
-- See Settings tab
-- Create/update/delete any business data
-- Upload documents
-- Manage approvals
-- Manage company users/settings
+Every role-sensitive mutation must also be protected at database or storage-policy level.
 
-Future note:
-
-- If Viewer should become strictly view-only without report generation, remove `generateReports` from `viewer` permissions in `CompanyRolePermissions`.
-
-## Completed implementation
-
-### Step P1 — Audit Current Role Usage
-
-Completed.
-
-Reviewed:
-
-- `PROJECT_ROADMAP.md`
-- `CurrentContextRepo`
-- `CurrentContextCubit`
-- `CompanyModel`
-- `current_context_extensions.dart`
-- `AppShell`
-- `AppNavItems`
-- Workers screens/actions
-- Tools screens/actions
-- Transactions screens/actions
-- Lookups screens/actions
-- Reports screens/actions
-- Company Settings screens/actions
-- Company Users section
-- Existing Supabase RLS policies
-- Existing Supabase helper functions
-- Existing Supabase Storage policies
-
-Confirmed role source:
-
-- `company_members.role`
-- `CurrentContextRepo`
-- `CompanyModel.role`
-- `context.currentUserRole`
-
-Confirmed existing helper functions:
-
-- `private.current_profile_id()`
-- `private.is_company_member(uuid)`
-- `private.has_company_role(uuid, company_member_role[])`
-- `private.company_id_from_storage_path(text)`
-
-### Step P2 — Add Flutter Permission Helpers
-
-Completed.
-
-Added central role/permission helper:
-
-- `lib/core/permissions/company_role_permissions.dart`
-
-Implemented:
-
-- `CompanyPermission`
-- `CompanyRoles`
-- `CompanyRolePermissions`
-
-Included permission methods for:
-
-- Dashboard
-- Workers
-- Tools
-- Transactions
-- Lost/Damaged approval workflow
-- Custody balance
-- Tool summary
-- Reports
-- Lookups
-- Company settings
-- Company users
-- Invitations
-- Member management placeholders/future methods
-
-Supported role assignment helpers:
-
-- `assignableRolesFor`
-- `canAssignRole`
-- `canManageTargetRole`
-
-Important scalability decision:
-
-- The current helper uses fixed role permissions.
-- Structure is ready for future custom permission overrides.
-
-### Step P3 — Apply UI Restrictions
-
-Completed.
-
-Updated app navigation:
-
-- `AppNavItem`
-- `AppNavItems`
-- `DesktopShell`
-- `TabletShell`
-- `MobileShell`
-
-Navigation is now filtered by current user role.
-
-Updated Company Users:
-
-- Replaced local Owner/Admin check with `CompanyRolePermissions`.
-- Owner can invite Admin/Warehouse Manager/Warehouse User/Viewer.
-- Admin can invite Warehouse Manager/Warehouse User/Viewer.
-- Lower roles cannot view Company Users section in the Phase P implementation.
-
-Updated Workers:
-
-- Owner/Admin/Warehouse Manager can Add/Edit/Delete.
-- Warehouse User can view only.
-- Viewer cannot see Workers tab.
-
-Updated Tools:
-
-- Owner/Admin/Warehouse Manager can Add/Edit/Delete.
-- Warehouse User can view only.
-- Viewer cannot see Tools tab.
-
-Updated Transactions:
-
-- Owner/Admin/Warehouse Manager/Warehouse User can create transactions.
-- Warehouse User can upload transaction proof images.
-- Warehouse User sees View only in Pending Approvals.
-- Owner/Admin/Warehouse Manager can upload signed approval documents.
-- Owner/Admin/Warehouse Manager can approve/reject/settle.
-- Viewer cannot see Transactions tab.
-
-Updated Lookups:
-
-- Owner/Admin/Warehouse Manager can Add/Delete lookups.
-- Warehouse User cannot see Lookups tab.
-- Viewer cannot see Lookups tab.
-- Lookup list tiles support hidden delete actions.
-
-Updated Company Settings:
-
-- Settings tab visible only to Owner/Admin.
-- Internal settings sections also use permission checks for future scalability.
-- Company Profile, Company Logo, Company Users, Report Settings, and Document Templates are permission-gated.
-
-Updated Reports:
-
-- Report cards respect `canGenerateReports`.
-- Report Builder and Preview PDF respect `canGenerateReports`.
-- Future read-only report behavior is supported.
-
-### Step P4 — Align Public Table RLS Policies
-
-Completed.
-
-Audited RLS status:
-
-- All important public tables have RLS enabled.
-
-Tables confirmed with RLS:
-
-- `companies`
-- `company_document_templates`
-- `company_invitations`
-- `company_members`
-- `company_report_settings`
-- `departments`
-- `job_titles`
-- `profiles`
-- `tool_categories`
-- `tool_units`
-- `tools`
-- `transactions`
-- `workers`
-
-Updated write policies for:
-
-- `workers`
-- `tools`
-- `departments`
-- `job_titles`
-- `tool_categories`
-- `tool_units`
-- `transactions`
-
-Confirmed intended write access:
-
-- Workers:
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-- Tools:
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-- Lookups:
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-- Transactions insert:
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-  - `warehouse_user`
-- Transactions approval workflow update:
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-
-### Step P5 — Align Storage Policies
-
-Completed.
-
-Updated storage policies for:
-
-- `transaction-proofs`
-- `transaction-approval-documents`
-
-Confirmed intended upload access:
-
-- `transaction-proofs`
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-  - `warehouse_user`
-- `transaction-approval-documents`
-  - `owner`
-  - `admin`
-  - `warehouse_manager`
-
-Important fix:
-
-- Upload Signed initially failed because of Storage RLS:
-  - `new row violates row-level security policy`
-- Fixed by simplifying the policy and using:
-  - `private.company_id_from_storage_path(name)`
-- Upload Signed worked after the policy correction.
-
-### Step P6 — Manual Role Testing
-
-Completed.
-
-Tested manually:
-
-- Owner
-- Admin
-- Warehouse Manager
-- Warehouse User
-- Viewer
-
-Confirmed:
-
-- Navigation matches role.
-- Worker actions match role.
-- Tool actions match role.
-- Transaction actions match role.
-- Lookups visibility/actions match role.
-- Settings visibility matches role.
-- Report generation checks are enforced in UI.
-- Storage upload behavior matches intended roles.
-- Warehouse User can upload proof image but cannot upload signed approval document.
-- Viewer cannot access hidden operational tabs.
-
-## Phase P Documentation
+## Phase P documentation
 
 Created:
 
@@ -1380,12 +991,12 @@ This phase covers:
 - Multi-company invitation/workspace flows
 - Secure role changes
 - Secure deactivate/reactivate lifecycle operations
-- Team-access refactor
-- Stronger member management UI
+- Team architecture
+- Member lifecycle UI
 - Future audit readiness for member actions
-- Future invitation email delivery decision
+- Invitation email delivery scope decision
 
-## Confirmed Lifecycle Rules
+## Confirmed lifecycle rules
 
 ### Role assignment
 
@@ -1398,11 +1009,11 @@ This phase covers:
   - Warehouse Manager
   - Warehouse User
   - Viewer
-- No user can:
-  - Assign Owner from normal member management
+- No normal member-management flow can:
+  - Assign Owner
   - Change own role
   - Change Owner role
-  - Change same-level Admin rules outside allowed hierarchy
+  - Bypass hierarchy protections
 
 ### Lifecycle management
 
@@ -1428,53 +1039,18 @@ This phase covers:
 
 Confirmed active-membership enforcement:
 
-- `private.is_company_member(...)` requires:
-  - `cm.status = 'active'`
-- `private.has_company_role(...)` requires:
-  - `cm.status = 'active'`
+- `private.is_company_member(...)` requires active membership.
+- `private.has_company_role(...)` requires active membership.
 
-This means inactive users lose effective company access at database level.
+Inactive members therefore lose effective company access at database level.
 
 ## Completed implementation
 
-### Step Q1 — Audit Company Members Management Requirements
+### Step Q1 — Member Lifecycle Audit
 
 Completed.
 
-Reviewed:
-
-- `company_members` structure
-- `company_invitations` structure
-- member/invitation enums
-- constraints
-- indexes
-- RLS status
-- grants
-- existing RPCs
-- `CompanyUsersRepo`
-- `CompanyUsersCubit`
-- `CompanyUsersState`
-- `CompanyUsersSection`
-- `CurrentContextRepo`
-- `current_context_extensions.dart`
-- `CompanyRolePermissions`
-- `AppShell`
-- `AppNavItems`
-
-Confirmed:
-
-- Member lifecycle should use soft deactivation, not physical deletion.
-- `company_members.status` already supports:
-  - `active`
-  - `inactive`
-  - `invited`
-- Current real membership flow uses:
-  - `active`
-  - `inactive`
-- `invited` exists in the enum but is not the real post-acceptance membership flow.
-- Owners must not be manageable through normal member lifecycle actions.
-- Last-owner risk is prevented for deactivation because Owner deactivation is blocked entirely.
-- Future remove-access / ownership-transfer flows still require separate owner safeguards.
+Confirmed required backend protections, hierarchy rules, ownership protections, multi-company impacts, and UI ownership between Settings and Team.
 
 ### Step Q2 — Secure Invitation Creation Backend
 
@@ -1484,82 +1060,24 @@ Implemented secure RPC:
 
 - `invite_company_user(uuid, text, text)`
 
-The RPC now enforces:
+Important results:
 
-- Authenticated actor only.
-- Actor must be active in the target company.
-- Valid invitation role only.
-- Owner cannot be invited.
-- Owner can invite:
-  - Admin
-  - Warehouse Manager
-  - Warehouse User
-  - Viewer
-- Admin can invite:
-  - Warehouse Manager
-  - Warehouse User
-  - Viewer
-- Duplicate pending invitation remains blocked.
-- Already-active-member invitation remains blocked.
-
-Flutter changes:
-
-- `CompanyUsersRepo.inviteCompanyUser()` now calls:
-  - `invite_company_user`
-- Legacy direct insert path is no longer used by Flutter.
-
-Security hardening:
-
-- Removed legacy direct authenticated insert privilege from `company_invitations`.
-- Removed old direct-insert RLS policy:
-  - `Owners and admins can create pending company invitations`
-- `authenticated` now keeps only:
-  - `SELECT`
-  on `company_invitations`.
-
-Manual test:
-
-- Owner can still create invitation successfully after direct insert path was closed.
+- Flutter moved from direct insert to secure RPC path.
+- Direct authenticated insert access to `company_invitations` was closed.
+- Duplicate pending invitation and active-member protections were preserved.
 
 ### Step Q2A — Multi-Company Invitation & Workspace Flow
 
 Completed.
 
-Reason:
-
-- Existing invitation flow originally assumed users had either:
-  - no company
-  - or one company
-- A user who already owned one company but was invited to a second company needed a correct multi-company flow.
-
 Implemented:
 
-- Split invitation state into:
-  - `companyInvitations`
-  - `currentUserInvitations`
-- Added dedicated loading:
-  - `isCurrentUserInvitationsLoading`
-- Fixed current-user invitation query to filter by the signed-in user's email only.
-- Existing users can now see invitations to additional companies.
-- Added `SelectCompanyScreen`.
-- Added multi-company workspace selection flow.
-- Added persistent local storage for last selected company per profile through:
-  - `CurrentCompanyStorageService`
-- Added manual `Switch Company` action in:
-  - `AppTopBar`
-  - `MobileShell`
-- Added `loadCurrentContext(restoreLastSelectedCompany: false)` flow after accepting a new invitation, so a user can choose between companies after joining another workspace.
-
-Manual test confirmed:
-
-- A user with one company can receive an invitation to another company.
-- The invitation appears for the invited account only.
-- The inviter does not see the invited user's own pending invitation.
-- The invited user can accept the invitation.
-- A user with multiple companies can choose a workspace.
-- Refresh preserves the last selected workspace.
-- `Switch Company` opens workspace selection manually.
-- Selecting another company persists after refresh.
+- Additional-company invitations for existing users
+- Separate current-user invitation loading
+- `SelectCompanyScreen`
+- Persistent last-selected company storage per profile
+- Manual `Switch Company` action
+- Post-acceptance workspace selection flow for users with multiple companies
 
 ### Step Q3 — Secure Member Role Change
 
@@ -1569,147 +1087,77 @@ Implemented secure RPC:
 
 - `change_company_member_role(uuid, uuid, text)`
 
-The RPC enforces:
+Direct DB security tests passed for hierarchy, self-protection, and owner protection.
 
-- Authenticated actor only.
-- Actor must be active in the company.
-- Valid target member required.
-- No self role change.
-- No Owner role change from normal member management.
-- No assignment to Owner.
-- Owner can assign:
-  - Admin
-  - Warehouse Manager
-  - Warehouse User
-  - Viewer
-- Admin can assign:
-  - Warehouse Manager
-  - Warehouse User
-  - Viewer
-- Admin cannot manage another Admin.
-- Only active/inactive real members can be managed.
-
-Flutter changes:
-
-- Added `changeCompanyMemberRole()` to:
-  - `CompanyUsersRepo`
-  - `CompanyUsersCubit`
-- Added Change Role UI in `CompanyUsersSection`.
-- Fixed dialog-provider context issue by using the parent context.
-
-Manual UI tests confirmed:
-
-- Owner can change lower member roles.
-- Admin can manage lower roles only.
-- Admin cannot assign Admin from the UI.
-- Owner and self rows are protected from invalid UI actions.
-
-Direct DB security tests passed for:
-
-- Admin can change lower-role member.
-- Admin cannot assign Admin.
-- Admin cannot manage another Admin.
-- Admin cannot change own role.
-- Admin cannot change Owner role.
+Flutter repo/cubit/UI flow was connected.
 
 ### Step Q4 — Secure Member Deactivation & Reactivation Backend
 
-Backend foundation completed.
+Completed.
 
 Implemented secure RPCs:
 
 - `deactivate_company_member(uuid, uuid)`
 - `reactivate_company_member(uuid, uuid)`
 
-The RPCs enforce:
-
-- Authenticated actor only.
-- Actor must be active in the company.
-- No self deactivation/reactivation.
-- No Owner lifecycle management.
-- Only `active` members can be deactivated.
-- Only `inactive` members can be reactivated.
-- Owner can manage:
-  - Admin
-  - Warehouse Manager
-  - Warehouse User
-  - Viewer
-- Admin can manage:
-  - Warehouse Manager
-  - Warehouse User
-  - Viewer
-- Warehouse Manager can manage:
-  - Warehouse User
-  - Viewer
-
-Confirmed backend membership behavior:
-
-- `private.is_company_member(...)` checks active membership only.
-- `private.has_company_role(...)` checks active membership only.
-- Inactive members lose effective company access through RLS-backed helper functions.
-
 Direct DB security tests passed for:
 
-- Admin can deactivate/reactivate lower-role members.
-- Admin cannot deactivate/reactivate another Admin.
-- Admin cannot deactivate self.
-- Admin cannot deactivate Owner.
-- Warehouse Manager can deactivate/reactivate lower-role members.
-- Warehouse Manager cannot manage another Warehouse Manager.
-- Warehouse Manager cannot manage Admin.
-- Warehouse Manager cannot deactivate self.
-- Warehouse Manager cannot deactivate Owner.
-
-## Current in-progress checkpoint
+- Admin hierarchy
+- Warehouse Manager hierarchy
+- Self-deactivation prevention
+- Owner protection
+- Same-level management blocking
 
 ### Step Q4.7 — Team Access Refactor & Member Lifecycle UI
 
-Decision:
+Completed.
 
-- Do not keep member management buried inside `Settings`.
-- Add a dedicated `Team` area.
-- Keep `Settings` focused on company configuration.
-- Expose Warehouse Manager lifecycle permissions through `Team`, not by opening all Settings.
+Implemented:
 
-Planned implementation:
+- Dedicated `Team` area
+- Company user management moved out of `Settings`
+- Role-aware Team navigation
+- Warehouse Manager lifecycle access for lower roles only
+- Repo/Cubit/UI wiring for:
+  - Change Role
+  - Deactivate
+  - Reactivate
+- Silent refresh after mutations
+- Per-action loading
+- Action-specific success messages
+- Manual UI testing for:
+  - Owner
+  - Admin
+  - Warehouse Manager
+- Multi-company inactive-membership behavior verified
 
-1. Update `CompanyRolePermissions`
-   - Add `warehouse_manager` lifecycle permissions for:
-     - `viewCompanyUsers`
-     - `deactivateMember`
-     - `reactivateMember`
-   - Update `canManageTargetRole` to allow Warehouse Manager to manage:
-     - `warehouse_user`
-     - `viewer`
-2. Add dedicated screen:
-   - `lib/features/company_users/presentation/screens/company_users_screen.dart`
-3. Add new nav item:
-   - `Team`
-4. Remove `CompanyUsersSection` from:
-   - `CompanySettingsScreen`
-5. Add Flutter repo/cubit methods:
-   - `deactivateCompanyMember`
-   - `reactivateCompanyMember`
-6. Add lifecycle UI:
-   - Deactivate
-   - Reactivate
-7. Ensure UI visibility matches backend hierarchy.
-8. Manually test by role:
-   - Owner
-   - Admin
-   - Warehouse Manager
-   - Warehouse User
-   - Viewer
-9. Run:
-   - `dart format lib`
-   - `flutter analyze`
-10. Commit / Push
-11. Update roadmap and Supabase documentation.
+### Step Q4.8 — Decide Invitation Email Delivery Scope
+
+Current active product checkpoint.
+
+Open decision:
+
+- Decide whether invitation email delivery belongs inside the remaining Phase Q scope or a later production-readiness checkpoint.
+
+If kept inside Phase Q:
+
+- Define the production invitation email flow.
+- Choose the backend delivery approach.
+- Implement secure invitation email sending without exposing privileged keys in Flutter.
+
+If moved out of Phase Q:
+
+- Document it clearly as later production-readiness work.
+- Close Phase Q after confirming no other member-management work is required now.
+
+Also decide:
+
+- Whether direct DB/RPC security re-verification is needed after the completed UI connection.
 
 ## Remaining Phase Q items
 
-- Complete `Team` access refactor and lifecycle UI.
-- Decide and implement whether production invitation email delivery belongs inside Phase Q or later release-readiness work.
+- Decide invitation email delivery scope.
+- Implement invitation email delivery only if it remains inside Phase Q.
 - Decide future remove-access strategy:
   - Keep soft deactivate only for now
   - Add remove access later only if business need is clear
@@ -1721,6 +1169,7 @@ Planned implementation:
   - role change
   - deactivate
   - reactivate
+  - future remove-access action
 
 ---
 
@@ -1732,7 +1181,7 @@ Planned implementation:
 
 Replace the current ambiguous register-first behavior with a clearer SaaS-style authentication entry flow.
 
-Planned UX:
+## Planned UX
 
 1. User first enters only email.
 2. Backend determines whether an account already exists.
@@ -1745,13 +1194,13 @@ Planned UX:
 5. Invitations remain linked to the same account/email model.
 6. Existing users invited to additional companies log in with the same account and accept the invitation.
 
-Reason for checkpoint:
+## Reason for checkpoint
 
 - Current Supabase signup behavior may return an obfuscated/fake user object for an already registered email under some auth-confirmation settings.
 - The current product UX should become clearer and more professional.
 - Mina System uses one account with multi-company membership, so email-first flow matches the product model better than separate blind register/login paths.
 
-Likely technical direction:
+## Likely technical direction
 
 - Server-side account-status check through a secure backend function/Edge Function.
 - No service-role logic in Flutter.
@@ -1768,7 +1217,7 @@ Likely technical direction:
 
 Add direct user accountability and historical audit logging for important business actions.
 
-Planned scope:
+## Planned scope
 
 - Direct accountability fields on important records.
 - Transaction accountability fields for:
@@ -1800,7 +1249,7 @@ Planned scope:
 
 Prepare the project for safe production deployment.
 
-Planned scope:
+## Planned scope
 
 - Separate development and production Supabase projects.
 - Secure environment handling.
@@ -1821,7 +1270,7 @@ Planned scope:
 
 Turn Mina System into a scalable SaaS product with company-level subscription control.
 
-Planned scope:
+## Planned scope
 
 - Company subscriptions.
 - Plan tiers.
@@ -1842,7 +1291,7 @@ Planned scope:
 
 Prepare the app for Google Play, App Store, and desktop distribution readiness.
 
-Planned scope:
+## Planned scope
 
 - App metadata.
 - Icons.
@@ -1865,7 +1314,7 @@ Planned scope:
 
 Protect production data and provide safe review/demo access.
 
-Planned scope:
+## Planned scope
 
 - Remove test data before production.
 - Safe seed/demo data strategy.
@@ -1884,7 +1333,7 @@ Planned scope:
 
 Expose audit history to authorized users after backend logging exists.
 
-Planned scope:
+## Planned scope
 
 - Basic audit list.
 - Filters.
@@ -1905,7 +1354,7 @@ Planned scope:
 
 Improve field usability for proof/document workflows.
 
-Planned scope:
+## Planned scope
 
 - Camera capture for transaction proof images.
 - Camera capture for approval-document images where applicable.
@@ -1924,7 +1373,7 @@ Planned scope:
 
 Track storage consumption per company for future billing and limits.
 
-Planned scope:
+## Planned scope
 
 - Storage usage per company.
 - Approximate image/PDF size tracking.
@@ -1941,7 +1390,7 @@ Planned scope:
 
 Expand reporting power and polish generated documents.
 
-Planned scope:
+## Planned scope
 
 - Additional filters.
 - Better summary sections.
@@ -1960,7 +1409,7 @@ Planned scope:
 
 Improve management visibility and operational insight.
 
-Planned scope:
+## Planned scope
 
 - Additional KPIs.
 - Alerts.
@@ -1978,7 +1427,7 @@ Planned scope:
 
 Support more resilient offline workflows beyond current network blocking.
 
-Planned scope:
+## Planned scope
 
 - Offline drafts.
 - Sync queue.
@@ -1997,7 +1446,7 @@ Planned scope:
 
 Add important user notifications.
 
-Planned scope:
+## Planned scope
 
 - Invitation notifications.
 - Approval workflow notifications.
@@ -2015,7 +1464,7 @@ Planned scope:
 
 Support product presentation, onboarding, and subscription flow outside the app.
 
-Planned scope:
+## Planned scope
 
 - Marketing landing page.
 - Pricing.
@@ -2034,7 +1483,7 @@ Planned scope:
 
 Provide polished Windows distribution.
 
-Planned scope:
+## Planned scope
 
 - Installer packaging.
 - Update strategy.
@@ -2051,7 +1500,7 @@ Planned scope:
 
 Add deeper operational analysis after core product maturity.
 
-Planned scope:
+## Planned scope
 
 - Usage trends.
 - Worker/tool patterns.
@@ -2068,7 +1517,7 @@ Planned scope:
 
 Support more flexible permissions beyond fixed roles.
 
-Planned scope:
+## Planned scope
 
 - Base role permissions.
 - Extra allow permissions.
@@ -2079,22 +1528,45 @@ Planned scope:
 
 ---
 
+# Future Hardening / Follow-Up Items
+
+These items are intentionally not forgotten even when they are not the current active step:
+
+- Invitation email delivery decision and possible production email backend.
+- Future remove-access flow if business need becomes clear.
+- Last-owner protections for future ownership transfer/remove-access flows.
+- Direct accountability and audit trail implementation.
+- Auth UX email-first checkpoint.
+- Production/dev environment split and secret handling.
+- Subscription plans, feature gating, usage limits, and storage limits.
+- Store/release preparation, demo account, and production data safety.
+- Basic audit log screen after audit data exists.
+- Mobile/tablet camera capture with file-picker fallback.
+- Storage usage tracking.
+- Advanced reports and PDF enhancements.
+- Dashboard enhancements.
+- Offline drafts and background sync.
+- Notifications.
+- Web landing page / customer portal.
+- Desktop installer distribution.
+- Advanced analytics.
+- Custom permission overrides.
+- Decide later whether normalized worker-name uniqueness also needs database-level enforcement in production.
+
+---
+
 # Current Next Action
 
-Continue Phase Q from:
+Before resuming product work from **Step Q4.8**, complete the next maintainability decision step:
 
-## Step Q4.7.1 — Update `CompanyRolePermissions` for Team Access and Warehouse Manager Lifecycle Permissions
-
-Next files expected to be reviewed before editing:
-
-- `lib/core/permissions/company_role_permissions.dart`
-- `lib/core/layout/app_nav_items.dart`
-- `lib/features/company_settings/presentation/screens/company_settings_screen.dart`
-- `lib/features/company_users/presentation/widgets/company_users_section.dart`
-
-Next design target:
-
-- Add dedicated `Team` navigation area.
-- Keep `Settings` for company configuration.
-- Allow Warehouse Manager to manage only lower-role member lifecycle access.
-- Keep all backend lifecycle protections already implemented in Supabase.
+1. Review the real repository after Batch 6.
+2. Run a fresh audit of remaining large files.
+3. Rank candidates by maintainability value, not line count alone.
+4. Decide whether:
+   - another coherent refactor batch is justified, or
+   - the maintainability checkpoint is now sufficient to close.
+5. If another batch is justified:
+   - continue one feature at a time
+   - preserve working behavior unless an approved bug fix or rule change is explicitly included
+6. If the checkpoint is closed:
+   - return to **Step Q4.8 — Decide invitation email delivery scope**
