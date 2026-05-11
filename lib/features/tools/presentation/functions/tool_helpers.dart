@@ -99,3 +99,11 @@ List<ToolModel> filterTools({
         category.contains(searchQuery);
   }).toList();
 }
+
+List<ToolModel> sortToolsAlphabetically(List<ToolModel> tools) {
+  final sortedTools = List<ToolModel>.from(tools);
+  sortedTools.sort(
+    (a, b) => a.toolName.toLowerCase().compareTo(b.toolName.toLowerCase()),
+  );
+  return sortedTools;
+}

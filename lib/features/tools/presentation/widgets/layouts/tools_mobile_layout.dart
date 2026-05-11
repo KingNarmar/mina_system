@@ -14,12 +14,14 @@ class ToolsMobileLayout extends StatelessWidget {
   const ToolsMobileLayout({
     super.key,
     required this.tools,
+    required this.searchQuery,
     required this.canCreateTools,
     required this.canUpdateTools,
     required this.canDeleteTools,
   });
 
   final List<ToolModel> tools;
+  final String searchQuery;
   final bool canCreateTools;
   final bool canUpdateTools;
   final bool canDeleteTools;
@@ -37,6 +39,7 @@ class ToolsMobileLayout extends StatelessWidget {
         itemBuilder: (context, index) {
           if (index == 0) {
             return ToolSearchField(
+              initialQuery: searchQuery,
               onChanged: (value) {
                 context.read<ToolsCubit>().searchTools(value);
               },

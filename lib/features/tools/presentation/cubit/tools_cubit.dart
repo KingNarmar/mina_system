@@ -6,6 +6,10 @@ import 'package:mina_system/features/tools/data/repo/tools_repo.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_helpers.dart';
 
+part 'tools_cubit_add.dart';
+part 'tools_cubit_delete.dart';
+part 'tools_cubit_update.dart';
+
 class ToolsCubit extends Cubit<ToolsState> {
   ToolsCubit({ToolsRepo? toolsRepo, NetworkStatusService? networkStatusService})
     : _toolsRepo = toolsRepo ?? ToolsRepo(),
@@ -22,6 +26,8 @@ class ToolsCubit extends Cubit<ToolsState> {
   final NetworkStatusService _networkStatusService;
 
   static const List<ToolModel> _initialTools = [];
+
+  void emitState(ToolsState state) => emit(state);
 
   Future<void> loadTools({required String companyId}) async {
     emit(state.copyWith(isLoading: true, clearErrorMessage: true));
@@ -47,247 +53,6 @@ class ToolsCubit extends Cubit<ToolsState> {
     final filteredTools = filterTools(tools: state.tools, query: query);
 
     emit(state.copyWith(searchQuery: query, filteredTools: filteredTools));
-  }
-
-  Future<bool> addTool(
-    ToolModel tool, {
-    String? companyId,
-    String? createdByProfileId,
-  }) async {
-    final cleanToolName = tool.toolName.trim();
-
-    if (companyId == null || companyId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Company ID was not found'));
-      return false;
-    }
-
-    if (createdByProfileId == null || createdByProfileId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Profile ID was not found'));
-      return false;
-    }
-
-    if (cleanToolName.isEmpty) {
-      return false;
-    }
-
-    if (tool.unitId == null || tool.categoryId == null) {
-      emit(state.copyWith(errorMessage: 'Unit and category are required'));
-      return false;
-    }
-
-    final canContinue = await _ensureOnline();
-    if (!canContinue) {
-      return false;
-    }
-
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
-    try {
-      final isDuplicatedToolName = await _toolsRepo.toolNameExists(
-        companyId: companyId,
-        toolName: cleanToolName,
-      );
-
-      if (isDuplicatedToolName) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            errorMessage: 'Tool name already exists',
-          ),
-        );
-        return false;
-      }
-
-      final toolCode = await _toolsRepo.generateNextToolCode(
-        companyId: companyId,
-      );
-
-      final isDuplicatedToolCode = await _toolsRepo.toolCodeExists(
-        companyId: companyId,
-        toolCode: toolCode,
-      );
-
-      if (isDuplicatedToolCode) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            errorMessage: 'Tool code already exists',
-          ),
-        );
-        return false;
-      }
-
-      final toolToInsert = tool.copyWith(
-        companyId: companyId,
-        toolCode: toolCode,
-        toolName: cleanToolName,
-        createdByProfileId: createdByProfileId,
-        status: 'active',
-      );
-
-      final addedTool = await _toolsRepo.addTool(tool: toolToInsert);
-
-      emitUpdatedTools([...state.tools, addedTool], isSubmitting: false);
-
-      return true;
-    } catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to add tool. Please try again.',
-          ),
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> updateTool({
-    required String currentToolCode,
-    required ToolModel updatedTool,
-    String? companyId,
-  }) async {
-    final existingTool = _findToolByCode(currentToolCode);
-    final toolId = updatedTool.id ?? existingTool?.id;
-    final cleanToolName = updatedTool.toolName.trim();
-
-    if (companyId == null || companyId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Company ID was not found'));
-      return false;
-    }
-
-    if (toolId == null || toolId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Tool ID was not found'));
-      return false;
-    }
-
-    if (cleanToolName.isEmpty) {
-      return false;
-    }
-
-    if (updatedTool.unitId == null || updatedTool.categoryId == null) {
-      emit(state.copyWith(errorMessage: 'Unit and category are required'));
-      return false;
-    }
-
-    final canContinue = await _ensureOnline();
-    if (!canContinue) {
-      return false;
-    }
-
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
-    try {
-      final isDuplicatedToolCode = await _toolsRepo.toolCodeExists(
-        companyId: companyId,
-        toolCode: updatedTool.toolCode,
-        ignoredToolId: toolId,
-      );
-
-      if (isDuplicatedToolCode) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            errorMessage: 'Tool code already exists',
-          ),
-        );
-        return false;
-      }
-
-      final isDuplicatedToolName = await _toolsRepo.toolNameExists(
-        companyId: companyId,
-        toolName: cleanToolName,
-        ignoredToolId: toolId,
-      );
-
-      if (isDuplicatedToolName) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            errorMessage: 'Tool name already exists',
-          ),
-        );
-        return false;
-      }
-
-      final toolToUpdate = updatedTool.copyWith(
-        id: toolId,
-        companyId: companyId,
-        toolName: cleanToolName,
-      );
-
-      final savedTool = await _toolsRepo.updateTool(
-        toolId: toolId,
-        tool: toolToUpdate,
-      );
-
-      final updatedTools = state.tools.map((tool) {
-        if (tool.id == toolId) {
-          return savedTool;
-        }
-
-        return tool;
-      }).toList();
-
-      emitUpdatedTools(updatedTools, isSubmitting: false);
-
-      return true;
-    } catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to update tool. Please try again.',
-          ),
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> deleteTool(ToolModel tool) async {
-    final existingTool = tool.id == null
-        ? _findToolByCode(tool.toolCode)
-        : null;
-    final toolId = tool.id ?? existingTool?.id;
-
-    if (toolId == null || toolId.isEmpty) {
-      emit(state.copyWith(errorMessage: 'Tool ID was not found'));
-      return false;
-    }
-
-    final canContinue = await _ensureOnline();
-    if (!canContinue) {
-      return false;
-    }
-
-    emit(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
-    try {
-      await _toolsRepo.deleteTool(toolId: toolId);
-
-      final updatedTools = state.tools.where((item) {
-        return item.id != toolId;
-      }).toList();
-
-      emitUpdatedTools(updatedTools, isSubmitting: false);
-
-      return true;
-    } catch (error) {
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to delete tool. Please try again.',
-          ),
-        ),
-      );
-      return false;
-    }
   }
 
   bool isToolCodeAlreadyUsed(String toolCode, {String? ignoredToolCode}) {
@@ -333,10 +98,15 @@ class ToolsCubit extends Cubit<ToolsState> {
     bool? isLoading,
     bool? isSubmitting,
   }) {
+    final sortedTools = sortToolsAlphabetically(tools);
+
     emit(
       state.copyWith(
-        tools: tools,
-        filteredTools: filterTools(tools: tools, query: state.searchQuery),
+        tools: sortedTools,
+        filteredTools: filterTools(
+          tools: sortedTools,
+          query: state.searchQuery,
+        ),
         isLoading: isLoading,
         isSubmitting: isSubmitting,
         clearErrorMessage: true,

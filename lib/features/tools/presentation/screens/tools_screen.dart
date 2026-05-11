@@ -54,6 +54,7 @@ class _ToolsView extends StatelessWidget {
                   if (isMobile) {
                     return ToolsMobileLayout(
                       tools: tools,
+                      searchQuery: state.searchQuery,
                       canCreateTools: canCreateTools,
                       canUpdateTools: canUpdateTools,
                       canDeleteTools: canDeleteTools,
@@ -62,6 +63,7 @@ class _ToolsView extends StatelessWidget {
 
                   return ToolsDesktopLayout(
                     tools: tools,
+                    searchQuery: state.searchQuery,
                     canCreateTools: canCreateTools,
                     canUpdateTools: canUpdateTools,
                     canDeleteTools: canDeleteTools,
