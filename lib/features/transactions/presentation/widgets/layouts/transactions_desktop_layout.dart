@@ -16,11 +16,13 @@ class TransactionsDesktopLayout extends StatelessWidget {
   const TransactionsDesktopLayout({
     super.key,
     required this.transactions,
+    required this.searchQuery,
     required this.selectedFilter,
     required this.canCreateTransactions,
   });
 
   final List<TransactionModel> transactions;
+  final String searchQuery;
   final TransactionTypeFilter selectedFilter;
   final bool canCreateTransactions;
 
@@ -38,6 +40,7 @@ class TransactionsDesktopLayout extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TransactionSearchField(
+                      initialQuery: searchQuery,
                       onChanged: (value) {
                         context.read<TransactionsCubit>().searchTransactions(
                           value,

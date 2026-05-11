@@ -15,6 +15,7 @@ class TransactionsMobileLayout extends StatelessWidget {
   const TransactionsMobileLayout({
     super.key,
     required this.transactions,
+    required this.searchQuery,
     required this.selectedFilter,
     required this.canCreateTransactions,
     this.isCompactSearchMode = false,
@@ -22,6 +23,7 @@ class TransactionsMobileLayout extends StatelessWidget {
   });
 
   final List<TransactionModel> transactions;
+  final String searchQuery;
   final TransactionTypeFilter selectedFilter;
   final bool canCreateTransactions;
   final bool isCompactSearchMode;
@@ -55,6 +57,7 @@ class TransactionsMobileLayout extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TransactionSearchField(
+                  initialQuery: searchQuery,
                   onFocusChanged: onSearchFocusChanged,
                   onChanged: (value) {
                     context.read<TransactionsCubit>().searchTransactions(value);

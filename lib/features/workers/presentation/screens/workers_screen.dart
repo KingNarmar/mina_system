@@ -62,6 +62,7 @@ class _WorkersView extends StatelessWidget {
                   if (isMobile) {
                     return WorkersMobileLayout(
                       workers: workers,
+                      searchQuery: state.searchQuery,
                       canCreateWorkers: canCreateWorkers,
                       canUpdateWorkers: canUpdateWorkers,
                       canDeleteWorkers: canDeleteWorkers,
@@ -70,6 +71,7 @@ class _WorkersView extends StatelessWidget {
 
                   return WorkersDesktopLayout(
                     workers: workers,
+                    searchQuery: state.searchQuery,
                     canCreateWorkers: canCreateWorkers,
                     canUpdateWorkers: canUpdateWorkers,
                     canDeleteWorkers: canDeleteWorkers,

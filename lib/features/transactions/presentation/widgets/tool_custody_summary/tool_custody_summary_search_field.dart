@@ -4,10 +4,12 @@ import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 class ToolCustodySummarySearchField extends StatefulWidget {
   const ToolCustodySummarySearchField({
     super.key,
+    required this.initialQuery,
     required this.onChanged,
     this.onFocusChanged,
   });
 
+  final String initialQuery;
   final ValueChanged<String> onChanged;
   final ValueChanged<bool>? onFocusChanged;
 
@@ -19,15 +21,18 @@ class ToolCustodySummarySearchField extends StatefulWidget {
 class _ToolCustodySummarySearchFieldState
     extends State<ToolCustodySummarySearchField> {
   final _focusNode = FocusNode();
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = TextEditingController(text: widget.initialQuery);
     _focusNode.addListener(_handleFocusChanged);
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     _focusNode
       ..removeListener(_handleFocusChanged)
       ..dispose();
@@ -39,6 +44,7 @@ class _ToolCustodySummarySearchFieldState
     return CustomTextFormField(
       hint: 'Search tool summary...',
       focusNode: _focusNode,
+      controller: _controller,
       icon: const Icon(Icons.search),
       onChanged: widget.onChanged,
     );

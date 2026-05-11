@@ -12,11 +12,13 @@ class CustodyBalanceMobileLayout extends StatelessWidget {
   const CustodyBalanceMobileLayout({
     super.key,
     required this.balances,
+    required this.searchQuery,
     this.isCompactSearchMode = false,
     this.onSearchFocusChanged,
   });
 
   final List<CustodyBalanceModel> balances;
+  final String searchQuery;
   final bool isCompactSearchMode;
   final ValueChanged<bool>? onSearchFocusChanged;
 
@@ -42,6 +44,7 @@ class CustodyBalanceMobileLayout extends StatelessWidget {
         itemBuilder: (context, index) {
           if (index == 0) {
             return CustodyBalanceSearchField(
+              initialQuery: searchQuery,
               onFocusChanged: onSearchFocusChanged,
               onChanged: (value) {
                 context.read<TransactionsCubit>().searchCustodyBalances(value);

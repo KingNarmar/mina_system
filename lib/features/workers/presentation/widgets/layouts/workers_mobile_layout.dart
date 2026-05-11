@@ -14,12 +14,14 @@ class WorkersMobileLayout extends StatelessWidget {
   const WorkersMobileLayout({
     super.key,
     required this.workers,
+    required this.searchQuery,
     required this.canCreateWorkers,
     required this.canUpdateWorkers,
     required this.canDeleteWorkers,
   });
 
   final List<WorkerModel> workers;
+  final String searchQuery;
   final bool canCreateWorkers;
   final bool canUpdateWorkers;
   final bool canDeleteWorkers;
@@ -37,6 +39,7 @@ class WorkersMobileLayout extends StatelessWidget {
         itemBuilder: (context, index) {
           if (index == 0) {
             return WorkerSearchField(
+              initialQuery: searchQuery,
               onChanged: (value) {
                 context.read<WorkersCubit>().searchWorkers(value);
               },

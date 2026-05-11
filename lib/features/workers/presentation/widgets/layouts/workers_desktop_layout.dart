@@ -13,12 +13,14 @@ class WorkersDesktopLayout extends StatelessWidget {
   const WorkersDesktopLayout({
     super.key,
     required this.workers,
+    required this.searchQuery,
     required this.canCreateWorkers,
     required this.canUpdateWorkers,
     required this.canDeleteWorkers,
   });
 
   final List<WorkerModel> workers;
+  final String searchQuery;
   final bool canCreateWorkers;
   final bool canUpdateWorkers;
   final bool canDeleteWorkers;
@@ -35,6 +37,7 @@ class WorkersDesktopLayout extends StatelessWidget {
             children: [
               Expanded(
                 child: WorkerSearchField(
+                  initialQuery: searchQuery,
                   onChanged: (value) {
                     context.read<WorkersCubit>().searchWorkers(value);
                   },

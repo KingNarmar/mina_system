@@ -10,9 +10,14 @@ import 'package:mina_system/features/transactions/presentation/widgets/tool_cust
 import 'package:gap/gap.dart';
 
 class ToolCustodySummaryDesktopLayout extends StatelessWidget {
-  const ToolCustodySummaryDesktopLayout({super.key, required this.summaries});
+  const ToolCustodySummaryDesktopLayout({
+    super.key,
+    required this.summaries,
+    required this.searchQuery,
+  });
 
   final List<ToolCustodySummaryModel> summaries;
+  final String searchQuery;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +30,7 @@ class ToolCustodySummaryDesktopLayout extends StatelessWidget {
           child: Column(
             children: [
               ToolCustodySummarySearchField(
+                initialQuery: searchQuery,
                 onChanged: (value) {
                   context.read<TransactionsCubit>().searchToolSummaries(value);
                 },

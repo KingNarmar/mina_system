@@ -10,9 +10,14 @@ import 'package:mina_system/features/transactions/presentation/widgets/custody_b
 import 'package:gap/gap.dart';
 
 class CustodyBalanceDesktopLayout extends StatelessWidget {
-  const CustodyBalanceDesktopLayout({super.key, required this.balances});
+  const CustodyBalanceDesktopLayout({
+    super.key,
+    required this.balances,
+    required this.searchQuery,
+  });
 
   final List<CustodyBalanceModel> balances;
+  final String searchQuery;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +30,7 @@ class CustodyBalanceDesktopLayout extends StatelessWidget {
           child: Column(
             children: [
               CustodyBalanceSearchField(
+                initialQuery: searchQuery,
                 onChanged: (value) {
                   context.read<TransactionsCubit>().searchCustodyBalances(
                     value,

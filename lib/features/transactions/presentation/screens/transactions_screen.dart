@@ -130,6 +130,7 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                 if (isMobile)
                                   TransactionsMobileLayout(
                                     transactions: transactions,
+                                    searchQuery: state.searchQuery,
                                     selectedFilter: state.typeFilter,
                                     canCreateTransactions:
                                         canCreateTransactions,
@@ -140,6 +141,7 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                 else
                                   TransactionsDesktopLayout(
                                     transactions: transactions,
+                                    searchQuery: state.searchQuery,
                                     selectedFilter: state.typeFilter,
                                     canCreateTransactions:
                                         canCreateTransactions,
@@ -156,6 +158,8 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                 if (isMobile)
                                   CustodyBalanceMobileLayout(
                                     balances: custodyBalances,
+                                    searchQuery:
+                                        state.custodyBalanceSearchQuery,
                                     isCompactSearchMode: isCompactSearchMode,
                                     onSearchFocusChanged:
                                         _onCustodyBalanceSearchFocusChanged,
@@ -163,10 +167,13 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                 else
                                   CustodyBalanceDesktopLayout(
                                     balances: custodyBalances,
+                                    searchQuery:
+                                        state.custodyBalanceSearchQuery,
                                   ),
                                 if (isMobile)
                                   ToolCustodySummaryMobileLayout(
                                     summaries: toolSummaries,
+                                    searchQuery: state.toolSummarySearchQuery,
                                     isCompactSearchMode: isCompactSearchMode,
                                     onSearchFocusChanged:
                                         _onToolSummarySearchFocusChanged,
@@ -174,6 +181,7 @@ class _TransactionsViewState extends State<_TransactionsView> {
                                 else
                                   ToolCustodySummaryDesktopLayout(
                                     summaries: toolSummaries,
+                                    searchQuery: state.toolSummarySearchQuery,
                                   ),
                               ],
                             ),

@@ -12,11 +12,13 @@ class ToolCustodySummaryMobileLayout extends StatelessWidget {
   const ToolCustodySummaryMobileLayout({
     super.key,
     required this.summaries,
+    required this.searchQuery,
     this.isCompactSearchMode = false,
     this.onSearchFocusChanged,
   });
 
   final List<ToolCustodySummaryModel> summaries;
+  final String searchQuery;
   final bool isCompactSearchMode;
   final ValueChanged<bool>? onSearchFocusChanged;
 
@@ -42,6 +44,7 @@ class ToolCustodySummaryMobileLayout extends StatelessWidget {
         itemBuilder: (context, index) {
           if (index == 0) {
             return ToolCustodySummarySearchField(
+              initialQuery: searchQuery,
               onFocusChanged: onSearchFocusChanged,
               onChanged: (value) {
                 context.read<TransactionsCubit>().searchToolSummaries(value);
