@@ -26,7 +26,7 @@ class _MobileShellState extends State<MobileShell> {
 
     if (!mounted) return;
 
-    context.go(Routes.login);
+    context.go(Routes.emailEntry);
   }
 
   @override

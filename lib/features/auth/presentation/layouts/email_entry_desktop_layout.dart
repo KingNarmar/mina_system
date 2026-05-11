@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/features/auth/presentation/widgets/login_form.dart';
+import 'package:mina_system/features/auth/presentation/widgets/email_entry_form.dart';
 
-class LoginDesktopLayout extends StatelessWidget {
-  const LoginDesktopLayout({super.key, required this.email});
-
-  final String email;
+class EmailEntryDesktopLayout extends StatelessWidget {
+  const EmailEntryDesktopLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +43,10 @@ class LoginDesktopLayout extends StatelessWidget {
                   ),
                 ],
               ),
-            ), // left branding section
-          ),
-          Expanded(
-            child: Center(
-              child: SizedBox(width: 420, child: LoginForm(email: email)),
             ),
+          ),
+          const Expanded(
+            child: Center(child: SizedBox(width: 420, child: EmailEntryForm())),
           ),
         ],
       ),

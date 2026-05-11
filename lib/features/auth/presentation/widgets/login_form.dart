@@ -14,7 +14,9 @@ import 'package:mina_system/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_state.dart';
 
 class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+  const LoginForm({super.key, required this.email});
+
+  final String email;
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -24,6 +26,13 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.text = widget.email;
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -61,10 +70,11 @@ class _LoginFormState extends State<LoginForm> {
               ),
               const Gap(20),
               CustomTextFormField(
-                hint: 'Email or Username',
+                hint: 'Email Address',
                 controller: _emailController,
                 validator: AppValidators.validateEmailOrUsername,
                 keyboardType: TextInputType.emailAddress,
+                readOnly: true,
               ),
 
               Row(
@@ -105,14 +115,11 @@ class _LoginFormState extends State<LoginForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Don\'t have an account?',
-                    style: AppTextStyles.caption,
-                  ),
+                  const Text('Different email?', style: AppTextStyles.caption),
                   TextButton(
-                    onPressed: () => context.go(Routes.register),
+                    onPressed: () => context.go(Routes.emailEntry),
                     child: Text(
-                      'Create Account',
+                      'Go back',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.accent,
                         fontWeight: FontWeight.w600,

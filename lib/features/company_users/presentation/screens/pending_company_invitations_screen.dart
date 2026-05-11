@@ -23,7 +23,7 @@ class PendingCompanyInvitationsScreen extends StatelessWidget {
       return;
     }
 
-    context.go(Routes.login);
+    context.go(Routes.emailEntry);
   }
 
   @override

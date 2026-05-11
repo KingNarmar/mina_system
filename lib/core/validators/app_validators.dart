@@ -11,6 +11,20 @@ abstract class AppValidators {
     return null;
   }
 
+  static final _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
+  static String? validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Email is required';
+    }
+
+    if (!_emailRegex.hasMatch(value.trim())) {
+      return 'Enter a valid email address';
+    }
+
+    return null;
+  }
+
   static String? validateEmailOrUsername(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Email or username is required';

@@ -33,7 +33,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
 
     if (!mounted) return;
 
-    context.go(Routes.login);
+    context.go(Routes.emailEntry);
   }
 
   @override
