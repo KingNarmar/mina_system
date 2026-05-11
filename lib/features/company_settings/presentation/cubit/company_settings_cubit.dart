@@ -9,6 +9,10 @@ import '../../data/models/company_report_settings_model.dart';
 import '../../data/repo/company_settings_repo.dart';
 import 'company_settings_state.dart';
 
+part 'company_settings_cubit_documents.dart';
+part 'company_settings_cubit_profile.dart';
+part 'company_settings_cubit_reports.dart';
+
 class CompanySettingsCubit extends Cubit<CompanySettingsState> {
   CompanySettingsCubit({
     CompanySettingsRepo? repo,
@@ -19,6 +23,8 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
 
   final CompanySettingsRepo _repo;
   final NetworkStatusService _networkStatusService;
+
+  void emitState(CompanySettingsState state) => emit(state);
 
   Future<void> loadCompanyProfile({required String companyId}) async {
     emit(const CompanySettingsLoading());
@@ -50,224 +56,6 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
           AppErrorMessage.fromError(
             error,
             fallback: 'Unable to load company profile.',
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> updateCompanyProfile({
-    required CompanyProfileModel profile,
-  }) async {
-    final currentState = state;
-
-    if (currentState is! CompanySettingsLoaded) {
-      return;
-    }
-
-    final actionState = currentState.copyWith(
-      action: CompanySettingsAction.updatingProfile,
-      clearErrorMessage: true,
-    );
-
-    emit(actionState);
-
-    final canContinue = await _ensureOnline(actionState);
-    if (!canContinue) {
-      return;
-    }
-
-    try {
-      final updatedProfile = await _repo.updateCompanyProfile(profile: profile);
-
-      emit(
-        actionState.copyWith(
-          profile: updatedProfile,
-          action: CompanySettingsAction.none,
-          clearErrorMessage: true,
-        ),
-      );
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('UpdateCompanyProfile error: $error');
-        debugPrint('UpdateCompanyProfile stackTrace: $stackTrace');
-      }
-
-      emit(
-        actionState.copyWith(
-          action: CompanySettingsAction.none,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to update company profile.',
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> updateCompanyReportSettings({
-    required CompanyReportSettingsModel reportSettings,
-  }) async {
-    final currentState = state;
-
-    if (currentState is! CompanySettingsLoaded) {
-      return;
-    }
-
-    final actionState = currentState.copyWith(
-      action: CompanySettingsAction.updatingReportSettings,
-      clearErrorMessage: true,
-    );
-
-    emit(actionState);
-
-    final canContinue = await _ensureOnline(actionState);
-    if (!canContinue) {
-      return;
-    }
-
-    try {
-      final updatedReportSettings = await _repo.updateCompanyReportSettings(
-        reportSettings: reportSettings,
-      );
-
-      emit(
-        actionState.copyWith(
-          reportSettings: updatedReportSettings,
-          action: CompanySettingsAction.none,
-          clearErrorMessage: true,
-        ),
-      );
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('UpdateCompanyReportSettings error: $error');
-        debugPrint('UpdateCompanyReportSettings stackTrace: $stackTrace');
-      }
-
-      emit(
-        actionState.copyWith(
-          action: CompanySettingsAction.none,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to update report settings.',
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> updateCompanyDocumentTemplate({
-    required CompanyDocumentTemplateModel documentTemplate,
-  }) async {
-    final currentState = state;
-
-    if (currentState is! CompanySettingsLoaded) {
-      return;
-    }
-
-    final actionState = currentState.copyWith(
-      action: CompanySettingsAction.updatingDocumentTemplate,
-      clearErrorMessage: true,
-    );
-
-    emit(actionState);
-
-    final canContinue = await _ensureOnline(actionState);
-    if (!canContinue) {
-      return;
-    }
-
-    try {
-      final updatedDocumentTemplate = await _repo.updateCompanyDocumentTemplate(
-        documentTemplate: documentTemplate,
-      );
-
-      final updatedDocumentTemplates = actionState.documentTemplates.map((
-        item,
-      ) {
-        if (item.id == updatedDocumentTemplate.id) {
-          return updatedDocumentTemplate;
-        }
-
-        return item;
-      }).toList();
-
-      emit(
-        actionState.copyWith(
-          documentTemplates: updatedDocumentTemplates,
-          action: CompanySettingsAction.none,
-          clearErrorMessage: true,
-        ),
-      );
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('UpdateCompanyDocumentTemplate error: $error');
-        debugPrint('UpdateCompanyDocumentTemplate stackTrace: $stackTrace');
-      }
-
-      emit(
-        actionState.copyWith(
-          action: CompanySettingsAction.none,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to update document template.',
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> uploadCompanyLogo({
-    required String companyId,
-    required Uint8List bytes,
-    required String fileExtension,
-    required String contentType,
-  }) async {
-    final currentState = state;
-
-    if (currentState is! CompanySettingsLoaded) {
-      return;
-    }
-
-    final actionState = currentState.copyWith(
-      action: CompanySettingsAction.uploadingLogo,
-      clearErrorMessage: true,
-    );
-
-    emit(actionState);
-
-    final canContinue = await _ensureOnline(actionState);
-    if (!canContinue) {
-      return;
-    }
-
-    try {
-      final updatedProfile = await _repo.uploadCompanyLogo(
-        companyId: companyId,
-        bytes: bytes,
-        fileExtension: fileExtension,
-        contentType: contentType,
-      );
-
-      emit(
-        actionState.copyWith(
-          profile: updatedProfile,
-          action: CompanySettingsAction.none,
-          clearErrorMessage: true,
-        ),
-      );
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('UploadCompanyLogo error: $error');
-        debugPrint('UploadCompanyLogo stackTrace: $stackTrace');
-      }
-
-      emit(
-        actionState.copyWith(
-          action: CompanySettingsAction.none,
-          errorMessage: AppErrorMessage.fromError(
-            error,
-            fallback: 'Unable to upload company logo.',
           ),
         ),
       );

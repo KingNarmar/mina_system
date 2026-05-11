@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
+
 import 'document_template_form_helpers.dart';
+import 'document_template_general_fields.dart';
+import 'document_template_signature_fields.dart';
 
 class DocumentTemplateCard extends StatefulWidget {
   const DocumentTemplateCard({
@@ -83,66 +85,23 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
           children: [
             Text(reportTypeTitle, style: AppTextStyles.body),
             const Gap(12),
-            CustomTextFormField(
-              hint: 'Document Title',
-              controller: _documentTitleController,
-              validator: DocumentTemplateFormHelpers.validateRequired,
+            DocumentTemplateGeneralFields(
+              documentTitleController: _documentTitleController,
+              documentCodeController: _documentCodeController,
+              issueNoController: _issueNoController,
+              revisionNoController: _revisionNoController,
+              effectiveDateController: _effectiveDateController,
+              onEffectiveDateTap: _selectEffectiveDate,
             ),
             const Gap(12),
-            CustomTextFormField(
-              hint: 'Document Code',
-              controller: _documentCodeController,
-              validator: DocumentTemplateFormHelpers.validateRequired,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Issue No.',
-              controller: _issueNoController,
-              validator: DocumentTemplateFormHelpers.validateRequired,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Revision No.',
-              controller: _revisionNoController,
-              validator: DocumentTemplateFormHelpers.validateRequired,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Effective Date',
-              controller: _effectiveDateController,
-              readOnly: true,
-              onTap: _selectEffectiveDate,
-              validator: DocumentTemplateFormHelpers.validateRequired,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Prepared By Title',
-              controller: _preparedByTitleController,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Checked By Title',
-              controller: _checkedByTitleController,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Approved By Title',
-              controller: _approvedByTitleController,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Worker Signature Label',
-              controller: _workerSignatureLabelController,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Manager Signature Label',
-              controller: _managerSignatureLabelController,
-            ),
-            const Gap(12),
-            CustomTextFormField(
-              hint: 'Storekeeper Signature Label',
-              controller: _storekeeperSignatureLabelController,
+            DocumentTemplateSignatureFields(
+              preparedByTitleController: _preparedByTitleController,
+              checkedByTitleController: _checkedByTitleController,
+              approvedByTitleController: _approvedByTitleController,
+              workerSignatureLabelController: _workerSignatureLabelController,
+              managerSignatureLabelController: _managerSignatureLabelController,
+              storekeeperSignatureLabelController:
+                  _storekeeperSignatureLabelController,
             ),
             const Gap(8),
             SwitchListTile(

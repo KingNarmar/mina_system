@@ -62,6 +62,7 @@ class _CompanySettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: AppColors.background,
             body: SingleChildScrollView(
+              key: const PageStorageKey<String>('company_settings_scroll_key'),
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
