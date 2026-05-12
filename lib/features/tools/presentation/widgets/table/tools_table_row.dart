@@ -10,12 +10,14 @@ class ToolsTableRow extends StatelessWidget {
     required this.showActions,
     this.onEdit,
     this.onDelete,
+    this.onReactivate,
   });
 
   final ToolModel tool;
   final bool showActions;
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
+  final void Function(ToolModel tool)? onReactivate;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +53,15 @@ class ToolsTableRow extends StatelessWidget {
                           icon: const Icon(Icons.delete_outline),
                           color: AppColors.error,
                           tooltip: 'Deactivate',
+                        ),
+                      if (onReactivate != null)
+                        IconButton(
+                          onPressed: () {
+                            onReactivate!(tool);
+                          },
+                          icon: const Icon(Icons.restore_outlined),
+                          color: AppColors.accent,
+                          tooltip: 'Reactivate',
                         ),
                     ],
                   ),

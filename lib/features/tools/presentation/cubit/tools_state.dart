@@ -5,6 +5,7 @@ class ToolsState {
     required this.tools,
     required this.filteredTools,
     required this.searchQuery,
+    this.statusFilter = 'active',
     this.isLoading = false,
     this.isSubmitting = false,
     this.errorMessage,
@@ -13,6 +14,7 @@ class ToolsState {
   final List<ToolModel> tools;
   final List<ToolModel> filteredTools;
   final String searchQuery;
+  final String statusFilter;
   final bool isLoading;
   final bool isSubmitting;
   final String? errorMessage;
@@ -21,6 +23,7 @@ class ToolsState {
     List<ToolModel>? tools,
     List<ToolModel>? filteredTools,
     String? searchQuery,
+    String? statusFilter,
     bool? isLoading,
     bool? isSubmitting,
     String? errorMessage,
@@ -30,6 +33,7 @@ class ToolsState {
       tools: tools ?? this.tools,
       filteredTools: filteredTools ?? this.filteredTools,
       searchQuery: searchQuery ?? this.searchQuery,
+      statusFilter: statusFilter ?? this.statusFilter,
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearErrorMessage

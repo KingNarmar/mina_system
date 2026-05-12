@@ -19,6 +19,7 @@ class ToolsCubit extends Cubit<ToolsState> {
           tools: _initialTools,
           filteredTools: _initialTools,
           searchQuery: '',
+          statusFilter: 'active',
         ),
       );
 
@@ -29,11 +30,25 @@ class ToolsCubit extends Cubit<ToolsState> {
 
   void emitState(ToolsState state) => emit(state);
 
-  Future<void> loadTools({required String companyId}) async {
-    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+  Future<void> loadTools({
+    required String companyId,
+    String? statusFilter,
+  }) async {
+    final selectedStatus = statusFilter ?? state.statusFilter;
+
+    emit(
+      state.copyWith(
+        isLoading: true,
+        statusFilter: selectedStatus,
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
-      final tools = await _toolsRepo.getTools(companyId: companyId);
+      final tools = await _toolsRepo.getTools(
+        companyId: companyId,
+        status: selectedStatus,
+      );
 
       emitUpdatedTools(tools, isLoading: false);
     } catch (error) {
@@ -47,6 +62,25 @@ class ToolsCubit extends Cubit<ToolsState> {
         ),
       );
     }
+  }
+
+  Future<void> changeStatusFilter({
+    required String companyId,
+    required String statusFilter,
+  }) async {
+    if (statusFilter == state.statusFilter) {
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        statusFilter: statusFilter,
+        searchQuery: '',
+        filteredTools: const [],
+      ),
+    );
+
+    await loadTools(companyId: companyId, statusFilter: statusFilter);
   }
 
   void searchTools(String query) {

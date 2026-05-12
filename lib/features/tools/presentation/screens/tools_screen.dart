@@ -42,6 +42,19 @@ class _ToolsView extends StatelessWidget {
       child: BlocBuilder<ToolsCubit, ToolsState>(
         builder: (context, state) {
           final tools = state.filteredTools;
+          final companyId = context.currentCompanyId;
+
+          void onStatusFilterChanged(String statusFilter) {
+            if (companyId == null || companyId.isEmpty) {
+              AppMessage.showError(context, 'Company ID was not found');
+              return;
+            }
+
+            context.read<ToolsCubit>().changeStatusFilter(
+              companyId: companyId,
+              statusFilter: statusFilter,
+            );
+          }
 
           return Stack(
             children: [
@@ -55,6 +68,8 @@ class _ToolsView extends StatelessWidget {
                     return ToolsMobileLayout(
                       tools: tools,
                       searchQuery: state.searchQuery,
+                      statusFilter: state.statusFilter,
+                      onStatusFilterChanged: onStatusFilterChanged,
                       canCreateTools: canCreateTools,
                       canUpdateTools: canUpdateTools,
                       canDeleteTools: canDeleteTools,
@@ -64,6 +79,8 @@ class _ToolsView extends StatelessWidget {
                   return ToolsDesktopLayout(
                     tools: tools,
                     searchQuery: state.searchQuery,
+                    statusFilter: state.statusFilter,
+                    onStatusFilterChanged: onStatusFilterChanged,
                     canCreateTools: canCreateTools,
                     canUpdateTools: canUpdateTools,
                     canDeleteTools: canDeleteTools,

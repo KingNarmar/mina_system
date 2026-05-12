@@ -25,13 +25,22 @@ class ToolsRepo {
     tool_categories!tools_category_fk(name)
   ''';
 
-  Future<List<ToolModel>> getTools({required String companyId}) async {
-    final data = await _supabase
+  Future<List<ToolModel>> getTools({
+    required String companyId,
+    String status = 'active',
+  }) async {
+    final cleanStatus = status.trim().toLowerCase();
+
+    var query = _supabase
         .from('tools')
         .select(_toolSelectColumns)
-        .eq('company_id', companyId)
-        .eq('status', 'active')
-        .order('tool_name');
+        .eq('company_id', companyId);
+
+    if (cleanStatus.isNotEmpty) {
+      query = query.eq('status', cleanStatus);
+    }
+
+    final data = await query.order('tool_name');
 
     return data.map((item) {
       return ToolModel.fromJson(item);
@@ -130,25 +139,51 @@ class ToolsRepo {
   }
 
   Future<void> deleteTool({
-  required String companyId,
-  required String toolId,
-}) async {
-  if (companyId.trim().isEmpty) {
-    throw StateError('Company ID was not found.');
+    required String companyId,
+    required String toolId,
+  }) async {
+    if (companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (toolId.trim().isEmpty) {
+      throw StateError('Tool ID was not found.');
+    }
+
+    await _supabase.rpc(
+      'deactivate_tool',
+      params: {'p_company_id': companyId, 'p_tool_id': toolId},
+    );
   }
 
-  if (toolId.trim().isEmpty) {
-    throw StateError('Tool ID was not found.');
-  }
+  Future<ToolModel> reactivateTool({
+    required String companyId,
+    required String toolId,
+  }) async {
+    if (companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
 
-  await _supabase.rpc(
-    'deactivate_tool',
-    params: {
-      'p_company_id': companyId,
-      'p_tool_id': toolId,
-    },
-  );
-}
+    if (toolId.trim().isEmpty) {
+      throw StateError('Tool ID was not found.');
+    }
+
+    final rpcResult = await _supabase.rpc(
+      'reactivate_tool',
+      params: {'p_company_id': companyId, 'p_tool_id': toolId},
+    );
+
+    final savedToolId = _readRpcUuidResult(rpcResult, 'reactivate_tool');
+
+    final data = await _supabase
+        .from('tools')
+        .select(_toolSelectColumns)
+        .eq('id', savedToolId)
+        .eq('company_id', companyId)
+        .single();
+
+    return ToolModel.fromJson(data);
+  }
 
   Future<bool> toolCodeExists({
     required String companyId,

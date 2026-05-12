@@ -12,12 +12,14 @@ class ToolsTable extends StatelessWidget {
     required this.showActions,
     this.onEdit,
     this.onDelete,
+    this.onReactivate,
   });
 
   final List<ToolModel> tools;
   final bool showActions;
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
+  final void Function(ToolModel tool)? onReactivate;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class ToolsTable extends StatelessWidget {
                 showActions: showActions,
                 onEdit: onEdit,
                 onDelete: onDelete,
+                onReactivate: onReactivate,
               );
             }),
         ],

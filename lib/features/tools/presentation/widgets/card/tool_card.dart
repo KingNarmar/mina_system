@@ -6,15 +6,23 @@ import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_info_row.dart';
 
 class ToolCard extends StatelessWidget {
-  const ToolCard({super.key, required this.tool, this.onEdit, this.onDelete});
+  const ToolCard({
+    super.key,
+    required this.tool,
+    this.onEdit,
+    this.onDelete,
+    this.onReactivate,
+  });
 
   final ToolModel tool;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onReactivate;
 
   @override
   Widget build(BuildContext context) {
-    final showActions = onEdit != null || onDelete != null;
+    final showActions =
+        onEdit != null || onDelete != null || onReactivate != null;
 
     return Card(
       elevation: 0,
@@ -61,6 +69,13 @@ class ToolCard extends StatelessWidget {
                       icon: const Icon(Icons.delete_outline),
                       color: AppColors.error,
                       tooltip: 'Deactivate',
+                    ),
+                  if (onReactivate != null)
+                    IconButton(
+                      onPressed: onReactivate,
+                      icon: const Icon(Icons.restore_outlined),
+                      color: AppColors.accent,
+                      tooltip: 'Reactivate',
                     ),
                 ],
               ],
