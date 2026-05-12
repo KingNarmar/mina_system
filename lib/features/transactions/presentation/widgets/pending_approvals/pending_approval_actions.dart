@@ -144,7 +144,6 @@ class PendingApprovalActions extends StatelessWidget {
 
     final success = await transactionsCubit.approveTransaction(
       transaction: transaction,
-      decidedByProfileId: context.currentProfileId ?? '',
     );
 
     if (!context.mounted) {
@@ -184,7 +183,6 @@ class PendingApprovalActions extends StatelessWidget {
 
     final success = await transactionsCubit.rejectTransaction(
       transaction: transaction,
-      decidedByProfileId: context.currentProfileId ?? '',
     );
 
     if (!context.mounted) {
@@ -225,7 +223,6 @@ class PendingApprovalActions extends StatelessWidget {
 
     final success = await transactionsCubit.settleTransaction(
       transaction: transaction,
-      settledByProfileId: context.currentProfileId ?? '',
     );
 
     if (!context.mounted) {

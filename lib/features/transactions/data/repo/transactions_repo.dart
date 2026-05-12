@@ -216,12 +216,10 @@ class TransactionsRepo {
 
   Future<TransactionModel> approveLostDamagedTransaction({
     required TransactionModel transaction,
-    required String decidedByProfileId,
     String? decisionNote,
   }) async {
     return _approvalService.approveLostDamagedTransaction(
       transaction: transaction,
-      decidedByProfileId: decidedByProfileId,
       selectColumns: _transactionSelectColumns,
       decisionNote: decisionNote,
     );
@@ -229,12 +227,10 @@ class TransactionsRepo {
 
   Future<TransactionModel> rejectLostDamagedTransaction({
     required TransactionModel transaction,
-    required String decidedByProfileId,
     String? decisionNote,
   }) async {
     return _approvalService.rejectLostDamagedTransaction(
       transaction: transaction,
-      decidedByProfileId: decidedByProfileId,
       selectColumns: _transactionSelectColumns,
       decisionNote: decisionNote,
     );
@@ -242,12 +238,10 @@ class TransactionsRepo {
 
   Future<TransactionModel> settleApprovedLostDamagedTransaction({
     required TransactionModel transaction,
-    required String settledByProfileId,
     String? settlementNote,
   }) async {
     return _approvalService.settleApprovedLostDamagedTransaction(
       transaction: transaction,
-      settledByProfileId: settledByProfileId,
       selectColumns: _transactionSelectColumns,
       settlementNote: settlementNote,
     );

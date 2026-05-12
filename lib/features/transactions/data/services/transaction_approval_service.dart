@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/transaction_model.dart';
-import '../services/transaction_helper_service.dart';
 
 class TransactionApprovalService {
   TransactionApprovalService({required SupabaseClient supabase})
@@ -10,7 +9,6 @@ class TransactionApprovalService {
 
   Future<TransactionModel> approveLostDamagedTransaction({
     required TransactionModel transaction,
-    required String decidedByProfileId,
     required String selectColumns,
     String? decisionNote,
   }) async {
@@ -23,10 +21,6 @@ class TransactionApprovalService {
 
     if (companyId == null || companyId.trim().isEmpty) {
       throw StateError('Company ID was not found.');
-    }
-
-    if (decidedByProfileId.trim().isEmpty) {
-      throw StateError('Approver profile ID was not found.');
     }
 
     if (!transaction.isLostOrDamaged) {
@@ -44,31 +38,26 @@ class TransactionApprovalService {
       );
     }
 
-    final now = DateTime.now().toUtc().toIso8601String();
+    final rpcResult = await _supabase.rpc(
+      'approve_lost_damaged_transaction',
+      params: {
+        'p_company_id': companyId,
+        'p_transaction_id': transactionId,
+        'p_decision_note': _emptyToNull(decisionNote),
+      },
+    );
 
-    final data = await _supabase
-        .from('transactions')
-        .update({
-          'approval_status': 'approved',
-          'approval_decision_note': TransactionHelperService.emptyToNull(
-            decisionNote,
-          ),
-          'approval_decided_by_profile_id': decidedByProfileId.trim(),
-          'approval_decided_at': now,
-          'settlement_status': 'pending_settlement',
-          'updated_at': now,
-        })
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
-        .select(selectColumns)
-        .single();
+    final savedId = _readTransactionIdFromRpcResult(rpcResult);
 
-    return TransactionModel.fromJson(data);
+    return _getTransactionById(
+      transactionId: savedId,
+      companyId: companyId,
+      selectColumns: selectColumns,
+    );
   }
 
   Future<TransactionModel> rejectLostDamagedTransaction({
     required TransactionModel transaction,
-    required String decidedByProfileId,
     required String selectColumns,
     String? decisionNote,
   }) async {
@@ -81,10 +70,6 @@ class TransactionApprovalService {
 
     if (companyId == null || companyId.trim().isEmpty) {
       throw StateError('Company ID was not found.');
-    }
-
-    if (decidedByProfileId.trim().isEmpty) {
-      throw StateError('Rejector profile ID was not found.');
     }
 
     if (!transaction.isLostOrDamaged) {
@@ -102,34 +87,26 @@ class TransactionApprovalService {
       );
     }
 
-    final now = DateTime.now().toUtc().toIso8601String();
+    final rpcResult = await _supabase.rpc(
+      'reject_lost_damaged_transaction',
+      params: {
+        'p_company_id': companyId,
+        'p_transaction_id': transactionId,
+        'p_decision_note': _emptyToNull(decisionNote),
+      },
+    );
 
-    final data = await _supabase
-        .from('transactions')
-        .update({
-          'approval_status': 'rejected',
-          'approval_decision_note': TransactionHelperService.emptyToNull(
-            decisionNote,
-          ),
-          'approval_decided_by_profile_id': decidedByProfileId.trim(),
-          'approval_decided_at': now,
-          'settlement_status': 'not_required',
-          'settlement_note': null,
-          'settled_by_profile_id': null,
-          'settled_at': null,
-          'updated_at': now,
-        })
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
-        .select(selectColumns)
-        .single();
+    final savedId = _readTransactionIdFromRpcResult(rpcResult);
 
-    return TransactionModel.fromJson(data);
+    return _getTransactionById(
+      transactionId: savedId,
+      companyId: companyId,
+      selectColumns: selectColumns,
+    );
   }
 
   Future<TransactionModel> settleApprovedLostDamagedTransaction({
     required TransactionModel transaction,
-    required String settledByProfileId,
     required String selectColumns,
     String? settlementNote,
   }) async {
@@ -142,10 +119,6 @@ class TransactionApprovalService {
 
     if (companyId == null || companyId.trim().isEmpty) {
       throw StateError('Company ID was not found.');
-    }
-
-    if (settledByProfileId.trim().isEmpty) {
-      throw StateError('Settlement profile ID was not found.');
     }
 
     if (!transaction.isLostOrDamaged) {
@@ -162,24 +135,74 @@ class TransactionApprovalService {
       throw StateError('Only transactions pending settlement can be settled.');
     }
 
-    final now = DateTime.now().toUtc().toIso8601String();
+    final rpcResult = await _supabase.rpc(
+      'settle_lost_damaged_transaction',
+      params: {
+        'p_company_id': companyId,
+        'p_transaction_id': transactionId,
+        'p_settlement_note': _emptyToNull(settlementNote),
+      },
+    );
 
+    final savedId = _readTransactionIdFromRpcResult(rpcResult);
+
+    return _getTransactionById(
+      transactionId: savedId,
+      companyId: companyId,
+      selectColumns: selectColumns,
+    );
+  }
+
+  Future<TransactionModel> _getTransactionById({
+    required String transactionId,
+    required String companyId,
+    required String selectColumns,
+  }) async {
     final data = await _supabase
         .from('transactions')
-        .update({
-          'settlement_status': 'settled',
-          'settlement_note': TransactionHelperService.emptyToNull(
-            settlementNote,
-          ),
-          'settled_by_profile_id': settledByProfileId.trim(),
-          'settled_at': now,
-          'updated_at': now,
-        })
+        .select(selectColumns)
         .eq('id', transactionId)
         .eq('company_id', companyId)
-        .select(selectColumns)
         .single();
 
     return TransactionModel.fromJson(data);
+  }
+
+  String _readTransactionIdFromRpcResult(dynamic rpcResult) {
+    if (rpcResult is String && rpcResult.trim().isNotEmpty) {
+      return rpcResult.trim();
+    }
+
+    if (rpcResult is List && rpcResult.isNotEmpty) {
+      final firstItem = rpcResult.first;
+
+      if (firstItem is Map<String, dynamic>) {
+        final id = firstItem['transaction_id'] as String?;
+
+        if (id != null && id.trim().isNotEmpty) {
+          return id.trim();
+        }
+      }
+    }
+
+    if (rpcResult is Map<String, dynamic>) {
+      final id = rpcResult['transaction_id'] as String?;
+
+      if (id != null && id.trim().isNotEmpty) {
+        return id.trim();
+      }
+    }
+
+    throw StateError('Transaction ID was not returned by the RPC.');
+  }
+
+  String? _emptyToNull(String? value) {
+    final clean = value?.trim();
+
+    if (clean == null || clean.isEmpty) {
+      return null;
+    }
+
+    return clean;
   }
 }

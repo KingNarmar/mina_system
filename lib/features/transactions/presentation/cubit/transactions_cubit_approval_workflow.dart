@@ -57,7 +57,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
 
   Future<bool> approveTransaction({
     required TransactionModel transaction,
-    required String decidedByProfileId,
     String? decisionNote,
   }) async {
     final validationError =
@@ -66,14 +65,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
         );
     if (validationError != null) {
       emitState(state.copyWith(errorMessage: validationError));
-      return false;
-    }
-
-    final profileError = TransactionsCubitValidators.validateProfileId(
-      decidedByProfileId,
-    );
-    if (profileError != null) {
-      emitState(state.copyWith(errorMessage: profileError));
       return false;
     }
 
@@ -93,7 +84,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       final savedTransaction = await _transactionsRepo
           .approveLostDamagedTransaction(
             transaction: transaction,
-            decidedByProfileId: decidedByProfileId,
             decisionNote: decisionNote,
           );
 
@@ -116,7 +106,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
 
   Future<bool> rejectTransaction({
     required TransactionModel transaction,
-    required String decidedByProfileId,
     String? decisionNote,
   }) async {
     final validationError =
@@ -125,14 +114,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
         );
     if (validationError != null) {
       emitState(state.copyWith(errorMessage: validationError));
-      return false;
-    }
-
-    final profileError = TransactionsCubitValidators.validateProfileId(
-      decidedByProfileId,
-    );
-    if (profileError != null) {
-      emitState(state.copyWith(errorMessage: profileError));
       return false;
     }
 
@@ -152,7 +133,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       final savedTransaction = await _transactionsRepo
           .rejectLostDamagedTransaction(
             transaction: transaction,
-            decidedByProfileId: decidedByProfileId,
             decisionNote: decisionNote,
           );
 
@@ -175,7 +155,6 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
 
   Future<bool> settleTransaction({
     required TransactionModel transaction,
-    required String settledByProfileId,
     String? settlementNote,
   }) async {
     final transactionId = transaction.id;
@@ -213,21 +192,12 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return false;
     }
 
-    final profileError = TransactionsCubitValidators.validateProfileId(
-      settledByProfileId,
-    );
-    if (profileError != null) {
-      emitState(state.copyWith(errorMessage: profileError));
-      return false;
-    }
-
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
       final savedTransaction = await _transactionsRepo
           .settleApprovedLostDamagedTransaction(
             transaction: transaction,
-            settledByProfileId: settledByProfileId,
             settlementNote: settlementNote,
           );
 

@@ -79,14 +79,6 @@ class TransactionsCubitValidators {
     return null;
   }
 
-  static String? validateProfileId(String profileId) {
-    if (profileId.trim().isEmpty) {
-      return 'Profile ID was not found';
-    }
-
-    return null;
-  }
-
   static bool hasRequiredProofImage(TransactionModel transaction) {
     if (!transaction.isIssue && !transaction.isDamaged) {
       return true;
