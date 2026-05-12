@@ -10,11 +10,11 @@
 
 Latest verified pushed **code** commit:
 
-`5e7394bdbd7932c90f338dee8e9cf207b46e598a`
+`575967c939248ad36e52040b6e2c9017ab549554`
 
 Commit message:
 
-`refactor(workers): split cubit mutations and enforce unique names`
+`fix(auth): guard direct auth routes without email`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -23,9 +23,9 @@ It is based on the real GitHub repository, not the README.
 Current high-level state:
 
 - Current product phase:
-  - **Auth UX Checkpoint — Email-First Authentication Flow**
+  - **Phase R — Business Accountability & Audit Trail**
 - Current product checkpoint:
-  - **Auth UX Checkpoint — Email-First Authentication Flow**
+  - **Phase R — Business Accountability & Audit Trail**
 - Current parallel engineering checkpoint:
   - **None (Completed)**
 
@@ -814,8 +814,8 @@ This order puts core SaaS/product requirements first, and keeps improvements/enh
 1. **Phase O — Company Users, Roles & Invitations** ✅
 2. **Phase P — Role-Based Access Control** ✅
 3. **Phase Q — Secure Member Management & Invitation Backend** ✅
-4. **Auth UX Checkpoint — Email-First Authentication Flow** 🚧
-5. **Phase R — Business Accountability & Audit Trail**
+4. **Auth UX Checkpoint — Email-First Authentication Flow** ✅
+5. **Phase R — Business Accountability & Audit Trail** 🚧
 6. **Phase S — Production Environment & Secrets Setup**
 7. **Phase T — Subscription Plans, Usage Limits & Company Access Control**
 
@@ -1136,7 +1136,7 @@ Recommendation:
 
 # Auth UX Checkpoint — Email-First Authentication Flow
 
-## Status: In Progress (Safe Email-First Foundation Completed)
+## Status: Done (Final Polish Completed)
 
 ## Goal
 
@@ -1148,8 +1148,13 @@ Replace the current ambiguous register-first behavior with a clearer SaaS-style 
 - **Safe Choice Step:** Added client-side choice wizard (without calling Supabase or revealing account existence) offering 'I already have an account' and 'Create a new account' options, strictly avoiding account-enumeration risks.
 - **Prefilled & Locked Forms:** Integrated validated, read-only email passing to `/login` and `/register` via GoRouter state extra.
 - **Direct Route Guards:** Implemented robust routing guards to automatically redirect direct unauthenticated access attempts on `/login` or `/register` back to `/` unless a valid email is passed.
-- **Next Steps / Next Action:** Review remaining Auth UX polish and styling items (e.g., layout spacing, field labels) if any, and perform comprehensive validation across all mobile/tablet/desktop layouts.
-- **Note on backend:** No backend account-existence check/RPC was implemented (deferred to Phase S).
+- **Logout Behavior:** Adjusted logout behaviors to route back to Email Entry screen.
+- **No backend account-existence detection was added (deferred to Phase S).**
+
+## Final Verification Note
+
+- **Final Polish Review:** Passed with zero issues.
+- **Static Analysis & Formatting:** `dart format lib` and `flutter analyze` completed with no warnings/errors.
 
 ## Planned Safe UX
 
@@ -1183,7 +1188,7 @@ Replace the current ambiguous register-first behavior with a clearer SaaS-style 
 
 # Phase R — Business Accountability & Audit Trail
 
-## Status: Planned
+## Status: In Progress
 
 ## Goal
 
@@ -1530,4 +1535,4 @@ These items are intentionally not forgotten even when they are not the current a
 
 # Current Next Action
 
-- Begin **Auth UX Checkpoint — Email-First Authentication Flow** to replace the current ambiguous register-first behavior with a cleaner SaaS-style authentication entry flow.
+- Begin **Phase R — Business Accountability & Audit Trail** to add direct user accountability and historical audit logging for important business actions.
