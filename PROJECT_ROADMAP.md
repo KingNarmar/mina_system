@@ -12,7 +12,11 @@
 
 This roadmap is the single source of truth for the Mina System project.
 
-It is based on the real GitHub repository and the verified Supabase backend state, not the README.
+It is based on:
+
+- The real GitHub repository.
+- The verified Supabase backend state.
+- The latest completed and pushed development checkpoints.
 
 The README may be useful for public explanation, but if it conflicts with this roadmap, this roadmap wins.
 
@@ -20,41 +24,45 @@ The README may be useful for public explanation, but if it conflicts with this r
 
 ## Latest Verified State
 
-Latest verified pushed **code** commit:
+Latest verified pushed code commit:
 
-`84f6eeb049dbc868c9fa8c0fad1e391ca125ae68`
+`ab058aaf03856d46a3d141983291e4ce37a4e44d`
 
 Commit message:
 
-`feat(accountability): align workers and tools create update with secure RPCs`
+`feat(company): add company timezone foundation`
 
-Latest verified backend checkpoint:
+Current product phase:
 
-**Step R5 — Audit Logs Foundation**
+**Phase R — Business Accountability & Audit Trail**
+
+Current checkpoint:
+
+**Step R5.5 — Company Timezone Setting Foundation**
 
 Status:
 
-**Completed and manually verified**
+**In Progress**
 
-Important note:
+Completed inside Step R5.5:
 
-- The R5 backend SQL changes were applied directly in Supabase.
-- The roadmap still needs to be committed/pushed after this document update is approved.
+- Backend company timezone foundation.
+- Flutter company timezone foundation.
+- Searchable company timezone selector.
+- Create Company screen expanded with important company setup fields.
+- Company Settings can now read/update company timezone.
 
-Current high-level state:
+Next required checkpoint:
 
-- Current product phase:
-  - **Phase R — Business Accountability & Audit Trail**
-- Current completed checkpoint:
-  - **Step R5 — Audit Logs Foundation**
-- Next recommended checkpoint:
-  - **Step R5.5 — Company Timezone Setting Foundation**
-- Current parallel engineering checkpoint:
-  - **None**
+**Step R5.5-C — Centralized Company Date/Time Formatter**
+
+Important rule:
+
+Do not start final Audit History UI before company timezone formatting is centralized and applied to business-facing timestamps.
 
 ---
 
-# Project Vision
+# Product Vision
 
 Mina System is a Flutter + Supabase inventory and custody management system built as a real multi-company SaaS/product.
 
@@ -231,19 +239,15 @@ Mina System handles business accountability, custody, reports, and audit trails,
 
 - Business-facing UI, reports, PDFs, and Audit History screens must display timestamps using the current company timezone.
 - The app must not permanently hardcode UAE time for all companies.
-- UAE time may only be used as a temporary fallback during UAE-based testing until company timezone support is implemented.
+- Device local time may be used only as a fallback or suggestion, not as the source of truth for company timestamps.
 
 ## Company Timezone Rule
 
-A future company-level timezone setting must be added before building the final Audit History UI.
-
-Recommended field:
+Company timezone is stored at company level:
 
 `companies.timezone text not null default 'Asia/Dubai'`
 
-or an equivalent company settings field.
-
-The timezone value should use IANA timezone names, such as:
+The timezone value must use IANA timezone names, such as:
 
 - `Asia/Dubai`
 - `Asia/Kolkata`
@@ -252,28 +256,29 @@ The timezone value should use IANA timezone names, such as:
 
 Do not rely only on fixed offsets such as `+04:00`, because some countries use daylight saving time.
 
-## Audit Display Example
+## Current Implementation State
 
-Stored value:
+Completed:
 
-`2026-05-12 14:50:54+00`
+- `companies.timezone` was added in Supabase.
+- Existing companies can default to `Asia/Dubai`.
+- `create_company_with_defaults` accepts `p_timezone`.
+- `company_report_settings.default_timezone` is seeded from the selected company timezone during company creation.
+- Flutter uses the `timezone` package.
+- Timezone database is initialized in `main.dart`.
+- `CompanyModel` includes `timezone`.
+- `CompanyProfileModel` includes `timezone`.
+- `CreateCompanyRequest` includes `timezone`.
+- A reusable searchable timezone picker was added.
+- Create Company screen allows selecting timezone.
+- Company Settings allows editing timezone.
 
-Displayed for UAE company:
+Pending:
 
-`2026-05-12 18:50:54 Asia/Dubai`
-
-Displayed for India company:
-
-`2026-05-12 20:20:54 Asia/Kolkata`
-
-## Roadmap Decision
-
-Before implementing the final Audit History UI:
-
-- Add company timezone foundation.
-- Load timezone through current company context.
-- Format all audit/report timestamps using the current company timezone.
-- Keep UTC available internally for technical verification and cross-region consistency.
+- Add a centralized company date/time formatter.
+- Apply company timezone formatting to transaction UI timestamps.
+- Apply company timezone formatting to reports/PDF timestamps.
+- Apply company timezone formatting to future Audit History UI.
 
 ---
 
@@ -636,7 +641,32 @@ Team / Company Users should eventually show:
 - PDF colors and text styles were centralized under:
   - `lib/core/theme/app_pdf_colors.dart`
   - `lib/core/theme/app_pdf_text_styles.dart`
-- No Batch 7 is currently required. Future refactors should be tied to real product or maintenance value, not line count.
+
+## Completed Company Timezone Foundation
+
+- Backend `companies.timezone` field was added.
+- Backend company timezone defaults to `Asia/Dubai`.
+- Backend `create_company_with_defaults` accepts `p_timezone`.
+- Backend validates timezone using valid IANA timezone names.
+- New company report settings seed `default_timezone` from selected company timezone.
+- `timezone` package was added to Flutter.
+- Timezone database initialization was added in `main.dart`.
+- `CompanyModel` now includes `timezone`.
+- `CompanyProfileModel` now includes `timezone`.
+- `CreateCompanyRequest` now supports full company creation profile fields and `timezone`.
+- `AppTimezones` utility was added.
+- Searchable timezone picker was added.
+- Create Company screen now includes:
+  - Company Name
+  - Trade Name
+  - Legal Name
+  - Country
+  - City
+  - Company Timezone
+  - Company Email
+  - Company Phone
+- Company Settings profile form now supports timezone editing.
+- Current company context can update both company name and timezone after profile changes.
 
 ---
 
@@ -657,9 +687,13 @@ Completed checkpoints:
 - Step R4 — Workers & Tools Accountability
 - Step R5 — Audit Logs Foundation
 
-Next recommended checkpoint:
+Current checkpoint:
 
 - Step R5.5 — Company Timezone Setting Foundation
+
+Next recommended sub-step:
+
+- Step R5.5-C — Centralized Company Date/Time Formatter
 
 Then:
 
@@ -890,7 +924,7 @@ Important result:
   - What changed from old data to new data
   - When the action happened in UTC
 
-Remaining in Step R5:
+Remaining:
 
 - None.
 
@@ -900,7 +934,7 @@ Remaining in Step R5:
 
 Status:
 
-**Next**
+**In Progress**
 
 Reason:
 
@@ -911,34 +945,58 @@ Goal:
 - Add company-level timezone support before building the final Audit History UI.
 - Keep database timestamps in UTC.
 - Display timestamps using current company timezone.
-- Use temporary fallback `Asia/Dubai` only until company timezone support is implemented.
+- Use `Asia/Dubai` only as a safe default/fallback, not as a hardcoded global display timezone.
 
-Suggested backend work:
+Completed backend work:
 
-- Add timezone field to `companies` or company settings.
-- Recommended field:
-  - `timezone text not null default 'Asia/Dubai'`
-- Store timezone using IANA timezone names.
-- Validate timezone values where practical.
+- Added `companies.timezone text not null default 'Asia/Dubai'`.
+- Added non-blank validation for `companies.timezone`.
+- Backfilled existing company timezone values where needed.
+- Updated `create_company_with_defaults` to accept `p_timezone`.
+- New companies now store timezone in `companies.timezone`.
+- New company report settings now seed `default_timezone` from selected company timezone.
+- RPC validates timezone using valid IANA timezone names.
 
-Suggested Flutter work:
+Completed Flutter work:
 
-- Add timezone to current company context.
-- Add a centralized date/time formatter.
-- Use it in:
-  - Audit History UI
-  - Reports
-  - Transaction details
-  - Worker details
-  - Tool details
-  - PDF reports where business timestamps are shown
+- Added `timezone` dependency.
+- Initialized timezone database in `main.dart`.
+- Added `timezone` to `CompanyModel`.
+- Added `timezone` to `CompanyProfileModel`.
+- Added timezone and company profile fields to `CreateCompanyRequest`.
+- Added `AppTimezones` helper.
+- Added reusable `SearchableTimezoneFormField`.
+- Expanded Create Company screen with:
+  - Company Name
+  - Trade Name
+  - Legal Name
+  - Country
+  - City
+  - Company Timezone
+  - Company Email
+  - Company Phone
+- Added timezone editing to Company Settings profile form.
+- Updated current company context after profile changes so company name and timezone remain in sync.
 
-Expected result:
+Remaining in Step R5.5:
+
+- Add centralized company date/time formatter.
+- Apply formatter to transaction table date display.
+- Apply formatter to transaction details date display.
+- Apply formatter to report/PDF business dates where needed.
+- Keep Audit History UI pending until timezone formatter is ready.
+
+Next sub-step:
+
+**Step R5.5-C — Centralized Company Date/Time Formatter**
+
+Expected result after R5.5 completion:
 
 - UAE company sees UAE time.
 - India company sees India time.
 - Egypt company sees Egypt time.
 - Database remains UTC and globally consistent.
+- UI/reports/audit history display business timestamps using company timezone.
 
 ---
 
@@ -951,7 +1009,7 @@ Status:
 Depends on:
 
 - Step R5 completed.
-- Step R5.5 company timezone foundation completed.
+- Step R5.5 completed.
 
 Goal:
 
@@ -1037,20 +1095,26 @@ Lookups:
 
 Status:
 
-**None**
+**Step R5.5-C pending**
 
-The previous maintainability refactor pass is completed.
+Current engineering focus:
 
-Known decisions:
+**Centralized Company Date/Time Formatter**
 
-- Leave cohesive large files unchanged when splitting would add fragmentation without real maintainability value.
-- Current examples intentionally left cohesive:
-  - `current_context_cubit.dart`
-  - `add_edit_tool_form.dart`
-  - `add_worker_form.dart`
-- Prefer feature-by-feature refactors.
-- Prefer part-file extensions for large Cubits when mutation flows are genuinely separate.
-- No Batch 7 required at this stage.
+Purpose:
+
+- Convert UTC timestamps to the active company timezone.
+- Provide one reusable formatter for UI, reports, PDFs, and future audit history.
+- Avoid scattered date formatting logic.
+- Avoid relying on device local timezone for business timestamps.
+
+Files likely involved next:
+
+- `lib/core/utils/company_datetime_formatter.dart`
+- `lib/features/transactions/presentation/functions/format_transaction_date.dart`
+- Transaction table/date display widgets
+- Transaction details date display widgets
+- Report PDF date formatting helpers
 
 ---
 
@@ -1069,7 +1133,7 @@ Known decisions:
    - R3 General Transaction Update Hardening ✅
    - R4 Workers & Tools Accountability ✅
    - R5 Audit Logs Foundation ✅
-   - R5.5 Company Timezone Setting Foundation ⏭️
+   - R5.5 Company Timezone Setting Foundation 🚧
    - R6 Audit History UI & Record Accountability Display ⏭️
 6. **Phase S — Production Environment & Secrets Setup**
 7. **Phase T — Subscription / Plan Limits Foundation**
@@ -1104,33 +1168,22 @@ Known decisions:
 
 Recommended next step:
 
-**Step R5.5 — Company Timezone Setting Foundation**
+**Step R5.5-C — Centralized Company Date/Time Formatter**
 
 Why this should come before Audit History UI:
 
 - Audit history is time-sensitive.
-- Reports are time-sensitive.
-- Custody accountability depends on accurate business time.
-- The app is intended to be multi-company and potentially multi-country.
-- Hardcoding UAE time would be incorrect for companies outside the UAE.
+- Reports and custody records must display time according to the company timezone.
+- Date formatting should be centralized before adding new audit UI screens.
+- The system already stores timestamps in UTC.
+- The next step is to convert UTC timestamps to the active company timezone consistently.
 
-After Step R5.5:
-
-Proceed to:
+Do not start:
 
 **Step R6 — Audit History UI & Record Accountability Display**
 
----
+until:
 
-# Notes for Next Session
-
-When continuing from here:
-
-1. Review the real GitHub repo first.
-2. Review `PROJECT_ROADMAP.md`.
-3. Do not rely on README if it conflicts with the roadmap.
-4. Confirm whether this updated roadmap version has been committed and pushed.
-5. Start with Step R5.5 unless a higher-priority bug appears.
-6. Do not implement Audit History UI before confirming company timezone handling.
-7. Continue step by step.
-8. Do not change working UI or backend behavior without approval.
+- Company datetime formatter exists.
+- Transaction UI date display is aligned with company timezone.
+- Report/PDF date display strategy is aligned with company timezone.
