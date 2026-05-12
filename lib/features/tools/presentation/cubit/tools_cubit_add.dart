@@ -1,20 +1,11 @@
 part of 'tools_cubit.dart';
 
 extension ToolsCubitAdd on ToolsCubit {
-  Future<bool> addTool(
-    ToolModel tool, {
-    String? companyId,
-    String? createdByProfileId,
-  }) async {
+  Future<bool> addTool(ToolModel tool, {String? companyId}) async {
     final cleanToolName = tool.toolName.trim();
 
     if (companyId == null || companyId.isEmpty) {
       emitState(state.copyWith(errorMessage: 'Company ID was not found'));
-      return false;
-    }
-
-    if (createdByProfileId == null || createdByProfileId.isEmpty) {
-      emitState(state.copyWith(errorMessage: 'Profile ID was not found'));
       return false;
     }
 
@@ -73,7 +64,6 @@ extension ToolsCubitAdd on ToolsCubit {
         companyId: companyId,
         toolCode: toolCode,
         toolName: cleanToolName,
-        createdByProfileId: createdByProfileId,
         status: 'active',
       );
 

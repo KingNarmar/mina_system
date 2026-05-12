@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
-import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 
 void confirmDeleteTool({
   required BuildContext context,
@@ -14,8 +13,11 @@ void confirmDeleteTool({
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Delete Tool'),
-        content: Text('Are you sure you want to delete ${tool.toolName}?'),
+        title: const Text('Deactivate Tool'),
+        content: Text(
+          'Are you sure you want to deactivate ${tool.toolName}? '
+          'The tool will be hidden from active lists, but existing records will remain safe.',
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -31,27 +33,9 @@ void confirmDeleteTool({
 
               navigator.pop();
 
-              final hasTransactions = parentContext
-                  .read<TransactionsCubit>()
-                  .hasToolTransactions(tool.toolCode);
+              final isDeactivated = await toolsCubit.deleteTool(tool);
 
-              if (hasTransactions) {
-                messenger
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Cannot delete tool because this tool has custody transactions.',
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                return;
-              }
-
-              final isDeleted = await toolsCubit.deleteTool(tool);
-
-              if (!isDeleted) {
+              if (!isDeactivated) {
                 return;
               }
 
@@ -59,12 +43,12 @@ void confirmDeleteTool({
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
                   const SnackBar(
-                    content: Text('Tool deleted successfully'),
+                    content: Text('Tool deactivated successfully'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
             },
-            child: const Text('Delete'),
+            child: const Text('Deactivate'),
           ),
         ],
       );

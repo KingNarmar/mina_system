@@ -84,7 +84,6 @@ Future<String?> _saveWorker({
   required WorkerModel savedWorker,
 }) async {
   final companyId = context.currentCompanyId;
-  final profileId = context.currentProfileId;
   final workersCubit = context.read<WorkersCubit>();
   final dashboardCubit = context.read<DashboardCubit>();
 
@@ -92,14 +91,9 @@ Future<String?> _saveWorker({
     return 'Company ID was not found';
   }
 
-  if (originalWorker == null && (profileId == null || profileId.isEmpty)) {
-    return 'Profile ID was not found';
-  }
-
   if (originalWorker == null) {
     final isAdded = await workersCubit.addWorker(
       companyId: companyId,
-      createdByProfileId: profileId!,
       worker: savedWorker,
     );
 

@@ -11,6 +11,7 @@ class ToolModel {
     this.description,
     this.status = 'active',
     this.createdByProfileId,
+    this.updatedByProfileId,
     this.createdAt,
     this.updatedAt,
   });
@@ -36,6 +37,7 @@ class ToolModel {
   final String? description;
   final String status;
   final String? createdByProfileId;
+  final String? updatedByProfileId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -60,6 +62,7 @@ class ToolModel {
       description: json['description'] as String?,
       status: json['status'] as String? ?? 'active',
       createdByProfileId: json['created_by_profile_id'] as String?,
+      updatedByProfileId: json['updated_by_profile_id'] as String?,
       createdAt: _parseDateTime(json['created_at']),
       updatedAt: _parseDateTime(json['updated_at']),
     );
@@ -74,7 +77,6 @@ class ToolModel {
       'category_id': categoryId,
       'description': _emptyToNull(description),
       'status': status,
-      'created_by_profile_id': createdByProfileId,
     };
   }
 
@@ -101,6 +103,7 @@ class ToolModel {
     String? description,
     String? status,
     String? createdByProfileId,
+    String? updatedByProfileId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -116,6 +119,7 @@ class ToolModel {
       description: description ?? this.description,
       status: status ?? this.status,
       createdByProfileId: createdByProfileId ?? this.createdByProfileId,
+      updatedByProfileId: updatedByProfileId ?? this.updatedByProfileId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

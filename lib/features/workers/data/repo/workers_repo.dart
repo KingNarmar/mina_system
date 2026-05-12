@@ -8,29 +8,35 @@ class WorkersRepo {
 
   final SupabaseClient _supabase;
 
-  Future<List<WorkerModel>> getWorkers({required String companyId}) async {
+  static const String _workerSelectColumns = '''
+    id,
+    company_id,
+    worker_code,
+    hr_code,
+    full_name,
+    department_id,
+    job_title_id,
+    phone,
+    email,
+    status,
+    notes,
+    created_by_profile_id,
+    updated_by_profile_id,
+    created_at,
+    updated_at,
+    departments(name),
+    job_titles(name)
+  ''';
+
+  Future<List<WorkerModel>> getWorkers({
+    required String companyId,
+    String status = 'active',
+  }) async {
     final data = await _supabase
         .from('workers')
-        .select('''
-          id,
-          company_id,
-          worker_code,
-          hr_code,
-          full_name,
-          department_id,
-          job_title_id,
-          phone,
-          email,
-          status,
-          notes,
-          created_by_profile_id,
-          created_at,
-          updated_at,
-          departments(name),
-          job_titles(name)
-        ''')
+        .select(_workerSelectColumns)
         .eq('company_id', companyId)
-        .eq('status', 'active')
+        .eq('status', status)
         .order('full_name');
 
     return data.map((item) {
@@ -39,27 +45,47 @@ class WorkersRepo {
   }
 
   Future<WorkerModel> addWorker({required WorkerModel worker}) async {
+    final companyId = worker.companyId;
+    final workerCode = worker.workerCode;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (workerCode == null || workerCode.trim().isEmpty) {
+      throw StateError('Worker code was not found.');
+    }
+
+    if (worker.departmentId == null || worker.departmentId!.trim().isEmpty) {
+      throw StateError('Department was not found.');
+    }
+
+    if (worker.jobTitleId == null || worker.jobTitleId!.trim().isEmpty) {
+      throw StateError('Job title was not found.');
+    }
+
+    final rpcResult = await _supabase.rpc(
+      'create_worker',
+      params: {
+        'p_company_id': companyId,
+        'p_worker_code': workerCode,
+        'p_hr_code': worker.hrCode.trim(),
+        'p_full_name': worker.name.trim(),
+        'p_department_id': worker.departmentId,
+        'p_job_title_id': worker.jobTitleId,
+        'p_phone': _emptyToNull(worker.phone),
+        'p_email': _emptyToNull(worker.email),
+        'p_notes': _emptyToNull(worker.notes),
+      },
+    );
+
+    final workerId = _readRpcUuidResult(rpcResult, 'create_worker');
+
     final data = await _supabase
         .from('workers')
-        .insert(worker.toInsertJson())
-        .select('''
-        id,
-        company_id,
-        worker_code,
-        hr_code,
-        full_name,
-        department_id,
-        job_title_id,
-        phone,
-        email,
-        status,
-        notes,
-        created_by_profile_id,
-        created_at,
-        updated_at,
-        departments(name),
-        job_titles(name)
-      ''')
+        .select(_workerSelectColumns)
+        .eq('id', workerId)
+        .eq('company_id', companyId)
         .single();
 
     return WorkerModel.fromJson(data);
@@ -69,35 +95,99 @@ class WorkersRepo {
     required String workerId,
     required WorkerModel worker,
   }) async {
+    final companyId = worker.companyId;
+    final workerCode = worker.workerCode;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (workerCode == null || workerCode.trim().isEmpty) {
+      throw StateError('Worker code was not found.');
+    }
+
+    if (worker.departmentId == null || worker.departmentId!.trim().isEmpty) {
+      throw StateError('Department was not found.');
+    }
+
+    if (worker.jobTitleId == null || worker.jobTitleId!.trim().isEmpty) {
+      throw StateError('Job title was not found.');
+    }
+
+    final rpcResult = await _supabase.rpc(
+      'update_worker',
+      params: {
+        'p_company_id': companyId,
+        'p_worker_id': workerId,
+        'p_worker_code': workerCode,
+        'p_hr_code': worker.hrCode.trim(),
+        'p_full_name': worker.name.trim(),
+        'p_department_id': worker.departmentId,
+        'p_job_title_id': worker.jobTitleId,
+        'p_phone': _emptyToNull(worker.phone),
+        'p_email': _emptyToNull(worker.email),
+        'p_status': worker.status,
+        'p_notes': _emptyToNull(worker.notes),
+      },
+    );
+
+    final savedWorkerId = _readRpcUuidResult(rpcResult, 'update_worker');
+
     final data = await _supabase
         .from('workers')
-        .update(worker.toUpdateJson())
-        .eq('id', workerId)
-        .select('''
-        id,
-        company_id,
-        worker_code,
-        hr_code,
-        full_name,
-        department_id,
-        job_title_id,
-        phone,
-        email,
-        status,
-        notes,
-        created_by_profile_id,
-        created_at,
-        updated_at,
-        departments(name),
-        job_titles(name)
-      ''')
+        .select(_workerSelectColumns)
+        .eq('id', savedWorkerId)
+        .eq('company_id', companyId)
         .single();
 
     return WorkerModel.fromJson(data);
   }
 
-  Future<void> deleteWorker({required String workerId}) async {
-    await _supabase.from('workers').delete().eq('id', workerId);
+  Future<void> deleteWorker({
+    required String companyId,
+    required String workerId,
+  }) async {
+    if (companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (workerId.trim().isEmpty) {
+      throw StateError('Worker ID was not found.');
+    }
+
+    await _supabase.rpc(
+      'deactivate_worker',
+      params: {'p_company_id': companyId, 'p_worker_id': workerId},
+    );
+  }
+
+  Future<WorkerModel> reactivateWorker({
+    required String companyId,
+    required String workerId,
+  }) async {
+    if (companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (workerId.trim().isEmpty) {
+      throw StateError('Worker ID was not found.');
+    }
+
+    final rpcResult = await _supabase.rpc(
+      'reactivate_worker',
+      params: {'p_company_id': companyId, 'p_worker_id': workerId},
+    );
+
+    final savedWorkerId = _readRpcUuidResult(rpcResult, 'reactivate_worker');
+
+    final data = await _supabase
+        .from('workers')
+        .select(_workerSelectColumns)
+        .eq('id', savedWorkerId)
+        .eq('company_id', companyId)
+        .single();
+
+    return WorkerModel.fromJson(data);
   }
 
   Future<bool> hrCodeExists({
@@ -244,5 +334,47 @@ class WorkersRepo {
     }
 
     return int.tryParse(match.group(1) ?? '') ?? 0;
+  }
+
+  String _readRpcUuidResult(dynamic rpcResult, String functionName) {
+    if (rpcResult is String && rpcResult.trim().isNotEmpty) {
+      return rpcResult.trim();
+    }
+
+    if (rpcResult is Map<String, dynamic>) {
+      final value = rpcResult[functionName] as String?;
+
+      if (value != null && value.trim().isNotEmpty) {
+        return value.trim();
+      }
+    }
+
+    if (rpcResult is List && rpcResult.isNotEmpty) {
+      final firstItem = rpcResult.first;
+
+      if (firstItem is String && firstItem.trim().isNotEmpty) {
+        return firstItem.trim();
+      }
+
+      if (firstItem is Map<String, dynamic>) {
+        final value = firstItem[functionName] as String?;
+
+        if (value != null && value.trim().isNotEmpty) {
+          return value.trim();
+        }
+      }
+    }
+
+    throw StateError('Worker ID was not returned.');
+  }
+
+  String? _emptyToNull(String? value) {
+    final cleanValue = value?.trim();
+
+    if (cleanValue == null || cleanValue.isEmpty) {
+      return null;
+    }
+
+    return cleanValue;
   }
 }

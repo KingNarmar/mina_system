@@ -50,7 +50,7 @@ class ToolsTableRow extends StatelessWidget {
                           },
                           icon: const Icon(Icons.delete_outline),
                           color: AppColors.error,
-                          tooltip: 'Delete',
+                          tooltip: 'Deactivate',
                         ),
                     ],
                   ),

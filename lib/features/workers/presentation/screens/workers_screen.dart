@@ -50,6 +50,19 @@ class _WorkersView extends StatelessWidget {
       child: BlocBuilder<WorkersCubit, WorkersState>(
         builder: (context, state) {
           final workers = state.filteredWorkers;
+          final companyId = context.currentCompanyId;
+
+          void onStatusFilterChanged(String statusFilter) {
+            if (companyId == null || companyId.isEmpty) {
+              AppMessage.showError(context, 'Company ID was not found');
+              return;
+            }
+
+            context.read<WorkersCubit>().changeStatusFilter(
+              companyId: companyId,
+              statusFilter: statusFilter,
+            );
+          }
 
           return Stack(
             children: [
@@ -63,6 +76,8 @@ class _WorkersView extends StatelessWidget {
                     return WorkersMobileLayout(
                       workers: workers,
                       searchQuery: state.searchQuery,
+                      statusFilter: state.statusFilter,
+                      onStatusFilterChanged: onStatusFilterChanged,
                       canCreateWorkers: canCreateWorkers,
                       canUpdateWorkers: canUpdateWorkers,
                       canDeleteWorkers: canDeleteWorkers,
@@ -72,6 +87,8 @@ class _WorkersView extends StatelessWidget {
                   return WorkersDesktopLayout(
                     workers: workers,
                     searchQuery: state.searchQuery,
+                    statusFilter: state.statusFilter,
+                    onStatusFilterChanged: onStatusFilterChanged,
                     canCreateWorkers: canCreateWorkers,
                     canUpdateWorkers: canUpdateWorkers,
                     canDeleteWorkers: canDeleteWorkers,

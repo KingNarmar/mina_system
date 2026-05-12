@@ -14,6 +14,7 @@ class WorkerModel {
     this.status = 'active',
     this.notes,
     this.createdByProfileId,
+    this.updatedByProfileId,
     this.createdAt,
     this.updatedAt,
   });
@@ -43,6 +44,7 @@ class WorkerModel {
   final String status;
   final String? notes;
   final String? createdByProfileId;
+  final String? updatedByProfileId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -70,6 +72,7 @@ class WorkerModel {
       status: json['status'] as String? ?? 'active',
       notes: json['notes'] as String?,
       createdByProfileId: json['created_by_profile_id'] as String?,
+      updatedByProfileId: json['updated_by_profile_id'] as String?,
       createdAt: _parseDateTime(json['created_at']),
       updatedAt: _parseDateTime(json['updated_at']),
     );
@@ -87,7 +90,6 @@ class WorkerModel {
       'email': _emptyToNull(email),
       'status': status,
       'notes': _emptyToNull(notes),
-      'created_by_profile_id': createdByProfileId,
     };
   }
 
@@ -120,6 +122,7 @@ class WorkerModel {
     String? status,
     String? notes,
     String? createdByProfileId,
+    String? updatedByProfileId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -138,6 +141,7 @@ class WorkerModel {
       status: status ?? this.status,
       notes: notes ?? this.notes,
       createdByProfileId: createdByProfileId ?? this.createdByProfileId,
+      updatedByProfileId: updatedByProfileId ?? this.updatedByProfileId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

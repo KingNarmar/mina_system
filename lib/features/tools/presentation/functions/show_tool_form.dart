@@ -90,7 +90,6 @@ Future<String?> _saveTool({
   required ToolModel savedTool,
 }) async {
   final companyId = context.currentCompanyId;
-  final profileId = context.currentProfileId;
   final toolsCubit = context.read<ToolsCubit>();
   final dashboardCubit = context.read<DashboardCubit>();
 
@@ -98,16 +97,8 @@ Future<String?> _saveTool({
     return 'Company ID was not found';
   }
 
-  if (currentTool == null && (profileId == null || profileId.trim().isEmpty)) {
-    return 'Profile ID was not found';
-  }
-
   if (currentTool == null) {
-    final isSaved = await toolsCubit.addTool(
-      savedTool,
-      companyId: companyId,
-      createdByProfileId: profileId,
-    );
+    final isSaved = await toolsCubit.addTool(savedTool, companyId: companyId);
 
     if (!context.mounted) {
       return 'Unable to save tool.';

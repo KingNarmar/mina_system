@@ -67,6 +67,7 @@ extension WorkersCubitUpdate on WorkersCubit {
       }
 
       final workerToUpdate = updatedWorker.copyWith(
+        companyId: companyId,
         name: cleanName,
         hrCode: cleanHrCode,
       );

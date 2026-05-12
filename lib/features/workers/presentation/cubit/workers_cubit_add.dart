@@ -3,7 +3,6 @@ part of 'workers_cubit.dart';
 extension WorkersCubitAdd on WorkersCubit {
   Future<bool> addWorker({
     required String companyId,
-    required String createdByProfileId,
     required WorkerModel worker,
   }) async {
     final cleanName = worker.name.trim();
@@ -67,7 +66,6 @@ extension WorkersCubitAdd on WorkersCubit {
         workerCode: workerCode,
         name: cleanName,
         hrCode: cleanHrCode,
-        createdByProfileId: createdByProfileId,
         status: 'active',
       );
 

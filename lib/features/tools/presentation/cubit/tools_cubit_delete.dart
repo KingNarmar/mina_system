@@ -6,9 +6,15 @@ extension ToolsCubitDelete on ToolsCubit {
         ? _findToolByCode(tool.toolCode)
         : null;
     final toolId = tool.id ?? existingTool?.id;
+    final companyId = tool.companyId ?? existingTool?.companyId;
 
     if (toolId == null || toolId.isEmpty) {
       emitState(state.copyWith(errorMessage: 'Tool ID was not found'));
+      return false;
+    }
+
+    if (companyId == null || companyId.isEmpty) {
+      emitState(state.copyWith(errorMessage: 'Company ID was not found'));
       return false;
     }
 
@@ -20,7 +26,7 @@ extension ToolsCubitDelete on ToolsCubit {
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
-      await _toolsRepo.deleteTool(toolId: toolId);
+      await _toolsRepo.deleteTool(companyId: companyId, toolId: toolId);
 
       final updatedTools = state.tools.where((item) {
         return item.id != toolId;
@@ -35,7 +41,7 @@ extension ToolsCubitDelete on ToolsCubit {
           isSubmitting: false,
           errorMessage: AppErrorMessage.fromError(
             error,
-            fallback: 'Unable to delete tool. Please try again.',
+            fallback: 'Unable to deactivate tool. Please try again.',
           ),
         ),
       );

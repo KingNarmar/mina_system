@@ -5,6 +5,7 @@ import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
+import 'package:mina_system/features/workers/presentation/functions/confirm_reactivate_worker.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
@@ -14,6 +15,8 @@ class WorkersDesktopLayout extends StatelessWidget {
     super.key,
     required this.workers,
     required this.searchQuery,
+    required this.statusFilter,
+    required this.onStatusFilterChanged,
     required this.canCreateWorkers,
     required this.canUpdateWorkers,
     required this.canDeleteWorkers,
@@ -21,12 +24,15 @@ class WorkersDesktopLayout extends StatelessWidget {
 
   final List<WorkerModel> workers;
   final String searchQuery;
+  final String statusFilter;
+  final ValueChanged<String> onStatusFilterChanged;
   final bool canCreateWorkers;
   final bool canUpdateWorkers;
   final bool canDeleteWorkers;
 
   @override
   Widget build(BuildContext context) {
+    final isActiveFilter = statusFilter == 'active';
     final canShowActions = canUpdateWorkers || canDeleteWorkers;
 
     return SingleChildScrollView(
@@ -58,14 +64,41 @@ class WorkersDesktopLayout extends StatelessWidget {
               ],
             ],
           ),
+          const Gap(12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('Active'),
+                  selected: statusFilter == 'active',
+                  onSelected: (_) {
+                    onStatusFilterChanged('active');
+                  },
+                ),
+                ChoiceChip(
+                  label: const Text('Inactive'),
+                  selected: statusFilter == 'inactive',
+                  onSelected: (_) {
+                    onStatusFilterChanged('inactive');
+                  },
+                ),
+              ],
+            ),
+          ),
           const Gap(16),
           if (workers.isEmpty)
             AppEmptyState(
               icon: Icons.people_outline,
-              title: 'No workers found',
-              message: canCreateWorkers
-                  ? 'Add your first worker to start tracking tool custody.'
-                  : 'No workers are currently available for your company.',
+              title: isActiveFilter
+                  ? 'No active workers found'
+                  : 'No inactive workers found',
+              message: isActiveFilter
+                  ? canCreateWorkers
+                        ? 'Add your first worker to start tracking tool custody.'
+                        : 'No active workers are currently available for your company.'
+                  : 'Deactivated workers will appear here.',
             )
           else
             SizedBox(
@@ -78,9 +111,14 @@ class WorkersDesktopLayout extends StatelessWidget {
                         showWorkerDialog(context, worker: worker);
                       }
                     : null,
-                onDelete: canDeleteWorkers
+                onDelete: canDeleteWorkers && isActiveFilter
                     ? (worker) {
                         confirmDeleteWorker(context, worker);
+                      }
+                    : null,
+                onReactivate: canDeleteWorkers && !isActiveFilter
+                    ? (worker) {
+                        confirmReactivateWorker(context, worker);
                       }
                     : null,
               ),

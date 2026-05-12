@@ -6,6 +6,7 @@ import 'package:mina_system/core/widgets/app_empty_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
+import 'package:mina_system/features/workers/presentation/functions/confirm_reactivate_worker.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_card.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
@@ -15,6 +16,8 @@ class WorkersMobileLayout extends StatelessWidget {
     super.key,
     required this.workers,
     required this.searchQuery,
+    required this.statusFilter,
+    required this.onStatusFilterChanged,
     required this.canCreateWorkers,
     required this.canUpdateWorkers,
     required this.canDeleteWorkers,
@@ -22,17 +25,21 @@ class WorkersMobileLayout extends StatelessWidget {
 
   final List<WorkerModel> workers;
   final String searchQuery;
+  final String statusFilter;
+  final ValueChanged<String> onStatusFilterChanged;
   final bool canCreateWorkers;
   final bool canUpdateWorkers;
   final bool canDeleteWorkers;
 
   @override
   Widget build(BuildContext context) {
+    final isActiveFilter = statusFilter == 'active';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-        itemCount: workers.isEmpty ? 2 : workers.length + 1,
+        itemCount: workers.isEmpty ? 3 : workers.length + 2,
         separatorBuilder: (context, index) {
           return const Gap(12);
         },
@@ -46,17 +53,28 @@ class WorkersMobileLayout extends StatelessWidget {
             );
           }
 
-          if (workers.isEmpty) {
-            return AppEmptyState(
-              icon: Icons.people_outline,
-              title: 'No workers found',
-              message: canCreateWorkers
-                  ? 'Add your first worker to start tracking tool custody.'
-                  : 'No workers are currently available for your company.',
+          if (index == 1) {
+            return _WorkerStatusFilter(
+              selectedStatus: statusFilter,
+              onChanged: onStatusFilterChanged,
             );
           }
 
-          final worker = workers[index - 1];
+          if (workers.isEmpty) {
+            return AppEmptyState(
+              icon: Icons.people_outline,
+              title: isActiveFilter
+                  ? 'No active workers found'
+                  : 'No inactive workers found',
+              message: isActiveFilter
+                  ? canCreateWorkers
+                        ? 'Add your first worker to start tracking tool custody.'
+                        : 'No active workers are currently available for your company.'
+                  : 'Deactivated workers will appear here.',
+            );
+          }
+
+          final worker = workers[index - 2];
 
           return WorkerCard(
             worker: worker,
@@ -65,9 +83,14 @@ class WorkersMobileLayout extends StatelessWidget {
                     showWorkerBottomSheet(context, worker: worker);
                   }
                 : null,
-            onDelete: canDeleteWorkers
+            onDelete: canDeleteWorkers && isActiveFilter
                 ? () {
                     confirmDeleteWorker(context, worker);
+                  }
+                : null,
+            onReactivate: canDeleteWorkers && !isActiveFilter
+                ? () {
+                    confirmReactivateWorker(context, worker);
                   }
                 : null,
           );
@@ -81,6 +104,39 @@ class WorkersMobileLayout extends StatelessWidget {
               child: const Icon(Icons.add),
             )
           : null,
+    );
+  }
+}
+
+class _WorkerStatusFilter extends StatelessWidget {
+  const _WorkerStatusFilter({
+    required this.selectedStatus,
+    required this.onChanged,
+  });
+
+  final String selectedStatus;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      children: [
+        ChoiceChip(
+          label: const Text('Active'),
+          selected: selectedStatus == 'active',
+          onSelected: (_) {
+            onChanged('active');
+          },
+        ),
+        ChoiceChip(
+          label: const Text('Inactive'),
+          selected: selectedStatus == 'inactive',
+          onSelected: (_) {
+            onChanged('inactive');
+          },
+        ),
+      ],
     );
   }
 }

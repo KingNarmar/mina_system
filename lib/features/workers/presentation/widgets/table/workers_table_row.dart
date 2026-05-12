@@ -10,12 +10,14 @@ class WorkersTableRow extends StatelessWidget {
     required this.showActions,
     this.onEdit,
     this.onDelete,
+    this.onReactivate,
   });
 
   final WorkerModel worker;
   final bool showActions;
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
+  final void Function(WorkerModel worker)? onReactivate;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,16 @@ class WorkersTableRow extends StatelessWidget {
                           },
                           icon: const Icon(Icons.delete_outline),
                           color: AppColors.error,
-                          tooltip: 'Delete',
+                          tooltip: 'Deactivate',
+                        ),
+                      if (onReactivate != null)
+                        IconButton(
+                          onPressed: () {
+                            onReactivate!(worker);
+                          },
+                          icon: const Icon(Icons.restore_outlined),
+                          color: AppColors.accent,
+                          tooltip: 'Reactivate',
                         ),
                     ],
                   ),

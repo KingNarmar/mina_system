@@ -21,6 +21,7 @@ class WorkersCubit extends Cubit<WorkersState> {
            workers: _initialWorkers,
            filteredWorkers: _initialWorkers,
            searchQuery: '',
+           statusFilter: 'active',
          ),
        );
 
@@ -29,11 +30,25 @@ class WorkersCubit extends Cubit<WorkersState> {
 
   static const List<WorkerModel> _initialWorkers = [];
 
-  Future<void> loadWorkers({required String companyId}) async {
-    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+  Future<void> loadWorkers({
+    required String companyId,
+    String? statusFilter,
+  }) async {
+    final selectedStatus = statusFilter ?? state.statusFilter;
+
+    emit(
+      state.copyWith(
+        isLoading: true,
+        statusFilter: selectedStatus,
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
-      final workers = await _workersRepo.getWorkers(companyId: companyId);
+      final workers = await _workersRepo.getWorkers(
+        companyId: companyId,
+        status: selectedStatus,
+      );
 
       emitUpdatedWorkers(workers, isLoading: false);
     } catch (error) {
@@ -47,6 +62,25 @@ class WorkersCubit extends Cubit<WorkersState> {
         ),
       );
     }
+  }
+
+  Future<void> changeStatusFilter({
+    required String companyId,
+    required String statusFilter,
+  }) async {
+    if (statusFilter == state.statusFilter) {
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        statusFilter: statusFilter,
+        searchQuery: '',
+        filteredWorkers: const [],
+      ),
+    );
+
+    await loadWorkers(companyId: companyId, statusFilter: statusFilter);
   }
 
   void searchWorkers(String query) {

@@ -11,15 +11,18 @@ class WorkerCard extends StatelessWidget {
     required this.worker,
     this.onEdit,
     this.onDelete,
+    this.onReactivate,
   });
 
   final WorkerModel worker;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onReactivate;
 
   @override
   Widget build(BuildContext context) {
-    final showActions = onEdit != null || onDelete != null;
+    final showActions =
+        onEdit != null || onDelete != null || onReactivate != null;
 
     return Card(
       elevation: 0,
@@ -65,7 +68,14 @@ class WorkerCard extends StatelessWidget {
                       onPressed: onDelete,
                       icon: const Icon(Icons.delete_outline),
                       color: AppColors.error,
-                      tooltip: 'Delete',
+                      tooltip: 'Deactivate',
+                    ),
+                  if (onReactivate != null)
+                    IconButton(
+                      onPressed: onReactivate,
+                      icon: const Icon(Icons.restore_outlined),
+                      color: AppColors.accent,
+                      tooltip: 'Reactivate',
                     ),
                 ],
               ],

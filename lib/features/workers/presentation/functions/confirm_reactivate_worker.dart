@@ -4,15 +4,15 @@ import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_message.dart';
 
-void confirmDeleteWorker(BuildContext context, WorkerModel worker) {
+void confirmReactivateWorker(BuildContext context, WorkerModel worker) {
   showDialog(
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Deactivate Worker'),
+        title: const Text('Reactivate Worker'),
         content: Text(
-          'Are you sure you want to deactivate ${worker.name}? '
-          'The worker will be hidden from active lists, but existing records will remain safe.',
+          'Are you sure you want to reactivate ${worker.name}? '
+          'The worker will appear again in active lists.',
         ),
         actions: [
           TextButton(
@@ -25,9 +25,9 @@ void confirmDeleteWorker(BuildContext context, WorkerModel worker) {
             onPressed: () async {
               Navigator.pop(dialogContext);
 
-              final isDeactivated = await context
+              final isReactivated = await context
                   .read<WorkersCubit>()
-                  .deleteWorker(worker: worker);
+                  .reactivateWorker(worker: worker);
 
               if (!context.mounted) {
                 return;
@@ -35,12 +35,12 @@ void confirmDeleteWorker(BuildContext context, WorkerModel worker) {
 
               showWorkerSuccessMessage(
                 context,
-                isDeactivated
-                    ? 'Worker deactivated successfully'
-                    : 'Worker was not deactivated',
+                isReactivated
+                    ? 'Worker reactivated successfully'
+                    : 'Worker was not reactivated',
               );
             },
-            child: const Text('Deactivate'),
+            child: const Text('Reactivate'),
           ),
         ],
       );
