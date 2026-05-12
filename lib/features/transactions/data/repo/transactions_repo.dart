@@ -126,18 +126,9 @@ class TransactionsRepo {
     required String transactionId,
     required TransactionModel transaction,
   }) async {
-    final transactionToUpdate = await _prepareTransactionProofImage(
-      transaction,
+    throw UnsupportedError(
+      'General transaction editing is disabled. Use controlled transaction workflows instead.',
     );
-
-    final data = await _supabase
-        .from('transactions')
-        .update(transactionToUpdate.toUpdateJson())
-        .eq('id', transactionId)
-        .select(_transactionSelectColumns)
-        .single();
-
-    return TransactionModel.fromJson(data);
   }
 
   Future<TransactionModel> uploadApprovalDocument({
