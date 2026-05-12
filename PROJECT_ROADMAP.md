@@ -804,10 +804,13 @@ Completed.
   - Future correction/void workflow
 
 Next checkpoint:
+### Step R5 — Audit Logs Foundation
+
+Next.
 
 ### Step R4 — Workers & Tools Accountability
 
-In Progress.
+Completed.
 
 Completed so far:
 
@@ -839,20 +842,23 @@ Completed so far:
   - Reactivate worker
 - Worker deactivation now uses soft status change instead of physical delete.
 - Tool deactivation backend path is now routed through secure RPC.
+- Tools UI now supports:
+  - Active filter
+  - Inactive filter
+  - Deactivate tool
+  - Reactivate tool
+- Tool deactivation now correctly blocks when open custody exists.
+- Worker deactivation was verified to block when open custody exists.
+- Worker and Tool deactivation were verified to allow deactivation after custody is fully closed.
+- Reports filters now load Workers and Tools independently from report-specific data sources.
+- Reports can now select active and inactive Workers/Tools without depending on the current Workers/Tools screen filter.
+- Direct authenticated `DELETE` access was revoked from:
+  - `workers`
+  - `tools`
 
 Remaining in Step R4:
 
-- Apply the same Active / Inactive / Reactivate UI pattern to Tools.
-- Harden `deactivate_worker` and `deactivate_tool` to block deactivation when there is open custody.
-- Update Reports filters so reports can still be generated for inactive Workers and inactive Tools.
-- Revoke direct authenticated `DELETE` access from `workers` and `tools` after Flutter deactivate/reactivate flows are fully tested.
-- Update SQL/migration documentation for the executed Supabase changes if a migration log is added later.
-- Run final manual tests for:
-  - Worker create/update/deactivate/reactivate
-  - Tool create/update/deactivate/reactivate
-  - Open custody blocking
-  - Reports for inactive records
-  - Role restrictions
+- None.
 
 ---
 
