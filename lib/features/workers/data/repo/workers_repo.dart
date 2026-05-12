@@ -30,14 +30,18 @@ class WorkersRepo {
 
   Future<List<WorkerModel>> getWorkers({
     required String companyId,
-    String status = 'active',
+    String? status = 'active',
   }) async {
-    final data = await _supabase
+    final cleanStatus = status?.trim().toLowerCase();
+
+    final query = _supabase
         .from('workers')
         .select(_workerSelectColumns)
-        .eq('company_id', companyId)
-        .eq('status', status)
-        .order('full_name');
+        .eq('company_id', companyId);
+
+    final data = cleanStatus == null || cleanStatus.isEmpty
+        ? await query.order('full_name')
+        : await query.eq('status', cleanStatus).order('full_name');
 
     return data.map((item) {
       return WorkerModel.fromJson(item);

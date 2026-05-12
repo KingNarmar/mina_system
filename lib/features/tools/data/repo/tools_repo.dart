@@ -27,20 +27,18 @@ class ToolsRepo {
 
   Future<List<ToolModel>> getTools({
     required String companyId,
-    String status = 'active',
+    String? status = 'active',
   }) async {
-    final cleanStatus = status.trim().toLowerCase();
+    final cleanStatus = status?.trim().toLowerCase();
 
-    var query = _supabase
+    final query = _supabase
         .from('tools')
         .select(_toolSelectColumns)
         .eq('company_id', companyId);
 
-    if (cleanStatus.isNotEmpty) {
-      query = query.eq('status', cleanStatus);
-    }
-
-    final data = await query.order('tool_name');
+    final data = cleanStatus == null || cleanStatus.isEmpty
+        ? await query.order('tool_name')
+        : await query.eq('status', cleanStatus).order('tool_name');
 
     return data.map((item) {
       return ToolModel.fromJson(item);

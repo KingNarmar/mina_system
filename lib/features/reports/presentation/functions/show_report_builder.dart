@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
+import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_builder_panel.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
@@ -13,6 +15,13 @@ void showReportBuilder(
   required ReportOptionModel report,
   required bool canGenerateReports,
 }) {
+  final companyId = context.currentCompanyId;
+
+  if (companyId == null || companyId.isEmpty) {
+    AppMessage.showError(context, 'Company ID was not found');
+    return;
+  }
+
   final width = MediaQuery.sizeOf(context).width;
   final isMobile = width < AppBreakpoints.tablet;
 
@@ -30,6 +39,7 @@ void showReportBuilder(
     ],
     child: ReportBuilderPanel(
       report: report,
+      companyId: companyId,
       canGenerateReports: canGenerateReports,
     ),
   );

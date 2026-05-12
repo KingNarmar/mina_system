@@ -3,6 +3,8 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
+import 'package:mina_system/features/tools/data/models/tool_model.dart';
+import 'package:mina_system/features/workers/data/models/worker_model.dart';
 
 import 'filters/approval_status_report_filter.dart';
 import 'filters/date_filter_tile.dart';
@@ -16,11 +18,15 @@ class ReportFilterSection extends StatelessWidget {
     super.key,
     required this.reportType,
     required this.filters,
+    required this.workers,
+    required this.tools,
     required this.onChanged,
   });
 
   final ReportType reportType;
   final ReportFilterModel filters;
+  final List<WorkerModel> workers;
+  final List<ToolModel> tools;
   final ValueChanged<ReportFilterModel> onChanged;
 
   @override
@@ -53,11 +59,19 @@ class ReportFilterSection extends StatelessWidget {
         ),
         const Gap(12),
         if (shouldShowWorker) ...[
-          WorkerReportFilter(filters: filters, onChanged: onChanged),
+          WorkerReportFilter(
+            filters: filters,
+            workers: workers,
+            onChanged: onChanged,
+          ),
           const Gap(12),
         ],
         if (shouldShowTool) ...[
-          ToolReportFilter(filters: filters, onChanged: onChanged),
+          ToolReportFilter(
+            filters: filters,
+            tools: tools,
+            onChanged: onChanged,
+          ),
           const Gap(12),
         ],
         if (shouldShowType) ...[
