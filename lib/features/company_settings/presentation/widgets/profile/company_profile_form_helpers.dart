@@ -1,10 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:mina_system/core/utils/app_timezones.dart';
 
 class CompanyProfileFormHelpers {
-  static String? validateRequired(String? value) {
-    if (value == null || value.trim().isEmpty) {
+  static String? validateCompanyName(String? value) {
+    final companyName = value?.trim() ?? '';
+
+    if (companyName.isEmpty) {
       return 'Company name is required';
     }
+
+    if (companyName.length < 2) {
+      return 'Company name is too short';
+    }
+
+    return null;
+  }
+
+  static String? validateTimezone(String? value) {
+    final timezone = value?.trim() ?? '';
+
+    if (timezone.isEmpty) {
+      return 'Company timezone is required';
+    }
+
+    if (!AppTimezones.isValidTimezone(timezone)) {
+      return 'Select a valid company timezone';
+    }
+
+    return null;
+  }
+
+  static String? validateOptionalEmail(String? value) {
+    final email = value?.trim() ?? '';
+
+    if (email.isEmpty) {
+      return null;
+    }
+
+    final emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
+    if (!emailPattern.hasMatch(email)) {
+      return 'Enter a valid email address';
+    }
+
     return null;
   }
 }

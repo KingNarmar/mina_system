@@ -69,13 +69,13 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     }
   }
 
-  Future<void> createCompany({required String companyName}) async {
+  Future<void> createCompany({required CreateCompanyRequest request}) async {
     emit(const CurrentContextLoading());
 
     try {
       await _networkStatusService.ensureOnline();
 
-      await _repo.createCompany(CreateCompanyRequest(companyName: companyName));
+      await _repo.createCompany(request);
 
       await loadCurrentContext();
     } on NetworkUnavailableException catch (error) {
@@ -147,7 +147,10 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     );
   }
 
-  void updateCurrentCompanyName(String companyName) {
+  void updateCurrentCompanyProfile({
+    required String companyName,
+    required String timezone,
+  }) {
     final currentState = state;
 
     if (currentState is! CurrentContextLoaded) {
@@ -160,11 +163,14 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       return;
     }
 
-    final updatedCurrentCompany = currentCompany.copyWith(name: companyName);
+    final updatedCurrentCompany = currentCompany.copyWith(
+      name: companyName,
+      timezone: timezone,
+    );
 
     final updatedCompanies = currentState.companies.map((company) {
       if (company.id == currentCompany.id) {
-        return company.copyWith(name: companyName);
+        return company.copyWith(name: companyName, timezone: timezone);
       }
 
       return company;

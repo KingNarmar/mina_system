@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
+import 'package:mina_system/core/widgets/searchable_timezone_form_field.dart';
+
 import 'company_profile_form_helpers.dart';
 
 class CompanyDetailsFields extends StatelessWidget {
-  const CompanyDetailsFields({super.key, required this.controllers});
+  const CompanyDetailsFields({
+    super.key,
+    required this.controllers,
+    required this.selectedTimezone,
+    required this.onTimezoneChanged,
+  });
 
   final CompanyProfileControllers controllers;
+  final String selectedTimezone;
+  final void Function(String timezone) onTimezoneChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +25,7 @@ class CompanyDetailsFields extends StatelessWidget {
           hint: 'Company Name',
           controller: controllers.nameController,
           keyboardType: TextInputType.name,
-          validator: CompanyProfileFormHelpers.validateRequired,
+          validator: CompanyProfileFormHelpers.validateCompanyName,
         ),
         const Gap(12),
         CustomTextFormField(
@@ -29,6 +38,14 @@ class CompanyDetailsFields extends StatelessWidget {
           hint: 'Legal Name',
           controller: controllers.legalNameController,
           keyboardType: TextInputType.name,
+        ),
+        const Gap(12),
+        SearchableTimezoneFormField(
+          value: selectedTimezone,
+          helperText:
+              'Used to display audit logs, transactions, and reports in your company local time.',
+          validator: CompanyProfileFormHelpers.validateTimezone,
+          onChanged: onTimezoneChanged,
         ),
         const Gap(12),
         CustomTextFormField(
@@ -73,6 +90,7 @@ class CompanyDetailsFields extends StatelessWidget {
           hint: 'Email',
           controller: controllers.emailController,
           keyboardType: TextInputType.emailAddress,
+          validator: CompanyProfileFormHelpers.validateOptionalEmail,
         ),
         const Gap(12),
         CustomTextFormField(

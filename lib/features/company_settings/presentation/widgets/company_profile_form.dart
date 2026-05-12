@@ -30,10 +30,12 @@ class CompanyProfileForm extends StatefulWidget {
 class _CompanyProfileFormState extends State<CompanyProfileForm> {
   final _formKey = GlobalKey<FormState>();
   late final CompanyProfileControllers _controllers;
+  late String _selectedTimezone;
 
   @override
   void initState() {
     super.initState();
+    _selectedTimezone = widget.profile.timezone;
     _controllers = CompanyProfileControllers(
       nameController: TextEditingController(text: widget.profile.name),
       tradeNameController: TextEditingController(
@@ -90,8 +92,9 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
           return;
         }
 
-        context.read<CurrentContextCubit>().updateCurrentCompanyName(
-          loadedState.profile.name,
+        context.read<CurrentContextCubit>().updateCurrentCompanyProfile(
+          companyName: loadedState.profile.name,
+          timezone: loadedState.profile.timezone,
         );
 
         AppMessage.showSuccess(context, 'Company profile updated.');
@@ -111,11 +114,19 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
               const Text('Company Profile', style: AppTextStyles.title),
               const Gap(8),
               const Text(
-                'These details will be used later in custody reports and signed PDF documents.',
+                'These details will be used later in custody reports, signed PDF documents, and audit history display.',
                 style: AppTextStyles.body,
               ),
               const Gap(20),
-              CompanyDetailsFields(controllers: _controllers),
+              CompanyDetailsFields(
+                controllers: _controllers,
+                selectedTimezone: _selectedTimezone,
+                onTimezoneChanged: (timezone) {
+                  setState(() {
+                    _selectedTimezone = timezone;
+                  });
+                },
+              ),
               const Gap(20),
               Align(
                 alignment: Alignment.centerRight,
@@ -153,6 +164,7 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
       phone: _controllers.phoneController.text,
       email: _controllers.emailController.text,
       website: _controllers.websiteController.text,
+      timezone: _selectedTimezone,
     );
 
     context.read<CompanySettingsCubit>().updateCompanyProfile(

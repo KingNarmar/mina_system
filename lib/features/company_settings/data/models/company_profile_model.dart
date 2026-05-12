@@ -14,6 +14,7 @@ class CompanyProfileModel {
     this.email,
     this.website,
     this.logoPath,
+    this.timezone = 'Asia/Dubai',
   });
 
   final String id;
@@ -30,6 +31,7 @@ class CompanyProfileModel {
   final String? email;
   final String? website;
   final String? logoPath;
+  final String timezone;
 
   factory CompanyProfileModel.fromJson(Map<String, dynamic> json) {
     return CompanyProfileModel(
@@ -47,6 +49,7 @@ class CompanyProfileModel {
       email: json['email'] as String?,
       website: json['website'] as String?,
       logoPath: json['logo_path'] as String?,
+      timezone: _normalizeTimezone(json['timezone']),
     );
   }
 
@@ -65,6 +68,7 @@ class CompanyProfileModel {
       'email': email?.trim(),
       'website': website?.trim(),
       'logo_path': logoPath?.trim(),
+      'timezone': _normalizeTimezone(timezone),
     };
   }
 
@@ -83,6 +87,7 @@ class CompanyProfileModel {
     String? email,
     String? website,
     String? logoPath,
+    String? timezone,
   }) {
     return CompanyProfileModel(
       id: id ?? this.id,
@@ -99,6 +104,17 @@ class CompanyProfileModel {
       email: email ?? this.email,
       website: website ?? this.website,
       logoPath: logoPath ?? this.logoPath,
+      timezone: timezone ?? this.timezone,
     );
+  }
+
+  static String _normalizeTimezone(dynamic value) {
+    final timezone = value?.toString().trim();
+
+    if (timezone == null || timezone.isEmpty) {
+      return 'Asia/Dubai';
+    }
+
+    return timezone;
   }
 }
