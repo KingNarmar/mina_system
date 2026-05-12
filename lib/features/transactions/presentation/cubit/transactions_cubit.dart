@@ -10,7 +10,6 @@ import 'package:mina_system/features/transactions/presentation/cubit/transaction
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/custody_balance_calculator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/tool_summary_calculator.dart';
-import 'package:mina_system/features/transactions/presentation/functions/transaction_code_generator.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_filters.dart';
 
 part 'transactions_cubit_approval_workflow.dart';

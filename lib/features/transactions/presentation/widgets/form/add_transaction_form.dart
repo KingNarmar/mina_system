@@ -201,9 +201,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final cleanNote = _noteController.text.trim();
 
     final transaction = TransactionModel(
-      transactionCode: context
-          .read<TransactionsCubit>()
-          .generateNextTransactionCode(),
+      transactionCode: '',
       type: _selectedTransactionType!,
       workerId: selectedWorker.id,
       workerHrCode: selectedWorker.hrCode,

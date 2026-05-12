@@ -1,10 +1,6 @@
 part of 'transactions_cubit.dart';
 
 extension TransactionsCubitCalculations on TransactionsCubit {
-  String generateNextTransactionCode() {
-    return generateNextTransactionCodeFromList(state.transactions);
-  }
-
   double getWorkerToolBalance({
     required String workerHrCode,
     required String toolCode,

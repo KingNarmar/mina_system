@@ -73,14 +73,48 @@ class TransactionsRepo {
   Future<TransactionModel> addTransaction({
     required TransactionModel transaction,
   }) async {
+    final companyId = transaction.companyId;
+    final workerId = transaction.workerId;
+    final toolId = transaction.toolId;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    if (workerId == null || workerId.trim().isEmpty) {
+      throw StateError('Worker ID was not found.');
+    }
+
+    if (toolId == null || toolId.trim().isEmpty) {
+      throw StateError('Tool ID was not found.');
+    }
+
     final transactionToInsert = await _prepareTransactionProofImage(
       transaction,
     );
 
+    final rpcResult = await _supabase.rpc(
+      'create_custody_transaction',
+      params: {
+        'p_company_id': companyId,
+        'p_worker_id': workerId,
+        'p_tool_id': toolId,
+        'p_transaction_type': _transactionTypeToDatabaseValue(
+          transactionToInsert.type,
+        ),
+        'p_quantity': transactionToInsert.quantity,
+        'p_proof_image_path': _emptyToNull(transactionToInsert.imagePath),
+        'p_note': _emptyToNull(transactionToInsert.note),
+      },
+    );
+
+    final transactionId = _readCreatedTransactionId(rpcResult);
+
     final data = await _supabase
         .from('transactions')
-        .insert(transactionToInsert.toInsertJson())
         .select(_transactionSelectColumns)
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
         .single();
 
     return TransactionModel.fromJson(data);
@@ -255,12 +289,63 @@ class TransactionsRepo {
       return transaction;
     }
 
+    final uploadTransactionCode = transaction.transactionCode.trim().isEmpty
+        ? 'pending-${DateTime.now().millisecondsSinceEpoch}'
+        : transaction.transactionCode.trim();
+
     final uploadedPath = await _storageService.uploadProofImage(
       companyId: companyId,
-      transactionCode: transaction.transactionCode,
+      transactionCode: uploadTransactionCode,
       localImagePath: imagePath,
     );
 
     return transaction.copyWith(imagePath: uploadedPath);
+  }
+
+  String _readCreatedTransactionId(dynamic rpcResult) {
+    if (rpcResult is List && rpcResult.isNotEmpty) {
+      final firstItem = rpcResult.first;
+
+      if (firstItem is Map<String, dynamic>) {
+        final transactionId = firstItem['transaction_id'] as String?;
+
+        if (transactionId != null && transactionId.trim().isNotEmpty) {
+          return transactionId;
+        }
+      }
+    }
+
+    if (rpcResult is Map<String, dynamic>) {
+      final transactionId = rpcResult['transaction_id'] as String?;
+
+      if (transactionId != null && transactionId.trim().isNotEmpty) {
+        return transactionId;
+      }
+    }
+
+    throw StateError('Created transaction ID was not returned.');
+  }
+
+  String _transactionTypeToDatabaseValue(TransactionType type) {
+    switch (type) {
+      case TransactionType.issue:
+        return 'issue';
+      case TransactionType.returnTool:
+        return 'return';
+      case TransactionType.lost:
+        return 'lost';
+      case TransactionType.damaged:
+        return 'damaged';
+    }
+  }
+
+  String? _emptyToNull(String? value) {
+    final cleanValue = value?.trim();
+
+    if (cleanValue == null || cleanValue.isEmpty) {
+      return null;
+    }
+
+    return cleanValue;
   }
 }

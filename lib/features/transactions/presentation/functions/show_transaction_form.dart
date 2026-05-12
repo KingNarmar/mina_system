@@ -93,7 +93,6 @@ Future<String?> _saveTransaction({
   required TransactionModel transaction,
 }) async {
   final companyId = context.currentCompanyId;
-  final profileId = context.currentProfileId;
   final transactionsCubit = context.read<TransactionsCubit>();
   final dashboardCubit = context.read<DashboardCubit>();
 
@@ -106,7 +105,6 @@ Future<String?> _saveTransaction({
   final isSaved = await transactionsCubit.addTransaction(
     transaction,
     companyId: companyId,
-    createdByProfileId: profileId,
   );
 
   if (!isSaved) {

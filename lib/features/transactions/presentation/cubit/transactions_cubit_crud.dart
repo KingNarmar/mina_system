@@ -4,15 +4,9 @@ extension TransactionsCubitCrud on TransactionsCubit {
   Future<bool> addTransaction(
     TransactionModel transaction, {
     String? companyId,
-    String? createdByProfileId,
   }) async {
     if (companyId == null || companyId.isEmpty) {
       emitState(state.copyWith(errorMessage: 'Company ID was not found'));
-      return false;
-    }
-
-    if (createdByProfileId == null || createdByProfileId.isEmpty) {
-      emitState(state.copyWith(errorMessage: 'Profile ID was not found'));
       return false;
     }
 
@@ -53,16 +47,7 @@ extension TransactionsCubitCrud on TransactionsCubit {
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
-      final transactionCode = await _transactionsRepo
-          .generateNextTransactionCode(companyId: companyId);
-
-      final transactionToInsert = TransactionsCubitHelpers.applyApprovalRules(
-        transaction.copyWith(
-          companyId: companyId,
-          transactionCode: transactionCode,
-          createdByProfileId: createdByProfileId,
-        ),
-      );
+      final transactionToInsert = transaction.copyWith(companyId: companyId);
 
       final addedTransaction = await _transactionsRepo.addTransaction(
         transaction: transactionToInsert,
