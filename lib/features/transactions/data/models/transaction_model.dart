@@ -23,6 +23,8 @@ class TransactionModel {
     this.approvalRequired = false,
     this.approvalStatus = 'not_required',
     this.approvalDocumentPath,
+    this.approvalDocumentUploadedByProfileId,
+    this.approvalDocumentUploadedAt,
     this.approvalDecisionNote,
     this.approvalDecidedByProfileId,
     this.approvalDecidedAt,
@@ -59,6 +61,8 @@ class TransactionModel {
   final bool approvalRequired;
   final String approvalStatus;
   final String? approvalDocumentPath;
+  final String? approvalDocumentUploadedByProfileId;
+  final DateTime? approvalDocumentUploadedAt;
   final String? approvalDecisionNote;
   final String? approvalDecidedByProfileId;
   final DateTime? approvalDecidedAt;
@@ -116,6 +120,11 @@ class TransactionModel {
       approvalRequired: json['approval_required'] as bool? ?? false,
       approvalStatus: json['approval_status'] as String? ?? 'not_required',
       approvalDocumentPath: json['approval_document_path'] as String?,
+      approvalDocumentUploadedByProfileId:
+          json['approval_document_uploaded_by_profile_id'] as String?,
+      approvalDocumentUploadedAt: _parseDateTime(
+        json['approval_document_uploaded_at'],
+      ),
       approvalDecisionNote: json['approval_decision_note'] as String?,
       approvalDecidedByProfileId:
           json['approval_decided_by_profile_id'] as String?,
@@ -212,6 +221,8 @@ class TransactionModel {
     bool? approvalRequired,
     String? approvalStatus,
     String? approvalDocumentPath,
+    String? approvalDocumentUploadedByProfileId,
+    DateTime? approvalDocumentUploadedAt,
     String? approvalDecisionNote,
     String? approvalDecidedByProfileId,
     DateTime? approvalDecidedAt,
@@ -244,6 +255,11 @@ class TransactionModel {
       approvalRequired: approvalRequired ?? this.approvalRequired,
       approvalStatus: approvalStatus ?? this.approvalStatus,
       approvalDocumentPath: approvalDocumentPath ?? this.approvalDocumentPath,
+      approvalDocumentUploadedByProfileId:
+          approvalDocumentUploadedByProfileId ??
+          this.approvalDocumentUploadedByProfileId,
+      approvalDocumentUploadedAt:
+          approvalDocumentUploadedAt ?? this.approvalDocumentUploadedAt,
       approvalDecisionNote: approvalDecisionNote ?? this.approvalDecisionNote,
       approvalDecidedByProfileId:
           approvalDecidedByProfileId ?? this.approvalDecidedByProfileId,

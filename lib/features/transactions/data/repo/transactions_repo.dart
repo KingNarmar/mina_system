@@ -44,6 +44,8 @@ class TransactionsRepo {
     approval_required,
     approval_status,
     approval_document_path,
+    approval_document_uploaded_by_profile_id,
+    approval_document_uploaded_at,
     approval_decision_note,
     approval_decided_by_profile_id,
     approval_decided_at,
@@ -171,15 +173,22 @@ class TransactionsRepo {
       localDocumentPath: localDocumentPath,
     );
 
+    final rpcResult = await _supabase.rpc(
+      'upload_transaction_approval_document',
+      params: {
+        'p_company_id': companyId,
+        'p_transaction_id': transactionId,
+        'p_approval_document_path': uploadedPath,
+      },
+    );
+
+    final savedId = _readCreatedTransactionId(rpcResult);
+
     final data = await _supabase
         .from('transactions')
-        .update({
-          'approval_document_path': uploadedPath,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
         .select(_transactionSelectColumns)
+        .eq('id', savedId)
+        .eq('company_id', companyId)
         .single();
 
     return TransactionModel.fromJson(data);
@@ -297,27 +306,41 @@ class TransactionsRepo {
   }
 
   String _readCreatedTransactionId(dynamic rpcResult) {
+    if (rpcResult is String && rpcResult.trim().isNotEmpty) {
+      return rpcResult.trim();
+    }
+
     if (rpcResult is List && rpcResult.isNotEmpty) {
       final firstItem = rpcResult.first;
 
+      if (firstItem is String && firstItem.trim().isNotEmpty) {
+        return firstItem.trim();
+      }
+
       if (firstItem is Map<String, dynamic>) {
-        final transactionId = firstItem['transaction_id'] as String?;
+        final transactionId =
+            firstItem['transaction_id'] as String? ??
+            firstItem['upload_transaction_approval_document'] as String? ??
+            firstItem['create_custody_transaction'] as String?;
 
         if (transactionId != null && transactionId.trim().isNotEmpty) {
-          return transactionId;
+          return transactionId.trim();
         }
       }
     }
 
     if (rpcResult is Map<String, dynamic>) {
-      final transactionId = rpcResult['transaction_id'] as String?;
+      final transactionId =
+          rpcResult['transaction_id'] as String? ??
+          rpcResult['upload_transaction_approval_document'] as String? ??
+          rpcResult['create_custody_transaction'] as String?;
 
       if (transactionId != null && transactionId.trim().isNotEmpty) {
-        return transactionId;
+        return transactionId.trim();
       }
     }
 
-    throw StateError('Created transaction ID was not returned.');
+    throw StateError('Transaction ID was not returned.');
   }
 
   String _transactionTypeToDatabaseValue(TransactionType type) {
