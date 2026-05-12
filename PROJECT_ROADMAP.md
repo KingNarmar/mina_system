@@ -10,11 +10,11 @@
 
 Latest verified pushed **code** commit:
 
-`e3f2ab3896b83a43596fa0dbdb0e1493a7e5db3f`
+`84f6eeb049dbc868c9fa8c0fad1e391ca125ae68`
 
 Commit message:
 
-`refactor(transactions): disable general transaction editing path`
+`feat(accountability): align workers and tools create update with secure RPCs`
 
 This roadmap is the single source of truth for the Mina System project.
 
@@ -807,22 +807,52 @@ Next checkpoint:
 
 ### Step R4 — Workers & Tools Accountability
 
-Planned.
+In Progress.
 
-Goal:
+Completed so far:
 
-Add or harden direct accountability for Workers and Tools.
+- Supabase `workers` and `tools` were audited before implementation.
+- `updated_by_profile_id` was added to:
+  - `workers`
+  - `tools`
+- Secure backend RPCs were added for Workers:
+  - `create_worker`
+  - `update_worker`
+  - `deactivate_worker`
+  - `reactivate_worker`
+- Secure backend RPCs were added for Tools:
+  - `create_tool`
+  - `update_tool`
+  - `deactivate_tool`
+  - `reactivate_tool`
+- Worker and Tool create/update accountability is now derived from backend authenticated context through `private.current_profile_id()`.
+- Flutter Workers create/update flow now uses secure RPCs instead of direct table insert/update.
+- Flutter Tools create/update flow now uses secure RPCs instead of direct table insert/update.
+- Flutter no longer sends trusted `created_by_profile_id` for Worker/Tool creation.
+- Direct authenticated `INSERT` and `UPDATE` access was revoked from:
+  - `workers`
+  - `tools`
+- Workers UI now supports:
+  - Active filter
+  - Inactive filter
+  - Deactivate worker
+  - Reactivate worker
+- Worker deactivation now uses soft status change instead of physical delete.
+- Tool deactivation backend path is now routed through secure RPC.
 
-Initial focus:
+Remaining in Step R4:
 
-- Review real Supabase columns first.
-- Confirm current `created_by_profile_id` coverage.
-- Decide how to safely handle:
-  - `updated_by_profile_id`
-  - display snapshots if needed
-  - backend/RPC/triggers for actor assignment
-- Do not trust arbitrary client-provided accountability fields.
-- Do not change working Workers/Tools UI unless required.
+- Apply the same Active / Inactive / Reactivate UI pattern to Tools.
+- Harden `deactivate_worker` and `deactivate_tool` to block deactivation when there is open custody.
+- Update Reports filters so reports can still be generated for inactive Workers and inactive Tools.
+- Revoke direct authenticated `DELETE` access from `workers` and `tools` after Flutter deactivate/reactivate flows are fully tested.
+- Update SQL/migration documentation for the executed Supabase changes if a migration log is added later.
+- Run final manual tests for:
+  - Worker create/update/deactivate/reactivate
+  - Tool create/update/deactivate/reactivate
+  - Open custody blocking
+  - Reports for inactive records
+  - Role restrictions
 
 ---
 
