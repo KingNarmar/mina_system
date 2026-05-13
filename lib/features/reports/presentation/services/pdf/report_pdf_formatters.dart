@@ -1,3 +1,4 @@
+import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 
@@ -105,26 +106,16 @@ class ReportPdfFormatters {
         .join(' ');
   }
 
-  static String formatDate(DateTime date, {String? dateFormat}) {
-    final normalizedFormat = _normalizeDateFormat(dateFormat);
-
-    switch (normalizedFormat) {
-      case 'dd/mm/yyyy':
-        return '${_twoDigits(date.day)}/${_twoDigits(date.month)}/${date.year}';
-
-      case 'mm/dd/yyyy':
-        return '${_twoDigits(date.month)}/${_twoDigits(date.day)}/${date.year}';
-
-      case 'dd-mm-yyyy':
-        return '${_twoDigits(date.day)}-${_twoDigits(date.month)}-${date.year}';
-
-      case 'yyyy/mm/dd':
-        return '${date.year}/${_twoDigits(date.month)}/${_twoDigits(date.day)}';
-
-      case 'yyyy-mm-dd':
-      default:
-        return _formatYearMonthDay(date);
-    }
+  static String formatDate(
+    DateTime date, {
+    String? timezone,
+    String? dateFormat,
+  }) {
+    return CompanyDateTimeFormatter.formatDate(
+      date,
+      timezone: timezone,
+      dateFormat: dateFormat,
+    );
   }
 
   static String normalizeTemplateText(String value) {
@@ -142,88 +133,5 @@ class ReportPdfFormatters {
     }
 
     return trimmedLabel;
-  }
-
-  static String _normalizeDateFormat(String? dateFormat) {
-    final cleanFormat = dateFormat
-        ?.trim()
-        .toLowerCase()
-        .replaceAll('\\', '/')
-        .replaceAll('.', '-')
-        .replaceAll(' ', '');
-
-    if (cleanFormat == null || cleanFormat.isEmpty) {
-      return 'yyyy-mm-dd';
-    }
-
-    if (cleanFormat.contains('/')) {
-      return _normalizeDateFormatBySeparator(cleanFormat, '/');
-    }
-
-    if (cleanFormat.contains('-')) {
-      return _normalizeDateFormatBySeparator(cleanFormat, '-');
-    }
-
-    return 'yyyy-mm-dd';
-  }
-
-  static String _normalizeDateFormatBySeparator(
-    String value,
-    String separator,
-  ) {
-    final parts = value.split(separator);
-
-    if (parts.length != 3) {
-      return 'yyyy-mm-dd';
-    }
-
-    final normalizedParts = parts.map(_normalizeDateFormatPart).toList();
-
-    if (normalizedParts.contains(null)) {
-      return 'yyyy-mm-dd';
-    }
-
-    final normalizedFormat = normalizedParts.cast<String>().join(separator);
-
-    switch (normalizedFormat) {
-      case 'yyyy-mm-dd':
-      case 'yyyy/mm/dd':
-      case 'dd/mm/yyyy':
-      case 'mm/dd/yyyy':
-      case 'dd-mm-yyyy':
-        return normalizedFormat;
-
-      default:
-        return 'yyyy-mm-dd';
-    }
-  }
-
-  static String? _normalizeDateFormatPart(String value) {
-    switch (value) {
-      case 'yyyy':
-      case 'yyy':
-      case 'yy':
-      case 'y':
-        return 'yyyy';
-
-      case 'mm':
-      case 'm':
-        return 'mm';
-
-      case 'dd':
-      case 'd':
-        return 'dd';
-
-      default:
-        return null;
-    }
-  }
-
-  static String _formatYearMonthDay(DateTime date) {
-    return '${date.year}-${_twoDigits(date.month)}-${_twoDigits(date.day)}';
-  }
-
-  static String _twoDigits(int value) {
-    return value.toString().padLeft(2, '0');
   }
 }

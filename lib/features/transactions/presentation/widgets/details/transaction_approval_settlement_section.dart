@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_details_info_rows.dart';
@@ -58,7 +59,10 @@ class TransactionApprovalSettlementSection extends StatelessWidget {
         if (transaction.approvalDecidedAt != null)
           TransactionDetailsRow(
             label: 'Decided At',
-            value: formatTransactionDate(transaction.approvalDecidedAt!),
+            value: formatTransactionDate(
+              transaction.approvalDecidedAt!,
+              timezone: context.currentCompany?.timezone,
+            ),
           ),
         if (_hasText(transaction.settlementNote))
           TransactionDetailsRow(
@@ -68,7 +72,10 @@ class TransactionApprovalSettlementSection extends StatelessWidget {
         if (transaction.settledAt != null)
           TransactionDetailsRow(
             label: 'Settled At',
-            value: formatTransactionDate(transaction.settledAt!),
+            value: formatTransactionDate(
+              transaction.settledAt!,
+              timezone: context.currentCompany?.timezone,
+            ),
           ),
       ],
     );

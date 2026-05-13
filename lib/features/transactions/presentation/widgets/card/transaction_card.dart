@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
+import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/card/transaction_info_row.dart';
-import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
-import 'package:gap/gap.dart';
 
 class TransactionCard extends StatelessWidget {
   const TransactionCard({super.key, required this.transaction});
@@ -86,7 +87,10 @@ class TransactionCard extends StatelessWidget {
               ),
               TransactionInfoRow(
                 label: 'Date',
-                value: formatTransactionDate(transaction.dateTime),
+                value: formatTransactionDate(
+                  transaction.dateTime,
+                  timezone: context.currentCompany?.timezone,
+                ),
               ),
               if (transaction.imagePath != null &&
                   transaction.imagePath!.trim().isNotEmpty)

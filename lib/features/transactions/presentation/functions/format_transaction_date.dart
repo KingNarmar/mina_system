@@ -1,10 +1,15 @@
-String formatTransactionDate(DateTime dateTime) {
-  final day = dateTime.day.toString().padLeft(2, '0');
-  final month = dateTime.month.toString().padLeft(2, '0');
-  final year = dateTime.year.toString();
+import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 
-  final hour = dateTime.hour.toString().padLeft(2, '0');
-  final minute = dateTime.minute.toString().padLeft(2, '0');
-
-  return '$day/$month/$year - $hour:$minute';
+String formatTransactionDate(
+  DateTime dateTime, {
+  String? timezone,
+  String? dateFormat,
+  bool includeTimezone = false,
+}) {
+  return CompanyDateTimeFormatter.formatDateTime(
+    dateTime,
+    timezone: timezone,
+    dateFormat: dateFormat,
+    includeTimezone: includeTimezone,
+  );
 }

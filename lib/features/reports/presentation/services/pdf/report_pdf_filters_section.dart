@@ -1,9 +1,7 @@
 import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/core/theme/app_pdf_text_styles.dart';
-
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
-
 import 'package:pdf/widgets.dart' as pw;
 
 import 'report_pdf_formatters.dart';
@@ -18,8 +16,8 @@ class ReportPdfFiltersSection {
       'Tool: ${filters.tool == null ? 'All' : '${filters.tool!.toolName} (${filters.tool!.toolCode})'}',
       'Transaction Type: ${filters.transactionType == null ? 'All' : ReportPdfFormatters.getTransactionTypeLabel(filters.transactionType!)}',
       'Approval Status: ${filters.approvalStatus == null ? 'All' : ReportPdfFormatters.getApprovalStatusValueLabel(filters.approvalStatus)}',
-      'Date From: ${filters.dateFrom == null ? 'Not selected' : ReportPdfFormatters.formatDate(filters.dateFrom!, dateFormat: reportSettings.dateFormat)}',
-      'Date To: ${filters.dateTo == null ? 'Not selected' : ReportPdfFormatters.formatDate(filters.dateTo!, dateFormat: reportSettings.dateFormat)}',
+      'Date From: ${filters.dateFrom == null ? 'Not selected' : ReportPdfFormatters.formatDate(filters.dateFrom!, timezone: reportSettings.defaultTimezone, dateFormat: reportSettings.dateFormat)}',
+      'Date To: ${filters.dateTo == null ? 'Not selected' : ReportPdfFormatters.formatDate(filters.dateTo!, timezone: reportSettings.defaultTimezone, dateFormat: reportSettings.dateFormat)}',
     ];
 
     return pw.Container(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
@@ -30,7 +31,10 @@ class TransactionDetailsInfoRows extends StatelessWidget {
         ),
         TransactionDetailsRow(
           label: 'Date',
-          value: formatTransactionDate(transaction.dateTime),
+          value: formatTransactionDate(
+            transaction.dateTime,
+            timezone: context.currentCompany?.timezone,
+          ),
         ),
       ],
     );

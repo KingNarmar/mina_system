@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
@@ -64,7 +65,10 @@ class TransactionsTableRow extends StatelessWidget {
                   child: _TransactionProofPreview(transaction: transaction),
                 ),
                 TransactionsTableBodyCell(
-                  value: formatTransactionDate(transaction.dateTime),
+                  value: formatTransactionDate(
+                    transaction.dateTime,
+                    timezone: context.currentCompany?.timezone,
+                  ),
                   flex: 2,
                 ),
               ],

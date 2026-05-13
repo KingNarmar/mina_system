@@ -1,7 +1,6 @@
 import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
-
 import 'package:pdf/widgets.dart' as pw;
 
 import 'report_pdf_formatters.dart';
@@ -69,6 +68,7 @@ class ReportPdfDocumentControlSection {
                     label: 'Effective Date',
                     value: ReportPdfFormatters.formatDate(
                       documentTemplate.effectiveDate,
+                      timezone: reportSettings.defaultTimezone,
                       dateFormat: reportSettings.dateFormat,
                     ),
                   ),
