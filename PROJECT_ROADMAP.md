@@ -10,15 +10,16 @@
 
 ## Source of Truth
 
-This roadmap is the single source of truth for the Mina System project.
+This roadmap is the single source of truth for Mina System.
 
 It is based on:
 
 - The real GitHub repository.
 - The verified Supabase backend state.
 - The latest completed and pushed development checkpoints.
+- The current product and engineering direction.
 
-The README may be useful for public explanation, but if it conflicts with this roadmap, this roadmap wins.
+If the README conflicts with this roadmap, this roadmap wins.
 
 ---
 
@@ -26,39 +27,31 @@ The README may be useful for public explanation, but if it conflicts with this r
 
 Latest verified pushed code commit:
 
-`ab058aaf03856d46a3d141983291e4ce37a4e44d`
+`c33e50d509174665d23de9389ab8f0b1b46a2f47`
 
 Commit message:
 
-`feat(company): add company timezone foundation`
+`feat(timezone): add centralized company date time formatting`
 
 Current product phase:
 
 **Phase R — Business Accountability & Audit Trail**
 
-Current checkpoint:
+Current completed checkpoint:
 
 **Step R5.5 — Company Timezone Setting Foundation**
 
 Status:
 
-**In Progress**
-
-Completed inside Step R5.5:
-
-- Backend company timezone foundation.
-- Flutter company timezone foundation.
-- Searchable company timezone selector.
-- Create Company screen expanded with important company setup fields.
-- Company Settings can now read/update company timezone.
+**Completed**
 
 Next required checkpoint:
 
-**Step R5.5-C — Centralized Company Date/Time Formatter**
+**Step R6 — Audit History UI & Record Accountability Display**
 
-Important rule:
+Next recommended engineering step:
 
-Do not start final Audit History UI before company timezone formatting is centralized and applied to business-facing timestamps.
+**Step R6-A — Audit Logs Flutter Model & Repository Foundation**
 
 ---
 
@@ -70,7 +63,7 @@ The system manages:
 
 - Companies
 - Company users
-- User roles and permissions
+- Roles and permissions
 - Workers
 - Tools
 - Lookups
@@ -83,11 +76,9 @@ The system manages:
 - PDF reports
 - Supabase Storage uploads
 - Storage/image optimization
-- Responsive layouts
 - Offline/network-aware behavior
-- Direct user accountability on important records
-- Audit trail history for important business actions
-- Future subscriptions, plans, usage limits, and storage limits
+- Direct user accountability
+- Audit trail history
 
 Every company must have isolated data using `company_id` and the active `currentCompanyId`.
 
@@ -118,16 +109,16 @@ The product should eventually support:
 # Core Development Rules
 
 - Work step by step.
-- Do not make large changes in one step.
-- Do not change a working UI unless needed.
-- Always review the real GitHub repo before continuing a new step.
+- Review the real GitHub repo before continuing a new step.
 - Do not rely only on README because it may be outdated.
 - Keep `PROJECT_ROADMAP.md` as the single source of truth.
 - Update this roadmap after each completed feature or major checkpoint.
 - Do not create multiple roadmap files.
+- Do not make large unrelated changes in one step.
+- Do not change a working UI unless needed.
+- Avoid mixing unrelated architecture changes inside the same checkpoint.
 - Keep implementation scalable and maintainable.
 - Prefer completing one coherent feature/checkpoint before opening another large area.
-- Avoid mixing unrelated architecture changes inside the same checkpoint.
 - Do not split files only to reduce line count.
 - Split files only when responsibilities are mixed or maintainability clearly improves.
 - Large but cohesive files may remain as-is.
@@ -164,7 +155,7 @@ Role-based features should be tested with:
 - Warehouse User
 - Viewer
 
-Backend security-sensitive features must be tested at database level where applicable, not only through Flutter UI.
+Backend security-sensitive features must be tested at database/RPC level where applicable, not only through Flutter UI.
 
 If a role cannot be tested due to missing test accounts, document that clearly.
 
@@ -193,7 +184,7 @@ Preferred implementation order:
 
 ---
 
-# Supabase Rules
+# Supabase / Security Rules
 
 - Every business table must be connected to `company_id`.
 - Every company query must be filtered by `currentCompanyId`.
@@ -247,7 +238,7 @@ Company timezone is stored at company level:
 
 `companies.timezone text not null default 'Asia/Dubai'`
 
-The timezone value must use IANA timezone names, such as:
+Timezone value must use IANA timezone names, such as:
 
 - `Asia/Dubai`
 - `Asia/Kolkata`
@@ -256,28 +247,42 @@ The timezone value must use IANA timezone names, such as:
 
 Do not rely only on fixed offsets such as `+04:00`, because some countries use daylight saving time.
 
-## Current Implementation State
+## Current Timezone Implementation State
 
 Completed:
 
 - `companies.timezone` was added in Supabase.
 - Existing companies can default to `Asia/Dubai`.
 - `create_company_with_defaults` accepts `p_timezone`.
-- `company_report_settings.default_timezone` is seeded from the selected company timezone during company creation.
+- `company_report_settings.default_timezone` is seeded from selected company timezone during company creation.
 - Flutter uses the `timezone` package.
 - Timezone database is initialized in `main.dart`.
 - `CompanyModel` includes `timezone`.
 - `CompanyProfileModel` includes `timezone`.
 - `CreateCompanyRequest` includes `timezone`.
-- A reusable searchable timezone picker was added.
+- `AppTimezones` utility was added.
+- Reusable searchable timezone picker was added.
 - Create Company screen allows selecting timezone.
 - Company Settings allows editing timezone.
+- Centralized company date/time formatter was added:
+  - `lib/core/utils/company_date_time_formatter.dart`
+- Transaction date formatting wrapper now uses the centralized formatter:
+  - `lib/features/transactions/presentation/functions/format_transaction_date.dart`
+- Transactions table date display uses current company timezone.
+- Transaction cards use current company timezone.
+- Transaction details use current company timezone.
+- Approval decision timestamps use current company timezone.
+- Settlement timestamps use current company timezone.
+- Reports/PDF date formatting uses the centralized formatter.
+- Transactions PDF table uses report/company timezone.
+- PDF generated date uses report/company timezone.
+- PDF document control effective date uses report/company timezone.
+- PDF filter date range uses report/company timezone.
+- Lost/Damaged Approval PDF transaction date uses report/company timezone.
+- Transaction details dialog provider issue was fixed by preserving `CurrentContextCubit` inside the dialog.
 
 Pending:
 
-- Add a centralized company date/time formatter.
-- Apply company timezone formatting to transaction UI timestamps.
-- Apply company timezone formatting to reports/PDF timestamps.
 - Apply company timezone formatting to future Audit History UI.
 
 ---
@@ -286,6 +291,7 @@ Pending:
 
 - Colors should be centralized inside `AppColors`.
 - Do not use direct widget-level colors like `Colors.green` or `Colors.orange` unless they are first added to `AppColors`.
+- PDF colors and PDF text styles should stay centralized.
 - Reusable user messages should use `AppMessage`.
 - Errors inside Bottom Sheets or Dialogs should appear inside the form/dialog when SnackBars would be hidden behind the overlay.
 - Success/error/warning/info messages should be clear, professional, and user-friendly.
@@ -301,7 +307,7 @@ Pending:
   - Persistent last selected workspace behavior.
   - A visible manual `Switch Company` action.
 - If a Cubit preserves search state across navigation, the visible search field must restore the same query when the screen is rebuilt.
-- If the backend loads a list in a defined order, local add/update state should preserve the same order unless a product decision explicitly changes sorting behavior.
+- If backend loads a list in a defined order, local add/update state should preserve the same order unless a product decision explicitly changes sorting behavior.
 - Long scrollable screens that rebuild after mutations should preserve scroll position when practical.
 
 ---
@@ -350,7 +356,7 @@ Pending:
   - `{companyId}/documents/...`
 - Future storage usage must be tracked per company for plan limits.
 - Camera capture should remain optional.
-- File upload from device storage should remain supported as a fallback.
+- File upload from device storage should remain supported as fallback.
 
 ---
 
@@ -372,8 +378,6 @@ Pending:
 
 # Role / Permission Design Rules
 
-The current implementation uses fixed role-based permissions.
-
 Current roles:
 
 - `owner`
@@ -385,7 +389,7 @@ Current roles:
 Current rule:
 
 - Permissions are assigned by role.
-- The owner changes a user's role to change their access level.
+- Owner changes a user's role to change their access level.
 - Per-user custom permission overrides are not implemented yet.
 
 Current hierarchy for member lifecycle management:
@@ -412,7 +416,7 @@ No role can manage:
 
 Future scalable direction:
 
-- Keep the permission helper structure ready for:
+- Keep permission helper structure ready for:
   - Base role permissions
   - Extra allowed permissions
   - Explicit denied permissions
@@ -436,7 +440,7 @@ Future scalable direction:
   - Cubit update flow
   - Repository backend checks
 - Future hardening consideration:
-  - Decide later whether production requires an additional database-level unique protection for normalized worker names.
+  - Decide later whether production requires database-level unique protection for normalized worker names.
 
 ---
 
@@ -551,7 +555,7 @@ Team / Company Users should eventually show:
 
 - The same app should support Free and Paid plans.
 - Do not create separate apps for free and paid versions.
-- A company subscription should determine enabled features and limits.
+- Company subscription should determine enabled features and limits.
 - Free plan limits must be simple, strict, and useful for demo/testing.
 - Paid packages must be company-based.
 - User access must depend on active company membership and company subscription status.
@@ -560,7 +564,7 @@ Team / Company Users should eventually show:
 - B2B subscription payment should preferably be handled outside the mobile app through website, invoice, or customer portal.
 - The app should show a safe message like:
   - `Contact your company admin to manage subscription.`
-- A production release must include:
+- Production release must include:
   - Privacy Policy
   - Terms of Service
   - Support contact
@@ -582,7 +586,7 @@ Team / Company Users should eventually show:
 - Workers are Supabase-backed.
 - Tools are Supabase-backed.
 - Dashboard reads real Supabase data.
-- Reports / PDF core reports are working.
+- Reports/PDF core reports are working.
 - Lost/Damaged approval and settlement workflow core flow is working.
 - Offline/network handling phase is completed and manually tested.
 - Friendly network error mapper is implemented.
@@ -591,7 +595,7 @@ Team / Company Users should eventually show:
 - Normal runtime layout no longer depends directly on DevicePreview.
 - Cross-platform image compression foundation is implemented.
 - Transaction proof images are compressed before upload.
-- Approval document images are compressed before upload when the selected file is an image.
+- Approval document images are compressed before upload when selected file is an image.
 - PDF approval documents are uploaded without image compression.
 - Company logos are resized/compressed before upload.
 
@@ -603,21 +607,21 @@ Team / Company Users should eventually show:
 - Pending invitations can be listed and cancelled.
 - Invited users can see company invitation details before joining.
 - Invited users can accept invitations and join the company.
-- Accepted users appear in Company Users with their assigned role.
+- Accepted users appear in Company Users with assigned role.
 - Duplicate pending invitations are blocked.
 - Duplicate active-member invitations are blocked at database level.
 - Role-based UI permissions are implemented.
 - App navigation is filtered by current company role.
 - Workers/Tools/Transactions/Lookups/Reports/Settings actions are restricted by role in Flutter UI.
-- Supabase public table RLS write policies are aligned with the implemented RBAC matrix.
-- Supabase Storage upload policies are aligned with the implemented RBAC matrix.
+- Supabase public table RLS write policies are aligned with implemented RBAC matrix.
+- Supabase Storage upload policies are aligned with implemented RBAC matrix.
 - Secure invitation creation backend is implemented through `invite_company_user`.
 - Direct authenticated insert access to `company_invitations` has been closed.
 - Multi-company workspace selection is implemented.
 - Existing users can receive invitations to additional companies.
 - Users with multiple companies can choose a workspace.
-- The app remembers the last selected workspace locally per profile.
-- Users can manually switch companies through a visible `Switch Company` action.
+- App remembers last selected workspace locally per profile.
+- Users can manually switch companies through visible `Switch Company` action.
 - Dedicated `Team` area is implemented for company users and member lifecycle management.
 - Company user management has been moved out of `Settings`.
 
@@ -651,12 +655,12 @@ Team / Company Users should eventually show:
 - New company report settings seed `default_timezone` from selected company timezone.
 - `timezone` package was added to Flutter.
 - Timezone database initialization was added in `main.dart`.
-- `CompanyModel` now includes `timezone`.
-- `CompanyProfileModel` now includes `timezone`.
-- `CreateCompanyRequest` now supports full company creation profile fields and `timezone`.
+- `CompanyModel` includes `timezone`.
+- `CompanyProfileModel` includes `timezone`.
+- `CreateCompanyRequest` supports full company creation profile fields and `timezone`.
 - `AppTimezones` utility was added.
 - Searchable timezone picker was added.
-- Create Company screen now includes:
+- Create Company screen includes:
   - Company Name
   - Trade Name
   - Legal Name
@@ -665,8 +669,11 @@ Team / Company Users should eventually show:
   - Company Timezone
   - Company Email
   - Company Phone
-- Company Settings profile form now supports timezone editing.
+- Company Settings profile form supports timezone editing.
 - Current company context can update both company name and timezone after profile changes.
+- Centralized company date/time formatter is implemented.
+- Transactions UI uses current company timezone.
+- Reports/PDF use report/company timezone.
 
 ---
 
@@ -686,16 +693,13 @@ Completed checkpoints:
 - Step R3 — General Transaction Update Hardening
 - Step R4 — Workers & Tools Accountability
 - Step R5 — Audit Logs Foundation
+- Step R5.5 — Company Timezone Setting Foundation
 
 Current checkpoint:
 
-- Step R5.5 — Company Timezone Setting Foundation
+- Step R5.5 — Company Timezone Setting Foundation completed
 
-Next recommended sub-step:
-
-- Step R5.5-C — Centralized Company Date/Time Formatter
-
-Then:
+Next checkpoint:
 
 - Step R6 — Audit History UI & Record Accountability Display
 
@@ -711,11 +715,11 @@ Status:
 
 Completed:
 
-- Transaction creation now uses secure Supabase RPC `create_custody_transaction`.
-- Official `transaction_code` is generated by the backend.
+- Transaction creation uses secure Supabase RPC `create_custody_transaction`.
+- Official `transaction_code` is generated by backend.
 - `created_by_profile_id` is derived from `private.current_profile_id()`.
 - Flutter no longer sends trusted transaction creation accountability fields.
-- General transaction creation now relies on backend worker/tool snapshots.
+- General transaction creation relies on backend worker/tool snapshots.
 
 ---
 
@@ -727,7 +731,7 @@ Status:
 
 Completed:
 
-- Lost/Damaged approval workflow now uses secure RPCs:
+- Lost/Damaged approval workflow uses secure RPCs:
   - `approve_lost_damaged_transaction`
   - `reject_lost_damaged_transaction`
   - `settle_lost_damaged_transaction`
@@ -746,9 +750,9 @@ Status:
 
 Completed:
 
-- Signed approval document upload now uses secure RPC:
+- Signed approval document upload uses secure RPC:
   - `upload_transaction_approval_document`
-- Flutter uploads the file to Supabase Storage.
+- Flutter uploads file to Supabase Storage.
 - Backend writes:
   - `approval_document_path`
   - `approval_document_uploaded_by_profile_id`
@@ -767,7 +771,7 @@ Status:
 Completed:
 
 - General transaction editing is disabled.
-- `TransactionsRepo.updateTransaction()` now throws `UnsupportedError`.
+- `TransactionsRepo.updateTransaction()` throws `UnsupportedError`.
 - `TransactionsCubit.updateTransaction()` returns false with a clear user-facing message.
 - Transaction changes should be performed only through controlled workflows:
   - Create transaction RPC
@@ -816,10 +820,10 @@ Completed:
   - Inactive filter
   - Deactivate tool
   - Reactivate tool
-- Worker and Tool deactivation now use soft status change instead of physical delete.
+- Worker and Tool deactivation use soft status change instead of physical delete.
 - Open custody blocking was tested and passed for Workers and Tools.
-- Reports filters now load Workers and Tools independently from report-specific data sources.
-- Reports can select active and inactive Workers/Tools without depending on the current Workers/Tools screen filter.
+- Reports filters load Workers and Tools independently from report-specific data sources.
+- Reports can select active and inactive Workers/Tools without depending on current Workers/Tools screen filter.
 
 Remaining:
 
@@ -858,7 +862,7 @@ Backend completed:
   - `old_data`
   - `new_data`
   - `metadata`
-- Audit logs are append-only from the perspective of normal app users.
+- Audit logs are append-only from perspective of normal app users.
 
 Connected RPCs:
 
@@ -892,17 +896,17 @@ Manual verification completed:
 
 Tools:
 
-- `create_tool` ✅
-- `update_tool` ✅
-- `deactivate_tool` ✅
-- `reactivate_tool` ✅
+- `create_tool`
+- `update_tool`
+- `deactivate_tool`
+- `reactivate_tool`
 
 Workers:
 
-- `create_worker` ✅
-- `update_worker` ✅
-- `deactivate_worker` ✅
-- `reactivate_worker` ✅
+- `create_worker`
+- `update_worker`
+- `deactivate_worker`
+- `reactivate_worker`
 
 Verified audit fields:
 
@@ -915,15 +919,6 @@ Verified audit fields:
 - `new_data`
 - `created_at`
 
-Important result:
-
-- Audit logs now correctly show:
-  - Who performed the action
-  - What action was performed
-  - Which record was affected
-  - What changed from old data to new data
-  - When the action happened in UTC
-
 Remaining:
 
 - None.
@@ -934,18 +929,18 @@ Remaining:
 
 Status:
 
-**In Progress**
+**Completed**
 
 Reason:
 
-Audit history, custody records, and reports are business-critical. Time must be displayed according to the company timezone, not hardcoded UAE time.
+Audit history, custody records, and reports are business-critical. Time must be displayed according to company timezone, not hardcoded UAE time.
 
 Goal:
 
-- Add company-level timezone support before building the final Audit History UI.
+- Add company-level timezone support before building final Audit History UI.
 - Keep database timestamps in UTC.
 - Display timestamps using current company timezone.
-- Use `Asia/Dubai` only as a safe default/fallback, not as a hardcoded global display timezone.
+- Use `Asia/Dubai` only as safe default/fallback, not as hardcoded global display timezone.
 
 Completed backend work:
 
@@ -953,11 +948,11 @@ Completed backend work:
 - Added non-blank validation for `companies.timezone`.
 - Backfilled existing company timezone values where needed.
 - Updated `create_company_with_defaults` to accept `p_timezone`.
-- New companies now store timezone in `companies.timezone`.
-- New company report settings now seed `default_timezone` from selected company timezone.
+- New companies store timezone in `companies.timezone`.
+- New company report settings seed `default_timezone` from selected company timezone.
 - RPC validates timezone using valid IANA timezone names.
 
-Completed Flutter work:
+Completed Flutter foundation work:
 
 - Added `timezone` dependency.
 - Initialized timezone database in `main.dart`.
@@ -978,25 +973,38 @@ Completed Flutter work:
 - Added timezone editing to Company Settings profile form.
 - Updated current company context after profile changes so company name and timezone remain in sync.
 
-Remaining in Step R5.5:
+Completed formatter and display work:
 
-- Add centralized company date/time formatter.
-- Apply formatter to transaction table date display.
-- Apply formatter to transaction details date display.
-- Apply formatter to report/PDF business dates where needed.
-- Keep Audit History UI pending until timezone formatter is ready.
+- Added centralized company date/time formatter:
+  - `lib/core/utils/company_date_time_formatter.dart`
+- Updated transaction date formatting wrapper to use centralized formatter:
+  - `lib/features/transactions/presentation/functions/format_transaction_date.dart`
+- Applied company timezone formatting to:
+  - Transactions table
+  - Transaction cards
+  - Transaction details
+  - Approval decision timestamps
+  - Settlement timestamps
+- Fixed transaction details dialog context access by preserving `CurrentContextCubit` inside the dialog.
+- Updated report/PDF date formatting to use centralized formatter.
+- Applied report/company timezone formatting to:
+  - Transactions PDF table
+  - PDF generated date
+  - PDF document control effective date
+  - PDF filters date range
+  - Lost/Damaged Approval PDF transaction date
 
-Next sub-step:
+Remaining:
 
-**Step R5.5-C — Centralized Company Date/Time Formatter**
+- None.
 
-Expected result after R5.5 completion:
+Expected result:
 
 - UAE company sees UAE time.
 - India company sees India time.
 - Egypt company sees Egypt time.
 - Database remains UTC and globally consistent.
-- UI/reports/audit history display business timestamps using company timezone.
+- UI, reports, PDF, and future Audit History display business timestamps using company timezone.
 
 ---
 
@@ -1013,10 +1021,10 @@ Depends on:
 
 Goal:
 
-- Allow the user to see direct accountability inside important record screens.
-- Allow the user to open full audit history for a specific record.
+- Allow user to see direct accountability inside important record screens.
+- Allow user to open full audit history for a specific record.
 
-Backend/API expected work:
+Expected backend/API work:
 
 - Add Audit Log model.
 - Add Audit Logs repository/service.
@@ -1028,24 +1036,29 @@ Backend/API expected work:
   - Recent audit logs if needed later
 - Ensure queries are filtered by `currentCompanyId`.
 
-UI expected work:
+Expected UI work:
 
-- Worker details:
-  - Show created/updated accountability where available.
-  - Add `View Audit History`.
-- Tool details:
-  - Show created/updated accountability where available.
-  - Add `View Audit History`.
-- Audit History view:
-  - Timeline/list of actions.
-  - Actor name/email.
-  - Action date/time displayed using company timezone.
-  - Old data vs new data in a readable format.
-  - Do not show raw JSON to normal users unless a developer/admin view is explicitly added later.
+Worker details:
+
+- Show created/updated accountability where available.
+- Add `View Audit History`.
+
+Tool details:
+
+- Show created/updated accountability where available.
+- Add `View Audit History`.
+
+Audit History view:
+
+- Timeline/list of actions.
+- Actor name/email.
+- Action date/time displayed using company timezone.
+- Old data vs new data in readable format.
+- Do not show raw JSON to normal users unless a developer/admin view is explicitly added later.
 
 Design rule:
 
-- The record screen should show direct accountability immediately.
+- Record screen should show direct accountability immediately.
 - Full audit history should be available through a separate action such as `View Audit History`.
 
 ---
@@ -1095,95 +1108,77 @@ Lookups:
 
 Status:
 
-**Step R5.5-C pending**
+**Step R5.5-C completed**
 
 Current engineering focus:
 
-**Centralized Company Date/Time Formatter**
-
-Purpose:
-
-- Convert UTC timestamps to the active company timezone.
-- Provide one reusable formatter for UI, reports, PDFs, and future audit history.
-- Avoid scattered date formatting logic.
-- Avoid relying on device local timezone for business timestamps.
-
-Files likely involved next:
-
-- `lib/core/utils/company_datetime_formatter.dart`
-- `lib/features/transactions/presentation/functions/format_transaction_date.dart`
-- Transaction table/date display widgets
-- Transaction details date display widgets
-- Report PDF date formatting helpers
-
----
-
-# Recommended Execution Order
-
-## Priority 1 — Must-Have Product Foundation
-
-1. **Phase O — Company Users, Roles & Invitations** ✅
-2. **Phase P — Role-Based Access Control** ✅
-3. **Phase Q — Secure Member Management & Invitation Backend** ✅
-4. **Auth UX Checkpoint — Email-First Authentication Flow** ✅
-5. **Phase R — Business Accountability & Audit Trail** 🚧
-   - R1 Transactions Backend Alignment ✅
-   - R2A Transaction Approval Workflow Alignment ✅
-   - R2B Approval Document Upload Accountability ✅
-   - R3 General Transaction Update Hardening ✅
-   - R4 Workers & Tools Accountability ✅
-   - R5 Audit Logs Foundation ✅
-   - R5.5 Company Timezone Setting Foundation 🚧
-   - R6 Audit History UI & Record Accountability Display ⏭️
-6. **Phase S — Production Environment & Secrets Setup**
-7. **Phase T — Subscription / Plan Limits Foundation**
-8. **Phase U — Store Release Preparation**
-
-## Priority 2 — Product Expansion
-
-- Extend audit logging to Transactions.
-- Extend audit logging to Team / Company Users.
-- Extend audit logging to Company Settings.
-- Extend audit logging to Lookups.
-- Add production-safe support/contact/legal pages.
-- Add SaaS plan limits and subscription enforcement.
-- Add production onboarding/demo flow.
-
-## Priority 3 — Later Enhancements
-
-- Offline drafts and future sync.
-- Advanced reporting.
-- Advanced dashboard analytics.
-- Custom permission overrides.
-- Ownership transfer.
-- Remove-access flow.
-- Web landing page.
-- Desktop installer.
-- Advanced storage usage tracking.
-- Multi-language support if needed.
-
----
-
-# Immediate Next Step
-
-Recommended next step:
-
-**Step R5.5-C — Centralized Company Date/Time Formatter**
-
-Why this should come before Audit History UI:
-
-- Audit history is time-sensitive.
-- Reports and custody records must display time according to the company timezone.
-- Date formatting should be centralized before adding new audit UI screens.
-- The system already stores timestamps in UTC.
-- The next step is to convert UTC timestamps to the active company timezone consistently.
-
-Do not start:
-
 **Step R6 — Audit History UI & Record Accountability Display**
 
-until:
+Completed in Step R5.5-C:
 
-- Company datetime formatter exists.
-- Transaction UI date display is aligned with company timezone.
-- Report/PDF date display strategy is aligned with company timezone.
+- Centralized company date/time formatter added.
+- Transactions UI uses current company timezone.
+- Transaction details approval/settlement timestamps use current company timezone.
+- Reports/PDF dates use company/report timezone.
+- Transaction details dialog provider issue was fixed.
+- Audit History UI can now start safely with centralized timezone formatting available.
+
+Next recommended development step:
+
+**Step R6-A — Audit Logs Flutter Model & Repository Foundation**
+
+Recommended Step R6-A scope:
+
+1. Review current `audit_logs` backend shape.
+2. Create `AuditLogModel`.
+3. Create `AuditLogsRepo`.
+4. Add query method for logs by entity:
+   - `companyId`
+   - `entityType`
+   - `entityId`
+5. Ensure all queries are filtered by current company.
+6. Do not build UI until model/repository are confirmed.
+7. Use `CompanyDateTimeFormatter` for all audit log display timestamps later in UI.
+
+Do not start broad Audit History UI before Step R6-A is completed.
+
+---
+
+# Future Product Backlog
+
+Commercial / SaaS:
+
+- Company subscriptions.
+- Free/trial plan limits.
+- Paid monthly packages.
+- B2B subscription management.
+- Production Supabase project.
+- Privacy Policy.
+- Terms of Service.
+- Support contact.
+- Store review/demo account if needed.
+
+Storage / Usage:
+
+- Company storage usage tracking.
+- Storage limits per plan.
+- Image/file retention rules.
+
+Offline:
+
+- Offline drafts.
+- Background sync.
+- Safe conflict handling.
+
+Permissions:
+
+- Optional future custom permission overrides.
+- Explicit allow/deny permissions on top of base roles.
+
+Release:
+
+- Desktop installer.
+- Google Play release.
+- App Store release.
+- Web landing page.
+
