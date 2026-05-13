@@ -6,6 +6,7 @@ import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_reactivate_worker.dart';
+import 'package:mina_system/features/workers/presentation/functions/show_worker_audit_history.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
@@ -33,7 +34,7 @@ class WorkersDesktopLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActiveFilter = statusFilter == 'active';
-    final canShowActions = canUpdateWorkers || canDeleteWorkers;
+    final canShowActions = true;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -106,6 +107,9 @@ class WorkersDesktopLayout extends StatelessWidget {
               child: WorkersTable(
                 workers: workers,
                 showActions: canShowActions,
+                onViewAuditHistory: (worker) {
+                  showWorkerAuditHistory(context, worker: worker);
+                },
                 onEdit: canUpdateWorkers
                     ? (worker) {
                         showWorkerDialog(context, worker: worker);

@@ -12,17 +12,22 @@ class WorkerCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onReactivate,
+    this.onViewAuditHistory,
   });
 
   final WorkerModel worker;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onReactivate;
+  final VoidCallback? onViewAuditHistory;
 
   @override
   Widget build(BuildContext context) {
     final showActions =
-        onEdit != null || onDelete != null || onReactivate != null;
+        onEdit != null ||
+        onDelete != null ||
+        onReactivate != null ||
+        onViewAuditHistory != null;
 
     return Card(
       elevation: 0,
@@ -56,6 +61,13 @@ class WorkerCard extends StatelessWidget {
                   ),
                 ),
                 if (showActions) ...[
+                  if (onViewAuditHistory != null)
+                    IconButton(
+                      onPressed: onViewAuditHistory,
+                      icon: const Icon(Icons.history_rounded),
+                      color: AppColors.textSecondary,
+                      tooltip: 'View Audit History',
+                    ),
                   if (onEdit != null)
                     IconButton(
                       onPressed: onEdit,

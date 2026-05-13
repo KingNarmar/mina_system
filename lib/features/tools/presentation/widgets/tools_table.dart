@@ -13,6 +13,7 @@ class ToolsTable extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onReactivate,
+    this.onViewAuditHistory,
   });
 
   final List<ToolModel> tools;
@@ -20,6 +21,7 @@ class ToolsTable extends StatelessWidget {
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
   final void Function(ToolModel tool)? onReactivate;
+  final void Function(ToolModel tool)? onViewAuditHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,7 @@ class ToolsTable extends StatelessWidget {
                 onEdit: onEdit,
                 onDelete: onDelete,
                 onReactivate: onReactivate,
+                onViewAuditHistory: onViewAuditHistory,
               );
             }),
         ],

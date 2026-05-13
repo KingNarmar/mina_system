@@ -7,6 +7,7 @@ import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/functions/confirm_delete_tool.dart';
 import 'package:mina_system/features/tools/presentation/functions/confirm_reactivate_tool.dart';
+import 'package:mina_system/features/tools/presentation/functions/show_tool_audit_history.dart';
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_card.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
@@ -78,6 +79,9 @@ class ToolsMobileLayout extends StatelessWidget {
 
           return ToolCard(
             tool: tool,
+            onViewAuditHistory: () {
+              showToolAuditHistory(context, tool: tool);
+            },
             onEdit: canUpdateTools
                 ? () {
                     showToolBottomSheet(context, tool: tool);

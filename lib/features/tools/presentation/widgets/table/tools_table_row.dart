@@ -11,6 +11,7 @@ class ToolsTableRow extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onReactivate,
+    this.onViewAuditHistory,
   });
 
   final ToolModel tool;
@@ -18,6 +19,7 @@ class ToolsTableRow extends StatelessWidget {
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
   final void Function(ToolModel tool)? onReactivate;
+  final void Function(ToolModel tool)? onViewAuditHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +36,19 @@ class ToolsTableRow extends StatelessWidget {
               if (showActions)
                 Expanded(
                   flex: 2,
-                  child: Row(
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
                     children: [
+                      if (onViewAuditHistory != null)
+                        IconButton(
+                          onPressed: () {
+                            onViewAuditHistory!(tool);
+                          },
+                          icon: const Icon(Icons.history_rounded),
+                          color: AppColors.textSecondary,
+                          tooltip: 'View Audit History',
+                        ),
                       if (onEdit != null)
                         IconButton(
                           onPressed: () {

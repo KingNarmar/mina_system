@@ -13,6 +13,7 @@ class WorkersTable extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onReactivate,
+    this.onViewAuditHistory,
   });
 
   final List<WorkerModel> workers;
@@ -20,6 +21,7 @@ class WorkersTable extends StatelessWidget {
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
   final void Function(WorkerModel worker)? onReactivate;
+  final void Function(WorkerModel worker)? onViewAuditHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,7 @@ class WorkersTable extends StatelessWidget {
                 onEdit: onEdit,
                 onDelete: onDelete,
                 onReactivate: onReactivate,
+                onViewAuditHistory: onViewAuditHistory,
               );
             }),
         ],

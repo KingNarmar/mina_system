@@ -11,6 +11,7 @@ class WorkersTableRow extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onReactivate,
+    this.onViewAuditHistory,
   });
 
   final WorkerModel worker;
@@ -18,6 +19,7 @@ class WorkersTableRow extends StatelessWidget {
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
   final void Function(WorkerModel worker)? onReactivate;
+  final void Function(WorkerModel worker)? onViewAuditHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +36,19 @@ class WorkersTableRow extends StatelessWidget {
               if (showActions)
                 Expanded(
                   flex: 2,
-                  child: Row(
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
                     children: [
+                      if (onViewAuditHistory != null)
+                        IconButton(
+                          onPressed: () {
+                            onViewAuditHistory!(worker);
+                          },
+                          icon: const Icon(Icons.history_rounded),
+                          color: AppColors.textSecondary,
+                          tooltip: 'View Audit History',
+                        ),
                       if (onEdit != null)
                         IconButton(
                           onPressed: () {

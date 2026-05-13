@@ -6,10 +6,7 @@ class CompanyDateTimeFormatter {
 
   static const String defaultDateFormat = 'dd/mm/yyyy';
 
-  static tz.TZDateTime toCompanyTime(
-    DateTime dateTime, {
-    String? timezone,
-  }) {
+  static tz.TZDateTime toCompanyTime(DateTime dateTime, {String? timezone}) {
     final location = _resolveLocation(timezone);
     final utcDateTime = dateTime.isUtc ? dateTime : dateTime.toUtc();
 
@@ -80,17 +77,10 @@ class CompanyDateTimeFormatter {
       return fallback;
     }
 
-    return formatDate(
-      dateTime,
-      timezone: timezone,
-      dateFormat: dateFormat,
-    );
+    return formatDate(dateTime, timezone: timezone, dateFormat: dateFormat);
   }
 
-  static String formatTime(
-    DateTime dateTime, {
-    String? timezone,
-  }) {
+  static String formatTime(DateTime dateTime, {String? timezone}) {
     final companyTime = toCompanyTime(dateTime, timezone: timezone);
 
     return formatCompanyTime(companyTime);
@@ -108,10 +98,7 @@ class CompanyDateTimeFormatter {
     return formatTime(dateTime, timezone: timezone);
   }
 
-  static String formatDateForFileName(
-    DateTime dateTime, {
-    String? timezone,
-  }) {
+  static String formatDateForFileName(DateTime dateTime, {String? timezone}) {
     final companyTime = toCompanyTime(dateTime, timezone: timezone);
 
     return [

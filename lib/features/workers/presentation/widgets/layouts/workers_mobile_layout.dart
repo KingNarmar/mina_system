@@ -7,6 +7,7 @@ import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_reactivate_worker.dart';
+import 'package:mina_system/features/workers/presentation/functions/show_worker_audit_history.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_card.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
@@ -78,6 +79,9 @@ class WorkersMobileLayout extends StatelessWidget {
 
           return WorkerCard(
             worker: worker,
+            onViewAuditHistory: () {
+              showWorkerAuditHistory(context, worker: worker);
+            },
             onEdit: canUpdateWorkers
                 ? () {
                     showWorkerBottomSheet(context, worker: worker);
