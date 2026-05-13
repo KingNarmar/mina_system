@@ -27,11 +27,11 @@ If the README conflicts with this roadmap, this roadmap wins.
 
 Latest verified pushed code commit:
 
-`c33e50d509174665d23de9389ab8f0b1b46a2f47`
+`491a2d35cfa196940fbd8be18cf0123ad6b3dae6`
 
 Commit message:
 
-`feat(timezone): add centralized company date time formatting`
+`feat(audit): add audit history UI for workers and tools`
 
 Current product phase:
 
@@ -39,19 +39,19 @@ Current product phase:
 
 Current completed checkpoint:
 
-**Step R5.5 — Company Timezone Setting Foundation**
+**Step R6-D — Connect Audit History to Workers & Tools**
 
 Status:
 
-**Completed**
+**Completed and manually verified**
 
 Next required checkpoint:
 
-**Step R6 — Audit History UI & Record Accountability Display**
+**Step R6-E — Direct Accountability Display for Workers & Tools**
 
 Next recommended engineering step:
 
-**Step R6-A — Audit Logs Flutter Model & Repository Foundation**
+**Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools**
 
 ---
 
@@ -115,14 +115,12 @@ The product should eventually support:
 - Update this roadmap after each completed feature or major checkpoint.
 - Do not create multiple roadmap files.
 - Do not make large unrelated changes in one step.
-- Do not change a working UI unless needed.
+- Do not change working UI unless needed.
 - Avoid mixing unrelated architecture changes inside the same checkpoint.
 - Keep implementation scalable and maintainable.
-- Prefer completing one coherent feature/checkpoint before opening another large area.
-- Do not split files only to reduce line count.
+- Preserve current UI, workflow, permissions, validation, and business logic during refactors unless an approved bug fix is part of the batch.
 - Split files only when responsibilities are mixed or maintainability clearly improves.
 - Large but cohesive files may remain as-is.
-- Preserve current UI, workflow, permissions, validation, and business logic during refactors unless an approved bug fix is part of the batch.
 - When changing existing files during guided development, provide complete file replacements when requested.
 
 After each completed feature or major checkpoint:
@@ -266,24 +264,15 @@ Completed:
 - Company Settings allows editing timezone.
 - Centralized company date/time formatter was added:
   - `lib/core/utils/company_date_time_formatter.dart`
-- Transaction date formatting wrapper now uses the centralized formatter:
+- Transaction date formatting wrapper uses the centralized formatter:
   - `lib/features/transactions/presentation/functions/format_transaction_date.dart`
-- Transactions table date display uses current company timezone.
-- Transaction cards use current company timezone.
-- Transaction details use current company timezone.
-- Approval decision timestamps use current company timezone.
-- Settlement timestamps use current company timezone.
-- Reports/PDF date formatting uses the centralized formatter.
-- Transactions PDF table uses report/company timezone.
-- PDF generated date uses report/company timezone.
-- PDF document control effective date uses report/company timezone.
-- PDF filter date range uses report/company timezone.
-- Lost/Damaged Approval PDF transaction date uses report/company timezone.
-- Transaction details dialog provider issue was fixed by preserving `CurrentContextCubit` inside the dialog.
+- Transactions UI uses current company timezone.
+- Reports/PDF use report/company timezone.
+- Audit History UI uses company timezone through `CompanyDateTimeFormatter`.
 
-Pending:
+Remaining:
 
-- Apply company timezone formatting to future Audit History UI.
+- Apply company timezone formatting to future accountability display sections.
 
 ---
 
@@ -330,7 +319,7 @@ Pending:
   - `AppBreakpoints`
 - Use `OrientationBuilder` only for small widget-level orientation changes when needed.
 - Every long form must be scrollable in landscape.
-- Dialogs must respect available screen height.
+- Dialogs and Bottom Sheets must respect available screen height.
 - Tables must remain horizontally scrollable where needed.
 - Action buttons must wrap instead of overflowing.
 - Mobile landscape must remain a mobile experience unless there is a strong reason to switch.
@@ -477,7 +466,7 @@ Common fields:
 - `created_at`
 - `updated_at`
 
-Some tables may currently have profile IDs only. Display snapshots can be added later where needed.
+Some tables currently have profile IDs only. Display snapshots can be added later where needed.
 
 ## Audit Trail
 
@@ -505,9 +494,23 @@ Audit logs must be append-only for normal app users.
 
 Normal app users must not directly insert, update, or delete audit logs.
 
+## Current Audit History Display Rules
+
+- Audit History must show readable action labels.
+- Audit History must show actor name/email snapshot.
+- Audit History timestamps must use company timezone.
+- Audit History must show old vs new values in a readable format.
+- Audit History should not show raw JSON to normal users.
+- Technical foreign keys should be resolved to readable names where possible:
+  - `department_id` → Department
+  - `job_title_id` → Job Title
+  - `unit_id` → Unit
+  - `category_id` → Category
+- If lookup IDs cannot be resolved, UI should show a safe fallback such as `Unknown Department` instead of raw UUIDs.
+
 ## Direct Display Examples
 
-Transaction details should show:
+Transaction details should eventually show:
 
 - Created by
 - Created at
@@ -674,6 +677,23 @@ Team / Company Users should eventually show:
 - Centralized company date/time formatter is implemented.
 - Transactions UI uses current company timezone.
 - Reports/PDF use report/company timezone.
+- Audit History UI uses current company timezone.
+
+## Completed Audit History UI Foundation
+
+- Audit Log Flutter model is implemented.
+- Audit Logs repository is implemented.
+- Audit Logs Cubit and State are implemented.
+- Audit History Bottom Sheet is implemented.
+- Audit Log tile is implemented.
+- Audit Log data change section is implemented.
+- Lookup resolver is implemented for audit foreign key display names.
+- Worker and Tool Audit History helper functions are implemented.
+- Worker cards and tables include `View Audit History`.
+- Tool cards and tables include `View Audit History`.
+- Audit History manually tested successfully for Workers and Tools.
+- Worker Department and Job Title display as readable names instead of UUIDs.
+- Tool Unit and Category display as readable names instead of UUIDs.
 
 ---
 
@@ -694,14 +714,19 @@ Completed checkpoints:
 - Step R4 — Workers & Tools Accountability
 - Step R5 — Audit Logs Foundation
 - Step R5.5 — Company Timezone Setting Foundation
+- Step R6-A — Audit Logs Flutter Model & Repository Foundation
+- Step R6-B — Audit Logs Cubit & State Foundation
+- Step R6-C — Audit History UI Foundation
+- Step R6-C.2 — Resolve Audit Foreign Key Display Names
+- Step R6-D — Connect Audit History to Workers & Tools
 
 Current checkpoint:
 
-- Step R5.5 — Company Timezone Setting Foundation completed
+- Step R6-D — Connect Audit History to Workers & Tools completed and manually verified.
 
 Next checkpoint:
 
-- Step R6 — Audit History UI & Record Accountability Display
+- Step R6-E — Direct Accountability Display for Workers & Tools
 
 ---
 
@@ -993,6 +1018,7 @@ Completed formatter and display work:
   - PDF document control effective date
   - PDF filters date range
   - Lost/Damaged Approval PDF transaction date
+- Audit History UI now uses the same centralized formatter.
 
 Remaining:
 
@@ -1004,7 +1030,7 @@ Expected result:
 - India company sees India time.
 - Egypt company sees Egypt time.
 - Database remains UTC and globally consistent.
-- UI, reports, PDF, and future Audit History display business timestamps using company timezone.
+- UI, reports, PDF, and Audit History display business timestamps using company timezone.
 
 ---
 
@@ -1012,7 +1038,7 @@ Expected result:
 
 Status:
 
-**Planned**
+**In Progress**
 
 Depends on:
 
@@ -1021,51 +1047,156 @@ Depends on:
 
 Goal:
 
-- Allow user to see direct accountability inside important record screens.
-- Allow user to open full audit history for a specific record.
+- Allow users to open full audit history for a specific record.
+- Allow users to see direct accountability inside important record screens.
 
-Expected backend/API work:
+Completed in Step R6-A — Audit Logs Flutter Model & Repository Foundation:
 
-- Add Audit Log model.
-- Add Audit Logs repository/service.
-- Add query methods for:
-  - Audit logs by entity:
-    - `company_id`
-    - `entity_type`
-    - `entity_id`
-  - Recent audit logs if needed later
-- Ensure queries are filtered by `currentCompanyId`.
+- Added Audit Log model:
+  - `lib/features/audit_logs/data/models/audit_log_model.dart`
+- Added Audit Logs repository:
+  - `lib/features/audit_logs/data/repo/audit_logs_repo.dart`
+- Repository supports:
+  - Audit logs by entity.
+  - Recent audit logs for future use.
+- Audit log queries are filtered by:
+  - `company_id`
+  - `entity_type`
+  - `entity_id`
+- Flutter audit log access is read-only.
+- No Flutter insert/update/delete operations were added for audit logs.
 
-Expected UI work:
+Completed in Step R6-B — Audit Logs Cubit & State Foundation:
 
-Worker details:
+- Added Audit Logs Cubit:
+  - `lib/features/audit_logs/presentation/cubit/audit_logs_cubit.dart`
+- Added Audit Logs State:
+  - `lib/features/audit_logs/presentation/cubit/audit_logs_state.dart`
+- Cubit supports:
+  - Loading audit history by entity.
+  - Loading recent audit logs for future use.
+  - Friendly error handling through `AppErrorMessage`.
 
-- Show created/updated accountability where available.
-- Add `View Audit History`.
+Completed in Step R6-C — Audit History UI Foundation:
 
-Tool details:
+- Added reusable Audit History Bottom Sheet:
+  - `lib/features/audit_logs/presentation/widgets/audit_history_bottom_sheet.dart`
+- Added reusable Audit Log tile:
+  - `lib/features/audit_logs/presentation/widgets/audit_log_tile.dart`
+- Added readable data changes section:
+  - `lib/features/audit_logs/presentation/widgets/audit_log_data_change_section.dart`
+- Audit History UI displays:
+  - Action label.
+  - Entity type.
+  - Actor name/email snapshot.
+  - Record label snapshot.
+  - Action timestamp using company timezone.
+  - Old vs new changed values in a user-friendly layout.
+- Audit History UI does not show raw JSON directly to normal users.
 
-- Show created/updated accountability where available.
-- Add `View Audit History`.
+Completed in Step R6-C.2 — Resolve Audit Foreign Key Display Names:
 
-Audit History view:
+- Added Audit Log lookup resolver:
+  - `lib/features/audit_logs/data/services/audit_log_lookup_resolver.dart`
+- Resolver loads lookup display names from existing `LookupsRepo`.
+- Audit History now resolves:
+  - `department_id` → Department name
+  - `job_title_id` → Job Title name
+  - `unit_id` → Unit name
+  - `category_id` → Category name
+- Worker Audit History now shows readable Department and Job Title values instead of UUIDs.
+- Tool Audit History now shows readable Unit and Category values instead of UUIDs.
 
-- Timeline/list of actions.
-- Actor name/email.
-- Action date/time displayed using company timezone.
-- Old data vs new data in readable format.
-- Do not show raw JSON to normal users unless a developer/admin view is explicitly added later.
+Completed in Step R6-D — Connect Audit History to Workers & Tools:
 
-Design rule:
+- Added worker audit history helper:
+  - `lib/features/workers/presentation/functions/show_worker_audit_history.dart`
+- Added tool audit history helper:
+  - `lib/features/tools/presentation/functions/show_tool_audit_history.dart`
+- Added `View Audit History` action to:
+  - Worker mobile cards.
+  - Worker desktop/table rows.
+  - Tool mobile cards.
+  - Tool desktop/table rows.
+- Audit History action is available even when edit/delete actions are restricted.
+- Table action buttons use wrapping layout to reduce overflow risk.
 
-- Record screen should show direct accountability immediately.
-- Full audit history should be available through a separate action such as `View Audit History`.
+Manual verification completed:
+
+- Worker Audit History opens successfully.
+- Tool Audit History opens successfully.
+- Audit logs load from Supabase correctly.
+- Worker Department and Job Title values display as readable names.
+- Tool Unit and Category values display as readable names.
+- Company timezone formatting is applied to audit timestamps.
+- `dart format lib` completed.
+- `flutter analyze` completed with no issues.
+- Code was committed and pushed:
+  - `491a2d35cfa196940fbd8be18cf0123ad6b3dae6`
+  - `feat(audit): add audit history UI for workers and tools`
+
+Remaining:
+
+- Step R6-E — Direct Accountability Display for Workers & Tools.
+- Future backend improvement:
+  - Store readable lookup snapshots directly in audit logs for historical accuracy if lookup names change later.
+
+---
+
+## Step R6-E — Direct Accountability Display for Workers & Tools
+
+Status:
+
+**Planned**
+
+Goal:
+
+- Show direct accountability on Worker and Tool records without forcing the user to open the full audit history.
+- Keep full audit history available through `View Audit History`.
+
+Expected work:
+
+Workers:
+
+- Show:
+  - Created by
+  - Created at
+  - Last updated by
+  - Last updated at
+  - View Audit History
+- Use company timezone for dates.
+- Resolve profile IDs to readable profile names/emails where available.
+
+Tools:
+
+- Show:
+  - Created by
+  - Created at
+  - Last updated by
+  - Last updated at
+  - View Audit History
+- Use company timezone for dates.
+- Resolve profile IDs to readable profile names/emails where available.
+
+Technical notes:
+
+- Current Worker and Tool models already include:
+  - `created_by_profile_id`
+  - `updated_by_profile_id`
+  - `created_at`
+  - `updated_at`
+- Current UI does not yet display direct accountability fields.
+- Next step should inspect whether profile names/emails can be joined from existing tables or whether a lightweight profile resolver is needed.
+
+Recommended next sub-step:
+
+**Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools**
 
 ---
 
 # Future Phase R Extensions
 
-After Workers and Tools audit history UI is stable, extend audit logging to:
+After Workers and Tools audit history UI and direct accountability display are stable, extend audit logging and accountability display to:
 
 Transactions:
 
@@ -1094,91 +1225,32 @@ Company Settings:
 - Report settings update
 - Document template update
 - Logo upload/update
+- Timezone changes
 
-Lookups:
+Reports:
 
-- Departments
-- Job titles
-- Tool categories
-- Tool units
+- Future optional audit for generated/exported business-critical reports.
 
----
+Billing / Subscription:
 
-# Current Active Engineering Checkpoint
-
-Status:
-
-**Step R5.5-C completed**
-
-Current engineering focus:
-
-**Step R6 — Audit History UI & Record Accountability Display**
-
-Completed in Step R5.5-C:
-
-- Centralized company date/time formatter added.
-- Transactions UI uses current company timezone.
-- Transaction details approval/settlement timestamps use current company timezone.
-- Reports/PDF dates use company/report timezone.
-- Transaction details dialog provider issue was fixed.
-- Audit History UI can now start safely with centralized timezone formatting available.
-
-Next recommended development step:
-
-**Step R6-A — Audit Logs Flutter Model & Repository Foundation**
-
-Recommended Step R6-A scope:
-
-1. Review current `audit_logs` backend shape.
-2. Create `AuditLogModel`.
-3. Create `AuditLogsRepo`.
-4. Add query method for logs by entity:
-   - `companyId`
-   - `entityType`
-   - `entityId`
-5. Ensure all queries are filtered by current company.
-6. Do not build UI until model/repository are confirmed.
-7. Use `CompanyDateTimeFormatter` for all audit log display timestamps later in UI.
-
-Do not start broad Audit History UI before Step R6-A is completed.
+- Plan changes
+- Subscription activation
+- Subscription cancellation
+- Limit enforcement events
 
 ---
 
-# Future Product Backlog
+# Next Chat Starting Point
 
-Commercial / SaaS:
+Start from:
 
-- Company subscriptions.
-- Free/trial plan limits.
-- Paid monthly packages.
-- B2B subscription management.
-- Production Supabase project.
-- Privacy Policy.
-- Terms of Service.
-- Support contact.
-- Store review/demo account if needed.
+**Step R6-E — Direct Accountability Display for Workers & Tools**
 
-Storage / Usage:
+Recommended first action:
 
-- Company storage usage tracking.
-- Storage limits per plan.
-- Image/file retention rules.
-
-Offline:
-
-- Offline drafts.
-- Background sync.
-- Safe conflict handling.
-
-Permissions:
-
-- Optional future custom permission overrides.
-- Explicit allow/deny permissions on top of base roles.
-
-Release:
-
-- Desktop installer.
-- Google Play release.
-- App Store release.
-- Web landing page.
-
+1. Review current Worker and Tool models/repos/UI from the real repo.
+2. Confirm how profile names/emails can be resolved for:
+   - `created_by_profile_id`
+   - `updated_by_profile_id`
+3. Build a small profile/accountability resolver if needed.
+4. Add direct accountability display to Worker and Tool UI without changing existing workflows.
