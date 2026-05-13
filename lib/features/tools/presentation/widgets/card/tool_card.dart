@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_info_row.dart';
 
@@ -13,6 +14,8 @@ class ToolCard extends StatelessWidget {
     this.onDelete,
     this.onReactivate,
     this.onViewAuditHistory,
+    this.timezone,
+    this.dateFormat,
   });
 
   final ToolModel tool;
@@ -20,6 +23,8 @@ class ToolCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onReactivate;
   final VoidCallback? onViewAuditHistory;
+  final String? timezone;
+  final String? dateFormat;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +101,15 @@ class ToolCard extends StatelessWidget {
             ToolInfoRow(label: 'Tool Code', value: tool.toolCode),
             ToolInfoRow(label: 'Unit', value: tool.unit),
             ToolInfoRow(label: 'Category', value: tool.category),
+            const Gap(12),
+            RecordAccountabilitySection(
+              createdBy: tool.createdByDisplayName,
+              updatedBy: tool.updatedByDisplayName,
+              createdAt: tool.createdAt,
+              updatedAt: tool.updatedAt,
+              timezone: timezone,
+              dateFormat: dateFormat,
+            ),
           ],
         ),
       ),

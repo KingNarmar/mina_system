@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/widgets/app_empty_state.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
@@ -35,6 +36,7 @@ class WorkersMobileLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActiveFilter = statusFilter == 'active';
+    final timezone = context.currentCompany?.timezone;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -79,6 +81,7 @@ class WorkersMobileLayout extends StatelessWidget {
 
           return WorkerCard(
             worker: worker,
+            timezone: timezone,
             onViewAuditHistory: () {
               showWorkerAuditHistory(context, worker: worker);
             },

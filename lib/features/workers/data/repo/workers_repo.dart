@@ -25,7 +25,15 @@ class WorkersRepo {
     created_at,
     updated_at,
     departments(name),
-    job_titles(name)
+    job_titles(name),
+    created_by_profile:profiles!workers_created_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    updated_by_profile:profiles!workers_updated_by_profile_id_fkey(
+      full_name,
+      email
+    )
   ''';
 
   Future<List<WorkerModel>> getWorkers({

@@ -66,10 +66,7 @@ class AuditLogTile extends StatelessWidget {
 }
 
 class _AuditLogHeader extends StatelessWidget {
-  const _AuditLogHeader({
-    required this.auditLog,
-    required this.createdAtText,
-  });
+  const _AuditLogHeader({required this.auditLog, required this.createdAtText});
 
   final AuditLogModel auditLog;
   final String createdAtText;
@@ -143,9 +140,7 @@ class _AuditInfoLine extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textPrimary,
-            ),
+            style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
           ),
         ),
       ],

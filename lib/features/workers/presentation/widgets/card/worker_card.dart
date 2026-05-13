@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_info_row.dart';
 
@@ -13,6 +14,8 @@ class WorkerCard extends StatelessWidget {
     this.onDelete,
     this.onReactivate,
     this.onViewAuditHistory,
+    this.timezone,
+    this.dateFormat,
   });
 
   final WorkerModel worker;
@@ -20,6 +23,8 @@ class WorkerCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onReactivate;
   final VoidCallback? onViewAuditHistory;
+  final String? timezone;
+  final String? dateFormat;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +101,15 @@ class WorkerCard extends StatelessWidget {
             WorkerInfoRow(label: 'HR Code', value: worker.hrCode),
             WorkerInfoRow(label: 'Department', value: worker.department),
             WorkerInfoRow(label: 'Job Title', value: worker.jobTitle),
+            const Gap(12),
+            RecordAccountabilitySection(
+              createdBy: worker.createdByDisplayName,
+              updatedBy: worker.updatedByDisplayName,
+              createdAt: worker.createdAt,
+              updatedAt: worker.updatedAt,
+              timezone: timezone,
+              dateFormat: dateFormat,
+            ),
           ],
         ),
       ),

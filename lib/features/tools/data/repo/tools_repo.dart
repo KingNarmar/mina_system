@@ -22,7 +22,15 @@ class ToolsRepo {
     created_at,
     updated_at,
     tool_units!tools_unit_fk(name),
-    tool_categories!tools_category_fk(name)
+    tool_categories!tools_category_fk(name),
+    created_by_profile:profiles!tools_created_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    updated_by_profile:profiles!tools_updated_by_profile_id_fkey(
+      full_name,
+      email
+    )
   ''';
 
   Future<List<ToolModel>> getTools({
