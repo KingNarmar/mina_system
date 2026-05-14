@@ -27,11 +27,11 @@ If the README conflicts with this roadmap, this roadmap wins.
 
 Latest verified pushed code commit:
 
-`d61834d104d1b1bf29e769b141d11367244b28b3`
+`1cbc5669b972afb68ace6107244cbbfb62742bbe`
 
 Commit message:
 
-`feat(accountability): add worker and tool desktop details dialogs`
+`feat(transactions): complete accountability display and audit workflow`
 
 Current product phase:
 
@@ -39,7 +39,7 @@ Current product phase:
 
 Current completed checkpoint:
 
-**Step R6-E — Direct Accountability Display for Workers & Tools**
+**Step R6-F — Transaction Accountability Details Display**
 
 Status:
 
@@ -47,36 +47,48 @@ Status:
 
 Completed sub-steps:
 
-- **Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools**
-- **Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards**
-- **Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop**
+- **Step R6-F.1 — Add complete transaction accountability columns in Supabase**
+- **Step R6-F.2 — Replace `create_custody_transaction` RPC**
+- **Step R6-F.3 — Replace `upload_transaction_approval_document` RPC**
+- **Step R6-F.4A — Replace `approve_lost_damaged_transaction` RPC**
+- **Step R6-F.4B — Replace `reject_lost_damaged_transaction` RPC**
+- **Step R6-F.5 — Replace `settle_lost_damaged_transaction` RPC**
+- **Step R6-F.6 — Harden direct table access for `public.transactions`**
+- **Step R6-F.7 — Verify issue transaction accountability**
+- **Step R6-F.8 — Verify approval + settlement workflow accountability**
+- **Step R6-F.9 — Verify rejection workflow accountability**
+- **Step R6-F.10 — Update Flutter `TransactionModel`**
+- **Step R6-F.11 — Update Flutter `TransactionsRepo` select columns**
+- **Step R6-F.12 — Add Transaction Accountability section in Transaction Details**
+- **Step R6-F.13 — Add Transaction Audit History button**
+- **Step R6-F.14 — Add readable transaction audit action labels**
 
 Verification status:
 
-- `dart format lib` completed.
-- `flutter analyze` completed with no issues.
-- Worker and Tool mobile accountability display was completed.
-- Worker and Tool desktop details dialogs were completed.
-- Desktop tables remain clean without adding extra accountability columns.
-- `View Details`, `View Audit History`, `Edit`, `Deactivate`, and `Reactivate` actions were preserved.
-- Repo review confirmed the pushed commit.
+- Issue transaction creation was manually tested on Windows.
+- Lost/Damaged approval document upload was manually tested.
+- Lost/Damaged approve workflow was manually tested.
+- Lost/Damaged settle workflow was manually tested.
+- Lost/Damaged reject workflow was manually tested.
+- Transaction accountability fields displayed correctly in Transaction Details.
+- Transaction Audit History displayed created/uploaded/approved/settled/rejected events.
+- Direct authenticated `INSERT` / `UPDATE` access to `public.transactions` was closed.
+- Transaction mutations now go through secure RPC workflows only.
+- Transaction tables remain clean without adding extra accountability columns.
+
+Known technical follow-ups:
+
+- Remove temporary debug prints from `TransactionsCubitCrud` if still present.
+- Make transaction proof image upload web-compatible.
+- Replace `pending-*` proof image storage folders with official `TRX-*` paths after backend transaction code generation.
 
 Next required checkpoint:
 
-**Step R6-F — Transaction Accountability Details Display**
+**Step R6-G — Transaction proof storage and web upload improvements**
 
 Next recommended engineering step:
 
-**Step R6-F — Add Transaction accountability details display**
-
-Recommended direction:
-
-- Review the real Transactions model, repository, and UI first.
-- Confirm which transaction accountability fields are already returned from Supabase.
-- Resolve profile display names for transaction accountability actors where needed.
-- Add a transaction-friendly details display without overcrowding transaction tables.
-- Use company timezone formatting for all displayed transaction accountability timestamps.
-- Preserve existing transaction workflows, approval actions, settlement actions, reports, and audit history behavior.
+**Step R6-G — Make transaction proof uploads web-compatible and replace `pending-*` proof paths with official transaction code paths**
 
 ---
 
@@ -236,6 +248,7 @@ Preferred implementation order:
 - Audit logs must not be editable or deletable by normal app users.
 - Direct accountability fields must not be trusted from arbitrary client input unless protected by RLS/RPC/backend logic.
 - Actor profile should be derived from authenticated backend context whenever possible.
+- Transaction mutations must go through controlled RPC workflows only.
 
 ---
 
@@ -296,10 +309,11 @@ Completed:
 - Audit History UI uses company timezone through `CompanyDateTimeFormatter`.
 - Worker and Tool mobile accountability cards use company timezone through `RecordAccountabilitySection`.
 - Worker and Tool desktop details dialogs use company timezone through `RecordAccountabilitySection`.
+- Transaction accountability details use company timezone.
 
 Remaining:
 
-- Apply company timezone formatting to future accountability display sections such as transaction details, company settings, and team/member lifecycle displays.
+- Apply company timezone formatting to future accountability display sections such as company settings and team/member lifecycle displays.
 
 ---
 
@@ -375,6 +389,8 @@ Remaining:
 - Future storage usage must be tracked per company for plan limits.
 - Camera capture should remain optional.
 - File upload from device storage should remain supported as fallback.
+- Transaction proof upload must support Windows, mobile, and web.
+- Transaction proof storage should eventually use official transaction code paths instead of temporary `pending-*` folders.
 
 ---
 
@@ -495,7 +511,16 @@ Common fields:
 - `created_at`
 - `updated_at`
 
-Some tables currently have profile IDs only. Display snapshots can be added later where needed.
+Transaction-specific direct accountability should also include:
+
+- Proof image uploaded by
+- Proof image uploaded at
+- Signed approval document uploaded by
+- Signed approval document uploaded at
+- Approval decided by
+- Approval decided at
+- Settlement completed by
+- Settlement completed at
 
 ## Audit Trail
 
@@ -537,18 +562,9 @@ Normal app users must not directly insert, update, or delete audit logs.
   - `category_id` → Category
 - If lookup IDs cannot be resolved, UI should show a safe fallback such as `Unknown Department` instead of raw UUIDs.
 
-## Current Direct Accountability Display Rules
+## Current Direct Accountability Display Coverage
 
-Worker records should show:
-
-- Created by
-- Created at
-- Last updated by
-- Last updated at
-- View Details
-- View Audit History
-
-Tool records should show:
+Workers:
 
 - Created by
 - Created at
@@ -557,50 +573,36 @@ Tool records should show:
 - View Details
 - View Audit History
 
-Current completed display coverage:
+Tools:
 
-- Workers mobile cards show direct accountability.
-- Tools mobile cards show direct accountability.
-- Workers desktop details dialog shows direct accountability.
-- Tools desktop details dialog shows direct accountability.
-- Worker and Tool accountability timestamps use company timezone.
-- Worker and Tool desktop accountability timestamps use company timezone.
-- Worker and Tool display names are resolved from `profiles.full_name` and `profiles.email`.
-- Safe fallback is `Unknown User` when no display name or email is available.
+- Created by
+- Created at
+- Last updated by
+- Last updated at
+- View Details
+- View Audit History
+
+Transactions:
+
+- Created by
+- Created at
+- Proof image status
+- Proof uploaded by
+- Proof uploaded at
+- Signed document uploaded by
+- Signed document uploaded at
+- Approval decided by
+- Approval decided at
+- Settlement completed by
+- Settlement completed at
+- Last updated by
+- Last updated at
+- View Audit History
 
 Pending display coverage:
 
-- Transaction details expanded accountability display.
 - Company Settings accountability display.
 - Team / Company Users lifecycle accountability display.
-
-## Direct Display Examples
-
-Transaction details should eventually show:
-
-- Created by
-- Created at
-- Proof uploaded by
-- Signed document uploaded by
-- Approval decided by
-- Settlement completed by
-- Last updated by
-
-Company Settings should eventually show:
-
-- Last profile update by
-- Last report settings update by
-- Last document template update by
-- Last logo upload by
-
-Team / Company Users should eventually show:
-
-- Invited by
-- Invitation accepted by
-- Role changed by
-- Deactivated by
-- Reactivated by
-- Removed by, if remove-access is implemented later
 
 ---
 
@@ -730,6 +732,7 @@ Team / Company Users should eventually show:
 - Audit History UI uses current company timezone.
 - Worker and Tool mobile accountability display uses current company timezone.
 - Worker and Tool desktop details dialogs use current company timezone.
+- Transaction accountability display uses current company timezone.
 
 ## Completed Audit History UI Foundation
 
@@ -743,58 +746,30 @@ Team / Company Users should eventually show:
 - Worker and Tool Audit History helper functions are implemented.
 - Worker cards and tables include `View Audit History`.
 - Tool cards and tables include `View Audit History`.
+- Transaction details include `View Audit History`.
 - Audit History manually tested successfully for Workers and Tools.
+- Audit History manually tested successfully for Transactions.
 - Worker Department and Job Title display as readable names instead of UUIDs.
 - Tool Unit and Category display as readable names instead of UUIDs.
+- Transaction audit workflow actions display readable labels.
 
 ## Completed Direct Accountability Display Foundation
 
 - Worker model resolves created/updated profile display names and emails.
 - Tool model resolves created/updated profile display names and emails.
+- Transaction model reads created/proof/document/decision/settlement/updated profile snapshots.
 - Workers repository joins `profiles` for `created_by_profile_id` and `updated_by_profile_id`.
 - Tools repository joins `profiles` for `created_by_profile_id` and `updated_by_profile_id`.
+- Transactions repository selects direct transaction accountability snapshot fields.
 - Reusable `RecordAccountabilitySection` was added:
   - `lib/core/widgets/record_accountability_section.dart`
-- Worker mobile cards display:
-  - Created by
-  - Created at
-  - Last updated by
-  - Last updated at
-- Tool mobile cards display:
-  - Created by
-  - Created at
-  - Last updated by
-  - Last updated at
-- Worker desktop details dialog displays:
-  - Worker Name
-  - HR Code
-  - Department
-  - Job Title
-  - Status
-  - Created by
-  - Created at
-  - Last updated by
-  - Last updated at
-- Tool desktop details dialog displays:
-  - Tool Code
-  - Tool Name
-  - Unit
-  - Category
-  - Status
-  - Created by
-  - Created at
-  - Last updated by
-  - Last updated at
-- Worker and Tool desktop tables include `View Details` without adding extra accountability columns.
-- Worker and Tool desktop actions preserve:
-  - `View Details`
-  - `View Audit History`
-  - `Edit`
-  - `Deactivate`
-  - `Reactivate`
-- Worker and Tool mobile accountability timestamps use company timezone.
-- Worker and Tool desktop accountability timestamps use company timezone.
-- `flutter analyze` passed with no issues.
+- Worker mobile cards display direct accountability.
+- Tool mobile cards display direct accountability.
+- Worker desktop details dialog displays direct accountability.
+- Tool desktop details dialog displays direct accountability.
+- Transaction details dialog displays direct accountability.
+- Worker, Tool, and Transaction timestamps use company timezone.
+- Desktop tables remain clean without adding extra accountability columns.
 
 ---
 
@@ -823,17 +798,21 @@ Completed checkpoints:
 - Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools
 - Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards
 - Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
+- Step R6-F — Transaction Accountability Details Display
 
 Current checkpoint:
 
-- Step R6-E — Direct Accountability Display for Workers & Tools is completed.
-- Mobile cards are completed.
-- Desktop details dialogs are completed.
-- Desktop tables remain clean without extra accountability columns.
+- Step R6-F — Transaction Accountability Details Display is completed and pushed.
+- Transaction backend accountability fields are completed.
+- Transaction controlled RPC workflows write actor snapshots and audit logs.
+- Direct authenticated table insert/update access to `public.transactions` is closed.
+- Transaction Details displays direct accountability.
+- Transaction Details includes `View Audit History`.
+- Transaction audit actions display readable labels.
 
 Next checkpoint:
 
-- Step R6-F — Transaction Accountability Details Display
+- Step R6-G — Transaction proof storage and web upload improvements
 
 ---
 
@@ -938,24 +917,13 @@ Completed:
 - Worker and Tool create/update accountability is derived from backend authenticated context through `private.current_profile_id()`.
 - Flutter Workers create/update flow uses secure RPCs instead of direct table insert/update.
 - Flutter Tools create/update flow uses secure RPCs instead of direct table insert/update.
-- Flutter no longer sends trusted `created_by_profile_id` for Worker/Tool creation.
 - Direct authenticated `INSERT`, `UPDATE`, and `DELETE` access was revoked from:
   - `workers`
   - `tools`
-- Workers UI supports:
-  - Active filter
-  - Inactive filter
-  - Deactivate worker
-  - Reactivate worker
-- Tools UI supports:
-  - Active filter
-  - Inactive filter
-  - Deactivate tool
-  - Reactivate tool
-- Worker and Tool deactivation use soft status change instead of physical delete.
+- Workers UI supports active/inactive filtering and deactivate/reactivate.
+- Tools UI supports active/inactive filtering and deactivate/reactivate.
 - Open custody blocking was tested and passed for Workers and Tools.
-- Reports filters load Workers and Tools independently from report-specific data sources.
-- Reports can select active and inactive Workers/Tools without depending on current Workers/Tools screen filter.
+- Reports can select active and inactive Workers/Tools without depending on current screen filters.
 
 Remaining:
 
@@ -968,14 +936,6 @@ Remaining:
 Status:
 
 **Completed and manually verified**
-
-Goal:
-
-- Create protected audit logs foundation.
-- Record who did what, when, and on which record.
-- Connect initial audit logging to Workers and Tools actions.
-- Ensure actor profile comes from authenticated backend context, not Flutter.
-- Prevent normal app users from editing or deleting audit logs.
 
 Backend completed:
 
@@ -1012,48 +972,11 @@ Tools:
 - `deactivate_tool`
 - `reactivate_tool`
 
-Behavior:
+Verification:
 
-- Create actions store `old_data = null` and full `new_data`.
-- Update actions store both `old_data` and `new_data`.
-- Update actions do not create audit logs when there is no actual data change.
-- Deactivate actions record status change:
-  - `active` → `inactive`
-- Reactivate actions record status change:
-  - `inactive` → `active`
-- Repeated deactivate on already inactive record is blocked with a clear backend error.
-- Reactivate on already active record returns without creating a fake audit log.
-
-Manual verification completed:
-
-Tools:
-
-- `create_tool`
-- `update_tool`
-- `deactivate_tool`
-- `reactivate_tool`
-
-Workers:
-
-- `create_worker`
-- `update_worker`
-- `deactivate_worker`
-- `reactivate_worker`
-
-Verified audit fields:
-
-- `action`
-- `entity_type`
-- `entity_label_snapshot`
-- `actor_name_snapshot`
-- `actor_email_snapshot`
-- `old_data`
-- `new_data`
-- `created_at`
-
-Remaining:
-
-- None.
+- Worker create/update/deactivate/reactivate audit logs tested.
+- Tool create/update/deactivate/reactivate audit logs tested.
+- Normal app users cannot directly insert/update/delete audit logs.
 
 ---
 
@@ -1063,43 +986,20 @@ Status:
 
 **Completed**
 
-Reason:
-
-Audit history, custody records, and reports are business-critical. Time must be displayed according to company timezone, not hardcoded UAE time.
-
-Goal:
-
-- Add company-level timezone support before building final Audit History UI.
-- Keep database timestamps in UTC.
-- Display timestamps using current company timezone.
-- Use `Asia/Dubai` only as safe default/fallback, not as hardcoded global display timezone.
-
 Completed:
 
-- Backend `companies.timezone` field was added.
-- Backend company timezone defaults to `Asia/Dubai`.
-- Backend `create_company_with_defaults` accepts `p_timezone`.
-- Backend validates timezone values using valid IANA timezone names.
-- Company report settings seed `default_timezone` from selected company timezone.
-- Flutter initializes timezone database in `main.dart`.
-- Company models and create company request include timezone.
-- `AppTimezones` utility was added.
-- Searchable timezone picker was added.
-- Create Company screen supports timezone selection.
-- Company Settings supports timezone editing.
-- Current company context updates timezone after profile changes.
-- Centralized formatter was added:
-  - `lib/core/utils/company_date_time_formatter.dart`
-- Transactions UI uses current company timezone.
-- Reports/PDF use report/company timezone.
-- Audit History UI uses company timezone.
-- Worker and Tool accountability display uses company timezone.
-
-Remaining:
-
-- Apply company timezone formatting to future transaction details accountability display.
-- Apply company timezone formatting to future company settings accountability display.
-- Apply company timezone formatting to future team/member lifecycle accountability display.
+- Added `companies.timezone`.
+- Updated company creation flow to accept timezone.
+- Added timezone utility and searchable picker.
+- Added timezone to company models and create company request.
+- Added centralized `CompanyDateTimeFormatter`.
+- Applied company timezone formatting to:
+  - Transactions UI
+  - Reports/PDF
+  - Audit History
+  - Worker accountability display
+  - Tool accountability display
+  - Transaction accountability display
 
 ---
 
@@ -1111,27 +1011,11 @@ Status:
 
 Completed:
 
-- Audit Log Flutter model was implemented.
-- Audit Logs repository was implemented.
-- Repository reads audit logs by:
-  - `company_id`
-  - `entity_type`
-  - `entity_id`
-- Audit log records are ordered by latest timestamp first.
-- Audit Log model supports:
-  - Actor snapshot
-  - Action
-  - Entity type
-  - Entity ID
-  - Entity label snapshot
-  - Old data
-  - New data
-  - Metadata
-  - Created timestamp
-
-Remaining:
-
-- None.
+- `AuditLogModel` implemented.
+- Audit Logs repository implemented.
+- JSON parsing for old/new/metadata implemented.
+- Actor display name fallback implemented.
+- Entity label fallback implemented.
 
 ---
 
@@ -1143,15 +1027,10 @@ Status:
 
 Completed:
 
-- Audit Logs Cubit was implemented.
-- Audit Logs State was implemented.
-- Loading, success, empty, and failure states are supported.
-- Cubit can load audit history for a specific business record.
-- Error handling is user-friendly.
-
-Remaining:
-
-- None.
+- `AuditLogsCubit` implemented.
+- `AuditLogsState` implemented.
+- Load audit logs by entity implemented.
+- Loading/error/empty states implemented.
 
 ---
 
@@ -1163,20 +1042,11 @@ Status:
 
 Completed:
 
-- Audit History Bottom Sheet was implemented.
-- Audit Log tile was implemented.
-- Audit Log data change section was implemented.
-- Audit History displays:
-  - Readable action labels
-  - Actor name/email snapshot
-  - Created timestamp
-  - Old vs new values
-- Audit History avoids showing raw JSON to normal users where possible.
-- Audit History uses current company timezone.
-
-Remaining:
-
-- None.
+- Audit History Bottom Sheet implemented.
+- Audit Log tile implemented.
+- Audit Log old/new data section implemented.
+- Audit History timestamps use company timezone.
+- Audit History supports retry and empty states.
 
 ---
 
@@ -1188,14 +1058,12 @@ Status:
 
 Completed:
 
-- Lookup resolver was implemented for audit foreign key display names.
-- Worker Department and Job Title display as readable names instead of UUIDs.
-- Tool Unit and Category display as readable names instead of UUIDs.
-- Safe fallback is used when lookup values cannot be resolved.
-
-Remaining:
-
-- None.
+- Lookup resolver implemented for audit display names.
+- Department IDs resolve to department names.
+- Job title IDs resolve to job title names.
+- Tool unit IDs resolve to unit names.
+- Tool category IDs resolve to category names.
+- Safe fallback shown when lookup cannot be resolved.
 
 ---
 
@@ -1207,15 +1075,11 @@ Status:
 
 Completed:
 
-- Worker Audit History helper function was implemented.
-- Tool Audit History helper function was implemented.
-- Worker cards and desktop tables include `View Audit History`.
-- Tool cards and desktop tables include `View Audit History`.
-- Audit History was manually tested successfully for Workers and Tools.
-
-Remaining:
-
-- None.
+- Worker Audit History helper implemented.
+- Tool Audit History helper implemented.
+- Worker cards and desktop table actions include `View Audit History`.
+- Tool cards and desktop table actions include `View Audit History`.
+- Audit History manually tested for Workers and Tools.
 
 ---
 
@@ -1225,64 +1089,18 @@ Status:
 
 **Completed and pushed**
 
-Goal:
-
-- Show direct accountability for Worker and Tool records.
-- Display who created the record, when it was created, who last updated it, and when it was last updated.
-- Keep desktop tables readable and avoid adding too many accountability columns.
-
-Completed sub-steps:
-
-- Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools
-- Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards
-- Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
-
 Completed:
 
-- Worker model resolves created/updated profile display names and emails.
-- Tool model resolves created/updated profile display names and emails.
-- Workers repository joins `profiles` for:
-  - `created_by_profile_id`
-  - `updated_by_profile_id`
-- Tools repository joins `profiles` for:
-  - `created_by_profile_id`
-  - `updated_by_profile_id`
-- Reusable `RecordAccountabilitySection` was added:
-  - `lib/core/widgets/record_accountability_section.dart`
-- Worker mobile cards display direct accountability.
-- Tool mobile cards display direct accountability.
-- Worker desktop details dialog displays direct accountability.
-- Tool desktop details dialog displays direct accountability.
-- Worker and Tool accountability timestamps use company timezone.
-- Desktop tables remain readable.
-- No four extra accountability columns were added directly to desktop tables.
-- Worker desktop table includes `View Details`.
-- Tool desktop table includes `View Details`.
-- Existing actions were preserved:
-  - `View Audit History`
-  - `Edit`
-  - `Deactivate`
-  - `Reactivate`
-
-Verification:
-
-- `dart format lib` completed.
-- `flutter analyze` completed with no issues.
-- Desktop Workers `View Details` was manually tested.
-- Desktop Tools `View Details` was manually tested.
-- Audit History, Edit, Deactivate, and Reactivate actions were preserved.
-
-Latest related commit:
-
-`d61834d104d1b1bf29e769b141d11367244b28b3`
-
-Commit message:
-
-`feat(accountability): add worker and tool desktop details dialogs`
-
-Remaining:
-
-- None.
+- Worker model resolves created/updated profile display names.
+- Tool model resolves created/updated profile display names.
+- Workers repository joins `profiles` for created/updated actors.
+- Tools repository joins `profiles` for created/updated actors.
+- Reusable `RecordAccountabilitySection` added.
+- Worker mobile cards show direct accountability.
+- Tool mobile cards show direct accountability.
+- Worker desktop details dialog shows direct accountability.
+- Tool desktop details dialog shows direct accountability.
+- Worker and Tool desktop tables remain clean without extra accountability columns.
 
 ---
 
@@ -1290,80 +1108,212 @@ Remaining:
 
 Status:
 
-**Next / Planned**
+**Completed and pushed**
 
 Goal:
 
-- Add transaction accountability details display.
-- Show transaction accountability in a clean details view without overcrowding transaction tables.
-- Reuse existing timezone formatting and accountability display patterns where appropriate.
-- Preserve all existing transaction workflows.
+- Complete transaction accountability from backend to Flutter UI.
+- Keep transaction tables clean without adding crowded accountability columns.
+- Show transaction accountability inside transaction details.
+- Connect transaction audit history to the existing Audit History UI.
 
-Expected transaction accountability display may include:
+Backend completed:
 
-- Created by
-- Created at
-- Proof uploaded by
-- Proof uploaded at
-- Signed document uploaded by
-- Signed document uploaded at
-- Approval decided by
-- Approval decided at
-- Settlement completed by
-- Settlement completed at
-- Last updated by
-- Last updated at
+- Added transaction accountability columns:
+  - `created_by_name_snapshot`
+  - `created_by_email_snapshot`
+  - `proof_image_uploaded_by_profile_id`
+  - `proof_image_uploaded_by_name_snapshot`
+  - `proof_image_uploaded_by_email_snapshot`
+  - `proof_image_uploaded_at`
+  - `approval_document_uploaded_by_name_snapshot`
+  - `approval_document_uploaded_by_email_snapshot`
+  - `approval_decided_by_name_snapshot`
+  - `approval_decided_by_email_snapshot`
+  - `settled_by_name_snapshot`
+  - `settled_by_email_snapshot`
+  - `updated_by_profile_id`
+  - `updated_by_name_snapshot`
+  - `updated_by_email_snapshot`
 
-Required review before implementation:
+- Updated transaction RPCs:
+  - `create_custody_transaction`
+  - `upload_transaction_approval_document`
+  - `approve_lost_damaged_transaction`
+  - `reject_lost_damaged_transaction`
+  - `settle_lost_damaged_transaction`
 
-- Review real `TransactionModel`.
-- Review real `TransactionsRepo`.
-- Review transaction list/table/cards/details UI.
-- Confirm which transaction accountability fields are currently selected from Supabase.
-- Confirm whether profile display names are already resolved or still require joins with `profiles`.
-- Confirm which transaction actions already write accountability fields through secure RPCs.
-- Confirm current transaction audit history behavior.
+- Transaction RPCs now write:
+  - Actor profile IDs
+  - Actor name/email snapshots
+  - Last updated accountability
+  - Audit logs for important workflow actions
 
-Implementation direction:
+- Added transaction audit actions:
+  - `transaction_created`
+  - `transaction_approval_document_uploaded`
+  - `transaction_approved`
+  - `transaction_rejected`
+  - `transaction_settled`
 
-- Do not add many accountability columns directly into transaction tables.
-- Prefer a details dialog, bottom sheet, side panel, or existing transaction details area.
-- Use company timezone for all accountability timestamps.
-- Keep existing transaction workflows unchanged.
-- Preserve approval, rejection, settlement, document upload, proof image, reports, and audit history behavior.
+- Closed direct authenticated table mutations:
+  - `INSERT` revoked from `public.transactions`
+  - `UPDATE` revoked from `public.transactions`
+  - `DELETE` remains unavailable to normal app users
 
-Remaining:
+- Transaction mutations now go through controlled RPC workflows only.
 
-- Review transaction code.
-- Confirm backend fields.
-- Design transaction accountability UI.
-- Implement after approval.
+Flutter completed:
+
+- Updated `TransactionModel` to read transaction accountability fields.
+- Updated `TransactionsRepo` select columns to return new accountability fields.
+- Added transaction details accountability section.
+- Added transaction audit history helper.
+- Added `View Audit History` button inside transaction details.
+- Added readable audit action labels for transaction workflow actions.
+
+Manual verification:
+
+- Issue transaction was created successfully.
+- Created by, proof uploaded by, and last updated by accountability displayed correctly.
+- Lost transaction approval workflow was tested:
+  - Created
+  - Approval document uploaded
+  - Approved
+  - Settled
+- Rejected lost transaction workflow was tested:
+  - Created
+  - Approval document uploaded
+  - Rejected
+- Audit logs were created and displayed for transaction workflows.
+- Transaction details remain clean and do not overcrowd transaction tables.
+- Accountability timestamps use company timezone.
+
+Remaining technical improvements:
+
+- Remove temporary debug prints from `TransactionsCubitCrud` if still present.
+- Make transaction proof image upload web-compatible.
+- Replace `pending-*` proof image storage folders with official transaction code paths after backend transaction code generation.
 
 ---
 
-# Upcoming Recommended Roadmap Order
+## Step R6-G — Transaction Proof Storage and Web Upload Improvements
 
-1. **Step R6-F — Transaction Accountability Details Display**
-2. **Step R6-G — Company Settings Accountability Display**
-3. **Step R6-H — Team / Company Users Lifecycle Accountability Display**
-4. **Step R7 — Transaction Correction / Void Workflow Planning**
-5. **Step R8 — Subscription / Plan Limits Foundation**
-6. **Step R9 — Production Environment Preparation**
-7. **Step R10 — Release Readiness for Desktop / Mobile Stores**
+Status:
+
+**Next**
+
+Goal:
+
+- Make transaction proof image upload work correctly on Flutter Web.
+- Keep Windows/Desktop and mobile upload behavior working.
+- Avoid saving temporary `pending-*` proof folders as the final long-term storage path.
+- Move toward official transaction-code-based proof paths.
+
+Planned work:
+
+- Review `TransactionStorageService`.
+- Review `TransactionImagePickerField`.
+- Support file bytes for web uploads instead of relying only on `dart:io File`.
+- Keep image compression behavior.
+- Ensure proof image upload is network-aware.
+- Design a safe strategy for replacing `pending-*` folders with official `TRX-*` paths.
+- Confirm Storage policies still protect company folders.
+- Test on Windows and Web.
+- Later test on mobile/tablet.
 
 ---
 
-# Current Next Action
+# Known Technical Debt / Watch List
 
-Start:
+## Immediate cleanup
 
-**Step R6-F — Transaction Accountability Details Display**
+- Remove temporary debug prints from transaction add flow if still present:
+  - `ADD TRANSACTION ERROR`
+  - `ADD TRANSACTION STACKTRACE`
 
-Before writing code:
+## Transaction storage
 
-1. Review the real GitHub repo.
-2. Review `PROJECT_ROADMAP.md`.
-3. Review Transactions model, repository, Cubit, and UI.
-4. Confirm current Supabase fields and profile joins.
-5. Present an implementation plan.
-6. Wait for approval before modifying any code.
+- Proof image path currently may use:
+  - `{companyId}/transactions/pending-{timestamp}/proof-{timestamp}.png`
+- Future improvement should store final proof images under:
+  - `{companyId}/transactions/{transactionCode}/...`
+
+## Web upload support
+
+- Current proof image upload path relies on local file path behavior on desktop/mobile.
+- Flutter Web needs bytes-based upload support.
+- `ImageCompressionService.compressImageBytes(...)` already exists and can support web-friendly compression.
+
+## Database migration documentation
+
+- Supabase SQL changes for Step R6-F were executed manually.
+- Future improvement:
+  - Add formal migration files or a backend change log folder to the repo.
+  - Keep all production schema/RPC changes reproducible from source control.
+
+---
+
+# Future Roadmap Candidates
+
+## Phase S — Transaction Correction / Void Workflow
+
+Potential scope:
+
+- Void/cancel transaction workflow.
+- Correction transaction flow.
+- Admin-only correction approval.
+- Audit trail for correction/void actions.
+- Strong business rules to prevent custody balance corruption.
+
+## Phase T — Company Settings Accountability Display
+
+Potential scope:
+
+- Company profile update accountability.
+- Report settings update accountability.
+- Document template update accountability.
+- Logo upload accountability.
+- Company settings audit history entry points.
+
+## Phase U — Team / Company Users Lifecycle Accountability
+
+Potential scope:
+
+- Invited by
+- Invitation accepted by
+- Role changed by
+- Deactivated by
+- Reactivated by
+- Removed by, if remove-access is implemented later
+- Team member audit history entry points
+
+## Phase V — SaaS / Subscription Foundation
+
+Potential scope:
+
+- Company subscription records.
+- Trial/free/paid plan model.
+- Plan limits.
+- Secure plan enforcement at database/RPC level.
+- Billing workflow outside mobile stores where appropriate.
+- Subscription status display in app.
+
+## Phase W — Production Release Preparation
+
+Potential scope:
+
+- Environment separation.
+- Production Supabase project.
+- Privacy Policy.
+- Terms of Service.
+- Support contact.
+- Store review demo account.
+- Desktop installer flow.
+- Web landing page.
+- Google Play release.
+- App Store release.
+
+---
+
+# End of Roadmap
