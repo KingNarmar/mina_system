@@ -7,6 +7,7 @@ import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.da
 import 'package:mina_system/features/workers/presentation/functions/confirm_delete_worker.dart';
 import 'package:mina_system/features/workers/presentation/functions/confirm_reactivate_worker.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_audit_history.dart';
+import 'package:mina_system/features/workers/presentation/functions/show_worker_details_dialog.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
@@ -107,6 +108,9 @@ class WorkersDesktopLayout extends StatelessWidget {
               child: WorkersTable(
                 workers: workers,
                 showActions: canShowActions,
+                onViewDetails: (worker) {
+                  showWorkerDetailsDialog(context, worker: worker);
+                },
                 onViewAuditHistory: (worker) {
                   showWorkerAuditHistory(context, worker: worker);
                 },

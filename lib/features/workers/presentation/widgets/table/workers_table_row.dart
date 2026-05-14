@@ -8,6 +8,7 @@ class WorkersTableRow extends StatelessWidget {
     super.key,
     required this.worker,
     required this.showActions,
+    this.onViewDetails,
     this.onEdit,
     this.onDelete,
     this.onReactivate,
@@ -16,6 +17,7 @@ class WorkersTableRow extends StatelessWidget {
 
   final WorkerModel worker;
   final bool showActions;
+  final void Function(WorkerModel worker)? onViewDetails;
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
   final void Function(WorkerModel worker)? onReactivate;
@@ -40,6 +42,15 @@ class WorkersTableRow extends StatelessWidget {
                     spacing: 4,
                     runSpacing: 4,
                     children: [
+                      if (onViewDetails != null)
+                        IconButton(
+                          onPressed: () {
+                            onViewDetails!(worker);
+                          },
+                          icon: const Icon(Icons.info_outline),
+                          color: AppColors.textSecondary,
+                          tooltip: 'View Details',
+                        ),
                       if (onViewAuditHistory != null)
                         IconButton(
                           onPressed: () {

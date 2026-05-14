@@ -7,6 +7,7 @@ import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/functions/confirm_delete_tool.dart';
 import 'package:mina_system/features/tools/presentation/functions/confirm_reactivate_tool.dart';
 import 'package:mina_system/features/tools/presentation/functions/show_tool_audit_history.dart';
+import 'package:mina_system/features/tools/presentation/functions/show_tool_details_dialog.dart';
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tools_table.dart';
@@ -107,6 +108,9 @@ class ToolsDesktopLayout extends StatelessWidget {
               child: ToolsTable(
                 tools: tools,
                 showActions: canShowActions,
+                onViewDetails: (tool) {
+                  showToolDetailsDialog(context, tool: tool);
+                },
                 onViewAuditHistory: (tool) {
                   showToolAuditHistory(context, tool: tool);
                 },

@@ -10,6 +10,7 @@ class ToolsTable extends StatelessWidget {
     super.key,
     required this.tools,
     required this.showActions,
+    this.onViewDetails,
     this.onEdit,
     this.onDelete,
     this.onReactivate,
@@ -18,6 +19,7 @@ class ToolsTable extends StatelessWidget {
 
   final List<ToolModel> tools;
   final bool showActions;
+  final void Function(ToolModel tool)? onViewDetails;
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
   final void Function(ToolModel tool)? onReactivate;
@@ -46,6 +48,7 @@ class ToolsTable extends StatelessWidget {
               return ToolsTableRow(
                 tool: tool,
                 showActions: showActions,
+                onViewDetails: onViewDetails,
                 onEdit: onEdit,
                 onDelete: onDelete,
                 onReactivate: onReactivate,

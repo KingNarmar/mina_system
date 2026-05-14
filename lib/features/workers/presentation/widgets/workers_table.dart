@@ -10,6 +10,7 @@ class WorkersTable extends StatelessWidget {
     super.key,
     required this.workers,
     required this.showActions,
+    this.onViewDetails,
     this.onEdit,
     this.onDelete,
     this.onReactivate,
@@ -18,6 +19,7 @@ class WorkersTable extends StatelessWidget {
 
   final List<WorkerModel> workers;
   final bool showActions;
+  final void Function(WorkerModel worker)? onViewDetails;
   final void Function(WorkerModel worker)? onEdit;
   final void Function(WorkerModel worker)? onDelete;
   final void Function(WorkerModel worker)? onReactivate;
@@ -46,6 +48,7 @@ class WorkersTable extends StatelessWidget {
               return WorkersTableRow(
                 worker: worker,
                 showActions: showActions,
+                onViewDetails: onViewDetails,
                 onEdit: onEdit,
                 onDelete: onDelete,
                 onReactivate: onReactivate,

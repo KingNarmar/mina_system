@@ -8,6 +8,7 @@ class ToolsTableRow extends StatelessWidget {
     super.key,
     required this.tool,
     required this.showActions,
+    this.onViewDetails,
     this.onEdit,
     this.onDelete,
     this.onReactivate,
@@ -16,6 +17,7 @@ class ToolsTableRow extends StatelessWidget {
 
   final ToolModel tool;
   final bool showActions;
+  final void Function(ToolModel tool)? onViewDetails;
   final void Function(ToolModel tool)? onEdit;
   final void Function(ToolModel tool)? onDelete;
   final void Function(ToolModel tool)? onReactivate;
@@ -40,6 +42,15 @@ class ToolsTableRow extends StatelessWidget {
                     spacing: 4,
                     runSpacing: 4,
                     children: [
+                      if (onViewDetails != null)
+                        IconButton(
+                          onPressed: () {
+                            onViewDetails!(tool);
+                          },
+                          icon: const Icon(Icons.info_outline),
+                          color: AppColors.textSecondary,
+                          tooltip: 'View Details',
+                        ),
                       if (onViewAuditHistory != null)
                         IconButton(
                           onPressed: () {
