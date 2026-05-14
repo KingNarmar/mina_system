@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
+import 'package:mina_system/features/transactions/presentation/functions/show_transaction_audit_history.dart';
+import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_accountability_section.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_approval_settlement_section.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_details_header.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_details_info_rows.dart';
@@ -21,6 +23,19 @@ class TransactionDetailsDialog extends StatelessWidget {
         const Gap(20),
         TransactionDetailsInfoRows(transaction: transaction),
         TransactionApprovalSettlementSection(transaction: transaction),
+        const Gap(16),
+        TransactionAccountabilitySection(transaction: transaction),
+        const Gap(12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              showTransactionAuditHistory(context, transaction: transaction);
+            },
+            icon: const Icon(Icons.history_rounded, size: 18),
+            label: const Text('View Audit History'),
+          ),
+        ),
         const Gap(16),
         const SectionTitle(title: 'Photo'),
         const Gap(8),

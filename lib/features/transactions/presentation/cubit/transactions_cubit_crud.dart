@@ -59,7 +59,10 @@ extension TransactionsCubitCrud on TransactionsCubit {
       ], isSubmitting: false);
 
       return true;
-    } catch (error) {
+    } catch (error, stackTrace) {
+      print('ADD TRANSACTION ERROR: $error');
+      print('ADD TRANSACTION STACKTRACE: $stackTrace');
+
       emitState(
         state.copyWith(
           isSubmitting: false,

@@ -53,6 +53,16 @@ class AuditLogModel {
         return 'Deactivated Tool';
       case 'reactivate_tool':
         return 'Reactivated Tool';
+      case 'transaction_created':
+        return 'Created Transaction';
+      case 'transaction_approval_document_uploaded':
+        return 'Uploaded Approval Document';
+      case 'transaction_approved':
+        return 'Approved Transaction';
+      case 'transaction_rejected':
+        return 'Rejected Transaction';
+      case 'transaction_settled':
+        return 'Settled Transaction';
       default:
         return _toTitleCase(action);
     }

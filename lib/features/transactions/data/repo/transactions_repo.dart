@@ -45,15 +45,30 @@ class TransactionsRepo {
     approval_status,
     approval_document_path,
     approval_document_uploaded_by_profile_id,
+    approval_document_uploaded_by_name_snapshot,
+    approval_document_uploaded_by_email_snapshot,
     approval_document_uploaded_at,
     approval_decision_note,
     approval_decided_by_profile_id,
+    approval_decided_by_name_snapshot,
+    approval_decided_by_email_snapshot,
     approval_decided_at,
     settlement_status,
     settlement_note,
     settled_by_profile_id,
+    settled_by_name_snapshot,
+    settled_by_email_snapshot,
     settled_at,
     created_by_profile_id,
+    created_by_name_snapshot,
+    created_by_email_snapshot,
+    proof_image_uploaded_by_profile_id,
+    proof_image_uploaded_by_name_snapshot,
+    proof_image_uploaded_by_email_snapshot,
+    proof_image_uploaded_at,
+    updated_by_profile_id,
+    updated_by_name_snapshot,
+    updated_by_email_snapshot,
     created_at,
     updated_at
   ''';
@@ -312,6 +327,9 @@ class TransactionsRepo {
         final transactionId =
             firstItem['transaction_id'] as String? ??
             firstItem['upload_transaction_approval_document'] as String? ??
+            firstItem['approve_lost_damaged_transaction'] as String? ??
+            firstItem['reject_lost_damaged_transaction'] as String? ??
+            firstItem['settle_lost_damaged_transaction'] as String? ??
             firstItem['create_custody_transaction'] as String?;
 
         if (transactionId != null && transactionId.trim().isNotEmpty) {
@@ -324,6 +342,9 @@ class TransactionsRepo {
       final transactionId =
           rpcResult['transaction_id'] as String? ??
           rpcResult['upload_transaction_approval_document'] as String? ??
+          rpcResult['approve_lost_damaged_transaction'] as String? ??
+          rpcResult['reject_lost_damaged_transaction'] as String? ??
+          rpcResult['settle_lost_damaged_transaction'] as String? ??
           rpcResult['create_custody_transaction'] as String?;
 
       if (transactionId != null && transactionId.trim().isNotEmpty) {
