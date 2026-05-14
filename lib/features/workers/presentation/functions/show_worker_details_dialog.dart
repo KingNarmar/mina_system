@@ -12,10 +12,7 @@ void showWorkerDetailsDialog(
   showDialog(
     context: context,
     builder: (_) {
-      return WorkerDetailsDialog(
-        worker: worker,
-        timezone: timezone,
-      );
+      return WorkerDetailsDialog(worker: worker, timezone: timezone);
     },
   );
 }
