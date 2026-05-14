@@ -27,11 +27,11 @@ If the README conflicts with this roadmap, this roadmap wins.
 
 Latest verified pushed code commit:
 
-`1cbc5669b972afb68ace6107244cbbfb62742bbe`
+`485eaee1b07dc23a3b25d3f61eaaf291852c5f6e`
 
 Commit message:
 
-`feat(transactions): complete accountability display and audit workflow`
+`chore(transactions): remove temporary add transaction debug prints`
 
 Current product phase:
 
@@ -39,13 +39,27 @@ Current product phase:
 
 Current completed checkpoint:
 
-**Step R6-F — Transaction Accountability Details Display**
+**Post R6-F Cleanup — Remove temporary transaction debug prints**
 
 Status:
 
 **Completed and pushed**
 
-Completed sub-steps:
+Previous completed checkpoint:
+
+**Step R6-F — Transaction Accountability Details Display**
+
+Completed cleanup:
+
+- Removed temporary `print` statements from `TransactionsCubitCrud.addTransaction`.
+- Kept production user-facing error handling unchanged.
+- Kept guarded `kDebugMode` debug logs in other areas unchanged.
+- Ran `dart format lib`.
+- Ran `flutter analyze`.
+- `flutter analyze` result: **No issues found**.
+- Cleanup commit was pushed to `main`.
+
+Step R6-F completed sub-steps:
 
 - **Step R6-F.1 — Add complete transaction accountability columns in Supabase**
 - **Step R6-F.2 — Replace `create_custody_transaction` RPC**
@@ -75,20 +89,24 @@ Verification status:
 - Direct authenticated `INSERT` / `UPDATE` access to `public.transactions` was closed.
 - Transaction mutations now go through secure RPC workflows only.
 - Transaction tables remain clean without adding extra accountability columns.
+- Post R6-F cleanup was verified with `flutter analyze`.
 
 Known technical follow-ups:
 
-- Remove temporary debug prints from `TransactionsCubitCrud` if still present.
-- Make transaction proof image upload web-compatible.
 - Replace `pending-*` proof image storage folders with official `TRX-*` paths after backend transaction code generation.
+- Make transaction proof image upload web-compatible.
 
 Next required checkpoint:
 
-**Step R6-G — Transaction proof storage and web upload improvements**
+**Step R6-G.1 — Replace `pending-*` transaction proof paths with official `TRX-*` paths**
 
-Next recommended engineering step:
+Deferred checkpoint:
 
-**Step R6-G — Make transaction proof uploads web-compatible and replace `pending-*` proof paths with official transaction code paths**
+**Step R6-G.2 — Make transaction proof uploads web-compatible**
+
+Current decision:
+
+Flutter Web upload is not a priority right now, so `R6-G.2` is deferred. The next practical engineering checkpoint is `R6-G.1`, focused only on fixing transaction proof storage paths without starting Flutter Web upload work.
 
 ---
 
@@ -799,6 +817,7 @@ Completed checkpoints:
 - Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards
 - Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
 - Step R6-F — Transaction Accountability Details Display
+- Post R6-F Cleanup — Remove temporary transaction debug prints
 
 Current checkpoint:
 
@@ -812,7 +831,11 @@ Current checkpoint:
 
 Next checkpoint:
 
-- Step R6-G — Transaction proof storage and web upload improvements
+- Step R6-G.1 — Replace `pending-*` transaction proof paths with official `TRX-*` paths
+
+Deferred checkpoint:
+
+- Step R6-G.2 — Make transaction proof uploads web-compatible
 
 ---
 
