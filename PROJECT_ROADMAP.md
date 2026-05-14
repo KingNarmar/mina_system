@@ -27,11 +27,11 @@ If the README conflicts with this roadmap, this roadmap wins.
 
 Latest verified pushed code commit:
 
-`682db0592248232393f7966ea7377bea73f0de4f`
+`d61834d104d1b1bf29e769b141d11367244b28b3`
 
 Commit message:
 
-`feat(accountability): show worker and tool direct accountability`
+`feat(accountability): add worker and tool desktop details dialogs`
 
 Current product phase:
 
@@ -43,34 +43,40 @@ Current completed checkpoint:
 
 Status:
 
-**Partially completed and pushed**
+**Completed and pushed**
 
 Completed sub-steps:
 
 - **Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools**
 - **Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards**
+- **Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop**
 
 Verification status:
 
 - `dart format lib` completed.
 - `flutter analyze` completed with no issues.
-- Worker and Tool direct accountability code was committed and pushed.
+- Worker and Tool mobile accountability display was completed.
+- Worker and Tool desktop details dialogs were completed.
+- Desktop tables remain clean without adding extra accountability columns.
+- `View Details`, `View Audit History`, `Edit`, `Deactivate`, and `Reactivate` actions were preserved.
 - Repo review confirmed the pushed commit.
 
 Next required checkpoint:
 
-**Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop**
+**Step R6-F — Transaction Accountability Details Display**
 
 Next recommended engineering step:
 
-**Step R6-E.3 — Add a desktop-friendly accountability display without overcrowding tables**
+**Step R6-F — Add Transaction accountability details display**
 
 Recommended direction:
 
-- Do not add four extra accountability columns directly into Workers/Tools desktop tables.
-- Prefer a desktop details dialog, bottom sheet, side panel, or expandable details action.
-- Keep mobile cards and desktop tables clean and readable.
-- Reuse `RecordAccountabilitySection` where possible.
+- Review the real Transactions model, repository, and UI first.
+- Confirm which transaction accountability fields are already returned from Supabase.
+- Resolve profile display names for transaction accountability actors where needed.
+- Add a transaction-friendly details display without overcrowding transaction tables.
+- Use company timezone formatting for all displayed transaction accountability timestamps.
+- Preserve existing transaction workflows, approval actions, settlement actions, reports, and audit history behavior.
 
 ---
 
@@ -289,10 +295,11 @@ Completed:
 - Reports/PDF use report/company timezone.
 - Audit History UI uses company timezone through `CompanyDateTimeFormatter`.
 - Worker and Tool mobile accountability cards use company timezone through `RecordAccountabilitySection`.
+- Worker and Tool desktop details dialogs use company timezone through `RecordAccountabilitySection`.
 
 Remaining:
 
-- Apply company timezone formatting to future accountability display sections such as desktop details, transaction details, company settings, and team/member lifecycle displays.
+- Apply company timezone formatting to future accountability display sections such as transaction details, company settings, and team/member lifecycle displays.
 
 ---
 
@@ -538,6 +545,7 @@ Worker records should show:
 - Created at
 - Last updated by
 - Last updated at
+- View Details
 - View Audit History
 
 Tool records should show:
@@ -546,20 +554,22 @@ Tool records should show:
 - Created at
 - Last updated by
 - Last updated at
+- View Details
 - View Audit History
 
 Current completed display coverage:
 
 - Workers mobile cards show direct accountability.
 - Tools mobile cards show direct accountability.
+- Workers desktop details dialog shows direct accountability.
+- Tools desktop details dialog shows direct accountability.
 - Worker and Tool accountability timestamps use company timezone.
+- Worker and Tool desktop accountability timestamps use company timezone.
 - Worker and Tool display names are resolved from `profiles.full_name` and `profiles.email`.
 - Safe fallback is `Unknown User` when no display name or email is available.
 
 Pending display coverage:
 
-- Workers desktop accountability display.
-- Tools desktop accountability display.
 - Transaction details expanded accountability display.
 - Company Settings accountability display.
 - Team / Company Users lifecycle accountability display.
@@ -719,6 +729,7 @@ Team / Company Users should eventually show:
 - Reports/PDF use report/company timezone.
 - Audit History UI uses current company timezone.
 - Worker and Tool mobile accountability display uses current company timezone.
+- Worker and Tool desktop details dialogs use current company timezone.
 
 ## Completed Audit History UI Foundation
 
@@ -754,7 +765,35 @@ Team / Company Users should eventually show:
   - Created at
   - Last updated by
   - Last updated at
+- Worker desktop details dialog displays:
+  - Worker Name
+  - HR Code
+  - Department
+  - Job Title
+  - Status
+  - Created by
+  - Created at
+  - Last updated by
+  - Last updated at
+- Tool desktop details dialog displays:
+  - Tool Code
+  - Tool Name
+  - Unit
+  - Category
+  - Status
+  - Created by
+  - Created at
+  - Last updated by
+  - Last updated at
+- Worker and Tool desktop tables include `View Details` without adding extra accountability columns.
+- Worker and Tool desktop actions preserve:
+  - `View Details`
+  - `View Audit History`
+  - `Edit`
+  - `Deactivate`
+  - `Reactivate`
 - Worker and Tool mobile accountability timestamps use company timezone.
+- Worker and Tool desktop accountability timestamps use company timezone.
 - `flutter analyze` passed with no issues.
 
 ---
@@ -783,16 +822,18 @@ Completed checkpoints:
 - Step R6-D — Connect Audit History to Workers & Tools
 - Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools
 - Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards
+- Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
 
 Current checkpoint:
 
-- Step R6-E — Direct Accountability Display for Workers & Tools is partially completed.
+- Step R6-E — Direct Accountability Display for Workers & Tools is completed.
 - Mobile cards are completed.
-- Desktop display still needs a dedicated implementation.
+- Desktop details dialogs are completed.
+- Desktop tables remain clean without extra accountability columns.
 
 Next checkpoint:
 
-- Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
+- Step R6-F — Transaction Accountability Details Display
 
 ---
 
@@ -1033,103 +1074,52 @@ Goal:
 - Display timestamps using current company timezone.
 - Use `Asia/Dubai` only as safe default/fallback, not as hardcoded global display timezone.
 
-Completed backend work:
+Completed:
 
-- Added `companies.timezone text not null default 'Asia/Dubai'`.
-- Added non-blank validation for `companies.timezone`.
-- Backfilled existing company timezone values where needed.
-- Updated `create_company_with_defaults` to accept `p_timezone`.
-- New companies store timezone in `companies.timezone`.
-- New company report settings seed `default_timezone` from selected company timezone.
-- RPC validates timezone using valid IANA timezone names.
-
-Completed Flutter foundation work:
-
-- Added `timezone` dependency.
-- Initialized timezone database in `main.dart`.
-- Added `timezone` to `CompanyModel`.
-- Added `timezone` to `CompanyProfileModel`.
-- Added timezone and company profile fields to `CreateCompanyRequest`.
-- Added `AppTimezones` helper.
-- Added reusable `SearchableTimezoneFormField`.
-- Expanded Create Company screen with:
-  - Company Name
-  - Trade Name
-  - Legal Name
-  - Country
-  - City
-  - Company Timezone
-  - Company Email
-  - Company Phone
-- Added timezone editing to Company Settings profile form.
-- Updated current company context after profile changes so company name and timezone remain in sync.
-
-Completed formatter and display work:
-
-- Added centralized company date/time formatter:
+- Backend `companies.timezone` field was added.
+- Backend company timezone defaults to `Asia/Dubai`.
+- Backend `create_company_with_defaults` accepts `p_timezone`.
+- Backend validates timezone values using valid IANA timezone names.
+- Company report settings seed `default_timezone` from selected company timezone.
+- Flutter initializes timezone database in `main.dart`.
+- Company models and create company request include timezone.
+- `AppTimezones` utility was added.
+- Searchable timezone picker was added.
+- Create Company screen supports timezone selection.
+- Company Settings supports timezone editing.
+- Current company context updates timezone after profile changes.
+- Centralized formatter was added:
   - `lib/core/utils/company_date_time_formatter.dart`
-- Updated transaction date formatting wrapper to use centralized formatter:
-  - `lib/features/transactions/presentation/functions/format_transaction_date.dart`
-- Applied company timezone formatting to:
-  - Transactions table
-  - Transaction cards
-  - Transaction details
-  - Approval decision timestamps
-  - Settlement timestamps
-- Fixed transaction details dialog context access by preserving `CurrentContextCubit` inside the dialog.
-- Updated report/PDF date formatting to use centralized formatter.
-- Applied report/company timezone formatting to:
-  - Transactions PDF table
-  - PDF generated date
-  - PDF document control effective date
-  - PDF filters date range
-  - Lost/Damaged Approval PDF transaction date
-- Audit History UI now uses the same centralized formatter.
-- Worker and Tool mobile accountability cards now use the same centralized formatter.
+- Transactions UI uses current company timezone.
+- Reports/PDF use report/company timezone.
+- Audit History UI uses company timezone.
+- Worker and Tool accountability display uses company timezone.
 
 Remaining:
 
-- None for completed screens.
-- Future accountability screens must continue using the same formatter.
-
-Expected result:
-
-- UAE company sees UAE time.
-- India company sees India time.
-- Egypt company sees Egypt time.
-- Database remains UTC and globally consistent.
-- UI, reports, PDF, Audit History, and current accountability displays use company timezone where implemented.
+- Apply company timezone formatting to future transaction details accountability display.
+- Apply company timezone formatting to future company settings accountability display.
+- Apply company timezone formatting to future team/member lifecycle accountability display.
 
 ---
 
-## Step R6 — Audit History UI & Record Accountability Display
+## Step R6-A — Audit Logs Flutter Model & Repository Foundation
 
 Status:
 
-**In Progress**
+**Completed**
 
-Depends on:
+Completed:
 
-- Step R5 completed.
-- Step R5.5 completed.
-
-Goal:
-
-- Allow users to open full audit history for a specific record.
-- Allow users to see direct accountability inside important record screens.
-
-Completed in Step R6-A — Audit Logs Flutter Model & Repository Foundation:
-
-- Added Audit Log model:
-  - `lib/features/audit_logs/data/models/audit_log_model.dart`
-- Added Audit Logs repository:
-  - `lib/features/audit_logs/data/repo/audit_logs_repo.dart`
-- Repository supports:
-  - Audit logs by entity.
-  - Recent audit logs for future use.
-- Audit log model parses:
-  - Actor profile
-  - Actor name/email snapshots
+- Audit Log Flutter model was implemented.
+- Audit Logs repository was implemented.
+- Repository reads audit logs by:
+  - `company_id`
+  - `entity_type`
+  - `entity_id`
+- Audit log records are ordered by latest timestamp first.
+- Audit Log model supports:
+  - Actor snapshot
   - Action
   - Entity type
   - Entity ID
@@ -1139,203 +1129,241 @@ Completed in Step R6-A — Audit Logs Flutter Model & Repository Foundation:
   - Metadata
   - Created timestamp
 
-Completed in Step R6-B — Audit Logs Cubit & State Foundation:
+Remaining:
 
-- Added Audit Logs Cubit.
-- Added Audit Logs State.
-- Added loading/error/empty handling foundation.
-- Added entity-specific audit loading flow.
-- Added recent audit loading flow for future use.
+- None.
 
-Completed in Step R6-C — Audit History UI Foundation:
+---
 
-- Added Audit History Bottom Sheet.
-- Added Audit Log tile.
-- Added readable action labels.
-- Added actor display support.
-- Added created timestamp display.
-- Added old vs new data change display.
-- Avoided raw JSON display for normal users.
-- Used `AppMessage` / friendly error handling where applicable.
-
-Completed in Step R6-C.2 — Resolve Audit Foreign Key Display Names:
-
-- Added lookup resolver for audit logs.
-- Resolved Worker audit foreign keys:
-  - `department_id` → Department name
-  - `job_title_id` → Job Title name
-- Resolved Tool audit foreign keys:
-  - `unit_id` → Unit name
-  - `category_id` → Category name
-- Added safe fallback labels when lookup values cannot be resolved.
-
-Completed in Step R6-D — Connect Audit History to Workers & Tools:
-
-- Worker cards include `View Audit History`.
-- Worker desktop/table actions include `View Audit History`.
-- Tool cards include `View Audit History`.
-- Tool desktop/table actions include `View Audit History`.
-- Worker Audit History opens by entity:
-  - `entity_type = worker`
-  - `entity_id = worker.id`
-- Tool Audit History opens by entity:
-  - `entity_type = tool`
-  - `entity_id = tool.id`
-- Audit History uses current company timezone.
-- Worker Department and Job Title display as readable names instead of UUIDs.
-- Tool Unit and Category display as readable names instead of UUIDs.
-- Step was manually verified successfully.
-
-Completed in Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools:
-
-- `WorkerModel` now includes:
-  - `createdByProfileName`
-  - `createdByProfileEmail`
-  - `updatedByProfileName`
-  - `updatedByProfileEmail`
-  - `createdByDisplayName`
-  - `updatedByDisplayName`
-- `ToolModel` now includes:
-  - `createdByProfileName`
-  - `createdByProfileEmail`
-  - `updatedByProfileName`
-  - `updatedByProfileEmail`
-  - `createdByDisplayName`
-  - `updatedByDisplayName`
-- `WorkersRepo` now joins:
-  - `created_by_profile:profiles!workers_created_by_profile_id_fkey`
-  - `updated_by_profile:profiles!workers_updated_by_profile_id_fkey`
-- `ToolsRepo` now joins:
-  - `created_by_profile:profiles!tools_created_by_profile_id_fkey`
-  - `updated_by_profile:profiles!tools_updated_by_profile_id_fkey`
-- Display name fallback rule:
-  - Use profile full name.
-  - If full name is missing, use profile email.
-  - If both are missing, show `Unknown User`.
-
-Completed in Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards:
-
-- Added reusable widget:
-  - `lib/core/widgets/record_accountability_section.dart`
-- Worker mobile cards now show:
-  - Created by
-  - Created at
-  - Last updated by
-  - Last updated at
-- Tool mobile cards now show:
-  - Created by
-  - Created at
-  - Last updated by
-  - Last updated at
-- Worker and Tool mobile cards pass current company timezone.
-- Accountability timestamps use `CompanyDateTimeFormatter`.
-- `flutter analyze` completed with no issues.
-- Changes were committed and pushed.
-
-Remaining in Step R6-E:
-
-- Add desktop-friendly Worker accountability display.
-- Add desktop-friendly Tool accountability display.
-- Avoid overcrowding existing desktop tables with too many extra columns.
-
-Recommended next sub-step:
-
-## Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
+## Step R6-B — Audit Logs Cubit & State Foundation
 
 Status:
 
-**Next**
+**Completed**
+
+Completed:
+
+- Audit Logs Cubit was implemented.
+- Audit Logs State was implemented.
+- Loading, success, empty, and failure states are supported.
+- Cubit can load audit history for a specific business record.
+- Error handling is user-friendly.
+
+Remaining:
+
+- None.
+
+---
+
+## Step R6-C — Audit History UI Foundation
+
+Status:
+
+**Completed**
+
+Completed:
+
+- Audit History Bottom Sheet was implemented.
+- Audit Log tile was implemented.
+- Audit Log data change section was implemented.
+- Audit History displays:
+  - Readable action labels
+  - Actor name/email snapshot
+  - Created timestamp
+  - Old vs new values
+- Audit History avoids showing raw JSON to normal users where possible.
+- Audit History uses current company timezone.
+
+Remaining:
+
+- None.
+
+---
+
+## Step R6-C.2 — Resolve Audit Foreign Key Display Names
+
+Status:
+
+**Completed**
+
+Completed:
+
+- Lookup resolver was implemented for audit foreign key display names.
+- Worker Department and Job Title display as readable names instead of UUIDs.
+- Tool Unit and Category display as readable names instead of UUIDs.
+- Safe fallback is used when lookup values cannot be resolved.
+
+Remaining:
+
+- None.
+
+---
+
+## Step R6-D — Connect Audit History to Workers & Tools
+
+Status:
+
+**Completed**
+
+Completed:
+
+- Worker Audit History helper function was implemented.
+- Tool Audit History helper function was implemented.
+- Worker cards and desktop tables include `View Audit History`.
+- Tool cards and desktop tables include `View Audit History`.
+- Audit History was manually tested successfully for Workers and Tools.
+
+Remaining:
+
+- None.
+
+---
+
+## Step R6-E — Direct Accountability Display for Workers & Tools
+
+Status:
+
+**Completed and pushed**
 
 Goal:
 
-- Show the same direct accountability data for desktop users without making Workers/Tools tables unreadable.
+- Show direct accountability for Worker and Tool records.
+- Display who created the record, when it was created, who last updated it, and when it was last updated.
+- Keep desktop tables readable and avoid adding too many accountability columns.
 
-Recommended UI options:
+Completed sub-steps:
 
-1. Details dialog from a row action.
-2. Bottom sheet from a row action.
-3. Side panel on desktop.
-4. Expandable row section.
+- Step R6-E.1 — Resolve Created/Updated Profile Display Names for Workers & Tools
+- Step R6-E.2 — Display Direct Accountability in Worker & Tool Mobile Cards
+- Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop
 
-Preferred direction:
+Completed:
 
-- Add a reusable details action such as `View Details`.
-- Reuse `RecordAccountabilitySection`.
-- Keep existing `View Audit History` action.
-- Keep edit/deactivate/reactivate flows unchanged.
-- Do not add many columns directly to the desktop table unless a later product decision requires it.
+- Worker model resolves created/updated profile display names and emails.
+- Tool model resolves created/updated profile display names and emails.
+- Workers repository joins `profiles` for:
+  - `created_by_profile_id`
+  - `updated_by_profile_id`
+- Tools repository joins `profiles` for:
+  - `created_by_profile_id`
+  - `updated_by_profile_id`
+- Reusable `RecordAccountabilitySection` was added:
+  - `lib/core/widgets/record_accountability_section.dart`
+- Worker mobile cards display direct accountability.
+- Tool mobile cards display direct accountability.
+- Worker desktop details dialog displays direct accountability.
+- Tool desktop details dialog displays direct accountability.
+- Worker and Tool accountability timestamps use company timezone.
+- Desktop tables remain readable.
+- No four extra accountability columns were added directly to desktop tables.
+- Worker desktop table includes `View Details`.
+- Tool desktop table includes `View Details`.
+- Existing actions were preserved:
+  - `View Audit History`
+  - `Edit`
+  - `Deactivate`
+  - `Reactivate`
 
----
+Verification:
 
-# Immediate Next Work Queue
+- `dart format lib` completed.
+- `flutter analyze` completed with no issues.
+- Desktop Workers `View Details` was manually tested.
+- Desktop Tools `View Details` was manually tested.
+- Audit History, Edit, Deactivate, and Reactivate actions were preserved.
 
-1. **Step R6-E.3 — Add Worker/Tool Accountability Details for Desktop**
-   - Show accountability in a clean desktop-friendly details view.
-   - Reuse existing `RecordAccountabilitySection`.
-   - Keep Workers/Tools tables readable.
+Latest related commit:
 
-2. **Step R6-F — Transaction Direct Accountability Display**
-   - Show transaction creation/update/accountability details.
-   - Include proof upload, approval document upload, decision, settlement, and update actors where available.
-
-3. **Step R6-G — Company Settings Accountability Display**
-   - Show last profile/settings/template/logo update information where backend fields exist.
-   - Add backend fields later if missing.
-
-4. **Step R6-H — Team / Company Users Lifecycle Accountability Display**
-   - Show invited by, accepted by, role changed by, deactivated by, reactivated by, and future removed by.
-
----
-
-# Manual Verification Checklist for Current State
-
-After pulling latest code on any machine:
-
-```bash
-dart format lib
-flutter analyze
-```
-
-Expected result:
-
-```text
-No issues found
-```
-
-Functional checks:
-
-- Open Workers screen.
-- Switch to mobile layout.
-- Confirm Worker card shows Accountability section.
-- Confirm Worker card shows Created by / Created at / Last updated by / Last updated at.
-- Confirm Worker Audit History still opens.
-- Confirm Worker Edit still opens.
-- Confirm Worker Deactivate/Reactivate still works.
-- Open Tools screen.
-- Switch to mobile layout.
-- Confirm Tool card shows Accountability section.
-- Confirm Tool card shows Created by / Created at / Last updated by / Last updated at.
-- Confirm Tool Audit History still opens.
-- Confirm Tool Edit still opens.
-- Confirm Tool Deactivate/Reactivate still works.
-- Confirm timestamps are formatted using company timezone.
-
----
-
-# Current Commit References
-
-Latest verified pushed commit:
-
-`682db0592248232393f7966ea7377bea73f0de4f`
+`d61834d104d1b1bf29e769b141d11367244b28b3`
 
 Commit message:
 
-`feat(accountability): show worker and tool direct accountability`
+`feat(accountability): add worker and tool desktop details dialogs`
 
-Previous verified audit commit:
+Remaining:
 
-`491a2d35cfa196940fbd8be18cf0123ad6b3dae6`
+- None.
 
-Previous commit message:
+---
 
-`feat(audit): add audit history UI for workers and tools`
+## Step R6-F — Transaction Accountability Details Display
+
+Status:
+
+**Next / Planned**
+
+Goal:
+
+- Add transaction accountability details display.
+- Show transaction accountability in a clean details view without overcrowding transaction tables.
+- Reuse existing timezone formatting and accountability display patterns where appropriate.
+- Preserve all existing transaction workflows.
+
+Expected transaction accountability display may include:
+
+- Created by
+- Created at
+- Proof uploaded by
+- Proof uploaded at
+- Signed document uploaded by
+- Signed document uploaded at
+- Approval decided by
+- Approval decided at
+- Settlement completed by
+- Settlement completed at
+- Last updated by
+- Last updated at
+
+Required review before implementation:
+
+- Review real `TransactionModel`.
+- Review real `TransactionsRepo`.
+- Review transaction list/table/cards/details UI.
+- Confirm which transaction accountability fields are currently selected from Supabase.
+- Confirm whether profile display names are already resolved or still require joins with `profiles`.
+- Confirm which transaction actions already write accountability fields through secure RPCs.
+- Confirm current transaction audit history behavior.
+
+Implementation direction:
+
+- Do not add many accountability columns directly into transaction tables.
+- Prefer a details dialog, bottom sheet, side panel, or existing transaction details area.
+- Use company timezone for all accountability timestamps.
+- Keep existing transaction workflows unchanged.
+- Preserve approval, rejection, settlement, document upload, proof image, reports, and audit history behavior.
+
+Remaining:
+
+- Review transaction code.
+- Confirm backend fields.
+- Design transaction accountability UI.
+- Implement after approval.
+
+---
+
+# Upcoming Recommended Roadmap Order
+
+1. **Step R6-F — Transaction Accountability Details Display**
+2. **Step R6-G — Company Settings Accountability Display**
+3. **Step R6-H — Team / Company Users Lifecycle Accountability Display**
+4. **Step R7 — Transaction Correction / Void Workflow Planning**
+5. **Step R8 — Subscription / Plan Limits Foundation**
+6. **Step R9 — Production Environment Preparation**
+7. **Step R10 — Release Readiness for Desktop / Mobile Stores**
+
+---
+
+# Current Next Action
+
+Start:
+
+**Step R6-F — Transaction Accountability Details Display**
+
+Before writing code:
+
+1. Review the real GitHub repo.
+2. Review `PROJECT_ROADMAP.md`.
+3. Review Transactions model, repository, Cubit, and UI.
+4. Confirm current Supabase fields and profile joins.
+5. Present an implementation plan.
+6. Wait for approval before modifying any code.
