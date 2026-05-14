@@ -106,8 +106,9 @@ class TransactionsRepo {
       throw StateError('Tool ID was not found.');
     }
 
-    final transactionToInsert = await _prepareTransactionProofImage(
-      transaction,
+    final localProofImagePath = _readLocalProofImagePath(
+      transaction: transaction,
+      companyId: companyId,
     );
 
     final rpcResult = await _supabase.rpc(
@@ -116,25 +117,55 @@ class TransactionsRepo {
         'p_company_id': companyId,
         'p_worker_id': workerId,
         'p_tool_id': toolId,
-        'p_transaction_type': _transactionTypeToDatabaseValue(
-          transactionToInsert.type,
-        ),
-        'p_quantity': transactionToInsert.quantity,
-        'p_proof_image_path': _emptyToNull(transactionToInsert.imagePath),
-        'p_note': _emptyToNull(transactionToInsert.note),
+        'p_transaction_type': _transactionTypeToDatabaseValue(transaction.type),
+        'p_quantity': transaction.quantity,
+        'p_proof_image_path': null,
+        'p_note': _emptyToNull(transaction.note),
+        'p_defer_proof_image_upload': localProofImagePath != null,
       },
     );
 
     final transactionId = _readCreatedTransactionId(rpcResult);
 
-    final data = await _supabase
-        .from('transactions')
-        .select(_transactionSelectColumns)
-        .eq('id', transactionId)
-        .eq('company_id', companyId)
-        .single();
+    var savedTransaction = await _fetchTransactionById(
+      transactionId: transactionId,
+      companyId: companyId,
+    );
 
-    return TransactionModel.fromJson(data);
+    if (localProofImagePath == null) {
+      return savedTransaction;
+    }
+
+    final officialTransactionCode = savedTransaction.transactionCode.trim();
+
+    if (officialTransactionCode.isEmpty ||
+        !officialTransactionCode.startsWith('TRX-')) {
+      throw StateError('Official transaction code was not returned.');
+    }
+
+    final uploadedPath = await _storageService.uploadProofImage(
+      companyId: companyId,
+      transactionCode: officialTransactionCode,
+      localImagePath: localProofImagePath,
+    );
+
+    final proofRpcResult = await _supabase.rpc(
+      'upload_transaction_proof_image',
+      params: {
+        'p_company_id': companyId,
+        'p_transaction_id': transactionId,
+        'p_proof_image_path': uploadedPath,
+      },
+    );
+
+    final savedTransactionId = _readCreatedTransactionId(proofRpcResult);
+
+    savedTransaction = await _fetchTransactionById(
+      transactionId: savedTransactionId,
+      companyId: companyId,
+    );
+
+    return savedTransaction;
   }
 
   Future<TransactionModel> updateTransaction({
@@ -280,35 +311,37 @@ class TransactionsRepo {
     );
   }
 
-  Future<TransactionModel> _prepareTransactionProofImage(
-    TransactionModel transaction,
-  ) async {
-    final companyId = transaction.companyId;
-    final imagePath = transaction.imagePath;
+  Future<TransactionModel> _fetchTransactionById({
+    required String transactionId,
+    required String companyId,
+  }) async {
+    final data = await _supabase
+        .from('transactions')
+        .select(_transactionSelectColumns)
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
+        .single();
 
-    if (companyId == null || companyId.trim().isEmpty) {
-      return transaction;
-    }
+    return TransactionModel.fromJson(data);
+  }
 
-    if (imagePath == null || imagePath.trim().isEmpty) {
-      return transaction;
+  String? _readLocalProofImagePath({
+    required TransactionModel transaction,
+    required String companyId,
+  }) {
+    final imagePath = transaction.imagePath?.trim();
+
+    if (imagePath == null || imagePath.isEmpty) {
+      return null;
     }
 
     if (_storageService.isCloudStoragePath(imagePath, companyId: companyId)) {
-      return transaction;
+      throw StateError(
+        'Existing cloud proof image paths cannot be reused for new transactions.',
+      );
     }
 
-    final uploadTransactionCode = transaction.transactionCode.trim().isEmpty
-        ? 'pending-${DateTime.now().millisecondsSinceEpoch}'
-        : transaction.transactionCode.trim();
-
-    final uploadedPath = await _storageService.uploadProofImage(
-      companyId: companyId,
-      transactionCode: uploadTransactionCode,
-      localImagePath: imagePath,
-    );
-
-    return transaction.copyWith(imagePath: uploadedPath);
+    return imagePath;
   }
 
   String _readCreatedTransactionId(dynamic rpcResult) {
@@ -326,6 +359,7 @@ class TransactionsRepo {
       if (firstItem is Map<String, dynamic>) {
         final transactionId =
             firstItem['transaction_id'] as String? ??
+            firstItem['upload_transaction_proof_image'] as String? ??
             firstItem['upload_transaction_approval_document'] as String? ??
             firstItem['approve_lost_damaged_transaction'] as String? ??
             firstItem['reject_lost_damaged_transaction'] as String? ??
@@ -341,6 +375,7 @@ class TransactionsRepo {
     if (rpcResult is Map<String, dynamic>) {
       final transactionId =
           rpcResult['transaction_id'] as String? ??
+          rpcResult['upload_transaction_proof_image'] as String? ??
           rpcResult['upload_transaction_approval_document'] as String? ??
           rpcResult['approve_lost_damaged_transaction'] as String? ??
           rpcResult['reject_lost_damaged_transaction'] as String? ??
