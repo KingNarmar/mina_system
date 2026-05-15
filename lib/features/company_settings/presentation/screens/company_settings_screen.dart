@@ -8,9 +8,8 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_document_templates_form.dart';
-import 'package:mina_system/features/company_settings/presentation/widgets/company_profile_form.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/company_identity_section.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
-import 'package:mina_system/features/company_settings/presentation/widgets/profile/company_logo_picker.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
@@ -105,52 +104,21 @@ class _CompanySettingsViewState extends State<_CompanySettingsView> {
                         timezone: profile.timezone,
                         visibleSectionCount: sections.length,
                       ),
-                      Gap(isWideLayout ? 24 : 18),
-                      if (isWideLayout)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 300,
-                              child: _CompanySettingsSectionSelector(
-                                sections: sections,
-                                selectedSection: selectedSection,
-                                onSectionSelected: _onSectionSelected,
-                              ),
-                            ),
-                            const Gap(24),
-                            Expanded(
-                              child: _CompanySettingsSectionContent(
-                                selectedSection: selectedSection,
-                                state: state,
-                                canManageCompanyProfile:
-                                    canManageCompanyProfile,
-                                canUploadCompanyLogo: canUploadCompanyLogo,
-                                canManageReportSettings:
-                                    canManageReportSettings,
-                                canManageDocumentTemplates:
-                                    canManageDocumentTemplates,
-                              ),
-                            ),
-                          ],
-                        )
-                      else ...[
-                        _CompanySettingsSectionSelector(
-                          sections: sections,
-                          selectedSection: selectedSection,
-                          onSectionSelected: _onSectionSelected,
-                        ),
-                        const Gap(18),
-                        _CompanySettingsSectionContent(
-                          selectedSection: selectedSection,
-                          state: state,
-                          canManageCompanyProfile: canManageCompanyProfile,
-                          canUploadCompanyLogo: canUploadCompanyLogo,
-                          canManageReportSettings: canManageReportSettings,
-                          canManageDocumentTemplates:
-                              canManageDocumentTemplates,
-                        ),
-                      ],
+                      Gap(isWideLayout ? 20 : 14),
+                      _CompanySettingsSectionSelector(
+                        sections: sections,
+                        selectedSection: selectedSection,
+                        onSectionSelected: _onSectionSelected,
+                      ),
+                      Gap(isWideLayout ? 20 : 14),
+                      _CompanySettingsSectionContent(
+                        selectedSection: selectedSection,
+                        state: state,
+                        canManageCompanyProfile: canManageCompanyProfile,
+                        canUploadCompanyLogo: canUploadCompanyLogo,
+                        canManageReportSettings: canManageReportSettings,
+                        canManageDocumentTemplates: canManageDocumentTemplates,
+                      ),
                     ],
                   ),
                 );
@@ -269,50 +237,79 @@ class _CompanySettingsHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.border),
       ),
-      child: Wrap(
-        spacing: 18,
-        runSpacing: 18,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Icon(
-              Icons.settings_outlined,
-              color: AppColors.accent,
-              size: 28,
-            ),
-          ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Company Settings', style: AppTextStyles.heading),
-                const Gap(6),
-                Text(
-                  'Manage profile, branding, report configuration, document templates, and accountability for $cleanCompanyName.',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 760;
+
+          final titleBlock = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          _CompanySettingsInfoChip(
-            icon: Icons.schedule_rounded,
-            label: timezone,
-          ),
-          _CompanySettingsInfoChip(
-            icon: Icons.dashboard_customize_outlined,
-            label: '$visibleSectionCount sections',
-          ),
-        ],
+                child: const Icon(
+                  Icons.settings_outlined,
+                  color: AppColors.accent,
+                  size: 26,
+                ),
+              ),
+              const Gap(16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Company Settings',
+                      style: AppTextStyles.heading,
+                    ),
+                    const Gap(6),
+                    Text(
+                      'Manage profile, branding, report configuration, document templates, and accountability for $cleanCompanyName.',
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+
+          final infoChips = Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _CompanySettingsInfoChip(
+                icon: Icons.schedule_rounded,
+                label: timezone,
+              ),
+              _CompanySettingsInfoChip(
+                icon: Icons.dashboard_customize_outlined,
+                label: '$visibleSectionCount sections',
+              ),
+            ],
+          );
+
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [titleBlock, const Gap(16), infoChips],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: titleBlock),
+              const Gap(18),
+              Padding(padding: const EdgeInsets.only(top: 8), child: infoChips),
+            ],
+          );
+        },
       ),
     );
   }
@@ -366,111 +363,28 @@ class _CompanySettingsSectionSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 520;
-
-        if (isCompact) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: sections.map((section) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: _CompanySettingsSectionChip(
-                    section: section,
-                    isSelected: section.type == selectedSection.type,
-                    onTap: () => onSectionSelected(section),
-                  ),
-                );
-              }).toList(),
-            ),
-          );
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            children: sections.map((section) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _CompanySettingsSectionTile(
-                  section: section,
-                  isSelected: section.type == selectedSection.type,
-                  onTap: () => onSectionSelected(section),
-                ),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _CompanySettingsSectionTile extends StatelessWidget {
-  const _CompanySettingsSectionTile({
-    required this.section,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final _CompanySettingsSection section;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final backgroundColor = isSelected
-        ? AppColors.accent.withValues(alpha: 0.10)
-        : AppColors.background;
-
-    final borderColor = isSelected ? AppColors.accent : AppColors.border;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor),
-        ),
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
         child: Row(
-          children: [
-            Icon(
-              section.icon,
-              color: isSelected ? AppColors.accent : AppColors.textSecondary,
-            ),
-            const Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    section.title,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Gap(4),
-                  Text(
-                    section.description,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
+          children: sections.map((section) {
+            final isSelected = section.type == selectedSection.type;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: _CompanySettingsSectionChip(
+                section: section,
+                isSelected: isSelected,
+                onTap: () => onSectionSelected(section),
               ),
-            ),
-          ],
+            );
+          }).toList(),
         ),
       ),
     );
@@ -491,37 +405,47 @@ class _CompanySettingsSectionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final backgroundColor = isSelected
-        ? AppColors.accent.withValues(alpha: 0.12)
-        : AppColors.card;
+        ? AppColors.primary
+        : AppColors.background;
 
-    final borderColor = isSelected ? AppColors.accent : AppColors.border;
+    final foregroundColor = isSelected
+        ? AppColors.onPrimary
+        : AppColors.textPrimary;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(99),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: borderColor),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              section.icon,
-              size: 18,
-              color: isSelected ? AppColors.accent : AppColors.textSecondary,
+    final iconColor = isSelected
+        ? AppColors.onPrimary
+        : AppColors.textSecondary;
+
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.border,
             ),
-            const Gap(8),
-            Text(
-              section.title,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(section.icon, size: 16, color: iconColor),
+              const Gap(8),
+              Text(
+                section.title,
+                style: AppTextStyles.caption.copyWith(
+                  color: foregroundColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -551,22 +475,12 @@ class _CompanySettingsSectionContent extends StatelessWidget {
 
     switch (selectedSection.type) {
       case _CompanySettingsSectionType.identity:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (canManageCompanyProfile) ...[
-              CompanyProfileForm(
-                profile: profile,
-                isSaving: state.isUpdatingProfile,
-              ),
-              const Gap(16),
-            ],
-            if (canUploadCompanyLogo)
-              CompanyLogoPicker(
-                profile: profile,
-                isSaving: state.isUploadingLogo,
-              ),
-          ],
+        return CompanyIdentitySection(
+          profile: profile,
+          isUpdatingProfile: state.isUpdatingProfile,
+          isUploadingLogo: state.isUploadingLogo,
+          canManageCompanyProfile: canManageCompanyProfile,
+          canUploadCompanyLogo: canUploadCompanyLogo,
         );
 
       case _CompanySettingsSectionType.reports:

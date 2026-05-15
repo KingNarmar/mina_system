@@ -14,6 +14,12 @@ class CustomTextFormField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.onChanged,
+    this.fillColor,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.contentPadding,
+    this.hintStyle,
+    this.textStyle,
   });
 
   final String hint;
@@ -25,9 +31,19 @@ class CustomTextFormField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final void Function(String)? onChanged;
+  final Color? fillColor;
+  final Color? borderColor;
+  final Color? focusedBorderColor;
+  final EdgeInsetsGeometry? contentPadding;
+  final TextStyle? hintStyle;
+  final TextStyle? textStyle;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBorderColor = borderColor ?? AppColors.border;
+    final effectiveFocusedBorderColor =
+        focusedBorderColor ?? effectiveBorderColor;
+
     return TextFormField(
       focusNode: focusNode,
       readOnly: readOnly,
@@ -37,20 +53,21 @@ class CustomTextFormField extends StatelessWidget {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       controller: controller,
+      style: textStyle,
       decoration: InputDecoration(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: contentPadding ?? const EdgeInsets.all(16),
         filled: true,
-        fillColor: AppColors.border,
+        fillColor: fillColor ?? AppColors.border,
         hintText: hint,
-        hintStyle: AppTextStyles.caption,
+        hintStyle: hintStyle ?? AppTextStyles.caption,
         prefixIcon: icon,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: effectiveBorderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: effectiveFocusedBorderColor),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -13,6 +13,12 @@ class SearchableTimezoneFormField extends StatefulWidget {
     this.validator,
     this.hint = 'Company Timezone',
     this.helperText,
+    this.fillColor,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.contentPadding,
+    this.hintStyle,
+    this.textStyle,
   });
 
   final String? value;
@@ -20,6 +26,12 @@ class SearchableTimezoneFormField extends StatefulWidget {
   final String? Function(String?)? validator;
   final String hint;
   final String? helperText;
+  final Color? fillColor;
+  final Color? borderColor;
+  final Color? focusedBorderColor;
+  final EdgeInsetsGeometry? contentPadding;
+  final TextStyle? hintStyle;
+  final TextStyle? textStyle;
 
   @override
   State<SearchableTimezoneFormField> createState() {
@@ -68,6 +80,12 @@ class _SearchableTimezoneFormFieldState
           controller: _controller,
           readOnly: true,
           icon: const Icon(Icons.schedule_rounded),
+          fillColor: widget.fillColor,
+          borderColor: widget.borderColor,
+          focusedBorderColor: widget.focusedBorderColor,
+          contentPadding: widget.contentPadding,
+          hintStyle: widget.hintStyle,
+          textStyle: widget.textStyle,
           validator: (_) {
             if (widget.validator == null) {
               return null;
@@ -189,7 +207,7 @@ class _TimezonePickerSheetState extends State<_TimezonePickerSheet> {
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.all(16),
                   filled: true,
-                  fillColor: AppColors.border,
+                  fillColor: AppColors.background,
                   hintText: 'Search by country, city, or timezone',
                   hintStyle: AppTextStyles.caption,
                   prefixIcon: const Icon(Icons.search_rounded),
@@ -199,7 +217,7 @@ class _TimezonePickerSheetState extends State<_TimezonePickerSheet> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: const BorderSide(color: AppColors.accent),
                   ),
                 ),
               ),
