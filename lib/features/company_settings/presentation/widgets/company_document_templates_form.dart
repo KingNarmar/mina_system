@@ -7,6 +7,7 @@ import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/company_settings_panel.dart';
 
 import 'document_templates/document_template_card.dart';
 import 'document_templates/empty_document_templates_view.dart';
@@ -27,6 +28,10 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final templateCountLabel = documentTemplates.length == 1
+        ? '1 Template'
+        : '${documentTemplates.length} Templates';
+
     return BlocListener<CompanySettingsCubit, CompanySettingsState>(
       listenWhen: (previous, current) {
         return previous is CompanySettingsLoaded &&
@@ -45,23 +50,18 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
 
         AppMessage.showSuccess(context, 'Document template updated.');
       },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
+      child: CompanySettingsPanel(
+        title: 'Document Templates',
+        description:
+            'Manage document control headers, revision details, effective dates, approval titles, and signature labels used across generated company reports.',
+        icon: Icons.article_outlined,
+        badgeLabel: templateCountLabel,
+        badgeIcon: Icons.library_books_outlined,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Document Templates', style: AppTextStyles.title),
-            const Gap(8),
-            const Text(
-              'Control document titles, codes, revision details, effective dates, and signature labels used later in PDF reports.',
-              style: AppTextStyles.body,
-            ),
-            const Gap(20),
+            _DocumentTemplatesOverview(documentTemplates: documentTemplates),
+            const Gap(16),
             if (documentTemplates.isEmpty)
               const EmptyDocumentTemplatesView()
             else
@@ -82,4 +82,153 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DocumentTemplatesOverview extends StatelessWidget {
+  const _DocumentTemplatesOverview({required this.documentTemplates});
+
+  final List<CompanyDocumentTemplateModel> documentTemplates;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeTemplates = documentTemplates.where((template) {
+      return template.isActive;
+    }).length;
+
+    final inactiveTemplates = documentTemplates.length - activeTemplates;
+
+    final metrics = [
+      _DocumentTemplateMetricData(
+        icon: Icons.description_outlined,
+        label: 'Configured Templates',
+        value: documentTemplates.length.toString(),
+        description: 'Available document definitions',
+      ),
+      _DocumentTemplateMetricData(
+        icon: Icons.verified_outlined,
+        label: 'Active Templates',
+        value: activeTemplates.toString(),
+        description: 'Ready for document generation',
+      ),
+      _DocumentTemplateMetricData(
+        icon: Icons.pause_circle_outline_rounded,
+        label: 'Inactive Templates',
+        value: inactiveTemplates.toString(),
+        description: 'Disabled or draft templates',
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 760;
+
+        if (isWide) {
+          return Row(
+            children: metrics.map((metric) {
+              final isLast = metric == metrics.last;
+
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: isLast ? 0 : 12),
+                  child: _DocumentTemplateMetricCard(metric: metric),
+                ),
+              );
+            }).toList(),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: metrics.map((metric) {
+            final isLast = metric == metrics.last;
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
+              child: _DocumentTemplateMetricCard(metric: metric),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _DocumentTemplateMetricCard extends StatelessWidget {
+  const _DocumentTemplateMetricCard({required this.metric});
+
+  final _DocumentTemplateMetricData metric;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.12),
+              ),
+            ),
+            child: Icon(metric.icon, color: AppColors.accent, size: 20),
+          ),
+          const Gap(12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  metric.value,
+                  style: AppTextStyles.title.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Gap(2),
+                Text(
+                  metric.label,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Gap(4),
+                Text(
+                  metric.description,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DocumentTemplateMetricData {
+  const _DocumentTemplateMetricData({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String description;
 }
