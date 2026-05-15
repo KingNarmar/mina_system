@@ -10,6 +10,7 @@ import 'package:mina_system/features/company_settings/data/models/company_report
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/company_settings/presentation/functions/show_company_settings_audit_history.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/company_settings_panel.dart';
 
 import 'report_settings/report_settings_form_helpers.dart';
 import 'report_settings/report_settings_format_fields.dart';
@@ -99,94 +100,88 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
 
         AppMessage.showSuccess(context, 'Report settings updated.');
       },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+      child: CompanySettingsPanel(
+        title: 'Report Configuration',
+        description:
+            'Control report formatting, visibility, footer text, and responsibility statements used across generated company documents.',
+        icon: Icons.description_outlined,
+        badgeLabel: 'PDF Defaults',
+        badgeIcon: Icons.picture_as_pdf_outlined,
+        headerActions: _ReportSettingsHeaderActions(
+          isSaving: widget.isSaving,
+          onSavePressed: _onSavePressed,
+          onAuditPressed: () {
+            showCompanySettingsAuditHistory(
+              context,
+              entityType: 'company_report_settings',
+              entityId: widget.reportSettings.id,
+              title: 'Report Settings Audit History',
+              timezone: widget.companyTimezone,
+              dateFormat: widget.reportSettings.dateFormat,
+            );
+          },
+        ),
+        accountability: RecordAccountabilitySection(
+          createdBy: widget.reportSettings.createdByDisplayName,
+          updatedBy: widget.reportSettings.updatedByDisplayName,
+          createdAt: widget.reportSettings.createdAt,
+          updatedAt: widget.reportSettings.updatedAt,
+          timezone: widget.companyTimezone,
+          dateFormat: widget.reportSettings.dateFormat,
         ),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Report Settings', style: AppTextStyles.title),
-              const Gap(8),
-              const Text(
-                'Control how company details, document control, and responsibility statements appear in reports and PDF documents.',
-                style: AppTextStyles.body,
-              ),
-              const Gap(20),
-              ReportSettingsFormatFields(
-                timezoneController: _controllers.timezoneController,
-                dateFormatController: _controllers.dateFormatController,
-                timeFormatController: _controllers.timeFormatController,
-              ),
-              const Gap(16),
-              ReportSettingsVisibilitySwitches(
-                showCompanyLogo: _showCompanyLogo,
-                showCompanyDetails: _showCompanyDetails,
-                showDocumentControl: _showDocumentControl,
-                showGeneratedBy: _showGeneratedBy,
-                onShowCompanyLogoChanged: (value) {
-                  setState(() => _showCompanyLogo = value);
-                },
-                onShowCompanyDetailsChanged: (value) {
-                  setState(() => _showCompanyDetails = value);
-                },
-                onShowDocumentControlChanged: (value) {
-                  setState(() => _showDocumentControl = value);
-                },
-                onShowGeneratedByChanged: (value) {
-                  setState(() => _showGeneratedBy = value);
-                },
-              ),
-              const Gap(16),
-              ReportSettingsStatementFields(
-                footerTextController: _controllers.footerTextController,
-                custodyStatementController:
-                    _controllers.custodyStatementController,
-                lossDamageStatementController:
-                    _controllers.lossDamageStatementController,
-              ),
-              const Gap(20),
-              RecordAccountabilitySection(
-                createdBy: widget.reportSettings.createdByDisplayName,
-                updatedBy: widget.reportSettings.updatedByDisplayName,
-                createdAt: widget.reportSettings.createdAt,
-                updatedAt: widget.reportSettings.updatedAt,
-                timezone: widget.companyTimezone,
-                dateFormat: widget.reportSettings.dateFormat,
-              ),
-              const Gap(12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () {
-                    showCompanySettingsAuditHistory(
-                      context,
-                      entityType: 'company_report_settings',
-                      entityId: widget.reportSettings.id,
-                      title: 'Report Settings Audit History',
-                      timezone: widget.companyTimezone,
-                      dateFormat: widget.reportSettings.dateFormat,
-                    );
-                  },
-                  icon: const Icon(Icons.history_rounded),
-                  label: const Text('View Audit History'),
+              _ReportSettingsGroup(
+                icon: Icons.tune_rounded,
+                title: 'Format & Timezone',
+                description:
+                    'Set the default timezone, date format, and time format used when generating reports.',
+                child: ReportSettingsFormatFields(
+                  timezoneController: _controllers.timezoneController,
+                  dateFormatController: _controllers.dateFormatController,
+                  timeFormatController: _controllers.timeFormatController,
                 ),
               ),
-              const Gap(20),
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  width: 180,
-                  child: MainButton(
-                    text: 'Save',
-                    isLoading: widget.isSaving,
-                    onPressed: _onSavePressed,
-                  ),
+              const Gap(14),
+              _ReportSettingsGroup(
+                icon: Icons.visibility_outlined,
+                title: 'Report Visibility',
+                description:
+                    'Choose which company and document control details should appear in generated reports.',
+                child: ReportSettingsVisibilitySwitches(
+                  showCompanyLogo: _showCompanyLogo,
+                  showCompanyDetails: _showCompanyDetails,
+                  showDocumentControl: _showDocumentControl,
+                  showGeneratedBy: _showGeneratedBy,
+                  onShowCompanyLogoChanged: (value) {
+                    setState(() => _showCompanyLogo = value);
+                  },
+                  onShowCompanyDetailsChanged: (value) {
+                    setState(() => _showCompanyDetails = value);
+                  },
+                  onShowDocumentControlChanged: (value) {
+                    setState(() => _showDocumentControl = value);
+                  },
+                  onShowGeneratedByChanged: (value) {
+                    setState(() => _showGeneratedBy = value);
+                  },
+                ),
+              ),
+              const Gap(14),
+              _ReportSettingsGroup(
+                icon: Icons.fact_check_outlined,
+                title: 'Footer & Responsibility Statements',
+                description:
+                    'Customize the footer and accountability statements printed on custody and company documents.',
+                child: ReportSettingsStatementFields(
+                  footerTextController: _controllers.footerTextController,
+                  custodyStatementController:
+                      _controllers.custodyStatementController,
+                  lossDamageStatementController:
+                      _controllers.lossDamageStatementController,
                 ),
               ),
             ],
@@ -218,6 +213,126 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
 
     context.read<CompanySettingsCubit>().updateCompanyReportSettings(
       reportSettings: updatedReportSettings,
+    );
+  }
+}
+
+class _ReportSettingsHeaderActions extends StatelessWidget {
+  const _ReportSettingsHeaderActions({
+    required this.isSaving,
+    required this.onSavePressed,
+    required this.onAuditPressed,
+  });
+
+  final bool isSaving;
+  final VoidCallback onSavePressed;
+  final VoidCallback onAuditPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        SizedBox(
+          height: 36,
+          child: TextButton.icon(
+            onPressed: onAuditPressed,
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            icon: const Icon(Icons.history_rounded, size: 17),
+            label: const Text('Audit History'),
+          ),
+        ),
+        SizedBox(
+          width: 120,
+          height: 36,
+          child: MainButton(
+            text: 'Save',
+            isLoading: isSaving,
+            onPressed: onSavePressed,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReportSettingsGroup extends StatelessWidget {
+  const _ReportSettingsGroup({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.accent.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Icon(icon, color: AppColors.accent, size: 18),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      description,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Gap(14),
+          const Divider(height: 1, color: AppColors.border),
+          const Gap(14),
+          child,
+        ],
+      ),
     );
   }
 }
