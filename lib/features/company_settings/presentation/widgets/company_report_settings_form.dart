@@ -5,9 +5,11 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
+import 'package:mina_system/features/company_settings/presentation/functions/show_company_settings_audit_history.dart';
 
 import 'report_settings/report_settings_form_helpers.dart';
 import 'report_settings/report_settings_format_fields.dart';
@@ -19,10 +21,12 @@ class CompanyReportSettingsForm extends StatefulWidget {
     super.key,
     required this.reportSettings,
     required this.isSaving,
+    required this.companyTimezone,
   });
 
   final CompanyReportSettingsModel reportSettings;
   final bool isSaving;
+  final String companyTimezone;
 
   @override
   State<CompanyReportSettingsForm> createState() =>
@@ -145,6 +149,33 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
                     _controllers.custodyStatementController,
                 lossDamageStatementController:
                     _controllers.lossDamageStatementController,
+              ),
+              const Gap(20),
+              RecordAccountabilitySection(
+                createdBy: widget.reportSettings.createdByDisplayName,
+                updatedBy: widget.reportSettings.updatedByDisplayName,
+                createdAt: widget.reportSettings.createdAt,
+                updatedAt: widget.reportSettings.updatedAt,
+                timezone: widget.companyTimezone,
+                dateFormat: widget.reportSettings.dateFormat,
+              ),
+              const Gap(12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    showCompanySettingsAuditHistory(
+                      context,
+                      entityType: 'company_report_settings',
+                      entityId: widget.reportSettings.id,
+                      title: 'Report Settings Audit History',
+                      timezone: widget.companyTimezone,
+                      dateFormat: widget.reportSettings.dateFormat,
+                    );
+                  },
+                  icon: const Icon(Icons.history_rounded),
+                  label: const Text('View Audit History'),
+                ),
               ),
               const Gap(20),
               Align(

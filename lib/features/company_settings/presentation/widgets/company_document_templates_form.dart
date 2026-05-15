@@ -16,10 +16,14 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
     super.key,
     required this.documentTemplates,
     required this.isSaving,
+    required this.companyTimezone,
+    required this.dateFormat,
   });
 
   final List<CompanyDocumentTemplateModel> documentTemplates;
   final bool isSaving;
+  final String companyTimezone;
+  final String dateFormat;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,8 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
                     key: ValueKey(template.id),
                     documentTemplate: template,
                     isSaving: isSaving,
+                    companyTimezone: companyTimezone,
+                    dateFormat: dateFormat,
                   ),
                 );
               }),

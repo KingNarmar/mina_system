@@ -4,8 +4,10 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
+import 'package:mina_system/features/company_settings/presentation/functions/show_company_settings_audit_history.dart';
 
 import 'document_template_form_helpers.dart';
 import 'document_template_general_fields.dart';
@@ -16,11 +18,14 @@ class DocumentTemplateCard extends StatefulWidget {
     super.key,
     required this.documentTemplate,
     required this.isSaving,
+    required this.companyTimezone,
+    this.dateFormat,
   });
 
   final CompanyDocumentTemplateModel documentTemplate;
   final bool isSaving;
-
+  final String companyTimezone;
+  final String? dateFormat;
   @override
   State<DocumentTemplateCard> createState() => _DocumentTemplateCardState();
 }
@@ -112,6 +117,31 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
               onChanged: (value) {
                 setState(() => _isActive = value);
               },
+            ),
+            const Gap(12),
+            RecordAccountabilitySection(
+              createdBy: widget.documentTemplate.createdByDisplayName,
+              updatedBy: widget.documentTemplate.updatedByDisplayName,
+              createdAt: widget.documentTemplate.createdAt,
+              updatedAt: widget.documentTemplate.updatedAt,
+            ),
+            const Gap(12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  showCompanySettingsAuditHistory(
+                    context,
+                    entityType: 'company_document_template',
+                    entityId: widget.documentTemplate.id,
+                    title: '$reportTypeTitle Audit History',
+                    timezone: widget.companyTimezone,
+                    dateFormat: widget.dateFormat,
+                  );
+                },
+                icon: const Icon(Icons.history_rounded),
+                label: const Text('View Audit History'),
+              ),
             ),
             const Gap(12),
             Align(

@@ -22,8 +22,15 @@ class CompanySettingsScreen extends StatelessWidget {
   }
 }
 
-class _CompanySettingsView extends StatelessWidget {
+class _CompanySettingsView extends StatefulWidget {
   const _CompanySettingsView();
+
+  @override
+  State<_CompanySettingsView> createState() => _CompanySettingsViewState();
+}
+
+class _CompanySettingsViewState extends State<_CompanySettingsView> {
+  _CompanySettingsSectionType? _selectedSection;
 
   @override
   Widget build(BuildContext context) {
@@ -59,54 +66,95 @@ class _CompanySettingsView extends StatelessWidget {
         if (state is CompanySettingsLoaded) {
           final profile = state.profile;
 
+          final sections = _buildAvailableSections(
+            canManageCompanyProfile: canManageCompanyProfile,
+            canUploadCompanyLogo: canUploadCompanyLogo,
+            canManageReportSettings: canManageReportSettings,
+            canManageDocumentTemplates: canManageDocumentTemplates,
+            documentTemplateCount: state.documentTemplates.length,
+          );
+
+          if (sections.isEmpty) {
+            return const Scaffold(
+              backgroundColor: AppColors.background,
+              body: SingleChildScrollView(
+                padding: EdgeInsets.all(24),
+                child: _NoCompanySettingsPermissionView(),
+              ),
+            );
+          }
+
+          final selectedSection = _resolveSelectedSection(sections);
+
           return Scaffold(
             backgroundColor: AppColors.background,
-            body: SingleChildScrollView(
-              key: const PageStorageKey<String>('company_settings_scroll_key'),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text('Company Settings', style: AppTextStyles.heading),
-                  const Gap(8),
-                  Text(
-                    'Manage company profile, report settings, logo, and document templates for ${profile.name}.',
-                    style: AppTextStyles.body,
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWideLayout = constraints.maxWidth >= 980;
+
+                return SingleChildScrollView(
+                  key: const PageStorageKey<String>(
+                    'company_settings_scroll_key',
                   ),
-                  const Gap(24),
-                  if (canManageCompanyProfile) ...[
-                    CompanyProfileForm(
-                      profile: profile,
-                      isSaving: state.isUpdatingProfile,
-                    ),
-                    const Gap(16),
-                  ],
-                  if (canUploadCompanyLogo) ...[
-                    CompanyLogoPicker(
-                      profile: profile,
-                      isSaving: state.isUploadingLogo,
-                    ),
-                    const Gap(16),
-                  ],
-                  if (canManageReportSettings) ...[
-                    CompanyReportSettingsForm(
-                      reportSettings: state.reportSettings,
-                      isSaving: state.isUpdatingReportSettings,
-                    ),
-                    const Gap(16),
-                  ],
-                  if (canManageDocumentTemplates)
-                    CompanyDocumentTemplatesForm(
-                      documentTemplates: state.documentTemplates,
-                      isSaving: state.isUpdatingDocumentTemplate,
-                    ),
-                  if (!canManageCompanyProfile &&
-                      !canUploadCompanyLogo &&
-                      !canManageReportSettings &&
-                      !canManageDocumentTemplates)
-                    const _NoCompanySettingsPermissionView(),
-                ],
-              ),
+                  padding: EdgeInsets.all(isWideLayout ? 28 : 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _CompanySettingsHeader(
+                        companyName: profile.name,
+                        timezone: profile.timezone,
+                        visibleSectionCount: sections.length,
+                      ),
+                      Gap(isWideLayout ? 24 : 18),
+                      if (isWideLayout)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 300,
+                              child: _CompanySettingsSectionSelector(
+                                sections: sections,
+                                selectedSection: selectedSection,
+                                onSectionSelected: _onSectionSelected,
+                              ),
+                            ),
+                            const Gap(24),
+                            Expanded(
+                              child: _CompanySettingsSectionContent(
+                                selectedSection: selectedSection,
+                                state: state,
+                                canManageCompanyProfile:
+                                    canManageCompanyProfile,
+                                canUploadCompanyLogo: canUploadCompanyLogo,
+                                canManageReportSettings:
+                                    canManageReportSettings,
+                                canManageDocumentTemplates:
+                                    canManageDocumentTemplates,
+                              ),
+                            ),
+                          ],
+                        )
+                      else ...[
+                        _CompanySettingsSectionSelector(
+                          sections: sections,
+                          selectedSection: selectedSection,
+                          onSectionSelected: _onSectionSelected,
+                        ),
+                        const Gap(18),
+                        _CompanySettingsSectionContent(
+                          selectedSection: selectedSection,
+                          state: state,
+                          canManageCompanyProfile: canManageCompanyProfile,
+                          canUploadCompanyLogo: canUploadCompanyLogo,
+                          canManageReportSettings: canManageReportSettings,
+                          canManageDocumentTemplates:
+                              canManageDocumentTemplates,
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
           );
         }
@@ -117,6 +165,433 @@ class _CompanySettingsView extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<_CompanySettingsSection> _buildAvailableSections({
+    required bool canManageCompanyProfile,
+    required bool canUploadCompanyLogo,
+    required bool canManageReportSettings,
+    required bool canManageDocumentTemplates,
+    required int documentTemplateCount,
+  }) {
+    final sections = <_CompanySettingsSection>[];
+
+    if (canManageCompanyProfile || canUploadCompanyLogo) {
+      sections.add(
+        const _CompanySettingsSection(
+          type: _CompanySettingsSectionType.identity,
+          title: 'Company Identity',
+          description: 'Profile, legal details, logo, and timezone.',
+          icon: Icons.business_rounded,
+        ),
+      );
+    }
+
+    if (canManageReportSettings) {
+      sections.add(
+        const _CompanySettingsSection(
+          type: _CompanySettingsSectionType.reports,
+          title: 'Report Configuration',
+          description: 'PDF settings, visibility, and statements.',
+          icon: Icons.description_outlined,
+        ),
+      );
+    }
+
+    if (canManageDocumentTemplates) {
+      sections.add(
+        _CompanySettingsSection(
+          type: _CompanySettingsSectionType.documents,
+          title: 'Document Templates',
+          description: '$documentTemplateCount configured templates.',
+          icon: Icons.article_outlined,
+        ),
+      );
+    }
+
+    return sections;
+  }
+
+  _CompanySettingsSection _resolveSelectedSection(
+    List<_CompanySettingsSection> sections,
+  ) {
+    final currentSelectedSection = _selectedSection;
+
+    if (currentSelectedSection != null) {
+      for (final section in sections) {
+        if (section.type == currentSelectedSection) {
+          return section;
+        }
+      }
+    }
+
+    final firstSection = sections.first;
+
+    if (_selectedSection != firstSection.type) {
+      _selectedSection = firstSection.type;
+    }
+
+    return firstSection;
+  }
+
+  void _onSectionSelected(_CompanySettingsSection section) {
+    if (_selectedSection == section.type) {
+      return;
+    }
+
+    setState(() {
+      _selectedSection = section.type;
+    });
+  }
+}
+
+class _CompanySettingsHeader extends StatelessWidget {
+  const _CompanySettingsHeader({
+    required this.companyName,
+    required this.timezone,
+    required this.visibleSectionCount,
+  });
+
+  final String companyName;
+  final String timezone;
+  final int visibleSectionCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final cleanCompanyName = companyName.trim().isEmpty
+        ? 'Current Company'
+        : companyName.trim();
+
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Wrap(
+        spacing: 18,
+        runSpacing: 18,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.accent,
+              size: 28,
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Company Settings', style: AppTextStyles.heading),
+                const Gap(6),
+                Text(
+                  'Manage profile, branding, report configuration, document templates, and accountability for $cleanCompanyName.',
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          _CompanySettingsInfoChip(
+            icon: Icons.schedule_rounded,
+            label: timezone,
+          ),
+          _CompanySettingsInfoChip(
+            icon: Icons.dashboard_customize_outlined,
+            label: '$visibleSectionCount sections',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompanySettingsInfoChip extends StatelessWidget {
+  const _CompanySettingsInfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final cleanLabel = label.trim().isEmpty ? '-' : label.trim();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.textSecondary),
+          const Gap(7),
+          Text(
+            cleanLabel,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompanySettingsSectionSelector extends StatelessWidget {
+  const _CompanySettingsSectionSelector({
+    required this.sections,
+    required this.selectedSection,
+    required this.onSectionSelected,
+  });
+
+  final List<_CompanySettingsSection> sections;
+  final _CompanySettingsSection selectedSection;
+  final ValueChanged<_CompanySettingsSection> onSectionSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 520;
+
+        if (isCompact) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: sections.map((section) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: _CompanySettingsSectionChip(
+                    section: section,
+                    isSelected: section.type == selectedSection.type,
+                    onTap: () => onSectionSelected(section),
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            children: sections.map((section) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _CompanySettingsSectionTile(
+                  section: section,
+                  isSelected: section.type == selectedSection.type,
+                  onTap: () => onSectionSelected(section),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CompanySettingsSectionTile extends StatelessWidget {
+  const _CompanySettingsSectionTile({
+    required this.section,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final _CompanySettingsSection section;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = isSelected
+        ? AppColors.accent.withValues(alpha: 0.10)
+        : AppColors.background;
+
+    final borderColor = isSelected ? AppColors.accent : AppColors.border;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              section.icon,
+              color: isSelected ? AppColors.accent : AppColors.textSecondary,
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    section.title,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Gap(4),
+                  Text(
+                    section.description,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompanySettingsSectionChip extends StatelessWidget {
+  const _CompanySettingsSectionChip({
+    required this.section,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final _CompanySettingsSection section;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = isSelected
+        ? AppColors.accent.withValues(alpha: 0.12)
+        : AppColors.card;
+
+    final borderColor = isSelected ? AppColors.accent : AppColors.border;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(99),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              section.icon,
+              size: 18,
+              color: isSelected ? AppColors.accent : AppColors.textSecondary,
+            ),
+            const Gap(8),
+            Text(
+              section.title,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompanySettingsSectionContent extends StatelessWidget {
+  const _CompanySettingsSectionContent({
+    required this.selectedSection,
+    required this.state,
+    required this.canManageCompanyProfile,
+    required this.canUploadCompanyLogo,
+    required this.canManageReportSettings,
+    required this.canManageDocumentTemplates,
+  });
+
+  final _CompanySettingsSection selectedSection;
+  final CompanySettingsLoaded state;
+  final bool canManageCompanyProfile;
+  final bool canUploadCompanyLogo;
+  final bool canManageReportSettings;
+  final bool canManageDocumentTemplates;
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = state.profile;
+
+    switch (selectedSection.type) {
+      case _CompanySettingsSectionType.identity:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (canManageCompanyProfile) ...[
+              CompanyProfileForm(
+                profile: profile,
+                isSaving: state.isUpdatingProfile,
+              ),
+              const Gap(16),
+            ],
+            if (canUploadCompanyLogo)
+              CompanyLogoPicker(
+                profile: profile,
+                isSaving: state.isUploadingLogo,
+              ),
+          ],
+        );
+
+      case _CompanySettingsSectionType.reports:
+        if (!canManageReportSettings) {
+          return const _NoCompanySettingsPermissionView();
+        }
+
+        return CompanyReportSettingsForm(
+          reportSettings: state.reportSettings,
+          isSaving: state.isUpdatingReportSettings,
+          companyTimezone: profile.timezone,
+        );
+
+      case _CompanySettingsSectionType.documents:
+        if (!canManageDocumentTemplates) {
+          return const _NoCompanySettingsPermissionView();
+        }
+
+        return CompanyDocumentTemplatesForm(
+          documentTemplates: state.documentTemplates,
+          isSaving: state.isUpdatingDocumentTemplate,
+          companyTimezone: profile.timezone,
+          dateFormat: state.reportSettings.dateFormat,
+        );
+    }
   }
 }
 
@@ -199,4 +674,20 @@ class _NoCompanySettingsPermissionView extends StatelessWidget {
       ),
     );
   }
+}
+
+enum _CompanySettingsSectionType { identity, reports, documents }
+
+class _CompanySettingsSection {
+  const _CompanySettingsSection({
+    required this.type,
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+
+  final _CompanySettingsSectionType type;
+  final String title;
+  final String description;
+  final IconData icon;
 }

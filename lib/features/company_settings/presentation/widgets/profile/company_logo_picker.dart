@@ -8,9 +8,11 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
+import 'package:mina_system/features/company_settings/presentation/functions/show_company_settings_audit_history.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanyLogoPicker extends StatelessWidget {
@@ -62,6 +64,31 @@ class CompanyLogoPicker extends StatelessWidget {
                   ? 'Logo uploaded successfully. It will be used later in company reports and PDF documents.'
                   : 'No logo uploaded yet. Upload a logo to use later in reports and PDF documents.',
               style: AppTextStyles.body,
+            ),
+            const Gap(16),
+            RecordAccountabilitySection(
+              createdBy: profile.createdByDisplayName,
+              updatedBy: profile.updatedByDisplayName,
+              createdAt: profile.createdAt,
+              updatedAt: profile.updatedAt,
+              timezone: profile.timezone,
+            ),
+            const Gap(12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  showCompanySettingsAuditHistory(
+                    context,
+                    entityType: 'company',
+                    entityId: profile.id,
+                    title: 'Company Profile Audit History',
+                    timezone: profile.timezone,
+                  );
+                },
+                icon: const Icon(Icons.history_rounded),
+                label: const Text('View Audit History'),
+              ),
             ),
             const Gap(16),
             Align(

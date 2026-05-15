@@ -5,9 +5,11 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
+import 'package:mina_system/features/company_settings/presentation/functions/show_company_settings_audit_history.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 
 import 'profile/company_details_fields.dart';
@@ -126,6 +128,31 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
                     _selectedTimezone = timezone;
                   });
                 },
+              ),
+              const Gap(20),
+              RecordAccountabilitySection(
+                createdBy: widget.profile.createdByDisplayName,
+                updatedBy: widget.profile.updatedByDisplayName,
+                createdAt: widget.profile.createdAt,
+                updatedAt: widget.profile.updatedAt,
+                timezone: widget.profile.timezone,
+              ),
+              const Gap(12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    showCompanySettingsAuditHistory(
+                      context,
+                      entityType: 'company',
+                      entityId: widget.profile.id,
+                      title: 'Company Profile Audit History',
+                      timezone: widget.profile.timezone,
+                    );
+                  },
+                  icon: const Icon(Icons.history_rounded),
+                  label: const Text('View Audit History'),
+                ),
               ),
               const Gap(20),
               Align(

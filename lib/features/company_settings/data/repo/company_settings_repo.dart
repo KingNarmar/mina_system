@@ -22,12 +22,99 @@ class CompanySettingsRepo {
   final ImageCompressionService _imageCompressionService;
   final NetworkStatusService _networkStatusService;
 
+  static const String _companyProfileSelectColumns = '''
+    id,
+    name,
+    trade_name,
+    legal_name,
+    trade_license_no,
+    tax_registration_no,
+    address_line_1,
+    address_line_2,
+    city,
+    country,
+    phone,
+    email,
+    website,
+    logo_path,
+    timezone,
+    created_by_profile_id,
+    updated_by_profile_id,
+    created_at,
+    updated_at,
+    created_by_profile:profiles!companies_created_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    updated_by_profile:profiles!companies_updated_by_profile_id_fkey(
+      full_name,
+      email
+    )
+  ''';
+
+  static const String _companyReportSettingsSelectColumns = '''
+    id,
+    company_id,
+    default_timezone,
+    date_format,
+    time_format,
+    show_company_logo,
+    show_company_details,
+    show_document_control,
+    show_generated_by,
+    report_footer_text,
+    custody_responsibility_statement,
+    loss_damage_responsibility_statement,
+    created_by_profile_id,
+    updated_by_profile_id,
+    created_at,
+    updated_at,
+    created_by_profile:profiles!company_report_settings_created_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    updated_by_profile:profiles!company_report_settings_updated_by_profile_id_fkey(
+      full_name,
+      email
+    )
+  ''';
+
+  static const String _companyDocumentTemplateSelectColumns = '''
+    id,
+    company_id,
+    report_type,
+    document_title,
+    document_code,
+    issue_no,
+    revision_no,
+    effective_date,
+    prepared_by_title,
+    checked_by_title,
+    approved_by_title,
+    worker_signature_label,
+    manager_signature_label,
+    storekeeper_signature_label,
+    is_active,
+    created_by_profile_id,
+    updated_by_profile_id,
+    created_at,
+    updated_at,
+    created_by_profile:profiles!company_document_templates_created_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    updated_by_profile:profiles!company_document_templates_updated_by_profile_id_fkey(
+      full_name,
+      email
+    )
+  ''';
+
   Future<CompanyProfileModel> getCompanyProfile({
     required String companyId,
   }) async {
     final data = await _supabase
         .from('companies')
-        .select()
+        .select(_companyProfileSelectColumns)
         .eq('id', companyId)
         .single();
 
@@ -39,7 +126,7 @@ class CompanySettingsRepo {
   }) async {
     final data = await _supabase
         .from('company_report_settings')
-        .select()
+        .select(_companyReportSettingsSelectColumns)
         .eq('company_id', companyId)
         .single();
 
@@ -51,7 +138,7 @@ class CompanySettingsRepo {
   }) async {
     final data = await _supabase
         .from('company_document_templates')
-        .select()
+        .select(_companyDocumentTemplateSelectColumns)
         .eq('company_id', companyId)
         .order('report_type');
 
@@ -67,7 +154,7 @@ class CompanySettingsRepo {
         .from('companies')
         .update(profile.toUpdateJson())
         .eq('id', profile.id)
-        .select()
+        .select(_companyProfileSelectColumns)
         .single();
 
     return CompanyProfileModel.fromJson(data);
@@ -80,7 +167,7 @@ class CompanySettingsRepo {
         .from('company_report_settings')
         .update(reportSettings.toUpdateJson())
         .eq('id', reportSettings.id)
-        .select()
+        .select(_companyReportSettingsSelectColumns)
         .single();
 
     return CompanyReportSettingsModel.fromJson(data);
@@ -93,7 +180,7 @@ class CompanySettingsRepo {
         .from('company_document_templates')
         .update(documentTemplate.toUpdateJson())
         .eq('id', documentTemplate.id)
-        .select()
+        .select(_companyDocumentTemplateSelectColumns)
         .single();
 
     return CompanyDocumentTemplateModel.fromJson(data);
@@ -141,7 +228,7 @@ class CompanySettingsRepo {
         .from('companies')
         .update({'logo_path': filePath})
         .eq('id', companyId)
-        .select()
+        .select(_companyProfileSelectColumns)
         .single();
 
     if (oldLogoPath != null &&

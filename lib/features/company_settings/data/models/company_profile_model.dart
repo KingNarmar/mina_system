@@ -15,6 +15,14 @@ class CompanyProfileModel {
     this.website,
     this.logoPath,
     this.timezone = 'Asia/Dubai',
+    this.createdByProfileId,
+    this.updatedByProfileId,
+    this.createdByProfileName,
+    this.createdByProfileEmail,
+    this.updatedByProfileName,
+    this.updatedByProfileEmail,
+    this.createdAt,
+    this.updatedAt,
   });
 
   final String id;
@@ -32,6 +40,28 @@ class CompanyProfileModel {
   final String? website;
   final String? logoPath;
   final String timezone;
+  final String? createdByProfileId;
+  final String? updatedByProfileId;
+  final String? createdByProfileName;
+  final String? createdByProfileEmail;
+  final String? updatedByProfileName;
+  final String? updatedByProfileEmail;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  String get createdByDisplayName {
+    return _resolveProfileDisplayName(
+      name: createdByProfileName,
+      email: createdByProfileEmail,
+    );
+  }
+
+  String get updatedByDisplayName {
+    return _resolveProfileDisplayName(
+      name: updatedByProfileName,
+      email: updatedByProfileEmail,
+    );
+  }
 
   factory CompanyProfileModel.fromJson(Map<String, dynamic> json) {
     return CompanyProfileModel(
@@ -50,6 +80,34 @@ class CompanyProfileModel {
       website: json['website'] as String?,
       logoPath: json['logo_path'] as String?,
       timezone: _normalizeTimezone(json['timezone']),
+      createdByProfileId: json['created_by_profile_id'] as String?,
+      updatedByProfileId: json['updated_by_profile_id'] as String?,
+      createdByProfileName: _readRelatedProfileValue(
+        json: json,
+        directKey: 'created_by_profile_name',
+        relationKey: 'created_by_profile',
+        fieldKey: 'full_name',
+      ),
+      createdByProfileEmail: _readRelatedProfileValue(
+        json: json,
+        directKey: 'created_by_profile_email',
+        relationKey: 'created_by_profile',
+        fieldKey: 'email',
+      ),
+      updatedByProfileName: _readRelatedProfileValue(
+        json: json,
+        directKey: 'updated_by_profile_name',
+        relationKey: 'updated_by_profile',
+        fieldKey: 'full_name',
+      ),
+      updatedByProfileEmail: _readRelatedProfileValue(
+        json: json,
+        directKey: 'updated_by_profile_email',
+        relationKey: 'updated_by_profile',
+        fieldKey: 'email',
+      ),
+      createdAt: _parseDateTime(json['created_at']),
+      updatedAt: _parseDateTime(json['updated_at']),
     );
   }
 
@@ -88,6 +146,14 @@ class CompanyProfileModel {
     String? website,
     String? logoPath,
     String? timezone,
+    String? createdByProfileId,
+    String? updatedByProfileId,
+    String? createdByProfileName,
+    String? createdByProfileEmail,
+    String? updatedByProfileName,
+    String? updatedByProfileEmail,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return CompanyProfileModel(
       id: id ?? this.id,
@@ -105,6 +171,16 @@ class CompanyProfileModel {
       website: website ?? this.website,
       logoPath: logoPath ?? this.logoPath,
       timezone: timezone ?? this.timezone,
+      createdByProfileId: createdByProfileId ?? this.createdByProfileId,
+      updatedByProfileId: updatedByProfileId ?? this.updatedByProfileId,
+      createdByProfileName: createdByProfileName ?? this.createdByProfileName,
+      createdByProfileEmail:
+          createdByProfileEmail ?? this.createdByProfileEmail,
+      updatedByProfileName: updatedByProfileName ?? this.updatedByProfileName,
+      updatedByProfileEmail:
+          updatedByProfileEmail ?? this.updatedByProfileEmail,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -116,5 +192,61 @@ class CompanyProfileModel {
     }
 
     return timezone;
+  }
+
+  static String? _readRelatedProfileValue({
+    required Map<String, dynamic> json,
+    required String directKey,
+    required String relationKey,
+    required String fieldKey,
+  }) {
+    final directValue = json[directKey];
+
+    if (directValue is String) {
+      return directValue;
+    }
+
+    final relationValue = json[relationKey];
+
+    if (relationValue is Map<String, dynamic>) {
+      return relationValue[fieldKey] as String?;
+    }
+
+    if (relationValue is Map) {
+      return relationValue[fieldKey]?.toString();
+    }
+
+    return null;
+  }
+
+  static String _resolveProfileDisplayName({
+    required String? name,
+    required String? email,
+  }) {
+    final cleanName = name?.trim();
+
+    if (cleanName != null && cleanName.isNotEmpty) {
+      return cleanName;
+    }
+
+    final cleanEmail = email?.trim();
+
+    if (cleanEmail != null && cleanEmail.isNotEmpty) {
+      return cleanEmail;
+    }
+
+    return 'Unknown User';
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value is DateTime) {
+      return value;
+    }
+
+    return DateTime.parse(value.toString());
   }
 }
