@@ -25,6 +25,8 @@ class ReportPdfService {
   ReportPdfService({SupabaseClient? supabaseClient})
     : _supabase = supabaseClient ?? Supabase.instance.client;
 
+  static const int _maxReportPages = 200;
+
   final SupabaseClient _supabase;
 
   Future<Uint8List> buildReportPdf({
@@ -63,6 +65,7 @@ class ReportPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
+        maxPages: _maxReportPages,
         footer: ReportPdfFooterSection.buildPageNumberFooter,
         build: (context) {
           return [

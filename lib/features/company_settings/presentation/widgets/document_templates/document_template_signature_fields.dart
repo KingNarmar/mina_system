@@ -4,6 +4,8 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 
+import 'document_template_form_helpers.dart';
+
 class DocumentTemplateSignatureFields extends StatelessWidget {
   const DocumentTemplateSignatureFields({
     super.key,
@@ -184,6 +186,7 @@ class _SignatureTemplateField extends StatelessWidget {
           hint: data.label,
           controller: data.controller,
           icon: Icon(data.icon, size: 18, color: AppColors.textSecondary),
+          validator: DocumentTemplateFormHelpers.validateOptionalLabel,
           fillColor: AppColors.background,
           borderColor: AppColors.border,
           focusedBorderColor: AppColors.accent,

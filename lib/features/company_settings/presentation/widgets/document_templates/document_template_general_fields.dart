@@ -39,7 +39,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                 helperText: 'Main title printed on the generated document.',
                 controller: documentTitleController,
                 icon: Icons.title_rounded,
-                validator: DocumentTemplateFormHelpers.validateRequired,
+                validator: DocumentTemplateFormHelpers.validateDocumentTitle,
               ),
               const Gap(12),
               Row(
@@ -51,7 +51,8 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       helperText: 'Official internal document reference code.',
                       controller: documentCodeController,
                       icon: Icons.qr_code_2_rounded,
-                      validator: DocumentTemplateFormHelpers.validateRequired,
+                      validator:
+                          DocumentTemplateFormHelpers.validateDocumentCode,
                     ),
                   ),
                   const Gap(12),
@@ -61,7 +62,8 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       helperText: 'Current document issue number.',
                       controller: issueNoController,
                       icon: Icons.confirmation_number_outlined,
-                      validator: DocumentTemplateFormHelpers.validateRequired,
+                      validator:
+                          DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
                     ),
                   ),
                 ],
@@ -76,7 +78,8 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       helperText: 'Latest approved revision number.',
                       controller: revisionNoController,
                       icon: Icons.history_edu_outlined,
-                      validator: DocumentTemplateFormHelpers.validateRequired,
+                      validator:
+                          DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
                     ),
                   ),
                   const Gap(12),
@@ -88,7 +91,8 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       icon: Icons.calendar_month_outlined,
                       readOnly: true,
                       onTap: onEffectiveDateTap,
-                      validator: DocumentTemplateFormHelpers.validateRequired,
+                      validator:
+                          DocumentTemplateFormHelpers.validateRequiredDate,
                     ),
                   ),
                 ],
@@ -105,7 +109,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               helperText: 'Main title printed on the generated document.',
               controller: documentTitleController,
               icon: Icons.title_rounded,
-              validator: DocumentTemplateFormHelpers.validateRequired,
+              validator: DocumentTemplateFormHelpers.validateDocumentTitle,
             ),
             const Gap(12),
             _DocumentTemplateField(
@@ -113,7 +117,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               helperText: 'Official internal document reference code.',
               controller: documentCodeController,
               icon: Icons.qr_code_2_rounded,
-              validator: DocumentTemplateFormHelpers.validateRequired,
+              validator: DocumentTemplateFormHelpers.validateDocumentCode,
             ),
             const Gap(12),
             _DocumentTemplateField(
@@ -121,7 +125,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               helperText: 'Current document issue number.',
               controller: issueNoController,
               icon: Icons.confirmation_number_outlined,
-              validator: DocumentTemplateFormHelpers.validateRequired,
+              validator: DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
             ),
             const Gap(12),
             _DocumentTemplateField(
@@ -129,7 +133,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               helperText: 'Latest approved revision number.',
               controller: revisionNoController,
               icon: Icons.history_edu_outlined,
-              validator: DocumentTemplateFormHelpers.validateRequired,
+              validator: DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
             ),
             const Gap(12),
             _DocumentTemplateField(
@@ -139,7 +143,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               icon: Icons.calendar_month_outlined,
               readOnly: true,
               onTap: onEffectiveDateTap,
-              validator: DocumentTemplateFormHelpers.validateRequired,
+              validator: DocumentTemplateFormHelpers.validateRequiredDate,
             ),
           ],
         );
