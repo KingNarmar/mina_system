@@ -26,8 +26,15 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
 
   void emitState(CompanySettingsState state) => emit(state);
 
-  Future<void> loadCompanyProfile({required String companyId}) async {
-    emit(const CompanySettingsLoading());
+  Future<void> loadCompanyProfile({
+    required String companyId,
+    bool showLoader = true,
+  }) async {
+    final currentState = state;
+
+    if (showLoader || currentState is! CompanySettingsLoaded) {
+      emit(const CompanySettingsLoading());
+    }
 
     try {
       final profile = await _repo.getCompanyProfile(companyId: companyId);
@@ -49,6 +56,19 @@ class CompanySettingsCubit extends Cubit<CompanySettingsState> {
       if (kDebugMode) {
         debugPrint('LoadCompanyProfile error: $error');
         debugPrint('LoadCompanyProfile stackTrace: $stackTrace');
+      }
+
+      if (!showLoader && currentState is CompanySettingsLoaded) {
+        emit(
+          currentState.copyWith(
+            action: CompanySettingsAction.none,
+            errorMessage: AppErrorMessage.fromError(
+              error,
+              fallback: 'Unable to refresh company profile.',
+            ),
+          ),
+        );
+        return;
       }
 
       emit(

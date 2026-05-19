@@ -33,16 +33,23 @@ class ToolsCubit extends Cubit<ToolsState> {
   Future<void> loadTools({
     required String companyId,
     String? statusFilter,
+    bool showLoader = true,
   }) async {
     final selectedStatus = statusFilter ?? state.statusFilter;
 
-    emit(
-      state.copyWith(
-        isLoading: true,
-        statusFilter: selectedStatus,
-        clearErrorMessage: true,
-      ),
-    );
+    if (showLoader) {
+      emit(
+        state.copyWith(
+          isLoading: true,
+          statusFilter: selectedStatus,
+          clearErrorMessage: true,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(statusFilter: selectedStatus, clearErrorMessage: true),
+      );
+    }
 
     try {
       final tools = await _toolsRepo.getTools(

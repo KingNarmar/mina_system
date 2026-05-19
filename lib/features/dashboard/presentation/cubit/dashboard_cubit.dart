@@ -11,8 +11,15 @@ class DashboardCubit extends Cubit<DashboardState> {
 
   final DashboardRepo _dashboardRepo;
 
-  Future<void> loadDashboardSummary({required String companyId}) async {
-    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+  Future<void> loadDashboardSummary({
+    required String companyId,
+    bool showLoader = true,
+  }) async {
+    if (showLoader) {
+      emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+    } else {
+      emit(state.copyWith(clearErrorMessage: true));
+    }
 
     try {
       final summary = await _dashboardRepo.getDashboardSummary(

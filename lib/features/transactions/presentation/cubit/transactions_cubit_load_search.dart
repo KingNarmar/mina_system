@@ -1,8 +1,15 @@
 part of 'transactions_cubit.dart';
 
 extension TransactionsCubitLoadSearch on TransactionsCubit {
-  Future<void> loadTransactions({required String companyId}) async {
-    emitState(state.copyWith(isLoading: true, clearErrorMessage: true));
+  Future<void> loadTransactions({
+    required String companyId,
+    bool showLoader = true,
+  }) async {
+    if (showLoader) {
+      emitState(state.copyWith(isLoading: true, clearErrorMessage: true));
+    } else {
+      emitState(state.copyWith(clearErrorMessage: true));
+    }
 
     try {
       final transactions = await _transactionsRepo.getTransactions(

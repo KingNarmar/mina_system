@@ -33,16 +33,23 @@ class WorkersCubit extends Cubit<WorkersState> {
   Future<void> loadWorkers({
     required String companyId,
     String? statusFilter,
+    bool showLoader = true,
   }) async {
     final selectedStatus = statusFilter ?? state.statusFilter;
 
-    emit(
-      state.copyWith(
-        isLoading: true,
-        statusFilter: selectedStatus,
-        clearErrorMessage: true,
-      ),
-    );
+    if (showLoader) {
+      emit(
+        state.copyWith(
+          isLoading: true,
+          statusFilter: selectedStatus,
+          clearErrorMessage: true,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(statusFilter: selectedStatus, clearErrorMessage: true),
+      );
+    }
 
     try {
       final workers = await _workersRepo.getWorkers(

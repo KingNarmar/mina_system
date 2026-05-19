@@ -33,8 +33,15 @@ class LookupsCubit extends Cubit<LookupsState> {
 
   void emitState(LookupsState state) => emit(state);
 
-  Future<void> loadLookups({required String companyId}) async {
-    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+  Future<void> loadLookups({
+    required String companyId,
+    bool showLoader = true,
+  }) async {
+    if (showLoader) {
+      emit(state.copyWith(isLoading: true, clearErrorMessage: true));
+    } else {
+      emit(state.copyWith(clearErrorMessage: true));
+    }
 
     try {
       final departments = await _lookupsRepo.getDepartments(
