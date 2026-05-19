@@ -224,12 +224,22 @@ class CompanySettingsRepo {
           ),
         );
 
-    final updatedCompanyData = await _supabase
-        .from('companies')
-        .update({'logo_path': filePath})
-        .eq('id', companyId)
-        .select(_companyProfileSelectColumns)
-        .single();
+    late final Map<String, dynamic> updatedCompanyData;
+
+    try {
+      updatedCompanyData = await _supabase
+          .from('companies')
+          .update({'logo_path': filePath})
+          .eq('id', companyId)
+          .select(_companyProfileSelectColumns)
+          .single();
+    } catch (_) {
+      await _deleteCompanyLogoIfUnlinked(
+        companyId: companyId,
+        uploadedPath: filePath,
+      );
+      rethrow;
+    }
 
     if (oldLogoPath != null &&
         oldLogoPath.trim().isNotEmpty &&
@@ -238,5 +248,38 @@ class CompanySettingsRepo {
     }
 
     return CompanyProfileModel.fromJson(updatedCompanyData);
+  }
+
+  Future<void> _deleteCompanyLogoIfUnlinked({
+    required String companyId,
+    required String uploadedPath,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('companies')
+          .select('logo_path')
+          .eq('id', companyId)
+          .single();
+
+      final currentLogoPath = data['logo_path'] as String?;
+
+      if (currentLogoPath?.trim() == uploadedPath.trim()) {
+        return;
+      }
+
+      await _deleteCompanyAsset(path: uploadedPath);
+    } catch (_) {
+      // Best-effort cleanup must not hide the original upload/database error.
+    }
+  }
+
+  Future<void> _deleteCompanyAsset({required String path}) async {
+    final cleanPath = path.trim();
+
+    if (cleanPath.isEmpty) {
+      return;
+    }
+
+    await _supabase.storage.from('company-assets').remove([cleanPath]);
   }
 }

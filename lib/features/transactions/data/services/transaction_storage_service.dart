@@ -101,6 +101,14 @@ class TransactionStorageService {
     return filePath;
   }
 
+  Future<void> deleteProofImage({required String path}) async {
+    await _deleteStorageFile(bucket: proofsBucket, path: path);
+  }
+
+  Future<void> deleteApprovalDocumentFile({required String path}) async {
+    await _deleteStorageFile(bucket: approvalDocumentsBucket, path: path);
+  }
+
   Future<ApprovalDocumentUploadData> _prepareApprovalDocumentUploadData({
     required File file,
     required String extension,
@@ -122,6 +130,19 @@ class TransactionStorageService {
       extension: compressedImage.extension,
       contentType: compressedImage.contentType,
     );
+  }
+
+  Future<void> _deleteStorageFile({
+    required String bucket,
+    required String path,
+  }) async {
+    final cleanPath = path.trim();
+
+    if (cleanPath.isEmpty) {
+      return;
+    }
+
+    await _supabase.storage.from(bucket).remove([cleanPath]);
   }
 
   bool isCloudStoragePath(String path, {required String companyId}) {

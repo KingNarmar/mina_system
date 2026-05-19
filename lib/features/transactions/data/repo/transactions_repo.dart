@@ -140,6 +140,10 @@ class TransactionsRepo {
 
     if (officialTransactionCode.isEmpty ||
         !officialTransactionCode.startsWith('TRX-')) {
+      await _rollbackFailedTransactionProofUpload(
+        companyId: companyId,
+        transactionId: transactionId,
+      );
       throw StateError('Official transaction code was not returned.');
     }
 
@@ -149,16 +153,33 @@ class TransactionsRepo {
       localImagePath: localProofImagePath,
     );
 
-    final proofRpcResult = await _supabase.rpc(
-      'upload_transaction_proof_image',
-      params: {
-        'p_company_id': companyId,
-        'p_transaction_id': transactionId,
-        'p_proof_image_path': uploadedPath,
-      },
-    );
+    late final String savedTransactionId;
 
-    final savedTransactionId = _readCreatedTransactionId(proofRpcResult);
+    try {
+      final proofRpcResult = await _supabase.rpc(
+        'upload_transaction_proof_image',
+        params: {
+          'p_company_id': companyId,
+          'p_transaction_id': transactionId,
+          'p_proof_image_path': uploadedPath,
+        },
+      );
+
+      savedTransactionId = _readCreatedTransactionId(proofRpcResult);
+    } catch (_) {
+      await _deleteUploadedProofImageIfUnlinked(
+        companyId: companyId,
+        transactionId: transactionId,
+        uploadedPath: uploadedPath,
+      );
+
+      await _rollbackFailedTransactionProofUpload(
+        companyId: companyId,
+        transactionId: transactionId,
+      );
+
+      rethrow;
+    }
 
     savedTransaction = await _fetchTransactionById(
       transactionId: savedTransactionId,
@@ -210,16 +231,27 @@ class TransactionsRepo {
       localDocumentPath: localDocumentPath,
     );
 
-    final rpcResult = await _supabase.rpc(
-      'upload_transaction_approval_document',
-      params: {
-        'p_company_id': companyId,
-        'p_transaction_id': transactionId,
-        'p_approval_document_path': uploadedPath,
-      },
-    );
+    late final String savedId;
 
-    final savedId = _readCreatedTransactionId(rpcResult);
+    try {
+      final rpcResult = await _supabase.rpc(
+        'upload_transaction_approval_document',
+        params: {
+          'p_company_id': companyId,
+          'p_transaction_id': transactionId,
+          'p_approval_document_path': uploadedPath,
+        },
+      );
+
+      savedId = _readCreatedTransactionId(rpcResult);
+    } catch (_) {
+      await _deleteUploadedApprovalDocumentIfUnlinked(
+        companyId: companyId,
+        transactionId: transactionId,
+        uploadedPath: uploadedPath,
+      );
+      rethrow;
+    }
 
     final data = await _supabase
         .from('transactions')
@@ -342,6 +374,92 @@ class TransactionsRepo {
     }
 
     return imagePath;
+  }
+
+  Future<void> _deleteUploadedProofImageIfUnlinked({
+    required String companyId,
+    required String transactionId,
+    required String uploadedPath,
+  }) async {
+    await _deleteUploadedTransactionFileIfUnlinked(
+      companyId: companyId,
+      transactionId: transactionId,
+      columnName: 'proof_image_path',
+      uploadedPath: uploadedPath,
+      deleteFile: () => _storageService.deleteProofImage(path: uploadedPath),
+    );
+  }
+
+  Future<void> _deleteUploadedApprovalDocumentIfUnlinked({
+    required String companyId,
+    required String transactionId,
+    required String uploadedPath,
+  }) async {
+    await _deleteUploadedTransactionFileIfUnlinked(
+      companyId: companyId,
+      transactionId: transactionId,
+      columnName: 'approval_document_path',
+      uploadedPath: uploadedPath,
+      deleteFile: () =>
+          _storageService.deleteApprovalDocumentFile(path: uploadedPath),
+    );
+  }
+
+  Future<void> _deleteUploadedTransactionFileIfUnlinked({
+    required String companyId,
+    required String transactionId,
+    required String columnName,
+    required String uploadedPath,
+    required Future<void> Function() deleteFile,
+  }) async {
+    try {
+      final isLinked = await _isTransactionStoragePathLinked(
+        companyId: companyId,
+        transactionId: transactionId,
+        columnName: columnName,
+        uploadedPath: uploadedPath,
+      );
+
+      if (isLinked) {
+        return;
+      }
+
+      await deleteFile();
+    } catch (_) {
+      // Best-effort cleanup must not hide the original upload/database error.
+    }
+  }
+
+  Future<bool> _isTransactionStoragePathLinked({
+    required String companyId,
+    required String transactionId,
+    required String columnName,
+    required String uploadedPath,
+  }) async {
+    final data = await _supabase
+        .from('transactions')
+        .select(columnName)
+        .eq('id', transactionId)
+        .eq('company_id', companyId)
+        .single();
+
+    final linkedPath = data[columnName] as String?;
+
+    return linkedPath?.trim() == uploadedPath.trim();
+  }
+
+  Future<void> _rollbackFailedTransactionProofUpload({
+    required String companyId,
+    required String transactionId,
+  }) async {
+    try {
+      await _supabase.rpc(
+        'rollback_failed_transaction_proof_upload',
+        params: {'p_company_id': companyId, 'p_transaction_id': transactionId},
+      );
+    } catch (_) {
+      // Best-effort rollback must not hide the original upload/database error.
+    }
   }
 
   String _readCreatedTransactionId(dynamic rpcResult) {
