@@ -75,6 +75,65 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     }
   }
 
+  Future<void> validateCurrentCompanyAccessSilently() async {
+    final currentState = state;
+
+    if (currentState is! CurrentContextLoaded) {
+      return;
+    }
+
+    final currentCompany = currentState.currentCompany;
+
+    if (currentCompany == null) {
+      return;
+    }
+
+    try {
+      await _networkStatusService.ensureOnline();
+
+      final activeMembershipRole = await _repo.getActiveCompanyMembershipRole(
+        profileId: currentState.profile.id,
+        companyId: currentCompany.id,
+      );
+
+      if (activeMembershipRole == null) {
+        if (kDebugMode) {
+          debugPrint(
+            'Current company access lost. Refreshing CurrentContext silently. '
+            'companyId=${currentCompany.id}',
+          );
+        }
+
+        await refreshCurrentContextSilently();
+        return;
+      }
+
+      final currentRole = _normalizeRole(currentCompany.role);
+      final freshRole = _normalizeRole(activeMembershipRole);
+
+      if (currentRole == freshRole) {
+        return;
+      }
+
+      if (kDebugMode) {
+        debugPrint(
+          'Current company role changed. Refreshing CurrentContext silently. '
+          'companyId=${currentCompany.id}, oldRole=$currentRole, '
+          'newRole=$freshRole',
+        );
+      }
+
+      await refreshCurrentContextSilently();
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Silent current company access validation error: $error');
+        debugPrint(
+          'Silent current company access validation stackTrace: $stackTrace',
+        );
+      }
+    }
+  }
+
   Future<void> createCompany({required CreateCompanyRequest request}) async {
     emit(const CurrentContextLoading());
 
@@ -274,5 +333,9 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     }
 
     return null;
+  }
+
+  String _normalizeRole(String? role) {
+    return role?.trim().toLowerCase() ?? '';
   }
 }

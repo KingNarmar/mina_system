@@ -55,6 +55,44 @@ class CurrentContextRepo {
     return companies;
   }
 
+  Future<String?> getActiveCompanyMembershipRole({
+    required String profileId,
+    required String companyId,
+  }) async {
+    final cleanProfileId = profileId.trim();
+    final cleanCompanyId = companyId.trim();
+
+    if (cleanProfileId.isEmpty || cleanCompanyId.isEmpty) {
+      return null;
+    }
+
+    final data = await _supabase
+        .from('company_members')
+        .select('role')
+        .eq('profile_id', cleanProfileId)
+        .eq('company_id', cleanCompanyId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+    if (data == null) {
+      return null;
+    }
+
+    return data['role'] as String?;
+  }
+
+  Future<bool> hasActiveCompanyMembership({
+    required String profileId,
+    required String companyId,
+  }) async {
+    final role = await getActiveCompanyMembershipRole(
+      profileId: profileId,
+      companyId: companyId,
+    );
+
+    return role != null;
+  }
+
   Future<String> createCompany(CreateCompanyRequest request) async {
     final companyId = await _supabase.rpc(
       'create_company_with_defaults',
