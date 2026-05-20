@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/network/presentation/cubit/network_status_cubit.dart';
@@ -66,11 +64,6 @@ class _NoCompanyInvitationGate extends StatefulWidget {
 }
 
 class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
-  static const Duration _contextRecoveryInterval = Duration(seconds: 12);
-
-  Timer? _contextRecoveryTimer;
-  bool _isRefreshingContextSilently = false;
-
   @override
   void initState() {
     super.initState();
@@ -82,31 +75,6 @@ class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
 
       context.read<CompanyUsersCubit>().loadCurrentUserPendingInvitations();
     });
-
-    _startContextRecoveryGuard();
-  }
-
-  void _startContextRecoveryGuard() {
-    _contextRecoveryTimer?.cancel();
-
-    _contextRecoveryTimer = Timer.periodic(
-      _contextRecoveryInterval,
-      (_) => unawaited(_refreshContextSilently()),
-    );
-  }
-
-  Future<void> _refreshContextSilently() async {
-    if (!mounted || _isRefreshingContextSilently) {
-      return;
-    }
-
-    _isRefreshingContextSilently = true;
-
-    try {
-      await context.read<CurrentContextCubit>().refreshCurrentContextSilently();
-    } finally {
-      _isRefreshingContextSilently = false;
-    }
   }
 
   @override
@@ -128,13 +96,6 @@ class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
         return const CreateCompanyScreen();
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _contextRecoveryTimer?.cancel();
-    _contextRecoveryTimer = null;
-    super.dispose();
   }
 }
 

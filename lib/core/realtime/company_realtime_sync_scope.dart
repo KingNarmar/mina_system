@@ -25,7 +25,6 @@ class CompanyRealtimeSyncScope extends StatefulWidget {
 
 class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
   static const Duration _refreshDebounceDuration = Duration(milliseconds: 700);
-  static const Duration _currentAccessGuardInterval = Duration(seconds: 12);
 
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -34,14 +33,12 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
   Timer? _transactionsRefreshTimer;
   Timer? _companyMembersRefreshTimer;
   Timer? _currentContextRefreshTimer;
-  Timer? _currentAccessGuardTimer;
 
   String? _activeCompanyId;
 
   bool _hasPendingTransactionsRefresh = false;
   bool _hasPendingCompanyUsersRefresh = false;
   bool _hasPendingCurrentContextRefresh = false;
-  bool _isValidatingCurrentAccess = false;
 
   @override
   void didChangeDependencies() {
@@ -108,7 +105,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     final cleanCompanyId = companyId?.trim();
 
     if (cleanCompanyId == null || cleanCompanyId.isEmpty) {
-      _debugRealtime('No active company. Stopping realtime sync.');
+      _debugRealtime('No active company. Stopping company realtime sync.');
       unawaited(_stopRealtimeSync());
       return;
     }
@@ -129,7 +126,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
 
     _activeCompanyId = companyId;
 
-    _debugRealtime('Starting realtime sync for company_id=$companyId');
+    _debugRealtime('Starting company realtime sync for company_id=$companyId');
 
     final channel = _supabase.channel(
       'company-realtime-sync:$companyId:${DateTime.now().millisecondsSinceEpoch}',
@@ -167,7 +164,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     );
 
     _channel = channel;
-    _startCurrentAccessGuard();
 
     channel.subscribe((status, [error]) {
       _debugRealtime('Company realtime sync status: $status');
@@ -210,15 +206,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     _currentContextRefreshTimer = Timer(_refreshDebounceDuration, () {
       unawaited(_refreshCurrentContext());
     });
-  }
-
-  void _startCurrentAccessGuard() {
-    _currentAccessGuardTimer?.cancel();
-
-    _currentAccessGuardTimer = Timer.periodic(
-      _currentAccessGuardInterval,
-      (_) => unawaited(_validateCurrentCompanyAccess()),
-    );
   }
 
   Future<void> _refreshTransactions() async {
@@ -336,45 +323,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     }
   }
 
-  Future<void> _validateCurrentCompanyAccess() async {
-    if (!mounted || _isValidatingCurrentAccess) {
-      return;
-    }
-
-    final companyId = _activeCompanyId;
-
-    if (companyId == null || companyId.trim().isEmpty) {
-      return;
-    }
-
-    final currentContextState = context.read<CurrentContextCubit>().state;
-
-    if (currentContextState is! CurrentContextLoaded) {
-      return;
-    }
-
-    if (currentContextState.currentCompany?.id != companyId) {
-      return;
-    }
-
-    _isValidatingCurrentAccess = true;
-
-    try {
-      _debugRealtime(
-        'Validating current user access silently. companyId=$companyId',
-      );
-
-      await context
-          .read<CurrentContextCubit>()
-          .validateCurrentCompanyAccessSilently();
-    } catch (error, stackTrace) {
-      _debugRealtime('Current access guard error: $error');
-      _debugRealtime('Current access guard stackTrace: $stackTrace');
-    } finally {
-      _isValidatingCurrentAccess = false;
-    }
-  }
-
   bool _shouldDeferTransactionsRefresh(TransactionsState state) {
     return state.isTransactionFormOpen || state.isSubmitting;
   }
@@ -422,13 +370,9 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     _currentContextRefreshTimer?.cancel();
     _currentContextRefreshTimer = null;
 
-    _currentAccessGuardTimer?.cancel();
-    _currentAccessGuardTimer = null;
-
     _hasPendingTransactionsRefresh = false;
     _hasPendingCompanyUsersRefresh = false;
     _hasPendingCurrentContextRefresh = false;
-    _isValidatingCurrentAccess = false;
 
     final channel = _channel;
     _channel = null;

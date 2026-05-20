@@ -6,6 +6,7 @@ import 'package:mina_system/core/layout/tablet_shell.dart';
 import 'package:mina_system/core/network/presentation/cubit/network_status_cubit.dart';
 import 'package:mina_system/core/network/presentation/widgets/global_offline_banner.dart';
 import 'package:mina_system/core/realtime/company_realtime_sync_scope.dart';
+import 'package:mina_system/core/realtime/user_context_realtime_sync_scope.dart';
 import 'package:mina_system/core/responsive/responsive_layout.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
@@ -91,12 +92,14 @@ class _AppShellView extends StatelessWidget {
         );
       },
       child: const GlobalOfflineBanner(
-        child: CurrentContextGate(
-          child: CompanyRealtimeSyncScope(
-            child: ResponsiveLayout(
-              mobile: MobileShell(),
-              tablet: TabletShell(),
-              desktop: DesktopShell(),
+        child: UserContextRealtimeSyncScope(
+          child: CurrentContextGate(
+            child: CompanyRealtimeSyncScope(
+              child: ResponsiveLayout(
+                mobile: MobileShell(),
+                tablet: TabletShell(),
+                desktop: DesktopShell(),
+              ),
             ),
           ),
         ),
