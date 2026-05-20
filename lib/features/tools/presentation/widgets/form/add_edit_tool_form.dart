@@ -17,14 +17,12 @@ class AddEditToolForm extends StatefulWidget {
     super.key,
     required this.onSave,
     this.initialTool,
-    this.generatedToolCode,
     this.isToolCodeAlreadyUsed,
     this.isToolNameAlreadyUsed,
   });
 
   final Future<String?> Function(ToolModel tool) onSave;
   final ToolModel? initialTool;
-  final String? generatedToolCode;
   final ToolCodeValidator? isToolCodeAlreadyUsed;
   final ToolNameValidator? isToolNameAlreadyUsed;
 
@@ -55,10 +53,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
       _toolNameController.text = tool.toolName;
       _selectedUnit = tool.unit;
       _selectedCategory = tool.category;
-      return;
     }
-
-    _toolCodeController.text = widget.generatedToolCode ?? '';
   }
 
   @override
@@ -93,19 +88,23 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                     style: AppTextStyles.title,
                   ),
                   const Gap(20),
-                  CustomTextFormField(
-                    hint: 'Tool Code',
-                    controller: _toolCodeController,
-                    readOnly: true,
-                    validator: (value) {
-                      return validateToolCode(
-                        value: value,
-                        initialTool: widget.initialTool,
-                        isToolCodeAlreadyUsed: widget.isToolCodeAlreadyUsed,
-                      );
-                    },
-                  ),
-                  const Gap(12),
+
+                  if (_isEditMode) ...[
+                    CustomTextFormField(
+                      hint: 'Tool Code',
+                      controller: _toolCodeController,
+                      readOnly: true,
+                      validator: (value) {
+                        return validateToolCode(
+                          value: value,
+                          initialTool: widget.initialTool,
+                          isToolCodeAlreadyUsed: widget.isToolCodeAlreadyUsed,
+                        );
+                      },
+                    ),
+                    const Gap(12),
+                  ],
+
                   CustomTextFormField(
                     hint: 'Tool Name',
                     controller: _toolNameController,
@@ -118,6 +117,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                     },
                   ),
                   const Gap(12),
+
                   CustomDropdownFormField(
                     hint: 'Unit',
                     value: _selectedUnit,
@@ -131,6 +131,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                     },
                   ),
                   const Gap(12),
+
                   CustomDropdownFormField(
                     hint: 'Category',
                     value: _selectedCategory,
@@ -143,10 +144,12 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
                       });
                     },
                   ),
+
                   if (_submitErrorMessage != null) ...[
                     const Gap(16),
                     _FormErrorMessage(message: _submitErrorMessage!),
                   ],
+
                   const Gap(20),
                   MainButton(
                     text: _isEditMode ? 'Update Tool' : 'Save Tool',
@@ -194,7 +197,7 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
     final tool = ToolModel(
       id: initialTool?.id,
       companyId: initialTool?.companyId,
-      toolCode: _toolCodeController.text.trim(),
+      toolCode: _isEditMode ? _toolCodeController.text.trim() : '',
       toolName: _toolNameController.text.trim(),
       unit: selectedUnitModel.name,
       category: selectedCategoryModel.name,

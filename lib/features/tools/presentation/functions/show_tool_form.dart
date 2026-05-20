@@ -28,9 +28,6 @@ void showToolBottomSheet(BuildContext context, {ToolModel? tool}) {
         ],
         child: AddEditToolForm(
           initialTool: tool,
-          generatedToolCode: tool == null
-              ? toolsCubit.generateNextToolCode()
-              : null,
           isToolCodeAlreadyUsed: toolsCubit.isToolCodeAlreadyUsed,
           isToolNameAlreadyUsed: toolsCubit.isToolNameAlreadyUsed,
           onSave: (savedTool) async {
@@ -64,9 +61,6 @@ void showToolDialog(BuildContext context, {ToolModel? tool}) {
             ],
             child: AddEditToolForm(
               initialTool: tool,
-              generatedToolCode: tool == null
-                  ? toolsCubit.generateNextToolCode()
-                  : null,
               isToolCodeAlreadyUsed: toolsCubit.isToolCodeAlreadyUsed,
               isToolNameAlreadyUsed: toolsCubit.isToolNameAlreadyUsed,
               onSave: (savedTool) async {

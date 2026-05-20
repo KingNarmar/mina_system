@@ -9,8 +9,14 @@ import 'package:mina_system/features/current_context/presentation/cubit/current_
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
+import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
+import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
+import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
+import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CompanyRealtimeSyncScope extends StatefulWidget {
@@ -33,12 +39,18 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
   Timer? _transactionsRefreshTimer;
   Timer? _companyMembersRefreshTimer;
   Timer? _currentContextRefreshTimer;
+  Timer? _workersRefreshTimer;
+  Timer? _toolsRefreshTimer;
+  Timer? _lookupsRefreshTimer;
 
   String? _activeCompanyId;
 
   bool _hasPendingTransactionsRefresh = false;
   bool _hasPendingCompanyUsersRefresh = false;
   bool _hasPendingCurrentContextRefresh = false;
+  bool _hasPendingWorkersRefresh = false;
+  bool _hasPendingToolsRefresh = false;
+  bool _hasPendingLookupsRefresh = false;
 
   @override
   void didChangeDependencies() {
@@ -94,6 +106,42 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
           },
           listener: (context, state) {
             _tryFlushPendingCompanyMembersRefresh(state);
+          },
+        ),
+        BlocListener<WorkersCubit, WorkersState>(
+          listenWhen: (previous, current) {
+            if (!_hasPendingWorkersRefresh) {
+              return false;
+            }
+
+            return previous.isSubmitting != current.isSubmitting;
+          },
+          listener: (context, state) {
+            _tryFlushPendingWorkersRefresh(state);
+          },
+        ),
+        BlocListener<ToolsCubit, ToolsState>(
+          listenWhen: (previous, current) {
+            if (!_hasPendingToolsRefresh) {
+              return false;
+            }
+
+            return previous.isSubmitting != current.isSubmitting;
+          },
+          listener: (context, state) {
+            _tryFlushPendingToolsRefresh(state);
+          },
+        ),
+        BlocListener<LookupsCubit, LookupsState>(
+          listenWhen: (previous, current) {
+            if (!_hasPendingLookupsRefresh) {
+              return false;
+            }
+
+            return previous.isSubmitting != current.isSubmitting;
+          },
+          listener: (context, state) {
+            _tryFlushPendingLookupsRefresh(state);
           },
         ),
       ],
@@ -163,6 +211,86 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
       callback: _handleCompanyMemberChange,
     );
 
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'workers',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: _handleWorkerChange,
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'tools',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: _handleToolChange,
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'departments',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: (payload) {
+        _handleLookupChange(tableName: 'departments', payload: payload);
+      },
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'job_titles',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: (payload) {
+        _handleLookupChange(tableName: 'job_titles', payload: payload);
+      },
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'tool_units',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: (payload) {
+        _handleLookupChange(tableName: 'tool_units', payload: payload);
+      },
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'tool_categories',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: (payload) {
+        _handleLookupChange(tableName: 'tool_categories', payload: payload);
+      },
+    );
+
     _channel = channel;
 
     channel.subscribe((status, [error]) {
@@ -182,6 +310,36 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
 
     _scheduleCompanyUsersRefresh();
     _scheduleCurrentContextRefresh();
+  }
+
+  void _handleWorkerChange(PostgresChangePayload payload) {
+    _debugRealtime(
+      'WORKERS EVENT => event=${payload.eventType}, '
+      'new=${payload.newRecord}, old=${payload.oldRecord}',
+    );
+
+    _scheduleWorkersRefresh();
+  }
+
+  void _handleToolChange(PostgresChangePayload payload) {
+    _debugRealtime(
+      'TOOLS EVENT => event=${payload.eventType}, '
+      'new=${payload.newRecord}, old=${payload.oldRecord}',
+    );
+
+    _scheduleToolsRefresh();
+  }
+
+  void _handleLookupChange({
+    required String tableName,
+    required PostgresChangePayload payload,
+  }) {
+    _debugRealtime(
+      'LOOKUPS/$tableName EVENT => event=${payload.eventType}, '
+      'new=${payload.newRecord}, old=${payload.oldRecord}',
+    );
+
+    _scheduleLookupsRefresh();
   }
 
   void _scheduleTransactionsRefresh() {
@@ -205,6 +363,30 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
 
     _currentContextRefreshTimer = Timer(_refreshDebounceDuration, () {
       unawaited(_refreshCurrentContext());
+    });
+  }
+
+  void _scheduleWorkersRefresh() {
+    _workersRefreshTimer?.cancel();
+
+    _workersRefreshTimer = Timer(_refreshDebounceDuration, () {
+      unawaited(_refreshWorkers());
+    });
+  }
+
+  void _scheduleToolsRefresh() {
+    _toolsRefreshTimer?.cancel();
+
+    _toolsRefreshTimer = Timer(_refreshDebounceDuration, () {
+      unawaited(_refreshTools());
+    });
+  }
+
+  void _scheduleLookupsRefresh() {
+    _lookupsRefreshTimer?.cancel();
+
+    _lookupsRefreshTimer = Timer(_refreshDebounceDuration, () {
+      unawaited(_refreshLookups());
     });
   }
 
@@ -323,11 +505,130 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     }
   }
 
+  Future<void> _refreshWorkers() async {
+    if (!mounted) {
+      return;
+    }
+
+    final companyId = _activeCompanyId;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      return;
+    }
+
+    final workersCubit = context.read<WorkersCubit>();
+    final dashboardCubit = context.read<DashboardCubit>();
+
+    if (_shouldDeferWorkersRefresh(workersCubit.state)) {
+      _debugRealtime('Workers refresh deferred.');
+      _hasPendingWorkersRefresh = true;
+      return;
+    }
+
+    try {
+      _debugRealtime('Refreshing workers silently.');
+
+      await workersCubit.loadWorkers(companyId: companyId, showLoader: false);
+
+      if (!mounted) {
+        return;
+      }
+
+      await dashboardCubit.loadDashboardSummary(
+        companyId: companyId,
+        showLoader: false,
+      );
+    } catch (error, stackTrace) {
+      _debugRealtime('Workers realtime refresh error: $error');
+      _debugRealtime('Workers realtime refresh stackTrace: $stackTrace');
+    }
+  }
+
+  Future<void> _refreshTools() async {
+    if (!mounted) {
+      return;
+    }
+
+    final companyId = _activeCompanyId;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      return;
+    }
+
+    final toolsCubit = context.read<ToolsCubit>();
+    final dashboardCubit = context.read<DashboardCubit>();
+
+    if (_shouldDeferToolsRefresh(toolsCubit.state)) {
+      _debugRealtime('Tools refresh deferred.');
+      _hasPendingToolsRefresh = true;
+      return;
+    }
+
+    try {
+      _debugRealtime('Refreshing tools silently.');
+
+      await toolsCubit.loadTools(companyId: companyId, showLoader: false);
+
+      if (!mounted) {
+        return;
+      }
+
+      await dashboardCubit.loadDashboardSummary(
+        companyId: companyId,
+        showLoader: false,
+      );
+    } catch (error, stackTrace) {
+      _debugRealtime('Tools realtime refresh error: $error');
+      _debugRealtime('Tools realtime refresh stackTrace: $stackTrace');
+    }
+  }
+
+  Future<void> _refreshLookups() async {
+    if (!mounted) {
+      return;
+    }
+
+    final companyId = _activeCompanyId;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      return;
+    }
+
+    final lookupsCubit = context.read<LookupsCubit>();
+
+    if (_shouldDeferLookupsRefresh(lookupsCubit.state)) {
+      _debugRealtime('Lookups refresh deferred.');
+      _hasPendingLookupsRefresh = true;
+      return;
+    }
+
+    try {
+      _debugRealtime('Refreshing lookups silently.');
+
+      await lookupsCubit.loadLookups(companyId: companyId, showLoader: false);
+    } catch (error, stackTrace) {
+      _debugRealtime('Lookups realtime refresh error: $error');
+      _debugRealtime('Lookups realtime refresh stackTrace: $stackTrace');
+    }
+  }
+
   bool _shouldDeferTransactionsRefresh(TransactionsState state) {
     return state.isTransactionFormOpen || state.isSubmitting;
   }
 
   bool _shouldDeferCompanyUsersRefresh(CompanyUsersState state) {
+    return state.isSubmitting;
+  }
+
+  bool _shouldDeferWorkersRefresh(WorkersState state) {
+    return state.isSubmitting;
+  }
+
+  bool _shouldDeferToolsRefresh(ToolsState state) {
+    return state.isSubmitting;
+  }
+
+  bool _shouldDeferLookupsRefresh(LookupsState state) {
     return state.isSubmitting;
   }
 
@@ -360,6 +661,45 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     }
   }
 
+  void _tryFlushPendingWorkersRefresh(WorkersState state) {
+    if (!_hasPendingWorkersRefresh) {
+      return;
+    }
+
+    if (_shouldDeferWorkersRefresh(state)) {
+      return;
+    }
+
+    _hasPendingWorkersRefresh = false;
+    _scheduleWorkersRefresh();
+  }
+
+  void _tryFlushPendingToolsRefresh(ToolsState state) {
+    if (!_hasPendingToolsRefresh) {
+      return;
+    }
+
+    if (_shouldDeferToolsRefresh(state)) {
+      return;
+    }
+
+    _hasPendingToolsRefresh = false;
+    _scheduleToolsRefresh();
+  }
+
+  void _tryFlushPendingLookupsRefresh(LookupsState state) {
+    if (!_hasPendingLookupsRefresh) {
+      return;
+    }
+
+    if (_shouldDeferLookupsRefresh(state)) {
+      return;
+    }
+
+    _hasPendingLookupsRefresh = false;
+    _scheduleLookupsRefresh();
+  }
+
   Future<void> _stopRealtimeSync() async {
     _transactionsRefreshTimer?.cancel();
     _transactionsRefreshTimer = null;
@@ -370,9 +710,21 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     _currentContextRefreshTimer?.cancel();
     _currentContextRefreshTimer = null;
 
+    _workersRefreshTimer?.cancel();
+    _workersRefreshTimer = null;
+
+    _toolsRefreshTimer?.cancel();
+    _toolsRefreshTimer = null;
+
+    _lookupsRefreshTimer?.cancel();
+    _lookupsRefreshTimer = null;
+
     _hasPendingTransactionsRefresh = false;
     _hasPendingCompanyUsersRefresh = false;
     _hasPendingCurrentContextRefresh = false;
+    _hasPendingWorkersRefresh = false;
+    _hasPendingToolsRefresh = false;
+    _hasPendingLookupsRefresh = false;
 
     final channel = _channel;
     _channel = null;
