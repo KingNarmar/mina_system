@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
 import 'package:mina_system/core/layout/app_top_bar.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 
 class DesktopShell extends StatefulWidget {
   const DesktopShell({super.key});
@@ -19,36 +21,54 @@ class _DesktopShellState extends State<DesktopShell> {
 
   @override
   Widget build(BuildContext context) {
-    final navItems = AppNavItems.itemsForRole(context.currentUserRole);
+    return BlocBuilder<CurrentContextCubit, CurrentContextState>(
+      buildWhen: (previous, current) {
+        if (previous is CurrentContextLoaded &&
+            current is CurrentContextLoaded) {
+          return previous.currentCompany?.role !=
+                  current.currentCompany?.role ||
+              previous.currentCompany?.id != current.currentCompany?.id;
+        }
 
-    if (navItems.isEmpty) {
-      return const _NoAvailablePagesView();
-    }
+        return previous.runtimeType != current.runtimeType;
+      },
+      builder: (context, state) {
+        final currentRole = state is CurrentContextLoaded
+            ? state.currentCompany?.role
+            : null;
 
-    final selectedIndex = _safeSelectedIndex(navItems);
+        final navItems = AppNavItems.itemsForRole(currentRole);
 
-    return Scaffold(
-      body: Row(
-        children: [
-          _DesktopSidebar(
-            items: navItems,
-            selectedIndex: selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
+        if (navItems.isEmpty) {
+          return const _NoAvailablePagesView();
+        }
+
+        final selectedIndex = _safeSelectedIndex(navItems);
+
+        return Scaffold(
+          body: Row(
+            children: [
+              _DesktopSidebar(
+                items: navItems,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    AppTopBar(title: navItems[selectedIndex].title),
+                    Expanded(child: navItems[selectedIndex].page),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Column(
-              children: [
-                AppTopBar(title: navItems[selectedIndex].title),
-                Expanded(child: navItems[selectedIndex].page),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

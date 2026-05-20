@@ -32,24 +32,11 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
     try {
       await _networkStatusService.ensureOnline();
 
-      final profile = await _repo.getCurrentProfile();
-      final companies = await _repo.getCurrentUserCompanies(
-        profileId: profile.id,
-      );
-
-      final currentCompany = await _resolveCurrentCompany(
-        profileId: profile.id,
-        companies: companies,
+      final loadedContext = await _loadCurrentContextData(
         restoreLastSelectedCompany: restoreLastSelectedCompany,
       );
 
-      emit(
-        CurrentContextLoaded(
-          profile: profile,
-          companies: companies,
-          currentCompany: currentCompany,
-        ),
-      );
+      emit(loadedContext);
     } on NetworkUnavailableException catch (error) {
       emit(CurrentContextFailure(error.message));
     } catch (error, stackTrace) {
@@ -66,6 +53,25 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
           ),
         ),
       );
+    }
+  }
+
+  Future<void> refreshCurrentContextSilently({
+    bool restoreLastSelectedCompany = true,
+  }) async {
+    try {
+      await _networkStatusService.ensureOnline();
+
+      final loadedContext = await _loadCurrentContextData(
+        restoreLastSelectedCompany: restoreLastSelectedCompany,
+      );
+
+      emit(loadedContext);
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Silent CurrentContext refresh error: $error');
+        debugPrint('Silent CurrentContext refresh stackTrace: $stackTrace');
+      }
     }
   }
 
@@ -182,6 +188,27 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         companies: updatedCompanies,
         currentCompany: updatedCurrentCompany,
       ),
+    );
+  }
+
+  Future<CurrentContextLoaded> _loadCurrentContextData({
+    required bool restoreLastSelectedCompany,
+  }) async {
+    final profile = await _repo.getCurrentProfile();
+    final companies = await _repo.getCurrentUserCompanies(
+      profileId: profile.id,
+    );
+
+    final currentCompany = await _resolveCurrentCompany(
+      profileId: profile.id,
+      companies: companies,
+      restoreLastSelectedCompany: restoreLastSelectedCompany,
+    );
+
+    return CurrentContextLoaded(
+      profile: profile,
+      companies: companies,
+      currentCompany: currentCompany,
     );
   }
 

@@ -8,7 +8,6 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
-import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MobileShell extends StatefulWidget {
@@ -31,60 +30,72 @@ class _MobileShellState extends State<MobileShell> {
 
   @override
   Widget build(BuildContext context) {
-    final navItems = AppNavItems.itemsForRole(context.currentUserRole);
+    return BlocBuilder<CurrentContextCubit, CurrentContextState>(
+      buildWhen: (previous, current) {
+        if (previous is CurrentContextLoaded &&
+            current is CurrentContextLoaded) {
+          return previous.currentCompany?.role !=
+                  current.currentCompany?.role ||
+              previous.currentCompany?.id != current.currentCompany?.id ||
+              previous.hasMultipleCompanies != current.hasMultipleCompanies;
+        }
 
-    if (navItems.isEmpty) {
-      return const _NoAvailablePagesView();
-    }
+        return previous.runtimeType != current.runtimeType;
+      },
+      builder: (context, state) {
+        final currentRole = state is CurrentContextLoaded
+            ? state.currentCompany?.role
+            : null;
 
-    final selectedIndex = _safeSelectedIndex(navItems);
+        final navItems = AppNavItems.itemsForRole(currentRole);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(navItems[selectedIndex].title),
-        actions: [
-          BlocBuilder<CurrentContextCubit, CurrentContextState>(
-            builder: (context, state) {
+        if (navItems.isEmpty) {
+          return const _NoAvailablePagesView();
+        }
+
+        final selectedIndex = _safeSelectedIndex(navItems);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(navItems[selectedIndex].title),
+            actions: [
               if (state is CurrentContextLoaded &&
                   state.hasMultipleCompanies &&
-                  state.currentCompany != null) {
-                return IconButton(
+                  state.currentCompany != null)
+                IconButton(
                   tooltip: 'Switch Company',
                   onPressed: () {
                     context.read<CurrentContextCubit>().openCompanySelection();
                   },
                   icon: const Icon(Icons.swap_horiz),
-                );
-              }
-
-              return const SizedBox.shrink();
-            },
-          ),
-          IconButton(
-            tooltip: 'Logout',
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: SafeArea(child: navItems[selectedIndex].page),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        onDestinationSelected: (value) {
-          setState(() {
-            _selectedIndex = value;
-          });
-        },
-        destinations: navItems
-            .map(
-              (item) => NavigationDestination(
-                icon: Icon(item.icon),
-                label: _getMobileLabel(item.title),
+                ),
+              IconButton(
+                tooltip: 'Logout',
+                onPressed: _logout,
+                icon: const Icon(Icons.logout),
               ),
-            )
-            .toList(),
-      ),
+            ],
+          ),
+          body: SafeArea(child: navItems[selectedIndex].page),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: selectedIndex,
+            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+            onDestinationSelected: (value) {
+              setState(() {
+                _selectedIndex = value;
+              });
+            },
+            destinations: navItems
+                .map(
+                  (item) => NavigationDestination(
+                    icon: Icon(item.icon),
+                    label: _getMobileLabel(item.title),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      },
     );
   }
 

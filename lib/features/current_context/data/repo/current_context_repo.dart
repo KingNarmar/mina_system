@@ -32,7 +32,8 @@ class CurrentContextRepo {
     final memberships = await _supabase
         .from('company_members')
         .select('company_id, role')
-        .eq('profile_id', profileId);
+        .eq('profile_id', profileId)
+        .eq('status', 'active');
 
     final companies = <CompanyModel>[];
 
