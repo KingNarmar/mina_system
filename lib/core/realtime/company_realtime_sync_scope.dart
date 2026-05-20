@@ -3,14 +3,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
-import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
+import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
-import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
-import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
-import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CompanyRealtimeSyncScope extends StatefulWidget {
@@ -27,32 +25,74 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
   static const Duration _refreshDebounceDuration = Duration(milliseconds: 700);
 
   final SupabaseClient _supabase = Supabase.instance.client;
-  final Map<_CompanyRealtimeRefreshGroup, Timer> _refreshTimers = {};
 
   RealtimeChannel? _channel;
+  Timer? _transactionsRefreshTimer;
+
   String? _activeCompanyId;
+  bool _hasPendingTransactionsRefresh = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    final companyId = context.currentCompanyId;
-
-    if (companyId == null || companyId.trim().isEmpty) {
-      unawaited(_stopRealtimeSync());
-      return;
-    }
-
-    if (_activeCompanyId == companyId && _channel != null) {
-      return;
-    }
-
-    unawaited(_startRealtimeSync(companyId));
+    _syncWithCompanyId(context.currentCompanyId);
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CurrentContextCubit, CurrentContextState>(
+          listenWhen: (previous, current) {
+            if (previous is CurrentContextLoaded &&
+                current is CurrentContextLoaded) {
+              return previous.currentCompany?.id != current.currentCompany?.id;
+            }
+
+            return previous.runtimeType != current.runtimeType ||
+                current is CurrentContextLoaded;
+          },
+          listener: (context, state) {
+            if (state is CurrentContextLoaded) {
+              _syncWithCompanyId(state.currentCompany?.id);
+              return;
+            }
+
+            _syncWithCompanyId(null);
+          },
+        ),
+        BlocListener<TransactionsCubit, TransactionsState>(
+          listenWhen: (previous, current) {
+            if (!_hasPendingTransactionsRefresh) {
+              return false;
+            }
+
+            return previous.isTransactionFormOpen !=
+                    current.isTransactionFormOpen ||
+                previous.isSubmitting != current.isSubmitting;
+          },
+          listener: (context, state) {
+            _tryFlushPendingTransactionsRefresh(state);
+          },
+        ),
+      ],
+      child: widget.child,
+    );
+  }
+
+  void _syncWithCompanyId(String? companyId) {
+    final cleanCompanyId = companyId?.trim();
+
+    if (cleanCompanyId == null || cleanCompanyId.isEmpty) {
+      unawaited(_stopRealtimeSync());
+      return;
+    }
+
+    if (_activeCompanyId == cleanCompanyId && _channel != null) {
+      return;
+    }
+
+    unawaited(_startRealtimeSync(cleanCompanyId));
   }
 
   Future<void> _startRealtimeSync(String companyId) async {
@@ -65,91 +105,19 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     _activeCompanyId = companyId;
 
     final channel = _supabase.channel(
-      'company-wide-sync:$companyId:${DateTime.now().millisecondsSinceEpoch}',
+      'company-transactions-sync:$companyId:${DateTime.now().millisecondsSinceEpoch}',
     );
 
-    _listenToCompanyTable(
-      channel: channel,
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
       table: 'transactions',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.transactions,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'workers',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.workers,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'tools',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.tools,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'departments',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.lookups,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'job_titles',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.lookups,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'tool_units',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.lookups,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'tool_categories',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.lookups,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'company_report_settings',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.companySettings,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'company_document_templates',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.companySettings,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'company_members',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.companyUsers,
-    );
-
-    _listenToCompanyTable(
-      channel: channel,
-      table: 'company_invitations',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.companyUsers,
-    );
-
-    _listenToCompanyRowTable(
-      channel: channel,
-      table: 'companies',
-      companyId: companyId,
-      refreshGroup: _CompanyRealtimeRefreshGroup.companySettings,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'company_id',
+        value: companyId,
+      ),
+      callback: (_) => _scheduleTransactionsRefresh(),
     );
 
     _channel = channel;
@@ -159,63 +127,23 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
         return;
       }
 
-      debugPrint('Company realtime sync status: $status');
+      debugPrint('Transactions realtime sync status: $status');
 
       if (error != null) {
-        debugPrint('Company realtime sync error: $error');
+        debugPrint('Transactions realtime sync error: $error');
       }
     });
   }
 
-  void _listenToCompanyTable({
-    required RealtimeChannel channel,
-    required String table,
-    required String companyId,
-    required _CompanyRealtimeRefreshGroup refreshGroup,
-  }) {
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: table,
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'company_id',
-        value: companyId,
-      ),
-      callback: (_) => _scheduleRefresh(refreshGroup),
-    );
-  }
+  void _scheduleTransactionsRefresh() {
+    _transactionsRefreshTimer?.cancel();
 
-  void _listenToCompanyRowTable({
-    required RealtimeChannel channel,
-    required String table,
-    required String companyId,
-    required _CompanyRealtimeRefreshGroup refreshGroup,
-  }) {
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: table,
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'id',
-        value: companyId,
-      ),
-      callback: (_) => _scheduleRefresh(refreshGroup),
-    );
-  }
-
-  void _scheduleRefresh(_CompanyRealtimeRefreshGroup refreshGroup) {
-    _refreshTimers[refreshGroup]?.cancel();
-
-    _refreshTimers[refreshGroup] = Timer(_refreshDebounceDuration, () {
-      unawaited(_refreshCompanyData(refreshGroup));
+    _transactionsRefreshTimer = Timer(_refreshDebounceDuration, () {
+      unawaited(_refreshTransactions());
     });
   }
 
-  Future<void> _refreshCompanyData(
-    _CompanyRealtimeRefreshGroup refreshGroup,
-  ) async {
+  Future<void> _refreshTransactions() async {
     if (!mounted) {
       return;
     }
@@ -228,84 +156,55 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
 
     final transactionsCubit = context.read<TransactionsCubit>();
     final dashboardCubit = context.read<DashboardCubit>();
-    final workersCubit = context.read<WorkersCubit>();
-    final toolsCubit = context.read<ToolsCubit>();
-    final lookupsCubit = context.read<LookupsCubit>();
-    final companySettingsCubit = context.read<CompanySettingsCubit>();
-    final companyUsersCubit = context.read<CompanyUsersCubit>();
+
+    if (_shouldDeferTransactionsRefresh(transactionsCubit.state)) {
+      _hasPendingTransactionsRefresh = true;
+      return;
+    }
 
     try {
-      switch (refreshGroup) {
-        case _CompanyRealtimeRefreshGroup.transactions:
-          await transactionsCubit.loadTransactions(
-            companyId: companyId,
-            showLoader: false,
-          );
-          await dashboardCubit.loadDashboardSummary(
-            companyId: companyId,
-            showLoader: false,
-          );
-          break;
+      await transactionsCubit.loadTransactions(
+        companyId: companyId,
+        showLoader: false,
+      );
 
-        case _CompanyRealtimeRefreshGroup.workers:
-          await workersCubit.loadWorkers(
-            companyId: companyId,
-            showLoader: false,
-          );
-          await dashboardCubit.loadDashboardSummary(
-            companyId: companyId,
-            showLoader: false,
-          );
-          break;
-
-        case _CompanyRealtimeRefreshGroup.tools:
-          await toolsCubit.loadTools(companyId: companyId, showLoader: false);
-          await dashboardCubit.loadDashboardSummary(
-            companyId: companyId,
-            showLoader: false,
-          );
-          break;
-
-        case _CompanyRealtimeRefreshGroup.lookups:
-          await lookupsCubit.loadLookups(
-            companyId: companyId,
-            showLoader: false,
-          );
-          await workersCubit.loadWorkers(
-            companyId: companyId,
-            showLoader: false,
-          );
-          await toolsCubit.loadTools(companyId: companyId, showLoader: false);
-          break;
-
-        case _CompanyRealtimeRefreshGroup.companySettings:
-          await companySettingsCubit.loadCompanyProfile(
-            companyId: companyId,
-            showLoader: false,
-          );
-          break;
-
-        case _CompanyRealtimeRefreshGroup.companyUsers:
-          await companyUsersCubit.loadCompanyUsers(
-            companyId: companyId,
-            showLoader: false,
-          );
-          break;
+      if (!mounted) {
+        return;
       }
+
+      await dashboardCubit.loadDashboardSummary(
+        companyId: companyId,
+        showLoader: false,
+      );
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('Company realtime refresh error: $error');
-        debugPrint('Company realtime refresh stackTrace: $stackTrace');
+        debugPrint('Transactions realtime refresh error: $error');
+        debugPrint('Transactions realtime refresh stackTrace: $stackTrace');
       }
     }
   }
 
-  Future<void> _stopRealtimeSync() async {
-    for (final timer in _refreshTimers.values) {
-      timer.cancel();
+  bool _shouldDeferTransactionsRefresh(TransactionsState state) {
+    return state.isTransactionFormOpen || state.isSubmitting;
+  }
+
+  void _tryFlushPendingTransactionsRefresh(TransactionsState state) {
+    if (!_hasPendingTransactionsRefresh) {
+      return;
     }
 
-    _refreshTimers.clear();
+    if (_shouldDeferTransactionsRefresh(state)) {
+      return;
+    }
+
+    _hasPendingTransactionsRefresh = false;
+    _scheduleTransactionsRefresh();
+  }
+
+  Future<void> _stopRealtimeSync() async {
+    _transactionsRefreshTimer?.cancel();
+    _transactionsRefreshTimer = null;
+    _hasPendingTransactionsRefresh = false;
 
     final channel = _channel;
     _channel = null;
@@ -319,8 +218,8 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
       await _supabase.removeChannel(channel);
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('Stop company realtime sync error: $error');
-        debugPrint('Stop company realtime sync stackTrace: $stackTrace');
+        debugPrint('Stop transactions realtime sync error: $error');
+        debugPrint('Stop transactions realtime sync stackTrace: $stackTrace');
       }
     }
   }
@@ -330,13 +229,4 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     unawaited(_stopRealtimeSync());
     super.dispose();
   }
-}
-
-enum _CompanyRealtimeRefreshGroup {
-  transactions,
-  workers,
-  tools,
-  lookups,
-  companySettings,
-  companyUsers,
 }

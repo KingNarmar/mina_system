@@ -39,6 +39,22 @@ class TransactionsCubit extends Cubit<TransactionsState> {
 
   void emitState(TransactionsState state) => emit(state);
 
+  void markTransactionFormOpened() {
+    if (state.isTransactionFormOpen) {
+      return;
+    }
+
+    emit(state.copyWith(isTransactionFormOpen: true));
+  }
+
+  void markTransactionFormClosed() {
+    if (!state.isTransactionFormOpen) {
+      return;
+    }
+
+    emit(state.copyWith(isTransactionFormOpen: false));
+  }
+
   void clearErrorMessage() {
     if (state.errorMessage == null) {
       return;

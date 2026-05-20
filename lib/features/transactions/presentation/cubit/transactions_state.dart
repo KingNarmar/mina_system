@@ -12,6 +12,7 @@ class TransactionsState {
     required this.typeFilter,
     this.isLoading = false,
     this.isSubmitting = false,
+    this.isTransactionFormOpen = false,
     this.errorMessage,
   });
 
@@ -23,6 +24,7 @@ class TransactionsState {
   final TransactionTypeFilter typeFilter;
   final bool isLoading;
   final bool isSubmitting;
+  final bool isTransactionFormOpen;
   final String? errorMessage;
 
   TransactionsState copyWith({
@@ -34,6 +36,7 @@ class TransactionsState {
     TransactionTypeFilter? typeFilter,
     bool? isLoading,
     bool? isSubmitting,
+    bool? isTransactionFormOpen,
     String? errorMessage,
     bool clearErrorMessage = false,
   }) {
@@ -48,6 +51,8 @@ class TransactionsState {
       typeFilter: typeFilter ?? this.typeFilter,
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      isTransactionFormOpen:
+          isTransactionFormOpen ?? this.isTransactionFormOpen,
       errorMessage: clearErrorMessage
           ? null
           : errorMessage ?? this.errorMessage,

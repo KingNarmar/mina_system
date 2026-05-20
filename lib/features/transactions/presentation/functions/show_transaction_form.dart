@@ -19,6 +19,8 @@ void showTransactionBottomSheet(
   final workersCubit = context.read<WorkersCubit>();
   final toolsCubit = context.read<ToolsCubit>();
 
+  transactionsCubit.markTransactionFormOpened();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -45,7 +47,7 @@ void showTransactionBottomSheet(
         ),
       );
     },
-  );
+  ).whenComplete(transactionsCubit.markTransactionFormClosed);
 }
 
 void showTransactionDialog(
@@ -56,6 +58,8 @@ void showTransactionDialog(
   final transactionsCubit = context.read<TransactionsCubit>();
   final workersCubit = context.read<WorkersCubit>();
   final toolsCubit = context.read<ToolsCubit>();
+
+  transactionsCubit.markTransactionFormOpened();
 
   showDialog(
     context: context,
@@ -84,7 +88,7 @@ void showTransactionDialog(
         ),
       );
     },
-  );
+  ).whenComplete(transactionsCubit.markTransactionFormClosed);
 }
 
 Future<String?> _saveTransaction({
@@ -116,7 +120,10 @@ Future<String?> _saveTransaction({
     return errorMessage;
   }
 
-  await dashboardCubit.loadDashboardSummary(companyId: companyId);
+  await dashboardCubit.loadDashboardSummary(
+    companyId: companyId,
+    showLoader: false,
+  );
 
   navigator.pop();
 
