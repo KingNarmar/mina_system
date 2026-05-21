@@ -1,7 +1,7 @@
 # Issue #16 — Security / RLS Verification Matrix
 
-Status: Draft matrix skeleton  
-Step: 16.2  
+Status: SQL inspection in progress  
+Step: 16.3  
 Scope: Tables, RPCs, Storage buckets, roles, direct writes, manual verification queries, critical role tests, and gap tracking  
 Do not modify: `PROJECT_ROADMAP.md`
 
@@ -36,6 +36,7 @@ This file must record verified facts separately from assumptions.
 | `Gap Found` | A security gap was identified and should become a separate GitHub issue. |
 | `Not Applicable` | This check does not apply to the item. |
 | `Documented Only` | Mentioned in repository docs, but not yet verified against live Supabase state. |
+| `Business Decision Needed` | Technically allowed, but the business/security intent must be confirmed before marking it safe. |
 
 ---
 
@@ -45,11 +46,11 @@ Current application roles:
 
 | Role | Description | Matrix Status |
 |---|---|---|
-| `owner` | Company owner. Expected to have full company-level access. | Needs Verification |
-| `admin` | Company admin. Expected to manage most operational and configuration areas except owner-only actions. | Needs Verification |
-| `warehouse_manager` | Operational manager. Expected to manage workers, tools, lookups, transactions, and approval workflow depending on backend rules. | Needs Verification |
-| `warehouse_user` | Operational user. Expected to create transactions and upload transaction proofs, but not approve lost/damaged workflows or upload approval documents. | Needs Verification |
-| `viewer` | Read/report-only role. Expected to have no write access. | Needs Verification |
+| `owner` | Company owner. Expected to have full company-level access. | Needs Manual Role Test |
+| `admin` | Company admin. Expected to manage most operational and configuration areas except owner-only actions. | Needs Manual Role Test |
+| `warehouse_manager` | Operational manager. Expected to manage workers, tools, lookups, transactions, and approval workflow depending on backend rules. | Needs Manual Role Test |
+| `warehouse_user` | Operational user. Expected to create transactions and upload transaction proofs, but not approve lost/damaged workflows or upload approval documents. | Needs Manual Role Test |
+| `viewer` | Read/report-only role. Expected to have no write access. | Needs Manual Role Test |
 
 ---
 
@@ -60,39 +61,40 @@ These permissions must be verified against backend enforcement.
 
 | Area | Permission | Owner | Admin | Warehouse Manager | Warehouse User | Viewer | Backend Status |
 |---|---|---:|---:|---:|---:|---:|---|
-| Dashboard | View dashboard | Yes | Yes | Yes | Yes | Yes | Needs Verification |
-| Workers | View workers | Yes | Yes | Yes | Yes | No / Limited | Needs Verification |
-| Workers | Create workers | Yes | Yes | Yes | No | No | Needs Verification |
-| Workers | Update workers | Yes | Yes | Yes | No | No | Needs Verification |
-| Workers | Delete/deactivate workers | Yes | Yes | Yes | No | No | Needs Verification |
-| Tools | View tools | Yes | Yes | Yes | Yes | No / Limited | Needs Verification |
-| Tools | Create tools | Yes | Yes | Yes | No | No | Needs Verification |
-| Tools | Update tools | Yes | Yes | Yes | No | No | Needs Verification |
-| Tools | Delete/deactivate tools | Yes | Yes | Yes | No | No | Needs Verification |
-| Transactions | View transactions | Yes | Yes | Yes | Yes | No / Limited | Needs Verification |
-| Transactions | Create transactions | Yes | Yes | Yes | Yes | No | Needs Verification |
-| Transactions | General transaction edit | No / Disabled | No / Disabled | No / Disabled | No / Disabled | No | Needs Verification |
-| Approval Workflow | Upload approval document | Yes | Yes | Yes | No | No | Needs Verification |
-| Approval Workflow | Approve lost/damaged | Yes | Yes | Yes | No | No | Needs Verification |
-| Approval Workflow | Reject lost/damaged | Yes | Yes | Yes | No | No | Needs Verification |
-| Approval Workflow | Settle lost/damaged | Yes | Yes | Yes | No | No | Needs Verification |
-| Reports | View reports | Yes | Yes | Yes | Yes | Yes | Needs Verification |
-| Reports | Generate reports | Yes | Yes | Yes | Yes | Yes | Needs Verification |
-| Lookups | View lookups | Yes | Yes | Yes | No / Limited | No | Needs Verification |
-| Lookups | Create lookups | Yes | Yes | Yes | No | No | Needs Verification |
-| Lookups | Delete lookups | Yes | Yes | Yes | No | No | Needs Verification |
-| Company Settings | View settings | Yes | Yes | No / Limited | No | No | Needs Verification |
-| Company Settings | Manage company profile | Yes | Yes | No | No | No | Needs Verification |
-| Company Settings | Upload company logo | Yes | Yes | No | No | No | Needs Verification |
-| Company Settings | Manage report settings | Yes | Yes | No | No | No | Needs Verification |
-| Company Settings | Manage document templates | Yes | Yes | No | No | No | Needs Verification |
-| Company Users | View company users | Yes | Yes | No / Limited | No | No | Needs Verification |
-| Company Users | Invite users | Yes | Yes | No | No | No | Needs Verification |
-| Company Users | Cancel invitations | Yes | Yes | No | No | No | Needs Verification |
-| Company Users | Change member role | Yes | Yes | No | No | No | Needs Verification |
-| Company Users | Deactivate/reactivate members | Yes | Yes | Yes for lower roles only | No | No | Needs Verification |
-| Audit Logs | View audit logs | Yes | Yes | Possibly Manager | No | No | Needs Verification |
-| Audit Logs | Write audit logs | Backend only | Backend only | Backend only | Backend only | Backend only | Needs Verification |
+| Dashboard | View dashboard | Yes | Yes | Yes | Yes | Yes | Needs Manual Role Test |
+| Workers | View workers | Yes | Yes | Yes | Yes | No / Limited | Needs Manual Role Test |
+| Workers | Create workers | Yes | Yes | Yes | No | No | Gap Found |
+| Workers | Update workers | Yes | Yes | Yes | No | No | Gap Found |
+| Workers | Delete/deactivate workers | Yes | Yes | Yes | No | No | Gap Found |
+| Tools | View tools | Yes | Yes | Yes | Yes | No / Limited | Needs Manual Role Test |
+| Tools | Create tools | Yes | Yes | Yes | No | No | Gap Found |
+| Tools | Update tools | Yes | Yes | Yes | No | No | Gap Found |
+| Tools | Delete/deactivate tools | Yes | Yes | Yes | No | No | Gap Found |
+| Transactions | View transactions | Yes | Yes | Yes | Yes | No / Limited | Needs Manual Role Test |
+| Transactions | Create transactions | Yes | Yes | Yes | Yes | No | Needs Manual Role Test |
+| Transactions | General transaction edit | No / Disabled | No / Disabled | No / Disabled | No / Disabled | No | Verified by policy inspection: no direct transaction write policies detected |
+| Approval Workflow | Upload approval document | Yes | Yes | Yes | No | No | Needs Manual Role Test |
+| Approval Workflow | Read approval document | Business decision | Business decision | Business decision | Business decision | Business decision | Gap Found / Business Decision Needed |
+| Approval Workflow | Approve lost/damaged | Yes | Yes | Yes | No | No | Needs Manual Role Test |
+| Approval Workflow | Reject lost/damaged | Yes | Yes | Yes | No | No | Needs Manual Role Test |
+| Approval Workflow | Settle lost/damaged | Yes | Yes | Yes | No | No | Needs Manual Role Test |
+| Reports | View reports | Yes | Yes | Yes | Yes | Yes | Needs Manual Role Test |
+| Reports | Generate reports | Yes | Yes | Yes | Yes | Yes | Needs Manual Role Test |
+| Lookups | View lookups | Yes | Yes | Yes | No / Limited | No | Needs Manual Role Test |
+| Lookups | Create lookups | Yes | Yes | Yes | No | No | Verified by policy inspection, but direct-write hardening needed |
+| Lookups | Delete lookups | Yes | Yes | Yes | No | No | Verified by policy inspection, but direct-write hardening needed |
+| Company Settings | View settings | Yes | Yes | No / Limited | No | No | Needs Manual Role Test |
+| Company Settings | Manage company profile | Yes | Yes | No | No | No | Verified by policy inspection, duplicate policies need cleanup |
+| Company Settings | Upload company logo | Yes | Yes | No | No | No | Verified by storage policy inspection, duplicate policies need cleanup |
+| Company Settings | Manage report settings | Yes | Yes | No | No | No | Verified by policy inspection, duplicate policies need cleanup |
+| Company Settings | Manage document templates | Yes | Yes | No | No | No | Verified by policy inspection |
+| Company Users | View company users | Yes | Yes | No / Limited | No | No | Needs Manual Role Test |
+| Company Users | Invite users | Yes | Yes | No | No | No | Needs Manual Role Test |
+| Company Users | Cancel invitations | Yes | Yes | No | No | No | Needs Manual Role Test |
+| Company Users | Change member role | Yes | Yes | No | No | No | Gap Found |
+| Company Users | Deactivate/reactivate members | Yes | Yes | Yes for lower roles only | No | No | Gap Found |
+| Audit Logs | View audit logs | Yes | Yes | Possibly Manager | No | No | Needs Business Decision |
+| Audit Logs | Write audit logs | Backend only | Backend only | Backend only | Backend only | Backend only | Verified by grants/policy inspection |
 
 ---
 
@@ -102,41 +104,42 @@ These permissions must be verified against backend enforcement.
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `profiles` | User profile linked to Supabase auth user. | Select current profile and joined display data. | Users should only access allowed profile data. Profile self-access and joined company member access must be verified. | Needs Verification | Must confirm users cannot read unrelated sensitive profile data. |
-| `companies` | Company tenant record and company profile. | Select and direct update from company settings. | Active company members can read. Only owner/admin should update company profile fields. Cross-company update must be blocked. | Needs Verification | Direct update path exists; high-priority verification. |
-| `company_members` | Company membership, role, and status. | Select active memberships and company team members. | Active members should read allowed company members. Only secure RPCs should mutate lifecycle/roles. Direct client mutation must be blocked except intended policies. | Needs Verification | Phase Q docs state helper functions require active membership, but live verification is required. |
-| `company_invitations` | Company invitations. | Select invitations. Mutations through RPCs. | Invited users can read their pending invitations. Owners/admins can read company invitations. Direct insert should be closed. Mutations should go through RPCs. | Needs Verification | Phase Q docs state direct insert was closed, but live verification is required. |
+| `profiles` | User profile linked to Supabase auth user. | Select current profile and joined display data. | Users should only access own profile, invited-user context, and active company member profile data. | Verified by policy inspection, cleanup recommended | Multiple overlapping own-profile read policies exist. |
+| `companies` | Company tenant record and company profile. | Select and direct update from company settings. | Active company members can read. Owner/admin can update company profile fields. Cross-company update blocked by policy. | Verified by policy inspection, cleanup recommended | Duplicate/overlapping update policies exist. |
+| `company_members` | Company membership, role, and status. | Select active memberships and company team members. | Active members can read company members. Mutations should go through secure member-management RPCs. | Gap Found | Direct owner INSERT/UPDATE policies exist and may bypass lifecycle RPC rules/audit logic. |
+| `company_invitations` | Company invitations. | Select invitations. Mutations through RPCs. | Invited users can read own pending invitations. Owners/admins can read company invitations. Direct insert/update/delete should be closed. | Verified by policy inspection | Only SELECT policies detected in policy query result. |
+| `profiles` | User profile record. | Auth Cubit creates profile indirectly through auth flow / triggers if configured. | Users can insert/update own profile only. Company members can read active member profiles. | Verified by policy inspection | Multiple read policies should be cleaned later to reduce confusion. |
 
 ### 5.2 Company configuration tables
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `company_report_settings` | Report formatting and report statement settings. | Select and direct update. | Active members with settings permission should read. Only owner/admin should update. Cross-company update must be blocked. | Needs Verification | Direct update path exists; high-priority verification. |
-| `company_document_templates` | Document titles/codes/signature labels per report type. | Select and direct update. | Active members with settings permission should read. Only owner/admin should update. Cross-company update must be blocked. | Needs Verification | Needed before signed PDF work in Issue #28. |
+| `company_report_settings` | Report formatting and report statement settings. | Select and direct update. | Active company members can read. Owner/admin can update. Cross-company update blocked. | Verified by policy inspection, cleanup recommended | Multiple overlapping read/update policies exist. |
+| `company_document_templates` | Document titles/codes/signature labels per report type. | Select and direct update. | Active company members can read. Owner/admin can insert/update. Cross-company update blocked. | Verified by policy inspection | Important before signed PDFs. |
 
 ### 5.3 Operational lookup tables
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `departments` | Worker department lookup. | Select, insert, delete. | Active company members can read. Only owner/admin/warehouse_manager should create/delete if intended. Cross-company writes must be blocked. | Needs Verification | Direct insert/delete path exists; high-priority verification. |
-| `job_titles` | Worker job title lookup. | Select, insert, delete. | Active company members can read. Only owner/admin/warehouse_manager should create/delete if intended. Cross-company writes must be blocked. | Needs Verification | Direct insert/delete path exists; high-priority verification. |
-| `tool_units` | Tool unit lookup. | Select, insert, delete. | Active company members can read. Only owner/admin/warehouse_manager should create/delete if intended. Cross-company writes must be blocked. | Needs Verification | Direct insert/delete path exists; high-priority verification. |
-| `tool_categories` | Tool category lookup. | Select, insert, delete. | Active company members can read. Only owner/admin/warehouse_manager should create/delete if intended. Cross-company writes must be blocked. | Needs Verification | Direct insert/delete path exists; high-priority verification. |
+| `departments` | Worker department lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. Consider RPC for audit/validation. |
+| `job_titles` | Worker job title lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. Need relationship validation review. |
+| `tool_units` | Tool unit lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. |
+| `tool_categories` | Tool category lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. |
 
 ### 5.4 Operational master tables
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `workers` | Worker master data. | Select. Mutations through RPCs. | Active members with worker permissions can read. Direct insert/update/delete should be blocked unless intentionally allowed. Mutations should be enforced by RPCs. | Needs Verification | Duplicate checks use direct select. |
-| `tools` | Tool master data. | Select. Mutations through RPCs. | Active members with tool permissions can read. Direct insert/update/delete should be blocked unless intentionally allowed. Mutations should be enforced by RPCs. | Needs Verification | Duplicate checks use direct select. |
+| `workers` | Worker master data. | Select. Mutations through RPCs in Flutter. | Active members can read. Mutations should be enforced by RPCs only if RPC-controlled architecture is intended. | Gap Found | Policies allow owner/admin/warehouse_manager direct INSERT/UPDATE/DELETE, while table grants currently show authenticated SELECT only. This mismatch requires review. |
+| `tools` | Tool master data. | Select. Mutations through RPCs in Flutter. | Active members can read. Mutations should be enforced by RPCs only if RPC-controlled architecture is intended. | Gap Found | Policies allow owner/admin/warehouse_manager direct INSERT/UPDATE/DELETE, while table grants currently show authenticated SELECT only. This mismatch requires review. |
 
 ### 5.5 Transaction and audit tables
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `transactions` | Custody transactions and lost/damaged workflow. | Select. Mutations through RPCs. | Active members with transaction/report permissions can read. Direct insert/update/delete should be blocked unless intentionally allowed. Mutations should be enforced by RPCs. | Needs Verification | Main transaction workflows use RPCs. |
-| `audit_logs` | Immutable audit trail. | Select only. | Authorized company roles can read. Direct insert/update/delete from Flutter should be blocked. Writes should be backend-only. | Needs Verification | Must verify audit immutability. |
-| `storage.objects` | Supabase Storage metadata. | Used indirectly through Supabase Storage API. | Policies must enforce bucket, company path, role, and operation. | Needs Verification | Storage security is critical before signed PDFs. |
+| `transactions` | Custody transactions and lost/damaged workflow. | Select. Mutations through RPCs. | Active members can read. Direct insert/update/delete blocked. Mutations enforced by RPCs. | Verified by policy inspection | Only SELECT policy detected for authenticated company members. |
+| `audit_logs` | Immutable audit trail. | Select only. | Company members can read. Direct insert/update/delete from authenticated client blocked. Writes should be backend-only. | Verified by policy/grants inspection, business decision needed | All active company members can currently read audit logs via `private.is_company_member(company_id)`. Confirm if viewer/warehouse_user should read audit logs. |
+| `storage.objects` | Supabase Storage metadata. | Used indirectly through Supabase Storage API. | Policies enforce bucket, company path, role, and operation. | Gap Found / Business Decision Needed | Approval document read policy appears broad for all active company members. `custody-documents` bucket also exists and must be tracked. |
 
 ---
 
@@ -146,48 +149,48 @@ These permissions must be verified against backend enforcement.
 
 | RPC | Purpose | Expected Allowed Roles | Expected Denied Roles | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `create_company_with_defaults` | Create a new company and default setup. | Authenticated user creating own company. | Anonymous users. Possibly unrelated users. | Needs Verification | Must verify owner membership is created safely. |
+| `create_company_with_defaults` | Create a new company and default setup. | Authenticated user creating own company. | Anonymous users. | Gap Found | Function grants show `PUBLIC EXECUTE`. Revoke from PUBLIC should be reviewed. Function is `SECURITY DEFINER` with `search_path=""`. |
 
 ### 6.2 Company users and invitations RPCs
 
 | RPC | Purpose | Expected Allowed Roles | Expected Denied Roles | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `invite_company_user` | Create secure company invitation. | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Needs Verification | Must verify owner cannot be invited through normal flow. |
-| `accept_company_invitation` | Accept invitation. | Invited authenticated user with matching email and valid pending invitation. | Non-invited users, expired/cancelled invitations | Needs Verification | Must verify email and invitation status checks. |
-| `cancel_company_invitation` | Cancel pending invitation. | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Needs Verification | Must verify cross-company cancellation blocked. |
-| `change_company_member_role` | Change member role. | Owner; Admin for lower roles only | Self-change, owner target, admin managing admin, lower roles | Needs Verification | Phase Q docs mention passed DB tests, but live verification still needed. |
-| `deactivate_company_member` | Soft deactivate member. | Owner; Admin lower roles; Warehouse Manager lower roles if intended | Self-deactivation, owner target, same/higher role target | Needs Verification | Must verify active membership requirement. |
-| `reactivate_company_member` | Reactivate inactive member. | Owner; Admin lower roles; Warehouse Manager lower roles if intended | Self-reactivation, owner target, same/higher role target | Needs Verification | Must verify inactive target handling. |
+| `invite_company_user` | Create secure company invitation. | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `accept_company_invitation` | Accept invitation. | Invited authenticated user with matching email and valid pending invitation. | Non-invited users, expired/cancelled invitations | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `cancel_company_invitation` | Cancel pending invitation. | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `change_company_member_role` | Change member role. | Owner; Admin for lower roles only | Self-change, owner target, admin managing admin, lower roles | Grant Verified / Gap Found | Direct company_members update policy may bypass RPC rules. Manual RPC tests still required. |
+| `deactivate_company_member` | Soft deactivate member. | Owner; Admin lower roles; Warehouse Manager lower roles if intended | Self-deactivation, owner target, same/higher role target | Grant Verified / Gap Found | Direct company_members update policy may bypass RPC rules. Manual RPC tests still required. |
+| `reactivate_company_member` | Reactivate inactive member. | Owner; Admin lower roles; Warehouse Manager lower roles if intended | Self-reactivation, owner target, same/higher role target | Grant Verified / Gap Found | Direct company_members update policy may bypass RPC rules. Manual RPC tests still required. |
 
 ### 6.3 Worker RPCs
 
 | RPC | Purpose | Expected Allowed Roles | Expected Denied Roles | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `create_worker` | Create worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify company scope and lookup relationship constraints. |
-| `update_worker` | Update worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify cross-company update blocked. |
-| `deactivate_worker` | Soft deactivate worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify not physically deleted. |
-| `reactivate_worker` | Reactivate worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify status transition rules. |
+| `create_worker` | Create worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `update_worker` | Update worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `deactivate_worker` | Soft deactivate worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `reactivate_worker` | Reactivate worker. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
 
 ### 6.4 Tool RPCs
 
 | RPC | Purpose | Expected Allowed Roles | Expected Denied Roles | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `create_tool` | Create tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify company scope and lookup relationship constraints. |
-| `update_tool` | Update tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify cross-company update blocked. |
-| `deactivate_tool` | Soft deactivate tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify not physically deleted. |
-| `reactivate_tool` | Reactivate tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify status transition rules. |
+| `create_tool` | Create tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `update_tool` | Update tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `deactivate_tool` | Soft deactivate tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `reactivate_tool` | Reactivate tool. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
 
 ### 6.5 Transaction RPCs
 
 | RPC | Purpose | Expected Allowed Roles | Expected Denied Roles | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `create_custody_transaction` | Create issue/return/lost/damaged transaction. | Owner, Admin, Warehouse Manager, Warehouse User | Viewer, inactive members | Needs Verification | Must verify quantity, worker/tool company scope, proof rules, and role checks. |
-| `upload_transaction_proof_image` | Link proof image after Storage upload. | Owner, Admin, Warehouse Manager, Warehouse User | Viewer, inactive members | Needs Verification | Must verify path format and official TRX folder rules. |
-| `upload_transaction_approval_document` | Link signed approval document. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Critical for Issue #28 signed PDFs. |
-| `approve_lost_damaged_transaction` | Approve lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify document required before approval. |
-| `reject_lost_damaged_transaction` | Reject lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify document required before rejection. |
-| `settle_lost_damaged_transaction` | Settle approved lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Needs Verification | Must verify only approved pending-settlement records can be settled. |
-| `rollback_failed_transaction_proof_upload` | Roll back incomplete transaction after failed proof image linking. | Creator with Owner/Admin/Warehouse Manager/Warehouse User role within short rollback window | Viewer, inactive members, non-creator, expired rollback window | Needs Verification | Must verify rollback guards. |
+| `create_custody_transaction` | Create issue/return/lost/damaged transaction. | Owner, Admin, Warehouse Manager, Warehouse User | Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `upload_transaction_proof_image` | Link proof image after Storage upload. | Owner, Admin, Warehouse Manager, Warehouse User | Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `upload_transaction_approval_document` | Link signed approval document. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. Critical for Issue #28 signed PDFs. |
+| `approve_lost_damaged_transaction` | Approve lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `reject_lost_damaged_transaction` | Reject lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `settle_lost_damaged_transaction` | Settle approved lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
+| `rollback_failed_transaction_proof_upload` | Roll back incomplete transaction after failed proof image linking. | Creator with Owner/Admin/Warehouse Manager/Warehouse User role within short rollback window | Viewer, inactive members, non-creator, expired rollback window | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
 
 ---
 
@@ -197,28 +200,28 @@ Each exposed RPC should be checked for secure grants.
 
 | RPC | Revoke From Public | Grant To Authenticated | Auth Check | Active Membership Check | Role Check | Safe Search Path | Status |
 |---|---|---|---|---|---|---|---|
-| `create_company_with_defaults` | Needs Verification | Needs Verification | Needs Verification | Not Applicable / Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `invite_company_user` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `accept_company_invitation` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `cancel_company_invitation` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `change_company_member_role` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `deactivate_company_member` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `reactivate_company_member` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `create_worker` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `update_worker` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `deactivate_worker` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `reactivate_worker` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `create_tool` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `update_tool` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `deactivate_tool` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `reactivate_tool` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `create_custody_transaction` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `upload_transaction_proof_image` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `upload_transaction_approval_document` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `approve_lost_damaged_transaction` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `reject_lost_damaged_transaction` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `settle_lost_damaged_transaction` | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification | Needs Verification |
-| `rollback_failed_transaction_proof_upload` | Documented Only | Documented Only | Documented Only | Documented Only | Documented Only | Documented Only | Needs Verification |
+| `create_company_with_defaults` | Gap Found | Verified | Needs Function Body Review | Not Applicable / Needs Function Body Review | Needs Function Body Review | Verified | Gap Found |
+| `invite_company_user` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `accept_company_invitation` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `cancel_company_invitation` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `change_company_member_role` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `deactivate_company_member` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `reactivate_company_member` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `create_worker` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `update_worker` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `deactivate_worker` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `reactivate_worker` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `create_tool` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `update_tool` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `deactivate_tool` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `reactivate_tool` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `create_custody_transaction` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `upload_transaction_proof_image` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `upload_transaction_approval_document` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `approve_lost_damaged_transaction` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `reject_lost_damaged_transaction` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `settle_lost_damaged_transaction` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
+| `rollback_failed_transaction_proof_upload` | Verified | Verified | Needs Function Body Review | Needs Function Body Review | Needs Function Body Review | Verified | Grant Verified / Body Review Needed |
 
 ---
 
@@ -226,29 +229,37 @@ Each exposed RPC should be checked for secure grants.
 
 | Bucket | Purpose | Expected Upload Roles | Expected Read Roles | Expected Delete Roles | Path Format | Verification Status | Notes |
 |---|---|---|---|---|---|---|---|
-| `company-assets` | Company logo and company asset files. | Owner, Admin | Active company members / report readers depending on business decision | Owner, Admin | `{companyId}/logo/company-logo-{timestamp}.{ext}` | Needs Verification | Must verify company logo path cannot point to another company. |
-| `transaction-proofs` | Transaction proof images. | Owner, Admin, Warehouse Manager, Warehouse User | Authorized transaction viewers/report generators | Owner, Admin, Warehouse Manager, Warehouse User for orphan cleanup | `{companyId}/transactions/{TRX-code}/proof-{timestamp}.{ext}` | Needs Verification | Delete policy is documented in Issue #20 SQL, but live verification is required. |
-| `transaction-approval-documents` | Signed approval documents for lost/damaged transactions. | Owner, Admin, Warehouse Manager | Owner, Admin, Warehouse Manager, possibly report readers if intended | Owner, Admin, Warehouse Manager for orphan cleanup | `{companyId}/transactions/{TRX-code}/approval-document-{timestamp}.{ext}` | Needs Verification | Critical before Issue #28 signed PDFs. Warehouse User should be blocked. |
+| `company-assets` | Company logo and company asset files. | Owner, Admin | Active company members | Owner, Admin | `{companyId}/logo/company-logo-{timestamp}.{ext}` | Verified by bucket/policy inspection, cleanup recommended | Bucket is private. Duplicate/overlapping upload/read policies exist. |
+| `transaction-proofs` | Transaction proof images. | Owner, Admin, Warehouse Manager, Warehouse User | Active company members | Owner, Admin, Warehouse Manager, Warehouse User | `{companyId}/transactions/{TRX-code}/proof-{timestamp}.{ext}` | Verified by bucket/policy inspection | Bucket is private. Upload/delete/read policies detected. |
+| `transaction-approval-documents` | Signed approval documents for lost/damaged transactions. | Owner, Admin, Warehouse Manager | Active company members currently | Owner, Admin, Warehouse Manager | `{companyId}/transactions/{TRX-code}/approval-document-{timestamp}.{ext}` | Gap Found / Business Decision Needed | Bucket is private, file size limit is 10MB, mime types restricted. Read policy currently allows all active company members. |
+| `custody-documents` | Existing custody document Storage bucket. | Owner, Admin, Warehouse User according to detected policy | Active company members | Not confirmed | `{companyId}/...` based on helper path extraction | Business Decision Needed | Bucket exists and has policies, but it was not part of the original three-bucket inventory. Must decide whether it is legacy, active, or should be removed/refactored. |
 
 ---
 
 ## 9. Direct Write Verification Matrix
 
-These are the highest-priority RLS checks because Flutter writes directly to these tables.
+These are the highest-priority RLS checks because Flutter writes directly to some tables.
 
 | Table | Operation | Expected Allowed Roles | Expected Denied Roles | Required RLS Checks | Verification Status |
 |---|---|---|---|---|---|
-| `companies` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only own active company. Cannot cross-company update. Cannot spoof protected fields. | Needs Verification |
-| `company_report_settings` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only settings for active company membership. Cannot cross-company update. | Needs Verification |
-| `company_document_templates` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only templates for active company membership. Cannot cross-company update. | Needs Verification |
-| `departments` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Needs Verification |
-| `departments` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Needs Verification |
-| `job_titles` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id and department_id must belong to same company. | Needs Verification |
-| `job_titles` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Needs Verification |
-| `tool_units` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Needs Verification |
-| `tool_units` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Needs Verification |
-| `tool_categories` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Needs Verification |
-| `tool_categories` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Needs Verification |
+| `companies` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only own active company. Cannot cross-company update. Cannot spoof protected fields. | Verified by policy inspection, cleanup recommended |
+| `company_report_settings` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only settings for active company membership. Cannot cross-company update. | Verified by policy inspection, cleanup recommended |
+| `company_document_templates` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only templates for active company membership. Cannot cross-company update. | Verified by policy inspection |
+| `departments` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Verified by policy inspection, hardening recommended |
+| `departments` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. Confirm direct update is intended. | Verified by policy inspection, hardening recommended |
+| `departments` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
+| `job_titles` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id and department_id must belong to same company. | Verified by policy inspection, relationship validation still needed |
+| `job_titles` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. Confirm department relationship cannot be corrupted. | Verified by policy inspection, relationship validation still needed |
+| `job_titles` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
+| `tool_units` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Verified by policy inspection, hardening recommended |
+| `tool_units` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. | Verified by policy inspection, hardening recommended |
+| `tool_units` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
+| `tool_categories` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Verified by policy inspection, hardening recommended |
+| `tool_categories` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. | Verified by policy inspection, hardening recommended |
+| `tool_categories` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
+| `company_members` | insert/update | Owner only by policy | Non-owner roles | Should ideally go through RPC only to enforce lifecycle hierarchy and audit logging. | Gap Found |
+| `workers` | insert/update/delete | Owner, Admin, Warehouse Manager by policy | Warehouse User, Viewer, inactive members | Should ideally go through RPC only to enforce validation and audit logging. | Gap Found |
+| `tools` | insert/update/delete | Owner, Admin, Warehouse Manager by policy | Warehouse User, Viewer, inactive members | Should ideally go through RPC only to enforce validation and audit logging. | Gap Found |
 
 ---
 
@@ -258,10 +269,12 @@ This section records whether a direct-write area should remain direct with stron
 
 | Area | Current Pattern | Recommended Decision | Status | Notes |
 |---|---|---|---|---|
-| Company profile update | Direct update | Keep only if RLS and accountability are strict; otherwise move to RPC. | Needs Verification | Must verify updated_by fields cannot be spoofed. |
-| Company report settings update | Direct update | Keep only if RLS is strict; otherwise move to RPC. | Needs Verification | Important for document/report integrity. |
-| Company document templates update | Direct update | Keep only if RLS is strict; otherwise move to RPC. | Needs Verification | Important before signed PDFs. |
-| Lookup creation/deletion | Direct insert/delete | Consider moving to RPCs if RLS/accountability is not enough. | Needs Verification | Hard delete should be reviewed carefully. |
+| Company profile update | Direct update | Keep only if RLS and accountability are strict; otherwise move to RPC. | Verified with cleanup recommended | Duplicate policies should be cleaned later. |
+| Company report settings update | Direct update | Keep only if RLS is strict; otherwise move to RPC. | Verified with cleanup recommended | Duplicate policies should be cleaned later. |
+| Company document templates update | Direct update | Keep only if RLS is strict; otherwise move to RPC. | Verified | Important before signed PDFs. |
+| Lookup creation/update/deletion | Direct insert/update/delete | Consider moving to RPCs if audit/accountability is required. | Verified with hardening recommended | Current RLS restricts writes to owner/admin/warehouse_manager. |
+| Company member mutation | Direct insert/update still allowed for owner | Move fully behind RPCs unless there is a strong reason to keep owner direct write. | Gap Found | May bypass member-management RPC rules. |
+| Workers/tools mutation | Direct policies exist, but table grants show authenticated SELECT only | Review mismatch and decide whether to remove policies or keep direct writes. | Gap Found | Flutter uses RPCs for these mutations. |
 
 ---
 
@@ -295,11 +308,11 @@ Run these queries in Supabase SQL Editor using an admin/developer account.
       )
     order by tablename;
 
-Expected:
+Result:
 
-- `rowsecurity = true` for all business tables that are exposed to the Data API.
+- RLS is enabled on all listed business tables.
 
-Verification Status: Needs Verification
+Verification Status: Verified
 
 ---
 
@@ -334,13 +347,28 @@ Verification Status: Needs Verification
       )
     order by tablename, policyname;
 
-Expected:
+Result:
 
-- Policies should be scoped by active company membership where applicable.
-- Write policies should match the intended role model.
-- No broad authenticated write policy should exist unless tightly restricted by `with_check`.
+Confirmed:
 
-Verification Status: Needs Verification
+- Public business tables have policies.
+- `company_invitations` does not show direct INSERT/UPDATE/DELETE policies in this result.
+- `transactions` does not show direct INSERT/UPDATE/DELETE policies in this result.
+- `audit_logs` does not show direct INSERT/UPDATE/DELETE policies in this result.
+- Lookup tables are restricted by role-based RLS policies.
+- Company settings tables are restricted to owner/admin policies.
+
+Gaps found:
+
+- `company_members` still allows direct INSERT/UPDATE for owner.
+- `workers` still has direct INSERT/UPDATE/DELETE policies for owner/admin/warehouse_manager.
+- `tools` still has direct INSERT/UPDATE/DELETE policies for owner/admin/warehouse_manager.
+
+Cleanup note:
+
+- Some overlapping policies exist on `companies`, `company_report_settings`, and `profiles`.
+
+Verification Status: Gap Found
 
 ---
 
@@ -360,17 +388,24 @@ Verification Status: Needs Verification
       and tablename = 'objects'
     order by policyname;
 
-Expected:
+Result:
 
-- Policies exist for:
-  - `company-assets`
-  - `transaction-proofs`
-  - `transaction-approval-documents`
-- Policies should check bucket ID.
-- Policies should derive company ID safely from the object path.
-- Policies should use active company role checks.
+Confirmed:
 
-Verification Status: Needs Verification
+- `company-assets` has upload/read/update/delete policies.
+- `transaction-proofs` has upload/read/delete policies.
+- `transaction-approval-documents` has upload/read/delete policies.
+- Policies generally check bucket ID and company membership/roles.
+- Upload policy for `transaction-approval-documents` restricts extensions to PDF/JPG/JPEG/PNG/WEBP.
+- Upload/delete policy for `transaction-approval-documents` is limited to owner/admin/warehouse_manager.
+
+Gaps / decisions found:
+
+- `transaction-approval-documents` read policy allows active company members through `private.is_company_member`, which may include warehouse_user and viewer.
+- `custody-documents` policies exist and must be added to the matrix.
+- `company-assets` has overlapping old/new policies.
+
+Verification Status: Gap Found / Business Decision Needed
 
 ---
 
@@ -383,19 +418,28 @@ Verification Status: Needs Verification
       file_size_limit,
       allowed_mime_types
     from storage.buckets
-    where id in (
-      'company-assets',
-      'transaction-proofs',
-      'transaction-approval-documents'
-    )
     order by id;
 
-Expected:
+Result:
 
-- Buckets should not be public unless intentionally required and documented.
-- Sensitive transaction and approval documents should not be public.
+Confirmed buckets:
 
-Verification Status: Needs Verification
+- `company-assets`
+- `custody-documents`
+- `transaction-approval-documents`
+- `transaction-proofs`
+
+Confirmed:
+
+- All detected buckets are private.
+- `transaction-approval-documents` has a 10MB file size limit.
+- `transaction-approval-documents` restricts MIME types to:
+  - `application/pdf`
+  - `image/jpeg`
+  - `image/png`
+  - `image/webp`
+
+Verification Status: Verified, with Business Decision Needed for `custody-documents`
 
 ---
 
@@ -445,13 +489,23 @@ Verification Status: Needs Verification
       )
     order by schema_name, function_name;
 
-Expected:
+Result:
 
-- Critical mutation RPCs should use safe internal checks.
-- SECURITY DEFINER functions must use safe `search_path`.
-- Private helper functions should remain in private schema where appropriate.
+Confirmed:
 
-Verification Status: Needs Verification
+- Critical mutation RPCs are present.
+- Critical mutation RPCs are `SECURITY DEFINER`.
+- Most critical RPCs use safe `search_path` configuration such as:
+  - `search_path=""`
+  - `search_path=public, private`
+- Private helper functions are present.
+
+Notes:
+
+- `private.company_id_from_storage_path` is `SECURITY INVOKER` with no function config. This may be acceptable if it is a simple path parser, but the function body should be reviewed.
+- This query verifies function presence/security mode, not internal business logic.
+
+Verification Status: Verified for presence/security mode, Function Body Review Needed
 
 ---
 
@@ -490,25 +544,30 @@ Verification Status: Needs Verification
       )
     order by routine_name, grantee;
 
-Expected:
+Result:
 
-- Exposed RPCs should grant execute to `authenticated`.
-- Exposed RPCs should not grant unsafe execute access to `anon` or `public`.
-- Private helper functions should not be broadly executable unless intentionally required.
+Confirmed:
 
-Verification Status: Needs Verification
+- Most exposed RPCs have EXECUTE granted to `authenticated`.
+- Expected `postgres` EXECUTE grants exist.
+
+Gap found:
+
+- `create_company_with_defaults` has EXECUTE granted to `PUBLIC`.
+
+Verification Status: Gap Found
 
 ---
 
 ### 11.7 Confirm table grants
 
     select
-      table_schema,
-      table_name,
       grantee,
-      privilege_type
+      table_name,
+      string_agg(privilege_type, ', ' order by privilege_type) as privileges
     from information_schema.role_table_grants
     where table_schema = 'public'
+      and grantee in ('authenticated', 'anon')
       and table_name in (
         'profiles',
         'companies',
@@ -525,15 +584,51 @@ Verification Status: Needs Verification
         'transactions',
         'audit_logs'
       )
-    order by table_name, grantee, privilege_type;
+    group by grantee, table_name
+    order by grantee, table_name;
 
-Expected:
+Result:
 
-- Grants should be reviewed together with RLS.
-- Broad grants are acceptable only when RLS is strict.
-- Direct insert/update/delete grants require extra attention.
+Confirmed:
 
-Verification Status: Needs Verification
+- `authenticated` has SELECT on:
+  - `audit_logs`
+  - `companies`
+  - `company_document_templates`
+  - `company_invitations`
+  - `company_members`
+  - `company_report_settings`
+  - `departments`
+  - `job_titles`
+  - `profiles`
+  - `tool_categories`
+  - `tool_units`
+  - `tools`
+  - `transactions`
+  - `workers`
+- `authenticated` has UPDATE on:
+  - `companies`
+  - `company_document_templates`
+  - `company_report_settings`
+- `authenticated` has INSERT/UPDATE/DELETE on:
+  - `departments`
+  - `job_titles`
+  - `tool_categories`
+  - `tool_units`
+- `authenticated` only has SELECT on:
+  - `tools`
+  - `workers`
+  - `transactions`
+  - `audit_logs`
+  - `company_invitations`
+
+Notes:
+
+- Direct table grants align with lookup direct-write design.
+- Direct table grants do not show authenticated INSERT/UPDATE/DELETE on workers/tools, even though policies exist for those operations. This mismatch should be reviewed.
+- `anon` has non-DML privileges such as REFERENCES/TRIGGER/TRUNCATE on some tables. This should be reviewed for least privilege, even if not exposed through normal PostgREST workflows.
+
+Verification Status: Verified with cleanup review needed
 
 ---
 
@@ -549,32 +644,45 @@ Verification Status: Needs Verification
       and table_name = 'audit_logs'
     order by grantee, privilege_type;
 
-Expected:
+Result:
 
-- Authenticated users may have select if intended.
-- Authenticated users should not have direct insert/update/delete unless RLS fully blocks it.
-- Preferred model: backend functions write audit logs.
+Confirmed:
 
-Verification Status: Needs Verification
+- `authenticated` has SELECT only on `audit_logs`.
+- No authenticated INSERT/UPDATE/DELETE grant was detected for `audit_logs`.
+
+Verification Status: Verified
 
 ---
 
 ### 11.9 Confirm service role key is not in repository
 
-Run locally from repository root:
+PowerShell command used:
 
-    grep -R "service_role" .
-    grep -R "SERVICE_ROLE" .
-    grep -R "supabase_service" .
-    grep -R "SUPABASE_SERVICE" .
-    grep -R "secret" lib docs test android ios macos windows linux web
+    $patterns = @(
+      "service_role",
+      "SERVICE_ROLE",
+      "supabase_service",
+      "SUPABASE_SERVICE",
+      "SUPABASE_SERVICE_ROLE"
+    )
 
-Expected:
+    Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue |
+      Where-Object {
+        $_.FullName -notmatch "\\.git\\" -and
+        $_.FullName -notmatch "\\build\\" -and
+        $_.FullName -notmatch "\\.dart_tool\\"
+      } |
+      Select-String -Pattern $patterns -SimpleMatch
 
-- No service role key in Flutter, docs, build files, or committed files.
-- Any harmless documentation-only mention should be reviewed manually.
+Result:
 
-Verification Status: Needs Verification
+- Matches found only inside documentation files:
+  - `docs/security/security_rls_verification_matrix.md`
+  - `docs/security/security_surface_review.md`
+- Matches are only search command text, not real keys.
+
+Verification Status: Verified
 
 ---
 
@@ -601,11 +709,11 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| User from Company A attempts to read Company B workers. | Denied / no rows returned. | Needs Verification |
-| User from Company A attempts to update Company B settings. | Denied. | Needs Verification |
-| User from Company A attempts to create lookup with Company B ID. | Denied. | Needs Verification |
-| User from Company A attempts to upload Storage file under Company B path. | Denied. | Needs Verification |
-| User from Company A attempts to create signed URL for Company B approval document. | Denied. | Needs Verification |
+| User from Company A attempts to read Company B workers. | Denied / no rows returned. | Needs Manual Test |
+| User from Company A attempts to update Company B settings. | Denied. | Needs Manual Test |
+| User from Company A attempts to create lookup with Company B ID. | Denied. | Needs Manual Test |
+| User from Company A attempts to upload Storage file under Company B path. | Denied. | Needs Manual Test |
+| User from Company A attempts to create signed URL for Company B approval document. | Denied. | Needs Manual Test |
 
 ---
 
@@ -613,13 +721,15 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Viewer attempts to create worker. | Denied. | Needs Verification |
-| Viewer attempts to update company profile. | Denied. | Needs Verification |
-| Viewer attempts to create lookup. | Denied. | Needs Verification |
-| Viewer attempts to create transaction. | Denied. | Needs Verification |
-| Viewer attempts to upload transaction proof. | Denied. | Needs Verification |
-| Viewer attempts to upload approval document. | Denied. | Needs Verification |
-| Viewer attempts to approve lost/damaged transaction. | Denied. | Needs Verification |
+| Viewer attempts to create worker. | Denied. | Needs Manual Test |
+| Viewer attempts to update company profile. | Denied. | Needs Manual Test |
+| Viewer attempts to create lookup. | Denied. | Needs Manual Test |
+| Viewer attempts to create transaction. | Denied. | Needs Manual Test |
+| Viewer attempts to upload transaction proof. | Denied. | Needs Manual Test |
+| Viewer attempts to upload approval document. | Denied. | Needs Manual Test |
+| Viewer attempts to read approval document. | Business decision needed. | Needs Manual Test |
+| Viewer attempts to approve lost/damaged transaction. | Denied. | Needs Manual Test |
+| Viewer attempts to read audit logs. | Business decision needed. | Needs Manual Test |
 
 ---
 
@@ -627,14 +737,15 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Warehouse User creates transaction. | Allowed. | Needs Verification |
-| Warehouse User uploads transaction proof. | Allowed. | Needs Verification |
-| Warehouse User uploads approval document. | Denied. | Needs Verification |
-| Warehouse User approves lost/damaged transaction. | Denied. | Needs Verification |
-| Warehouse User settles lost/damaged transaction. | Denied. | Needs Verification |
-| Warehouse User creates worker. | Denied. | Needs Verification |
-| Warehouse User creates tool. | Denied. | Needs Verification |
-| Warehouse User updates company settings. | Denied. | Needs Verification |
+| Warehouse User creates transaction. | Allowed. | Needs Manual Test |
+| Warehouse User uploads transaction proof. | Allowed. | Needs Manual Test |
+| Warehouse User uploads approval document. | Denied. | Needs Manual Test |
+| Warehouse User reads approval document. | Business decision needed. | Needs Manual Test |
+| Warehouse User approves lost/damaged transaction. | Denied. | Needs Manual Test |
+| Warehouse User settles lost/damaged transaction. | Denied. | Needs Manual Test |
+| Warehouse User creates worker. | Denied. | Needs Manual Test |
+| Warehouse User creates tool. | Denied. | Needs Manual Test |
+| Warehouse User updates company settings. | Denied. | Needs Manual Test |
 
 ---
 
@@ -642,15 +753,15 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Warehouse Manager creates worker. | Allowed. | Needs Verification |
-| Warehouse Manager creates tool. | Allowed. | Needs Verification |
-| Warehouse Manager creates lookup. | Allowed if business rule remains intended. | Needs Verification |
-| Warehouse Manager uploads approval document. | Allowed. | Needs Verification |
-| Warehouse Manager approves lost/damaged transaction. | Allowed. | Needs Verification |
-| Warehouse Manager manages Warehouse User member lifecycle. | Allowed if intended. | Needs Verification |
-| Warehouse Manager manages another Warehouse Manager. | Denied. | Needs Verification |
-| Warehouse Manager manages Admin. | Denied. | Needs Verification |
-| Warehouse Manager manages Owner. | Denied. | Needs Verification |
+| Warehouse Manager creates worker. | Allowed. | Needs Manual Test |
+| Warehouse Manager creates tool. | Allowed. | Needs Manual Test |
+| Warehouse Manager creates lookup. | Allowed if business rule remains intended. | Needs Manual Test |
+| Warehouse Manager uploads approval document. | Allowed. | Needs Manual Test |
+| Warehouse Manager approves lost/damaged transaction. | Allowed. | Needs Manual Test |
+| Warehouse Manager manages Warehouse User member lifecycle. | Allowed if intended. | Needs Manual Test |
+| Warehouse Manager manages another Warehouse Manager. | Denied. | Needs Manual Test |
+| Warehouse Manager manages Admin. | Denied. | Needs Manual Test |
+| Warehouse Manager manages Owner. | Denied. | Needs Manual Test |
 
 ---
 
@@ -658,14 +769,14 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Admin invites Warehouse Manager. | Allowed. | Needs Verification |
-| Admin invites Admin. | Denied. | Needs Verification |
-| Admin invites Owner. | Denied. | Needs Verification |
-| Admin changes Warehouse User role to Viewer. | Allowed. | Needs Verification |
-| Admin changes another Admin role. | Denied. | Needs Verification |
-| Admin deactivates Owner. | Denied. | Needs Verification |
-| Admin updates company settings. | Allowed. | Needs Verification |
-| Admin uploads company logo. | Allowed. | Needs Verification |
+| Admin invites Warehouse Manager. | Allowed. | Needs Manual Test |
+| Admin invites Admin. | Denied. | Needs Manual Test |
+| Admin invites Owner. | Denied. | Needs Manual Test |
+| Admin changes Warehouse User role to Viewer. | Allowed. | Needs Manual Test |
+| Admin changes another Admin role. | Denied. | Needs Manual Test |
+| Admin deactivates Owner. | Denied. | Needs Manual Test |
+| Admin updates company settings. | Allowed. | Needs Manual Test |
+| Admin uploads company logo. | Allowed. | Needs Manual Test |
 
 ---
 
@@ -673,13 +784,13 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Owner invites Admin. | Allowed. | Needs Verification |
-| Owner invites Owner through normal invite flow. | Denied. | Needs Verification |
-| Owner changes Admin role to Warehouse Manager. | Allowed. | Needs Verification |
-| Owner deactivates Admin. | Allowed. | Needs Verification |
-| Owner deactivates own membership. | Denied. | Needs Verification |
-| Owner updates company settings. | Allowed. | Needs Verification |
-| Owner uploads company logo. | Allowed. | Needs Verification |
+| Owner invites Admin. | Allowed. | Needs Manual Test |
+| Owner invites Owner through normal invite flow. | Denied. | Needs Manual Test |
+| Owner changes Admin role to Warehouse Manager. | Allowed. | Needs Manual Test |
+| Owner deactivates Admin. | Allowed. | Needs Manual Test |
+| Owner deactivates own membership. | Denied. | Needs Manual Test |
+| Owner updates company settings. | Allowed. | Needs Manual Test |
+| Owner uploads company logo. | Allowed. | Needs Manual Test |
 
 ---
 
@@ -687,11 +798,11 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Inactive member reads company data. | Denied / no rows returned. | Needs Verification |
-| Inactive member creates transaction. | Denied. | Needs Verification |
-| Inactive member uploads Storage object. | Denied. | Needs Verification |
-| Inactive member calls any company mutation RPC. | Denied. | Needs Verification |
-| Inactive member creates signed URL. | Denied. | Needs Verification |
+| Inactive member reads company data. | Denied / no rows returned. | Needs Manual Test |
+| Inactive member creates transaction. | Denied. | Needs Manual Test |
+| Inactive member uploads Storage object. | Denied. | Needs Manual Test |
+| Inactive member calls any company mutation RPC. | Denied. | Needs Manual Test |
+| Inactive member creates signed URL. | Denied. | Needs Manual Test |
 
 ---
 
@@ -699,13 +810,13 @@ These tests should be performed with controlled test users.
 
 | Test | Expected Result | Status |
 |---|---|---|
-| Authorized user reads company audit logs. | Allowed according to business rule. | Needs Verification |
-| Unauthorized company member reads audit logs. | Denied. | Needs Verification |
-| Viewer reads audit logs. | Denied unless intentionally allowed. | Needs Verification |
-| Authenticated user directly inserts audit log. | Denied. | Needs Verification |
-| Authenticated user directly updates audit log. | Denied. | Needs Verification |
-| Authenticated user directly deletes audit log. | Denied. | Needs Verification |
-| Critical RPC writes audit log. | Allowed through backend function only. | Needs Verification |
+| Authorized user reads company audit logs. | Allowed according to business rule. | Needs Manual Test |
+| Unauthorized company member reads audit logs. | Denied. | Needs Manual Test |
+| Viewer reads audit logs. | Business decision needed. | Needs Manual Test |
+| Authenticated user directly inserts audit log. | Denied. | Verified by grants / Needs Manual Test |
+| Authenticated user directly updates audit log. | Denied. | Verified by grants / Needs Manual Test |
+| Authenticated user directly deletes audit log. | Denied. | Verified by grants / Needs Manual Test |
+| Critical RPC writes audit log. | Allowed through backend function only. | Needs Manual Test |
 
 ---
 
@@ -715,7 +826,14 @@ Use this section to record issues found during verification.
 
 | Gap ID | Area | Description | Severity | Recommended Action | GitHub Issue | Status |
 |---|---|---|---|---|---|---|
-| GAP-001 | TBD | No gap recorded yet. | TBD | TBD | TBD | Open |
+| GAP-001 | Company Members | `company_members` allows direct INSERT/UPDATE for owner, which may bypass secure member-management RPC rules and audit flow. | High | Review whether direct owner writes should be removed and replaced fully by RPC-controlled lifecycle actions. | TBD | Open |
+| GAP-002 | Workers / Tools | `workers` and `tools` have direct INSERT/UPDATE/DELETE policies for owner/admin/warehouse_manager even though Flutter uses RPCs for mutations. | High | Review whether direct worker/tool write policies should be removed so mutations must go through RPCs, or document why policies should remain. | TBD | Open |
+| GAP-003 | Approval Document Read Access | `transaction-approval-documents` read policy allows active company members, which may include warehouse_user and viewer. | High | Decide intended read roles before Issue #28 signed PDFs. If documents are sensitive, restrict read/signed URL access to owner/admin/warehouse_manager or approved report roles only. | TBD | Open |
+| GAP-004 | Public Execute Grant | `create_company_with_defaults` has EXECUTE granted to PUBLIC. | Medium / High | Revoke EXECUTE from PUBLIC and keep EXECUTE for authenticated only, unless a verified reason exists. | TBD | Open |
+| GAP-005 | Custody Documents Bucket | `custody-documents` bucket and policies exist but were not part of the original active Flutter storage inventory. | Medium | Decide whether this bucket is active, legacy, or should be removed/refactored. Add it to the storage matrix until resolved. | TBD | Open |
+| GAP-006 | Policy Cleanup | Some overlapping policies exist on `companies`, `company_report_settings`, `profiles`, and `company-assets`. | Low | Review and clean duplicate/legacy policies after functional security is confirmed. | TBD | Open |
+| GAP-007 | Broad Non-DML Grants | `anon` and `authenticated` have broad non-DML grants such as REFERENCES/TRIGGER/TRUNCATE on some tables. | Low / Medium | Review least-privilege grants. Confirm whether these are Supabase defaults and whether they can be safely tightened. | TBD | Open |
+| GAP-008 | Direct Lookup Writes | Lookup tables allow direct INSERT/UPDATE/DELETE for owner/admin/warehouse_manager. This is currently protected by RLS but bypasses RPC-level audit/validation if needed later. | Medium | Decide whether lookup mutations should remain direct-RLS or move to RPCs for stronger auditability. | TBD | Open |
 
 ---
 
@@ -723,28 +841,49 @@ Use this section to record issues found during verification.
 
 | Section | Status | Notes |
 |---|---|---|
-| Role model matrix | Drafted | Needs backend verification. |
-| Business table matrix | Drafted | Needs RLS inspection. |
-| RPC matrix | Drafted | Needs grants and function body inspection. |
-| Storage matrix | Drafted | Needs bucket and storage policy verification. |
-| Direct write matrix | Drafted | High-priority verification area. |
-| Manual SQL queries | Drafted | Must be executed in Supabase SQL Editor. |
+| Role model matrix | Drafted | Manual role tests still required. |
+| Business table matrix | SQL policy inspection partially verified | Some gaps found around direct writes and policy cleanup. |
+| RPC matrix | Grants and security mode inspected | Function body review and manual role tests still required. |
+| Storage matrix | Policies and buckets inspected | Approval document read access and custody-documents bucket require decisions. |
+| Direct write matrix | Inspected | Company members, workers/tools, and lookup write paths require hardening decisions. |
+| Manual SQL queries | Mostly completed | 11.1 through 11.9 completed with findings. |
 | Critical role tests | Drafted | Requires test users. |
-| Gap register | Started | No confirmed gap yet. |
+| Gap register | Updated | 8 current gaps recorded. |
 
 ---
 
-## 15. Step 16.2 Conclusion
+## 15. Step 16.3 Conclusion
 
-This file creates the first full Security/RLS verification matrix skeleton.
+Step 16.3 completed the first SQL inspection pass.
 
-Current status:
+Confirmed:
 
-- The matrix structure exists.
-- The current security surface from Step 16.1 has been mapped into tables, RPCs, Storage, roles, and tests.
-- Most items remain marked as `Needs Verification`.
-- No security behavior should be marked as `Verified` until confirmed by actual SQL inspection or manual role testing.
+- RLS is enabled on all reviewed business tables.
+- Public table policies exist for all reviewed business tables.
+- Storage buckets are private.
+- Storage policies exist for the reviewed buckets.
+- Critical RPCs exist and are mostly `SECURITY DEFINER`.
+- Most exposed RPCs grant EXECUTE to `authenticated`.
+- `audit_logs` does not allow direct authenticated INSERT/UPDATE/DELETE by grants.
+- No service role key was found in the local repository scan. Only documentation search-command text matched the scanned patterns.
+
+Gaps found:
+
+- Direct owner INSERT/UPDATE remains on `company_members`.
+- Direct worker/tool write policies exist despite RPC mutation architecture.
+- Approval document read access appears broad for all active company members.
+- `create_company_with_defaults` has PUBLIC EXECUTE.
+- `custody-documents` bucket exists and must be classified.
+- Duplicate/overlapping policies should be cleaned later.
+- Broad non-DML grants should be reviewed for least privilege.
+- Lookup direct writes should be reviewed for audit and validation requirements.
 
 Next recommended step:
 
-- Step 16.3 — Run SQL inspection queries and start marking matrix rows as `Verified`, `Gap Found`, or `Needs Verification`.
+- Step 16.4 — Convert confirmed gaps into separate GitHub issues or define one hardening plan issue for:
+  - direct member mutation hardening
+  - worker/tool direct write policy cleanup
+  - approval document read restriction
+  - PUBLIC EXECUTE revoke
+  - custody-documents bucket decision
+  - policy/grant cleanup
