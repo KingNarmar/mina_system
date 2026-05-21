@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mina_system/app_root/app_root.dart';
+import 'package:mina_system/core/config/app_environment.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -8,9 +10,15 @@ Future<void> main() async {
 
   tz.initializeTimeZones();
 
+  AppEnvironment.validate();
+
+  if (kDebugMode) {
+    debugPrint('Mina System environment: ${AppEnvironment.name}');
+  }
+
   await Supabase.initialize(
-    url: 'https://rdpyncdnihixuvxxitre.supabase.co',
-    anonKey: 'sb_publishable_W17qAho0ihf9HXkiHp_MhA__-qsEFRl',
+    url: AppEnvironment.supabaseUrl,
+    anonKey: AppEnvironment.supabaseAnonKey,
   );
 
   runApp(const MinaSystem());
