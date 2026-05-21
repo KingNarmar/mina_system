@@ -109,8 +109,6 @@ abstract class CompanyRolePermissions {
 
     CompanyPermission.viewLookups,
 
-    CompanyPermission.viewCompanySettings,
-
     CompanyPermission.viewTeam,
     CompanyPermission.viewCompanyUsers,
   };
