@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Mina System - Android",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=APP_ENV=development",
+        "--dart-define=SUPABASE_URL=https://rdpyncdnihixuvxxitre.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_W17qAho0ihf9HXkiHp_MhA__-qsEFRl"
+      ]
+    },
+    {
+      "name": "Mina System - Windows",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "args": [
+        "--dart-define=APP_ENV=development",
+        "--dart-define=SUPABASE_URL=https://rdpyncdnihixuvxxitre.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_W17qAho0ihf9HXkiHp_MhA__-qsEFRl"
+      ]
+    }
+  ]
+}

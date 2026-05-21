@@ -94,6 +94,27 @@ abstract class CompanyRoles {
 }
 
 abstract class CompanyRolePermissions {
+  static const Set<CompanyPermission> _viewerReadOnlyPermissions = {
+    CompanyPermission.viewDashboard,
+
+    CompanyPermission.viewWorkers,
+    CompanyPermission.viewTools,
+    CompanyPermission.viewTransactions,
+
+    CompanyPermission.viewCustodyBalance,
+    CompanyPermission.viewToolSummary,
+
+    CompanyPermission.viewReports,
+    CompanyPermission.generateReports,
+
+    CompanyPermission.viewLookups,
+
+    CompanyPermission.viewCompanySettings,
+
+    CompanyPermission.viewTeam,
+    CompanyPermission.viewCompanyUsers,
+  };
+
   static final Map<String, Set<CompanyPermission>> _basePermissions = {
     CompanyRoles.owner: CompanyPermission.values.toSet(),
 
@@ -208,12 +229,7 @@ abstract class CompanyRolePermissions {
       CompanyPermission.generateReports,
     },
 
-    CompanyRoles.viewer: {
-      CompanyPermission.viewDashboard,
-
-      CompanyPermission.viewReports,
-      CompanyPermission.generateReports,
-    },
+    CompanyRoles.viewer: _viewerReadOnlyPermissions,
   };
 
   static bool hasPermission(String? role, CompanyPermission permission) {
