@@ -1,7 +1,7 @@
 # Issue #16 — Security / RLS Verification Matrix
 
-Status: SQL inspection in progress  
-Step: 16.3  
+Status: Follow-up hardening updates in progress  
+Step: 16.4A — Lookup RPC mutation hardening incorporated  
 Scope: Tables, RPCs, Storage buckets, roles, direct writes, manual verification queries, critical role tests, and gap tracking  
 Do not modify: `PROJECT_ROADMAP.md`
 
@@ -81,8 +81,8 @@ These permissions must be verified against backend enforcement.
 | Reports | View reports | Yes | Yes | Yes | Yes | Yes | Needs Manual Role Test |
 | Reports | Generate reports | Yes | Yes | Yes | Yes | Yes | Needs Manual Role Test |
 | Lookups | View lookups | Yes | Yes | Yes | No / Limited | No | Needs Manual Role Test |
-| Lookups | Create lookups | Yes | Yes | Yes | No | No | Verified by policy inspection, but direct-write hardening needed |
-| Lookups | Delete lookups | Yes | Yes | Yes | No | No | Verified by policy inspection, but direct-write hardening needed |
+| Lookups | Create lookups | Yes | Yes | Yes | No | No | Verified / Hardened through Issue #35 |
+| Lookups | Deactivate / restore lookups | Yes | Yes | Yes | No | No | Verified / Hardened through Issue #35 |
 | Company Settings | View settings | Yes | Yes | No / Limited | No | No | Needs Manual Role Test |
 | Company Settings | Manage company profile | Yes | Yes | No | No | No | Verified by policy inspection, duplicate policies need cleanup |
 | Company Settings | Upload company logo | Yes | Yes | No | No | No | Verified by storage policy inspection, duplicate policies need cleanup |
@@ -121,10 +121,10 @@ These permissions must be verified against backend enforcement.
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
-| `departments` | Worker department lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. Consider RPC for audit/validation. |
-| `job_titles` | Worker job title lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. Need relationship validation review. |
-| `tool_units` | Tool unit lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. |
-| `tool_categories` | Tool category lookup. | Select, insert, update, delete. | Active company members can read. Owner/admin/warehouse_manager can insert/update/delete. Cross-company writes blocked by `with_check`. | Verified by policy inspection, hardening recommended | Direct writes are intentionally allowed by current policies. |
+| `departments` | Worker department lookup. | Select. Mutations through RPCs. | Active company members can read. Direct INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER privileges are removed from client roles. Create/deactivate/restore must go through RPCs. | Verified / Hardened through Issue #35 | `authenticated` has SELECT only. Direct table writes are blocked. See `docs/supabase/issue_35_lookup_rpc_mutation_flow.sql`. |
+| `job_titles` | Worker job title lookup. | Select. Mutations through RPCs. | Active company members can read. Direct INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER privileges are removed from client roles. Create/deactivate/restore must go through RPCs. | Verified / Hardened through Issue #35 | `authenticated` has SELECT only. Direct table writes are blocked. Relationship validation and duplicate handling are enforced through the RPC/Flutter flow. |
+| `tool_units` | Tool unit lookup. | Select. Mutations through RPCs. | Active company members can read. Direct INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER privileges are removed from client roles. Create/deactivate/restore must go through RPCs. | Verified / Hardened through Issue #35 | `authenticated` has SELECT only. Direct table writes are blocked. |
+| `tool_categories` | Tool category lookup. | Select. Mutations through RPCs. | Active company members can read. Direct INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER privileges are removed from client roles. Create/deactivate/restore must go through RPCs. | Verified / Hardened through Issue #35 | `authenticated` has SELECT only. Direct table writes are blocked. |
 
 ### 5.4 Operational master tables
 
@@ -245,18 +245,10 @@ These are the highest-priority RLS checks because Flutter writes directly to som
 | `companies` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only own active company. Cannot cross-company update. Cannot spoof protected fields. | Verified by policy inspection, cleanup recommended |
 | `company_report_settings` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only settings for active company membership. Cannot cross-company update. | Verified by policy inspection, cleanup recommended |
 | `company_document_templates` | update | Owner, Admin | Warehouse Manager, Warehouse User, Viewer, inactive members | Can update only templates for active company membership. Cannot cross-company update. | Verified by policy inspection |
-| `departments` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Verified by policy inspection, hardening recommended |
-| `departments` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. Confirm direct update is intended. | Verified by policy inspection, hardening recommended |
-| `departments` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
-| `job_titles` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id and department_id must belong to same company. | Verified by policy inspection, relationship validation still needed |
-| `job_titles` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. Confirm department relationship cannot be corrupted. | Verified by policy inspection, relationship validation still needed |
-| `job_titles` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
-| `tool_units` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Verified by policy inspection, hardening recommended |
-| `tool_units` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. | Verified by policy inspection, hardening recommended |
-| `tool_units` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
-| `tool_categories` | insert | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Insert company_id must be an active company where caller has allowed role. | Verified by policy inspection, hardening recommended |
-| `tool_categories` | update | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Update only same-company records. | Verified by policy inspection, hardening recommended |
-| `tool_categories` | delete | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Delete only same-company records. Confirm hard delete is intended. | Verified by policy inspection, hardening recommended |
+| `departments` | insert/update/delete | Owner, Admin, Warehouse Manager through RPC only | Warehouse User, Viewer, inactive members, anonymous users, direct client table writes | Mutations must go through lookup RPCs. Direct client table privileges are removed; `authenticated` has SELECT only. | Verified / Hardened through Issue #35 |
+| `job_titles` | insert/update/delete | Owner, Admin, Warehouse Manager through RPC only | Warehouse User, Viewer, inactive members, anonymous users, direct client table writes | Mutations must go through lookup RPCs. Direct client table privileges are removed; `authenticated` has SELECT only. | Verified / Hardened through Issue #35 |
+| `tool_units` | insert/update/delete | Owner, Admin, Warehouse Manager through RPC only | Warehouse User, Viewer, inactive members, anonymous users, direct client table writes | Mutations must go through lookup RPCs. Direct client table privileges are removed; `authenticated` has SELECT only. | Verified / Hardened through Issue #35 |
+| `tool_categories` | insert/update/delete | Owner, Admin, Warehouse Manager through RPC only | Warehouse User, Viewer, inactive members, anonymous users, direct client table writes | Mutations must go through lookup RPCs. Direct client table privileges are removed; `authenticated` has SELECT only. | Verified / Hardened through Issue #35 |
 | `company_members` | insert/update | Owner only by policy | Non-owner roles | Should ideally go through RPC only to enforce lifecycle hierarchy and audit logging. | Gap Found |
 | `workers` | insert/update/delete | Owner, Admin, Warehouse Manager by policy | Warehouse User, Viewer, inactive members | Should ideally go through RPC only to enforce validation and audit logging. | Gap Found |
 | `tools` | insert/update/delete | Owner, Admin, Warehouse Manager by policy | Warehouse User, Viewer, inactive members | Should ideally go through RPC only to enforce validation and audit logging. | Gap Found |
@@ -272,7 +264,7 @@ This section records whether a direct-write area should remain direct with stron
 | Company profile update | Direct update | Keep only if RLS and accountability are strict; otherwise move to RPC. | Verified with cleanup recommended | Duplicate policies should be cleaned later. |
 | Company report settings update | Direct update | Keep only if RLS is strict; otherwise move to RPC. | Verified with cleanup recommended | Duplicate policies should be cleaned later. |
 | Company document templates update | Direct update | Keep only if RLS is strict; otherwise move to RPC. | Verified | Important before signed PDFs. |
-| Lookup creation/update/deletion | Direct insert/update/delete | Consider moving to RPCs if audit/accountability is required. | Verified with hardening recommended | Current RLS restricts writes to owner/admin/warehouse_manager. |
+| Lookup creation/deactivation/restoration | RPC-controlled mutation flow | Keep lookup mutations behind SECURITY DEFINER RPCs. Flutter must use SELECT for loading and RPCs for create/deactivate/restore. | Completed / Hardened through Issue #35 | Direct table privileges were revoked from client roles and re-granted as authenticated SELECT only. Decision documented in `docs/supabase/issue_35_lookup_rpc_mutation_flow.sql`. |
 | Company member mutation | Direct insert/update still allowed for owner | Move fully behind RPCs unless there is a strong reason to keep owner direct write. | Gap Found | May bypass member-management RPC rules. |
 | Workers/tools mutation | Direct policies exist, but table grants show authenticated SELECT only | Review mismatch and decide whether to remove policies or keep direct writes. | Gap Found | Flutter uses RPCs for these mutations. |
 
@@ -355,7 +347,7 @@ Confirmed:
 - `company_invitations` does not show direct INSERT/UPDATE/DELETE policies in this result.
 - `transactions` does not show direct INSERT/UPDATE/DELETE policies in this result.
 - `audit_logs` does not show direct INSERT/UPDATE/DELETE policies in this result.
-- Lookup tables are restricted by role-based RLS policies.
+- Lookup mutations were later hardened through Issue #35 and now use RPC-controlled create/deactivate/restore flows.
 - Company settings tables are restricted to owner/admin policies.
 
 Gaps found:
@@ -368,7 +360,7 @@ Cleanup note:
 
 - Some overlapping policies exist on `companies`, `company_report_settings`, and `profiles`.
 
-Verification Status: Gap Found
+Verification Status: Gap Found, with Issue #35 lookup hardening incorporated
 
 ---
 
@@ -610,7 +602,7 @@ Confirmed:
   - `companies`
   - `company_document_templates`
   - `company_report_settings`
-- `authenticated` has INSERT/UPDATE/DELETE on:
+- `authenticated` has SELECT only on lookup tables after Issue #35 hardening:
   - `departments`
   - `job_titles`
   - `tool_categories`
@@ -624,11 +616,12 @@ Confirmed:
 
 Notes:
 
-- Direct table grants align with lookup direct-write design.
-- Direct table grants do not show authenticated INSERT/UPDATE/DELETE on workers/tools, even though policies exist for those operations. This mismatch should be reviewed.
-- `anon` has non-DML privileges such as REFERENCES/TRIGGER/TRUNCATE on some tables. This should be reviewed for least privilege, even if not exposed through normal PostgREST workflows.
+- Lookup direct table writes are now blocked for client roles.
+- Lookup mutations are controlled through SECURITY DEFINER RPCs.
+- Direct table grants do not show authenticated INSERT/UPDATE/DELETE on workers/tools, even though policies exist for those operations. This mismatch remains tracked separately.
+- `anon` broad non-DML grants should still be reviewed for least privilege if they remain present outside the hardened lookup tables.
 
-Verification Status: Verified with cleanup review needed
+Verification Status: Verified with Issue #35 lookup hardening incorporated
 
 ---
 
@@ -755,7 +748,7 @@ These tests should be performed with controlled test users.
 |---|---|---|
 | Warehouse Manager creates worker. | Allowed. | Needs Manual Test |
 | Warehouse Manager creates tool. | Allowed. | Needs Manual Test |
-| Warehouse Manager creates lookup. | Allowed if business rule remains intended. | Needs Manual Test |
+| Warehouse Manager creates lookup. | Allowed through RPC only; direct table write should be blocked. | Needs Manual Test |
 | Warehouse Manager uploads approval document. | Allowed. | Needs Manual Test |
 | Warehouse Manager approves lost/damaged transaction. | Allowed. | Needs Manual Test |
 | Warehouse Manager manages Warehouse User member lifecycle. | Allowed if intended. | Needs Manual Test |
@@ -826,14 +819,14 @@ Use this section to record issues found during verification.
 
 | Gap ID | Area | Description | Severity | Recommended Action | GitHub Issue | Status |
 |---|---|---|---|---|---|---|
-| GAP-001 | Company Members | `company_members` allows direct INSERT/UPDATE for owner, which may bypass secure member-management RPC rules and audit flow. | High | Review whether direct owner writes should be removed and replaced fully by RPC-controlled lifecycle actions. | TBD | Open |
-| GAP-002 | Workers / Tools | `workers` and `tools` have direct INSERT/UPDATE/DELETE policies for owner/admin/warehouse_manager even though Flutter uses RPCs for mutations. | High | Review whether direct worker/tool write policies should be removed so mutations must go through RPCs, or document why policies should remain. | TBD | Open |
+| GAP-001 | Company Members | `company_members` allows direct INSERT/UPDATE for owner, which may bypass secure member-management RPC rules and audit flow. | High | Review whether direct owner writes should be removed and replaced fully by RPC-controlled lifecycle actions. | #31 | Open / Follow-up issue exists |
+| GAP-002 | Workers / Tools | `workers` and `tools` have direct INSERT/UPDATE/DELETE policies for owner/admin/warehouse_manager even though Flutter uses RPCs for mutations. | High | Review whether direct worker/tool write policies should be removed so mutations must go through RPCs, or document why policies should remain. | #32 | Open / Follow-up issue exists |
 | GAP-003 | Approval Document Read Access | `transaction-approval-documents` read policy allows active company members, which may include warehouse_user and viewer. | High | Decide intended read roles before Issue #28 signed PDFs. If documents are sensitive, restrict read/signed URL access to owner/admin/warehouse_manager or approved report roles only. | TBD | Open |
-| GAP-004 | Public Execute Grant | `create_company_with_defaults` has EXECUTE granted to PUBLIC. | Medium / High | Revoke EXECUTE from PUBLIC and keep EXECUTE for authenticated only, unless a verified reason exists. | TBD | Open |
-| GAP-005 | Custody Documents Bucket | `custody-documents` bucket and policies exist but were not part of the original active Flutter storage inventory. | Medium | Decide whether this bucket is active, legacy, or should be removed/refactored. Add it to the storage matrix until resolved. | TBD | Open |
-| GAP-006 | Policy Cleanup | Some overlapping policies exist on `companies`, `company_report_settings`, `profiles`, and `company-assets`. | Low | Review and clean duplicate/legacy policies after functional security is confirmed. | TBD | Open |
+| GAP-004 | Public Execute Grant | `create_company_with_defaults` has EXECUTE granted to PUBLIC. | Medium / High | Revoke EXECUTE from PUBLIC and keep EXECUTE for authenticated only, unless a verified reason exists. | #30 | Open / Follow-up issue exists |
+| GAP-005 | Custody Documents Bucket | `custody-documents` bucket and policies exist but were not part of the original active Flutter storage inventory. | Medium | Decide whether this bucket is active, legacy, or should be removed/refactored. Add it to the storage matrix until resolved. | #33 | Open / Follow-up issue exists |
+| GAP-006 | Policy Cleanup | Some overlapping policies exist on `companies`, `company_report_settings`, `profiles`, and `company-assets`. | Low | Review and clean duplicate/legacy policies after functional security is confirmed. | #34 | Open / Follow-up issue exists |
 | GAP-007 | Broad Non-DML Grants | `anon` and `authenticated` have broad non-DML grants such as REFERENCES/TRIGGER/TRUNCATE on some tables. | Low / Medium | Review least-privilege grants. Confirm whether these are Supabase defaults and whether they can be safely tightened. | TBD | Open |
-| GAP-008 | Direct Lookup Writes | Lookup tables allow direct INSERT/UPDATE/DELETE for owner/admin/warehouse_manager. This is currently protected by RLS but bypasses RPC-level audit/validation if needed later. | Medium | Decide whether lookup mutations should remain direct-RLS or move to RPCs for stronger auditability. | TBD | Open |
+| GAP-008 | Direct Lookup Writes | Lookup tables previously allowed direct INSERT/UPDATE/DELETE for owner/admin/warehouse_manager. Issue #35 moved lookup mutations behind RPCs and hardened table grants to authenticated SELECT only. | Medium | Completed. Keep lookup mutations RPC-controlled and keep direct table writes blocked for client roles. | #35 | Closed |
 
 ---
 
@@ -842,13 +835,13 @@ Use this section to record issues found during verification.
 | Section | Status | Notes |
 |---|---|---|
 | Role model matrix | Drafted | Manual role tests still required. |
-| Business table matrix | SQL policy inspection partially verified | Some gaps found around direct writes and policy cleanup. |
+| Business table matrix | SQL policy inspection partially verified | Some gaps found around direct writes and policy cleanup. Lookup tables hardened through Issue #35. |
 | RPC matrix | Grants and security mode inspected | Function body review and manual role tests still required. |
 | Storage matrix | Policies and buckets inspected | Approval document read access and custody-documents bucket require decisions. |
-| Direct write matrix | Inspected | Company members, workers/tools, and lookup write paths require hardening decisions. |
-| Manual SQL queries | Mostly completed | 11.1 through 11.9 completed with findings. |
+| Direct write matrix | Partially hardened | Lookup write paths were hardened through Issue #35. Company members and workers/tools remain tracked separately. |
+| Manual SQL queries | Mostly completed | 11.1 through 11.9 completed with findings. 11.7 updated after Issue #35 lookup hardening. |
 | Critical role tests | Drafted | Requires test users. |
-| Gap register | Updated | 8 current gaps recorded. |
+| Gap register | Updated | GAP-008 / Issue #35 is closed. Remaining gaps continue in their dedicated follow-up issues. |
 
 ---
 
@@ -876,14 +869,58 @@ Gaps found:
 - `custody-documents` bucket exists and must be classified.
 - Duplicate/overlapping policies should be cleaned later.
 - Broad non-DML grants should be reviewed for least privilege.
-- Lookup direct writes should be reviewed for audit and validation requirements.
+- Lookup direct writes were reviewed and resolved in Issue #35. Lookup mutations now use RPCs, and lookup table grants are authenticated SELECT only.
 
 Next recommended step:
 
-- Step 16.4 — Convert confirmed gaps into separate GitHub issues or define one hardening plan issue for:
+- Step 16.4 — Continue closing confirmed follow-up gaps through dedicated issues:
   - direct member mutation hardening
   - worker/tool direct write policy cleanup
-  - approval document read restriction
+  - approval document read restriction decision
   - PUBLIC EXECUTE revoke
   - custody-documents bucket decision
   - policy/grant cleanup
+
+---
+
+## 16. Step 16.4A Update — Lookup RPC Mutation Hardening
+
+Issue #35 resolved the lookup direct-write gap.
+
+Completed:
+
+- Lookup mutations were moved to an RPC-controlled flow.
+- Flutter uses SELECT to load active/inactive lookup records.
+- Flutter uses RPCs for create/deactivate/restore operations.
+- Direct client table write privileges were revoked for:
+  - `public.departments`
+  - `public.job_titles`
+  - `public.tool_units`
+  - `public.tool_categories`
+- `authenticated` was re-granted SELECT only for those lookup tables.
+- `anon` and `PUBLIC` have no direct table privileges for the lookup tables.
+- Active and inactive duplicate behavior was tested from the app.
+- Normalized matching was verified for case differences, spacing differences, and symbol/spacing variations.
+
+Final verified lookup table grants:
+
+| Grantee | Table Schema | Table Name | Privilege Type |
+|---|---|---|---|
+| authenticated | public | departments | SELECT |
+| authenticated | public | job_titles | SELECT |
+| authenticated | public | tool_categories | SELECT |
+| authenticated | public | tool_units | SELECT |
+
+Documentation added:
+
+- `docs/supabase/issue_35_lookup_rpc_mutation_flow.sql`
+
+GitHub issue:
+
+- #35 — Closed as completed.
+
+Status:
+
+- Lookup direct write gap is closed.
+- Lookup mutation architecture is now RPC-controlled.
+- Security matrix has been updated to reflect Issue #35 completion.
