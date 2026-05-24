@@ -24,8 +24,8 @@ Future<bool> addDepartmentLookup({
   final lookupsCubit = context.read<LookupsCubit>();
   final state = lookupsCubit.state;
 
-  final alreadyActive = departments.any((item) {
-    return _isSameLookupName(item, cleanDepartment);
+  final alreadyActive = state.departmentModels.any((item) {
+    return _isSameLookupName(item.name, cleanDepartment);
   });
 
   if (alreadyActive) {
@@ -37,8 +37,8 @@ Future<bool> addDepartmentLookup({
     return false;
   }
 
-  final alreadyInactive = state.inactiveDepartments.any((item) {
-    return _isSameLookupName(item, cleanDepartment);
+  final alreadyInactive = state.inactiveDepartmentModels.any((item) {
+    return _isSameLookupName(item.name, cleanDepartment);
   });
 
   if (alreadyInactive) {
@@ -98,5 +98,8 @@ bool _isSameLookupName(String firstValue, String secondValue) {
 }
 
 String _normalizeLookupName(String value) {
-  return value.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+  return value.trim().toLowerCase().replaceAll(
+    RegExp(r'[^\p{L}\p{N}]+', unicode: true),
+    '',
+  );
 }
