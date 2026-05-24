@@ -1,7 +1,7 @@
 # Issue #16 — Security / RLS Verification Matrix
 
-Status: Follow-up hardening updates incorporated  
-Step: 16.4B — Security follow-up issues #29–#35 incorporated  
+Status: Final closure review in progress  
+Step: 16.5 — Final broad grants cleanup incorporated  
 Scope: Tables, RPCs, Storage buckets, roles, direct writes, manual verification queries, critical role tests, and gap tracking  
 Do not modify: `PROJECT_ROADMAP.md`
 
@@ -108,7 +108,7 @@ These permissions must be verified against backend enforcement.
 | `profiles` | User profile linked to Supabase auth user. | Select current profile and joined display data. | Users should only access own profile, invited-user context, and active company member profile data. | Verified / Cleaned through Issue #34 | Duplicate own-profile read policies were cleaned. `authenticated` has SELECT only; unnecessary non-DML grants were revoked from client roles on targeted tables. |
 | `companies` | Company tenant record and company profile. | Select and direct update from company settings. | Active company members can read. Owner/admin can update company profile fields. Cross-company update blocked by policy. | Verified / Cleaned through Issue #34 | Duplicate update policies were cleaned. `authenticated` keeps SELECT/UPDATE only. |
 | `company_members` | Company membership, role, and status. | Select active memberships and company team members. Mutations through RPCs. | Active members can read company members. All member-management mutations must go through secure RPCs. | Verified / Hardened through Issue #31 | Direct INSERT/UPDATE policies were removed. `authenticated` has SELECT only. `anon` has no direct privileges. |
-| `company_invitations` | Company invitations. | Select invitations. Mutations through RPCs. | Invited users can read own pending invitations. Owners/admins can read company invitations. Direct insert/update/delete should remain closed. | Verified by policy inspection | Mutations are handled through invitation RPCs. |
+| `company_invitations` | Company invitations. | Select invitations. Mutations through RPCs. | Invited users can read own pending invitations. Owners/admins can read company invitations. Direct insert/update/delete should remain closed. | Verified / Cleaned through Step 16.5 | Mutations are handled through invitation RPCs. Broad non-DML grants were removed through GAP-007 cleanup. |
 | `profiles` | User profile record. | Auth Cubit creates profile indirectly through auth flow / triggers if configured. | Users can insert/update own profile only. Company members can read active member profiles. | Verified / Cleaned through Issue #34 | Own-profile read policies were simplified. |
 
 ### 5.2 Company configuration tables
@@ -134,11 +134,15 @@ These permissions must be verified against backend enforcement.
 | `workers` | Worker master data. | Select. Mutations through RPCs in Flutter. | Active members can read. Worker create/update/deactivate/reactivate must go through secure RPCs. Direct table mutations are blocked. | Verified / Hardened through Issue #32 | Direct worker INSERT/UPDATE/DELETE policies were removed. `authenticated` has SELECT only. App worker flows were manually tested successfully. |
 | `tools` | Tool master data. | Select. Mutations through RPCs in Flutter. | Active members can read. Tool create/update/deactivate/reactivate must go through secure RPCs. Direct table mutations are blocked. | Verified / Hardened through Issue #32 | Direct tool INSERT/UPDATE/DELETE policies were removed. `authenticated` has SELECT only. App tool flows were manually tested successfully. |
 
-### 5.5 Transaction and audit tables
+### 5.5 Transaction, custody, and audit tables
 
 | Table | Purpose | Flutter Access | Expected RLS Behavior | Verification Status | Notes |
 |---|---|---|---|---|---|
 | `transactions` | Custody transactions and lost/damaged workflow. | Select. Mutations through RPCs. | Active members can read. Direct insert/update/delete blocked. Mutations enforced by RPCs. | Verified by policy inspection | Only SELECT policy detected for authenticated company members. |
+| `custody_acknowledgements` | Future signed custody acknowledgement records. | Future signed PDF workflow. | Access should follow company membership and future signature workflow rules. | Broad grants cleaned through Step 16.5 | TRUNCATE / REFERENCES / TRIGGER removed from client roles through GAP-007 cleanup. |
+| `custody_acknowledgement_items` | Future signed custody acknowledgement item records. | Future signed PDF workflow. | Access should follow company membership and future signature workflow rules. | Broad grants cleaned through Step 16.5 | TRUNCATE / REFERENCES / TRIGGER removed from client roles through GAP-007 cleanup. |
+| `loss_damage_reports` | Future/related signed loss-damage report records. | Future signed PDF/report workflow. | Access should follow company membership and approval workflow rules. | Broad grants cleaned through Step 16.5 | TRUNCATE / REFERENCES / TRIGGER removed from client roles through GAP-007 cleanup. |
+| `user_context_events` | User/current-context event tracking. | Internal context/realtime flow. | Client roles should not have broad non-DML privileges. | Broad grants cleaned through Step 16.5 | TRUNCATE / REFERENCES / TRIGGER removed from client roles through GAP-007 cleanup. |
 | `audit_logs` | Immutable audit trail. | Select only. | Company members can read. Direct insert/update/delete from authenticated client blocked. Writes should be backend-only. | Verified by policy/grants inspection, business decision needed | All active company members can currently read audit logs via `private.is_company_member(company_id)`. Confirm if viewer/warehouse_user should read audit logs. |
 | `storage.objects` | Supabase Storage metadata. | Used indirectly through Supabase Storage API. | Policies enforce bucket, company path, role, and operation. | Partially verified / Business Decision Needed | `company-assets` cleanup completed through Issue #34. `custody-documents` classified through Issue #33. Approval document read access still needs business decision if sensitive. |
 
@@ -273,6 +277,7 @@ This section records whether a direct-write area should remain direct with stron
 | Lookup creation/deactivation/restoration | RPC-controlled mutation flow | Keep lookup mutations behind SECURITY DEFINER RPCs. Flutter must use SELECT for loading and RPCs for create/deactivate/restore. | Completed / Hardened through Issue #35 | Direct table privileges were revoked from client roles and re-granted as authenticated SELECT only. |
 | Company asset Storage policies | Helper-based Storage policies | Keep current helper-based policies. | Completed / Cleaned through Issue #34 | Duplicate/legacy company-assets policies removed. |
 | Custody documents bucket | Planned/reserved active bucket | Keep bucket for future digitally signed custody PDFs. | Completed / Classified through Issue #33 | PDF-only, 10MB, private, zero objects currently. |
+| Broad non-DML table grants | Unnecessary client privileges | Remove TRUNCATE / REFERENCES / TRIGGER from anon/authenticated/PUBLIC on public tables. | Completed through Step 16.5 / GAP-007 | Final verification query returned no rows. |
 
 ---
 
@@ -653,6 +658,51 @@ Verification Status: Verified
 
 ---
 
+### 11.10 Confirm no broad non-DML grants remain for client roles
+
+    select
+      grantee,
+      table_schema,
+      table_name,
+      privilege_type
+    from information_schema.role_table_grants
+    where table_schema = 'public'
+      and grantee in ('anon', 'authenticated', 'PUBLIC')
+      and privilege_type in ('TRUNCATE', 'REFERENCES', 'TRIGGER')
+    order by
+      table_name,
+      grantee,
+      privilege_type;
+
+Before Step 16.5 cleanup:
+
+- Remaining broad non-DML grants were found on:
+  - `company_invitations`
+  - `custody_acknowledgement_items`
+  - `custody_acknowledgements`
+  - `loss_damage_reports`
+  - `user_context_events`
+
+Step 16.5 cleanup removed:
+
+- `TRUNCATE`
+- `REFERENCES`
+- `TRIGGER`
+
+from:
+
+- `anon`
+- `authenticated`
+- `PUBLIC`
+
+After Step 16.5 cleanup:
+
+- Query returned no rows.
+
+Verification Status: Verified / GAP-007 Closed
+
+---
+
 ## 12. Critical Manual Role Test Scenarios
 
 These tests should be performed with controlled test users.
@@ -808,7 +858,7 @@ Use this section to record issues found during verification.
 | GAP-004 | Public Execute Grant | `create_company_with_defaults` had EXECUTE granted to PUBLIC. | Medium / High | Completed. PUBLIC EXECUTE revoked; authenticated EXECUTE kept. | #30 | Closed |
 | GAP-005 | Custody Documents Bucket | `custody-documents` bucket and policies existed but were not part of the original active Flutter storage inventory. | Medium | Completed. Bucket classified as planned/reserved active for future signed custody PDFs. | #33 | Closed |
 | GAP-006 | Policy Cleanup | Some overlapping policies existed on `companies`, `company_report_settings`, `profiles`, and `company-assets`. | Low | Completed. Duplicate/legacy policies and dangerous unused grants cleaned for targeted scope. | #34 | Closed |
-| GAP-007 | Broad Non-DML Grants | Some broad non-DML grants such as REFERENCES/TRIGGER/TRUNCATE were previously detected on some tables. | Low / Medium | Partially completed through Issues #31, #32, #34, and #35. Run a final global least-privilege query before closing Issue #16. | TBD | Needs Final Verification |
+| GAP-007 | Broad Non-DML Grants | Some broad non-DML grants such as REFERENCES/TRIGGER/TRUNCATE were previously detected on remaining public tables. | Low / Medium | Completed. Removed TRUNCATE / REFERENCES / TRIGGER from anon/authenticated/PUBLIC on remaining public tables. | Step 16.5 | Closed |
 | GAP-008 | Direct Lookup Writes | Lookup tables previously allowed direct INSERT/UPDATE/DELETE for owner/admin/warehouse_manager. | Medium | Completed. Lookup mutations moved behind RPCs and table grants hardened to authenticated SELECT only. | #35 | Closed |
 
 ---
@@ -818,13 +868,13 @@ Use this section to record issues found during verification.
 | Section | Status | Notes |
 |---|---|---|
 | Role model matrix | Updated | Viewer role verified through Issue #29. Broader role tests still recommended. |
-| Business table matrix | Updated / Mostly hardened | Company members, workers/tools, and lookups hardened through Issues #31, #32, and #35. |
+| Business table matrix | Updated / Mostly hardened | Company members, workers/tools, and lookups hardened through Issues #31, #32, and #35. Remaining broad grants cleaned through Step 16.5. |
 | RPC matrix | Updated | Company creation, member management, workers/tools, and lookups incorporated from closed follow-up issues. Transaction RPCs still need broader manual role tests. |
 | Storage matrix | Updated | `custody-documents` classified through Issue #33. `company-assets` cleanup completed through Issue #34. Approval document read access still needs decision. |
 | Direct write matrix | Updated / Mostly hardened | Direct mutation bypass risks closed for company_members, workers/tools, and lookups. |
-| Manual SQL queries | Updated | Query result notes updated to incorporate Issues #30–#35. |
+| Manual SQL queries | Updated | Query result notes updated to incorporate Issues #30–#35 and Step 16.5 broad grants cleanup. |
 | Critical role tests | Partially verified | Viewer UI access verified through Issue #29. Worker/tool, lookup, company settings app flows partially verified through closed issues. Cross-company/inactive/bypass tests still recommended. |
-| Gap register | Updated | GAP-001, GAP-002, GAP-004, GAP-005, GAP-006, GAP-008 are closed. GAP-003 and GAP-007 remain open/needs decision or final verification. |
+| Gap register | Updated | GAP-001, GAP-002, GAP-004, GAP-005, GAP-006, GAP-007, GAP-008 are closed. GAP-003 remains open/business decision needed. |
 
 ---
 
@@ -907,7 +957,7 @@ Completed follow-up issues:
 | #34 | Duplicate/legacy RLS and Storage policies | Targeted duplicate/legacy policies and dangerous unused grants cleaned. |
 | #35 | Lookup direct writes | Lookup mutations moved behind RPCs and lookup tables hardened to authenticated SELECT only. |
 
-Remaining Issue #16 items:
+Remaining Issue #16 items after Step 16.4B:
 
 - Decide or track approval document read access for `transaction-approval-documents`.
 - Run a final global least-privilege grants query for any remaining broad non-DML grants.
@@ -918,10 +968,41 @@ Remaining Issue #16 items:
   - transaction approval workflow restrictions
   - audit log read policy decision
 
-Recommended next step:
+---
 
-- Step 16.5 — Final Issue #16 closure review:
-  - Run final verification queries.
-  - Confirm remaining open gaps are either closed or moved to dedicated issues.
-  - Add final Issue #16 comment.
-  - Close Issue #16 only when the remaining manual/security decisions are accounted for.
+## 18. Step 16.5 Update — GAP-007 Final Broad Grants Cleanup
+
+GAP-007 resolved the remaining broad non-DML grants.
+
+Before cleanup, the final global least-privilege query found `TRUNCATE`, `REFERENCES`, and `TRIGGER` privileges for client-facing roles on:
+
+- `public.company_invitations`
+- `public.custody_acknowledgement_items`
+- `public.custody_acknowledgements`
+- `public.loss_damage_reports`
+- `public.user_context_events`
+
+Cleanup applied:
+
+- Removed `TRUNCATE`, `REFERENCES`, and `TRIGGER` from:
+  - `anon`
+  - `authenticated`
+  - `PUBLIC`
+
+Final verification:
+
+- The final broad non-DML grants query returned no rows.
+
+Documentation added:
+
+- `docs/supabase/issue_16_gap_007_final_least_privilege_cleanup.sql`
+
+Status:
+
+- GAP-007 is closed.
+- No `TRUNCATE`, `REFERENCES`, or `TRIGGER` privileges remain for `anon`, `authenticated`, or `PUBLIC` on public tables.
+
+Remaining Issue #16 items:
+
+- GAP-003 — approval document read access business decision.
+- Broader manual role tests can either be completed now or moved into a dedicated follow-up issue.
