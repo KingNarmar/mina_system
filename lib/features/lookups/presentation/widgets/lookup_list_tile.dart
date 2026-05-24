@@ -8,11 +8,13 @@ class LookupListTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.onDelete,
+    this.onRestore,
   });
 
   final String title;
   final String subtitle;
   final VoidCallback? onDelete;
+  final VoidCallback? onRestore;
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +33,30 @@ class LookupListTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(subtitle, style: AppTextStyles.caption),
-        trailing: onDelete == null
-            ? null
-            : IconButton(
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
-                color: AppColors.error,
-                tooltip: 'Deactivate',
-              ),
+        trailing: _buildTrailingAction(),
       ),
     );
+  }
+
+  Widget? _buildTrailingAction() {
+    if (onRestore != null) {
+      return IconButton(
+        onPressed: onRestore,
+        icon: const Icon(Icons.restore),
+        color: AppColors.accent,
+        tooltip: 'Restore',
+      );
+    }
+
+    if (onDelete != null) {
+      return IconButton(
+        onPressed: onDelete,
+        icon: const Icon(Icons.delete_outline),
+        color: AppColors.error,
+        tooltip: 'Deactivate',
+      );
+    }
+
+    return null;
   }
 }

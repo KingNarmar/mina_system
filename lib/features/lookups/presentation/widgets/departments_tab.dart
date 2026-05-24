@@ -6,22 +6,26 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.da
 import 'package:mina_system/features/lookups/presentation/functions/add_department_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_department_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/restore_department_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_status_toggle.dart';
 
 class DepartmentsTab extends StatefulWidget {
   const DepartmentsTab({
     super.key,
     required this.canCreateLookups,
     required this.canDeleteLookups,
+    required this.canRestoreLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
   final bool canCreateLookups;
   final bool canDeleteLookups;
+  final bool canRestoreLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -31,6 +35,7 @@ class DepartmentsTab extends StatefulWidget {
 
 class _DepartmentsTabState extends State<DepartmentsTab> {
   final _departmentController = TextEditingController();
+  bool _showInactive = false;
 
   @override
   void dispose() {
@@ -50,6 +55,10 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
+        final departments = _showInactive
+            ? state.inactiveDepartments
+            : state.departments;
+
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: padding,
@@ -57,7 +66,16 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
             title: 'Manage Departments',
             child: Column(
               children: [
-                if (widget.canCreateLookups) ...[
+                LookupStatusToggle(
+                  showInactive: _showInactive,
+                  onChanged: (value) {
+                    setState(() {
+                      _showInactive = value;
+                    });
+                  },
+                ),
+                const Gap(16),
+                if (!_showInactive && widget.canCreateLookups) ...[
                   LookupAddRow(
                     hint: 'Department Name',
                     controller: _departmentController,
@@ -77,26 +95,40 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                   ),
                   const Gap(20),
                 ],
-                if (state.departments.isEmpty)
-                  const EmptyLookupMessage(message: 'No departments found')
+                if (departments.isEmpty)
+                  EmptyLookupMessage(
+                    message: _showInactive
+                        ? 'No inactive departments found'
+                        : 'No active departments found',
+                  )
                 else
-                  ...state.departments.map((department) {
+                  ...departments.map((department) {
                     return LookupListTile(
                       title: department,
-                      subtitle: 'Department',
-                      onDelete: widget.canDeleteLookups
+                      subtitle: _showInactive
+                          ? 'Inactive Department'
+                          : 'Active Department',
+                      onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
-                                title: 'Delete Department',
+                                title: 'Deactivate Department',
                                 message:
-                                    'Are you sure you want to delete $department?',
+                                    'Are you sure you want to deactivate $department?',
                                 onConfirm: () async {
                                   await deleteDepartmentLookup(
                                     context: context,
                                     department: department,
                                   );
                                 },
+                              );
+                            }
+                          : null,
+                      onRestore: _showInactive && widget.canRestoreLookups
+                          ? () async {
+                              await restoreDepartmentLookup(
+                                context: context,
+                                department: department,
                               );
                             }
                           : null,

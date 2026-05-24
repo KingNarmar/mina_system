@@ -12,18 +12,21 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_status_toggle.dart';
 
 class JobTitlesTab extends StatefulWidget {
   const JobTitlesTab({
     super.key,
     required this.canCreateLookups,
     required this.canDeleteLookups,
+    required this.canRestoreLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
   final bool canCreateLookups;
   final bool canDeleteLookups;
+  final bool canRestoreLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -35,6 +38,7 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
   final _jobTitleController = TextEditingController();
 
   String? _selectedDepartment;
+  bool _showInactive = false;
 
   @override
   void dispose() {
@@ -54,7 +58,24 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
-        final jobTitles = state.getJobTitlesByDepartment(_selectedDepartment);
+        final departmentItems = _showInactive
+            ? _uniqueValues([
+                ...state.departments,
+                ...state.inactiveDepartments,
+              ])
+            : state.departments;
+
+        final selectedDepartment = departmentItems.contains(_selectedDepartment)
+            ? _selectedDepartment
+            : null;
+
+        final jobTitles = _showInactive
+            ? state.getInactiveJobTitlesByDepartment(selectedDepartment)
+            : state.getJobTitlesByDepartment(selectedDepartment);
+
+        final selectedDepartmentIsActive =
+            selectedDepartment != null &&
+            state.departments.contains(selectedDepartment);
 
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -63,12 +84,21 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
             title: 'Manage Job Titles',
             child: Column(
               children: [
+                LookupStatusToggle(
+                  showInactive: _showInactive,
+                  onChanged: (value) {
+                    setState(() {
+                      _showInactive = value;
+                    });
+                  },
+                ),
+                Gap(widget.isCompactInputMode ? 8 : 16),
                 if (widget.isCompactInputMode &&
-                    _selectedDepartment != null) ...[
+                    selectedDepartment != null) ...[
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Department: $_selectedDepartment',
+                      'Department: $selectedDepartment',
                       style: AppTextStyles.caption,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -77,8 +107,8 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                 ] else ...[
                   CustomDropdownFormField(
                     hint: 'Select Department',
-                    value: _selectedDepartment,
-                    items: state.departments,
+                    value: selectedDepartment,
+                    items: departmentItems,
                     onChanged: (value) {
                       setState(() {
                         _selectedDepartment = value;
@@ -86,7 +116,7 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                     },
                   ),
                 ],
-                if (widget.canCreateLookups) ...[
+                if (!_showInactive && widget.canCreateLookups) ...[
                   Gap(widget.isCompactInputMode ? 8 : 12),
                   LookupAddRow(
                     hint: 'Job Title',
@@ -96,7 +126,7 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                     onAdd: () async {
                       final isAdded = await addJobTitleLookup(
                         context: context,
-                        department: _selectedDepartment,
+                        department: selectedDepartment,
                         jobTitle: _jobTitleController.text,
                         jobTitles: jobTitles,
                       );
@@ -108,34 +138,55 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                   ),
                 ],
                 const Gap(20),
-                if (_selectedDepartment == null)
-                  const EmptyLookupMessage(
-                    message: 'Select a department to view its job titles',
+                if (selectedDepartment == null)
+                  EmptyLookupMessage(
+                    message: _showInactive
+                        ? 'Select a department to view inactive job titles'
+                        : 'Select a department to view its job titles',
                   )
                 else if (jobTitles.isEmpty)
-                  const EmptyLookupMessage(
-                    message: 'No job titles found for this department',
+                  EmptyLookupMessage(
+                    message: _showInactive
+                        ? 'No inactive job titles found for this department'
+                        : 'No job titles found for this department',
                   )
                 else
                   ...jobTitles.map((jobTitle) {
                     return LookupListTile(
                       title: jobTitle,
-                      subtitle: _selectedDepartment!,
-                      onDelete: widget.canDeleteLookups
+                      subtitle: _showInactive
+                          ? selectedDepartmentIsActive
+                                ? 'Inactive Job Title'
+                                : 'Inactive Department - restore department first'
+                          : selectedDepartment,
+                      onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
-                                title: 'Delete Job Title',
+                                title: 'Deactivate Job Title',
                                 message:
-                                    'Are you sure you want to delete $jobTitle?',
+                                    'Are you sure you want to deactivate $jobTitle?',
                                 onConfirm: () async {
                                   await deleteJobTitleLookup(
                                     context: context,
-                                    department: _selectedDepartment!,
+                                    department: selectedDepartment,
                                     jobTitle: jobTitle,
                                   );
                                 },
                               );
+                            }
+                          : null,
+                      onRestore:
+                          _showInactive &&
+                              widget.canRestoreLookups &&
+                              selectedDepartmentIsActive
+                          ? () async {
+                              await context
+                                  .read<LookupsCubit>()
+                                  .reactivateJobTitle(
+                                    department: selectedDepartment,
+                                    jobTitle: jobTitle,
+                                  );
                             }
                           : null,
                     );
@@ -146,5 +197,18 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
         );
       },
     );
+  }
+
+  List<String> _uniqueValues(List<String> values) {
+    final seenValues = <String>{};
+    final uniqueValues = <String>[];
+
+    for (final value in values) {
+      if (seenValues.add(value)) {
+        uniqueValues.add(value);
+      }
+    }
+
+    return uniqueValues;
   }
 }

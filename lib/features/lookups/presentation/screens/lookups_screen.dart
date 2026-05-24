@@ -43,6 +43,8 @@ class _LookupsViewState extends State<_LookupsView> {
       currentRole,
     );
 
+    final canRestoreLookups = canCreateLookups;
+
     final mediaSize = MediaQuery.sizeOf(context);
     final isMobile = mediaSize.shortestSide < AppBreakpoints.tablet;
     final isCompactLandscape = isMobile && mediaSize.width > mediaSize.height;
@@ -91,6 +93,7 @@ class _LookupsViewState extends State<_LookupsView> {
                             DepartmentsTab(
                               canCreateLookups: canCreateLookups,
                               canDeleteLookups: canDeleteLookups,
+                              canRestoreLookups: canRestoreLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,
@@ -98,6 +101,7 @@ class _LookupsViewState extends State<_LookupsView> {
                             JobTitlesTab(
                               canCreateLookups: canCreateLookups,
                               canDeleteLookups: canDeleteLookups,
+                              canRestoreLookups: canRestoreLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,
@@ -105,6 +109,7 @@ class _LookupsViewState extends State<_LookupsView> {
                             ToolUnitsTab(
                               canCreateLookups: canCreateLookups,
                               canDeleteLookups: canDeleteLookups,
+                              canRestoreLookups: canRestoreLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,
@@ -112,6 +117,7 @@ class _LookupsViewState extends State<_LookupsView> {
                             ToolCategoriesTab(
                               canCreateLookups: canCreateLookups,
                               canDeleteLookups: canDeleteLookups,
+                              canRestoreLookups: canRestoreLookups,
                               isCompactInputMode: isCompactInputMode,
                               onLookupInputFocusChanged:
                                   _onLookupInputFocusChanged,

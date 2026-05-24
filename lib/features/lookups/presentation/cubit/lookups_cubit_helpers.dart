@@ -10,6 +10,10 @@ class LookupsCubitHelpers {
     required List<JobTitleModel> jobTitles,
     required List<ToolUnitModel> toolUnits,
     required List<ToolCategoryModel> toolCategories,
+    List<DepartmentModel> inactiveDepartments = const [],
+    List<JobTitleModel> inactiveJobTitles = const [],
+    List<ToolUnitModel> inactiveToolUnits = const [],
+    List<ToolCategoryModel> inactiveToolCategories = const [],
     bool isLoading = false,
     bool isSubmitting = false,
     String? errorMessage,
@@ -18,6 +22,63 @@ class LookupsCubitHelpers {
       return department.name;
     }).toList();
 
+    final jobTitlesByDepartment = _buildJobTitleMap(
+      departments: departments,
+      jobTitles: jobTitles,
+    );
+
+    final inactiveDepartmentNames = inactiveDepartments.map((department) {
+      return department.name;
+    }).toList();
+
+    final inactiveJobTitlesByDepartment = _buildJobTitleMap(
+      departments: [...departments, ...inactiveDepartments],
+      jobTitles: inactiveJobTitles,
+    );
+
+    final toolUnitNames = toolUnits.map((toolUnit) {
+      return toolUnit.name;
+    }).toList();
+
+    final inactiveToolUnitNames = inactiveToolUnits.map((toolUnit) {
+      return toolUnit.name;
+    }).toList();
+
+    final toolCategoryNames = toolCategories.map((toolCategory) {
+      return toolCategory.name;
+    }).toList();
+
+    final inactiveToolCategoryNames = inactiveToolCategories.map((category) {
+      return category.name;
+    }).toList();
+
+    return LookupsState(
+      departments: departmentNames,
+      jobTitlesByDepartment: jobTitlesByDepartment,
+      toolUnits: toolUnitNames,
+      toolCategories: toolCategoryNames,
+      inactiveDepartments: inactiveDepartmentNames,
+      inactiveJobTitlesByDepartment: inactiveJobTitlesByDepartment,
+      inactiveToolUnits: inactiveToolUnitNames,
+      inactiveToolCategories: inactiveToolCategoryNames,
+      departmentModels: departments,
+      jobTitleModels: jobTitles,
+      toolUnitModels: toolUnits,
+      toolCategoryModels: toolCategories,
+      inactiveDepartmentModels: inactiveDepartments,
+      inactiveJobTitleModels: inactiveJobTitles,
+      inactiveToolUnitModels: inactiveToolUnits,
+      inactiveToolCategoryModels: inactiveToolCategories,
+      isLoading: isLoading,
+      isSubmitting: isSubmitting,
+      errorMessage: errorMessage,
+    );
+  }
+
+  static Map<String, List<String>> _buildJobTitleMap({
+    required List<DepartmentModel> departments,
+    required List<JobTitleModel> jobTitles,
+  }) {
     final jobTitlesByDepartment = <String, List<String>>{};
 
     for (final department in departments) {
@@ -33,26 +94,6 @@ class LookupsCubitHelpers {
       jobTitlesByDepartment[department.name] = departmentJobTitles;
     }
 
-    final toolUnitNames = toolUnits.map((toolUnit) {
-      return toolUnit.name;
-    }).toList();
-
-    final toolCategoryNames = toolCategories.map((toolCategory) {
-      return toolCategory.name;
-    }).toList();
-
-    return LookupsState(
-      departments: departmentNames,
-      jobTitlesByDepartment: jobTitlesByDepartment,
-      toolUnits: toolUnitNames,
-      toolCategories: toolCategoryNames,
-      departmentModels: departments,
-      jobTitleModels: jobTitles,
-      toolUnitModels: toolUnits,
-      toolCategoryModels: toolCategories,
-      isLoading: isLoading,
-      isSubmitting: isSubmitting,
-      errorMessage: errorMessage,
-    );
+    return jobTitlesByDepartment;
   }
 }

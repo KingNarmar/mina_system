@@ -20,7 +20,7 @@ Future<bool> deleteDepartmentLookup({
   if (departmentModel == null) {
     showLookupMessage(
       context,
-      'Department was not found',
+      'Department was not found.',
       type: AppMessageType.warning,
     );
     return false;
@@ -33,7 +33,7 @@ Future<bool> deleteDepartmentLookup({
   if (hasJobTitles) {
     showLookupMessage(
       context,
-      'Cannot delete department because it has job titles',
+      'Deactivate the department job titles first.',
       type: AppMessageType.warning,
     );
     return false;
@@ -48,7 +48,7 @@ Future<bool> deleteDepartmentLookup({
   if (isDepartmentUsed) {
     showLookupMessage(
       context,
-      'Cannot delete department because it is used by workers',
+      'This department is used by workers and cannot be deactivated.',
       type: AppMessageType.warning,
     );
     return false;
@@ -65,15 +65,9 @@ Future<bool> deleteDepartmentLookup({
   if (isDeleted) {
     showLookupMessage(
       context,
-      'Department deleted successfully',
+      'Department deactivated successfully.',
       type: AppMessageType.success,
     );
-  } else {
-    final message =
-        lookupsCubit.state.errorMessage ?? 'Department was not deleted';
-    lookupsCubit.clearErrorMessage();
-
-    showLookupMessage(context, message, type: AppMessageType.error);
   }
 
   return isDeleted;

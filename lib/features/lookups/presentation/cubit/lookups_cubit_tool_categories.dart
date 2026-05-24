@@ -11,6 +11,20 @@ extension LookupsCubitToolCategories on LookupsCubit {
       return false;
     }
 
+    final inactiveToolCategory = state.inactiveToolCategoryModels
+        .where((item) => isSameValue(item.name, cleanCategory))
+        .firstOrNull;
+
+    if (inactiveToolCategory != null) {
+      emitState(
+        state.copyWith(
+          errorMessage:
+              'Tool category already exists but is inactive. Restore it instead.',
+        ),
+      );
+      return false;
+    }
+
     final canContinue = await _ensureOnline();
     if (!canContinue) {
       return false;
@@ -45,6 +59,10 @@ extension LookupsCubitToolCategories on LookupsCubit {
           jobTitles: state.jobTitleModels,
           toolUnits: state.toolUnitModels,
           toolCategories: [...state.toolCategoryModels, addedToolCategory],
+          inactiveDepartments: state.inactiveDepartmentModels,
+          inactiveJobTitles: state.inactiveJobTitleModels,
+          inactiveToolUnits: state.inactiveToolUnitModels,
+          inactiveToolCategories: state.inactiveToolCategoryModels,
         ),
       );
 
@@ -95,12 +113,23 @@ extension LookupsCubitToolCategories on LookupsCubit {
         return item.id != toolCategoryModel.id;
       }).toList();
 
+      final updatedInactiveToolCategories = [
+        ...state.inactiveToolCategoryModels.where((item) {
+          return item.id != toolCategoryModel.id;
+        }),
+        toolCategoryModel.copyWith(isActive: false),
+      ];
+
       emitState(
         LookupsCubitHelpers.buildStateFromModels(
           departments: state.departmentModels,
           jobTitles: state.jobTitleModels,
           toolUnits: state.toolUnitModels,
           toolCategories: updatedToolCategories,
+          inactiveDepartments: state.inactiveDepartmentModels,
+          inactiveJobTitles: state.inactiveJobTitleModels,
+          inactiveToolUnits: state.inactiveToolUnitModels,
+          inactiveToolCategories: updatedInactiveToolCategories,
         ),
       );
 
@@ -112,6 +141,68 @@ extension LookupsCubitToolCategories on LookupsCubit {
           errorMessage: AppErrorMessage.fromError(
             error,
             fallback: 'Unable to delete tool category. Please try again.',
+          ),
+        ),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> reactivateToolCategory({required String category}) async {
+    final cleanCategory = category.trim();
+
+    if (cleanCategory.isEmpty) {
+      return false;
+    }
+
+    final toolCategoryModel = state.inactiveToolCategoryModels
+        .where((item) => isSameValue(item.name, cleanCategory))
+        .firstOrNull;
+
+    if (toolCategoryModel == null) {
+      emitState(
+        state.copyWith(errorMessage: 'Inactive tool category was not found'),
+      );
+      return false;
+    }
+
+    final canContinue = await _ensureOnline();
+    if (!canContinue) {
+      return false;
+    }
+
+    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+
+    try {
+      final restoredToolCategory = await _lookupsRepo.reactivateToolCategory(
+        toolCategoryId: toolCategoryModel.id,
+      );
+
+      final updatedInactiveToolCategories = state.inactiveToolCategoryModels
+          .where((item) => item.id != restoredToolCategory.id)
+          .toList();
+
+      emitState(
+        LookupsCubitHelpers.buildStateFromModels(
+          departments: state.departmentModels,
+          jobTitles: state.jobTitleModels,
+          toolUnits: state.toolUnitModels,
+          toolCategories: [...state.toolCategoryModels, restoredToolCategory],
+          inactiveDepartments: state.inactiveDepartmentModels,
+          inactiveJobTitles: state.inactiveJobTitleModels,
+          inactiveToolUnits: state.inactiveToolUnitModels,
+          inactiveToolCategories: updatedInactiveToolCategories,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      emitState(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: AppErrorMessage.fromError(
+            error,
+            fallback: 'Unable to restore tool category. Please try again.',
           ),
         ),
       );

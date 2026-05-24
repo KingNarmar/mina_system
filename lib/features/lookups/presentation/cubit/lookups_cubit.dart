@@ -48,13 +48,28 @@ class LookupsCubit extends Cubit<LookupsState> {
         companyId: companyId,
       );
 
+      final inactiveDepartments = await _lookupsRepo.getInactiveDepartments(
+        companyId: companyId,
+      );
+
       final jobTitles = await _lookupsRepo.getJobTitles(companyId: companyId);
 
+      final inactiveJobTitles = await _lookupsRepo.getInactiveJobTitles(
+        companyId: companyId,
+      );
+
       final toolUnits = await _lookupsRepo.getToolUnits(companyId: companyId);
+
+      final inactiveToolUnits = await _lookupsRepo.getInactiveToolUnits(
+        companyId: companyId,
+      );
 
       final toolCategories = await _lookupsRepo.getToolCategories(
         companyId: companyId,
       );
+
+      final inactiveToolCategories = await _lookupsRepo
+          .getInactiveToolCategories(companyId: companyId);
 
       emit(
         LookupsCubitHelpers.buildStateFromModels(
@@ -62,6 +77,10 @@ class LookupsCubit extends Cubit<LookupsState> {
           jobTitles: jobTitles,
           toolUnits: toolUnits,
           toolCategories: toolCategories,
+          inactiveDepartments: inactiveDepartments,
+          inactiveJobTitles: inactiveJobTitles,
+          inactiveToolUnits: inactiveToolUnits,
+          inactiveToolCategories: inactiveToolCategories,
         ),
       );
     } catch (error) {

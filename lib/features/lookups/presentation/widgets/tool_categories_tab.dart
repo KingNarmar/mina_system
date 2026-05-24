@@ -10,18 +10,21 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_status_toggle.dart';
 
 class ToolCategoriesTab extends StatefulWidget {
   const ToolCategoriesTab({
     super.key,
     required this.canCreateLookups,
     required this.canDeleteLookups,
+    required this.canRestoreLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
   final bool canCreateLookups;
   final bool canDeleteLookups;
+  final bool canRestoreLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -31,6 +34,7 @@ class ToolCategoriesTab extends StatefulWidget {
 
 class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
   final _categoryController = TextEditingController();
+  bool _showInactive = false;
 
   @override
   void dispose() {
@@ -50,6 +54,10 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
+        final categories = _showInactive
+            ? state.inactiveToolCategories
+            : state.toolCategories;
+
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: padding,
@@ -57,7 +65,16 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
             title: 'Manage Tool Categories',
             child: Column(
               children: [
-                if (widget.canCreateLookups) ...[
+                LookupStatusToggle(
+                  showInactive: _showInactive,
+                  onChanged: (value) {
+                    setState(() {
+                      _showInactive = value;
+                    });
+                  },
+                ),
+                const Gap(16),
+                if (!_showInactive && widget.canCreateLookups) ...[
                   LookupAddRow(
                     hint: 'Category Name',
                     controller: _categoryController,
@@ -77,20 +94,26 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                   ),
                   const Gap(20),
                 ],
-                if (state.toolCategories.isEmpty)
-                  const EmptyLookupMessage(message: 'No tool categories found')
+                if (categories.isEmpty)
+                  EmptyLookupMessage(
+                    message: _showInactive
+                        ? 'No inactive tool categories found'
+                        : 'No tool categories found',
+                  )
                 else
-                  ...state.toolCategories.map((category) {
+                  ...categories.map((category) {
                     return LookupListTile(
                       title: category,
-                      subtitle: 'Tool Category',
-                      onDelete: widget.canDeleteLookups
+                      subtitle: _showInactive
+                          ? 'Inactive Tool Category'
+                          : 'Tool Category',
+                      onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
-                                title: 'Delete Tool Category',
+                                title: 'Deactivate Tool Category',
                                 message:
-                                    'Are you sure you want to delete $category?',
+                                    'Are you sure you want to deactivate $category?',
                                 onConfirm: () async {
                                   await deleteToolCategoryLookup(
                                     context: context,
@@ -98,6 +121,13 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                                   );
                                 },
                               );
+                            }
+                          : null,
+                      onRestore: _showInactive && widget.canRestoreLookups
+                          ? () async {
+                              await context
+                                  .read<LookupsCubit>()
+                                  .reactivateToolCategory(category: category);
                             }
                           : null,
                     );

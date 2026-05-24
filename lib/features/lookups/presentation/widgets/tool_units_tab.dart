@@ -10,18 +10,21 @@ import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_m
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_list_tile.dart';
+import 'package:mina_system/features/lookups/presentation/widgets/lookup_status_toggle.dart';
 
 class ToolUnitsTab extends StatefulWidget {
   const ToolUnitsTab({
     super.key,
     required this.canCreateLookups,
     required this.canDeleteLookups,
+    required this.canRestoreLookups,
     this.isCompactInputMode = false,
     this.onLookupInputFocusChanged,
   });
 
   final bool canCreateLookups;
   final bool canDeleteLookups;
+  final bool canRestoreLookups;
   final bool isCompactInputMode;
   final ValueChanged<bool>? onLookupInputFocusChanged;
 
@@ -31,6 +34,7 @@ class ToolUnitsTab extends StatefulWidget {
 
 class _ToolUnitsTabState extends State<ToolUnitsTab> {
   final _unitController = TextEditingController();
+  bool _showInactive = false;
 
   @override
   void dispose() {
@@ -50,6 +54,8 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
+        final units = _showInactive ? state.inactiveToolUnits : state.toolUnits;
+
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: padding,
@@ -57,7 +63,16 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
             title: 'Manage Tool Units',
             child: Column(
               children: [
-                if (widget.canCreateLookups) ...[
+                LookupStatusToggle(
+                  showInactive: _showInactive,
+                  onChanged: (value) {
+                    setState(() {
+                      _showInactive = value;
+                    });
+                  },
+                ),
+                const Gap(16),
+                if (!_showInactive && widget.canCreateLookups) ...[
                   LookupAddRow(
                     hint: 'Unit Name',
                     controller: _unitController,
@@ -77,20 +92,26 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                   ),
                   const Gap(20),
                 ],
-                if (state.toolUnits.isEmpty)
-                  const EmptyLookupMessage(message: 'No tool units found')
+                if (units.isEmpty)
+                  EmptyLookupMessage(
+                    message: _showInactive
+                        ? 'No inactive tool units found'
+                        : 'No tool units found',
+                  )
                 else
-                  ...state.toolUnits.map((unit) {
+                  ...units.map((unit) {
                     return LookupListTile(
                       title: unit,
-                      subtitle: 'Tool Unit',
-                      onDelete: widget.canDeleteLookups
+                      subtitle: _showInactive
+                          ? 'Inactive Tool Unit'
+                          : 'Tool Unit',
+                      onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
-                                title: 'Delete Tool Unit',
+                                title: 'Deactivate Tool Unit',
                                 message:
-                                    'Are you sure you want to delete $unit?',
+                                    'Are you sure you want to deactivate $unit?',
                                 onConfirm: () async {
                                   await deleteToolUnitLookup(
                                     context: context,
@@ -98,6 +119,13 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                                   );
                                 },
                               );
+                            }
+                          : null,
+                      onRestore: _showInactive && widget.canRestoreLookups
+                          ? () async {
+                              await context
+                                  .read<LookupsCubit>()
+                                  .reactivateToolUnit(unit: unit);
                             }
                           : null,
                     );
