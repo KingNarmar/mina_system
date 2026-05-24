@@ -42,7 +42,7 @@ extension LookupsCubitToolCategories on LookupsCubit {
         emitState(
           state.copyWith(
             isSubmitting: false,
-            errorMessage: 'Tool category already exists',
+            errorMessage: 'Tool category already exists.',
           ),
         );
         return false;
@@ -93,7 +93,7 @@ extension LookupsCubitToolCategories on LookupsCubit {
         .firstOrNull;
 
     if (toolCategoryModel == null) {
-      emitState(state.copyWith(errorMessage: 'Tool category was not found'));
+      emitState(state.copyWith(errorMessage: 'Tool category was not found.'));
       return false;
     }
 
@@ -140,7 +140,7 @@ extension LookupsCubitToolCategories on LookupsCubit {
           isSubmitting: false,
           errorMessage: AppErrorMessage.fromError(
             error,
-            fallback: 'Unable to delete tool category. Please try again.',
+            fallback: 'Unable to deactivate tool category. Please try again.',
           ),
         ),
       );
@@ -161,7 +161,7 @@ extension LookupsCubitToolCategories on LookupsCubit {
 
     if (toolCategoryModel == null) {
       emitState(
-        state.copyWith(errorMessage: 'Inactive tool category was not found'),
+        state.copyWith(errorMessage: 'Inactive tool category was not found.'),
       );
       return false;
     }

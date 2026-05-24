@@ -3,21 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
-import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 
-Future<bool> deleteToolCategoryLookup({
+Future<bool> restoreToolCategoryLookup({
   required BuildContext context,
   required String category,
 }) async {
   final cleanCategory = category.trim();
 
-  final lookupsCubit = context.read<LookupsCubit>();
-
-  final toolCategoryModel = lookupsCubit.state.toolCategoryModels
-      .where((item) => _isSameLookupName(item.name, cleanCategory))
-      .firstOrNull;
-
-  if (toolCategoryModel == null) {
+  if (cleanCategory.isEmpty) {
     showLookupMessage(
       context,
       'Tool category was not found.',
@@ -26,20 +19,24 @@ Future<bool> deleteToolCategoryLookup({
     return false;
   }
 
-  final isCategoryUsed = context.read<ToolsCubit>().state.tools.any((tool) {
-    return _isSameLookupName(tool.category, cleanCategory);
-  });
+  final lookupsCubit = context.read<LookupsCubit>();
 
-  if (isCategoryUsed) {
+  final inactiveToolCategoryModel = lookupsCubit
+      .state
+      .inactiveToolCategoryModels
+      .where((item) => _isSameLookupName(item.name, cleanCategory))
+      .firstOrNull;
+
+  if (inactiveToolCategoryModel == null) {
     showLookupMessage(
       context,
-      'This tool category is used by tools and cannot be deactivated.',
+      'Inactive tool category was not found.',
       type: AppMessageType.warning,
     );
     return false;
   }
 
-  final isDeleted = await lookupsCubit.deleteToolCategory(
+  final isRestored = await lookupsCubit.reactivateToolCategory(
     category: cleanCategory,
   );
 
@@ -47,21 +44,35 @@ Future<bool> deleteToolCategoryLookup({
     return false;
   }
 
-  if (isDeleted) {
+  if (isRestored) {
     showLookupMessage(
       context,
-      'Tool category deactivated successfully.',
+      'Tool category restored successfully.',
       type: AppMessageType.success,
     );
   } else {
     final message =
-        lookupsCubit.state.errorMessage ?? 'Tool category was not deactivated.';
+        lookupsCubit.state.errorMessage ?? 'Tool category was not restored.';
     lookupsCubit.clearErrorMessage();
 
-    showLookupMessage(context, message, type: AppMessageType.error);
+    showLookupMessage(
+      context,
+      message,
+      type: _toolCategoryRestoreMessageType(message),
+    );
   }
 
-  return isDeleted;
+  return isRestored;
+}
+
+AppMessageType _toolCategoryRestoreMessageType(String message) {
+  final normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.contains('not found')) {
+    return AppMessageType.warning;
+  }
+
+  return AppMessageType.error;
 }
 
 bool _isSameLookupName(String firstValue, String secondValue) {

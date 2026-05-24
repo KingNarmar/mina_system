@@ -6,6 +6,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.da
 import 'package:mina_system/features/lookups/presentation/functions/add_tool_category_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_tool_category_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/restore_tool_category_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
@@ -98,7 +99,7 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                   EmptyLookupMessage(
                     message: _showInactive
                         ? 'No inactive tool categories found'
-                        : 'No tool categories found',
+                        : 'No active tool categories found',
                   )
                 else
                   ...categories.map((category) {
@@ -106,7 +107,7 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                       title: category,
                       subtitle: _showInactive
                           ? 'Inactive Tool Category'
-                          : 'Tool Category',
+                          : 'Active Tool Category',
                       onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
@@ -125,9 +126,10 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                           : null,
                       onRestore: _showInactive && widget.canRestoreLookups
                           ? () async {
-                              await context
-                                  .read<LookupsCubit>()
-                                  .reactivateToolCategory(category: category);
+                              await restoreToolCategoryLookup(
+                                context: context,
+                                category: category,
+                              );
                             }
                           : null,
                     );
