@@ -1,7 +1,7 @@
 # Issue #16 — Security / RLS Verification Matrix
 
-Status: Final closure review in progress  
-Step: 16.5 — Final broad grants cleanup incorporated  
+Status: Ready for final Issue #16 closure review  
+Step: 16.6 — Approval document read access decision incorporated  
 Scope: Tables, RPCs, Storage buckets, roles, direct writes, manual verification queries, critical role tests, and gap tracking  
 Do not modify: `PROJECT_ROADMAP.md`
 
@@ -37,6 +37,7 @@ This file records verified facts separately from assumptions.
 | `Not Applicable` | This check does not apply to the item. |
 | `Documented Only` | Mentioned in repository docs, but not yet verified against live Supabase state. |
 | `Business Decision Needed` | Technically allowed, but the business/security intent must be confirmed before marking it safe. |
+| `Business Decision Accepted` | Current behavior was reviewed and accepted as intentional. |
 | `Closed / Completed` | Confirmed through a closed follow-up issue and documented in the repo. |
 
 ---
@@ -75,7 +76,7 @@ These permissions must be verified against backend enforcement.
 | Transactions | Create transactions | Yes | Yes | Yes | Yes | No | Needs broader manual role test |
 | Transactions | General transaction edit | No / Disabled | No / Disabled | No / Disabled | No / Disabled | No | Verified by policy inspection: no direct transaction write policies detected |
 | Approval Workflow | Upload approval document | Yes | Yes | Yes | No | No | Needs broader manual role test |
-| Approval Workflow | Read approval document | Business decision | Business decision | Business decision | Business decision | Business decision | Gap Found / Business Decision Needed |
+| Approval Workflow | Read approval document | Yes | Yes | Yes | Yes | Yes | Business Decision Accepted through Step 16.6 |
 | Approval Workflow | Approve lost/damaged | Yes | Yes | Yes | No | No | Needs broader manual role test |
 | Approval Workflow | Reject lost/damaged | Yes | Yes | Yes | No | No | Needs broader manual role test |
 | Approval Workflow | Settle lost/damaged | Yes | Yes | Yes | No | No | Needs broader manual role test |
@@ -144,7 +145,7 @@ These permissions must be verified against backend enforcement.
 | `loss_damage_reports` | Future/related signed loss-damage report records. | Future signed PDF/report workflow. | Access should follow company membership and approval workflow rules. | Broad grants cleaned through Step 16.5 | TRUNCATE / REFERENCES / TRIGGER removed from client roles through GAP-007 cleanup. |
 | `user_context_events` | User/current-context event tracking. | Internal context/realtime flow. | Client roles should not have broad non-DML privileges. | Broad grants cleaned through Step 16.5 | TRUNCATE / REFERENCES / TRIGGER removed from client roles through GAP-007 cleanup. |
 | `audit_logs` | Immutable audit trail. | Select only. | Company members can read. Direct insert/update/delete from authenticated client blocked. Writes should be backend-only. | Verified by policy/grants inspection, business decision needed | All active company members can currently read audit logs via `private.is_company_member(company_id)`. Confirm if viewer/warehouse_user should read audit logs. |
-| `storage.objects` | Supabase Storage metadata. | Used indirectly through Supabase Storage API. | Policies enforce bucket, company path, role, and operation. | Partially verified / Business Decision Needed | `company-assets` cleanup completed through Issue #34. `custody-documents` classified through Issue #33. Approval document read access still needs business decision if sensitive. |
+| `storage.objects` | Supabase Storage metadata. | Used indirectly through Supabase Storage API. | Policies enforce bucket, company path, role, and operation. | Verified with accepted decision for approval documents | `company-assets` cleanup completed through Issue #34. `custody-documents` classified through Issue #33. `transaction-approval-documents` read access accepted for all active company members through Step 16.6. |
 
 ---
 
@@ -191,7 +192,7 @@ These permissions must be verified against backend enforcement.
 |---|---|---|---|---|---|
 | `create_custody_transaction` | Create issue/return/lost/damaged transaction. | Owner, Admin, Warehouse Manager, Warehouse User | Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
 | `upload_transaction_proof_image` | Link proof image after Storage upload. | Owner, Admin, Warehouse Manager, Warehouse User | Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
-| `upload_transaction_approval_document` | Link signed approval document. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. Critical for Issue #28 signed PDFs. |
+| `upload_transaction_approval_document` | Link signed approval document. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | Upload remains restricted. Read access is separately accepted for all active company members. |
 | `approve_lost_damaged_transaction` | Approve lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
 | `reject_lost_damaged_transaction` | Reject lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
 | `settle_lost_damaged_transaction` | Settle approved lost/damaged transaction. | Owner, Admin, Warehouse Manager | Warehouse User, Viewer, inactive members | Grant Verified / Manual Role Test Needed | `authenticated` execute grant detected. Function is `SECURITY DEFINER`. |
@@ -237,7 +238,7 @@ Each exposed RPC should be checked for secure grants.
 |---|---|---|---|---|---|---|---|
 | `company-assets` | Company logo and company asset files. | Owner, Admin | Active company members | Owner, Admin | `{companyId}/logo/company-logo-{timestamp}.{ext}` | Verified / Cleaned through Issue #34 | Duplicate/legacy policies were removed. Helper-based read/upload/update/delete policies remain. |
 | `transaction-proofs` | Transaction proof images. | Owner, Admin, Warehouse Manager, Warehouse User | Active company members | Owner, Admin, Warehouse Manager, Warehouse User | `{companyId}/transactions/{TRX-code}/proof-{timestamp}.{ext}` | Verified by bucket/policy inspection | Bucket is private. Upload/delete/read policies detected. |
-| `transaction-approval-documents` | Signed approval documents for lost/damaged transactions. | Owner, Admin, Warehouse Manager | Active company members currently | Owner, Admin, Warehouse Manager | `{companyId}/transactions/{TRX-code}/approval-document-{timestamp}.{ext}` | Gap Found / Business Decision Needed | Bucket is private, file size limit is 10MB, mime types restricted. Read policy currently allows all active company members. |
+| `transaction-approval-documents` | Signed approval documents for lost/damaged transactions. | Owner, Admin, Warehouse Manager | Active company members, including Warehouse User and Viewer | Owner, Admin, Warehouse Manager | `{companyId}/transactions/{TRX-code}/approval-document-{timestamp}.{ext}` | Business Decision Accepted through Step 16.6 | Read access stays available to all active company members for operational explanation and oversight. Mutation access remains restricted. |
 | `custody-documents` | Reserved bucket for future digitally signed custody PDFs. | Owner, Admin, Warehouse Manager, Warehouse User | Active company members | Not confirmed | `{companyId}/...` future signed PDF paths | Verified / Classified through Issue #33 | Planned/reserved active bucket. Private, PDF-only, 10MB limit, currently zero objects. Do not delete. |
 
 ---
@@ -278,6 +279,7 @@ This section records whether a direct-write area should remain direct with stron
 | Company asset Storage policies | Helper-based Storage policies | Keep current helper-based policies. | Completed / Cleaned through Issue #34 | Duplicate/legacy company-assets policies removed. |
 | Custody documents bucket | Planned/reserved active bucket | Keep bucket for future digitally signed custody PDFs. | Completed / Classified through Issue #33 | PDF-only, 10MB, private, zero objects currently. |
 | Broad non-DML table grants | Unnecessary client privileges | Remove TRUNCATE / REFERENCES / TRIGGER from anon/authenticated/PUBLIC on public tables. | Completed through Step 16.5 / GAP-007 | Final verification query returned no rows. |
+| Approval document read access | Active-company-member read policy | Keep read access available to all active company members, including Warehouse User and Viewer. | Business Decision Accepted through Step 16.6 / GAP-003 | Read visibility supports operational explanation and management oversight. Mutation access remains restricted. |
 
 ---
 
@@ -385,9 +387,10 @@ Updated result summary after follow-up issues:
 - `custody-documents` is PDF-only, private, and has a 10MB file size limit.
 - `transaction-proofs` remains an active private bucket.
 - `transaction-approval-documents` remains an active private bucket.
-- `transaction-approval-documents` read policy may still be broad if approval documents are considered sensitive.
+- `transaction-approval-documents` read policy is accepted for all active company members as a business decision.
+- `transaction-approval-documents` mutation access remains restricted.
 
-Verification Status: Partially verified, with approval document read decision still open
+Verification Status: Verified with approval document read decision accepted
 
 ---
 
@@ -418,8 +421,9 @@ Updated result summary:
   - `image/jpeg`
   - `image/png`
   - `image/webp`
+- `transaction-approval-documents` read access remains available to all active company members by accepted business decision.
 
-Verification Status: Verified, with approval document read access decision still open
+Verification Status: Verified
 
 ---
 
@@ -703,6 +707,38 @@ Verification Status: Verified / GAP-007 Closed
 
 ---
 
+### 11.11 Confirm approval document read policy decision
+
+    select
+      policyname,
+      cmd,
+      roles,
+      qual,
+      with_check
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and (
+        policyname ilike '%approval%'
+        or qual::text ilike '%transaction-approval-documents%'
+        or with_check::text ilike '%transaction-approval-documents%'
+      )
+    order by
+      cmd,
+      policyname;
+
+Decision:
+
+- `transaction-approval-documents` read access remains available to all active company members.
+- This includes Owner, Admin, Warehouse Manager, Warehouse User, and Viewer.
+- Warehouse User needs visibility to explain approval/rejection outcomes to workers.
+- Viewer needs visibility for senior oversight without any mutation access.
+- Mutation permissions remain restricted separately.
+
+Verification Status: Business Decision Accepted / GAP-003 Closed
+
+---
+
 ## 12. Critical Manual Role Test Scenarios
 
 These tests should be performed with controlled test users.
@@ -752,7 +788,7 @@ These tests should be performed with controlled test users.
 | Viewer attempts to create transaction. | Denied. | Needs backend bypass/manual test |
 | Viewer attempts to upload transaction proof. | Denied. | Needs backend bypass/manual test |
 | Viewer attempts to upload approval document. | Denied. | Needs backend bypass/manual test |
-| Viewer attempts to read approval document. | Business decision needed. | Needs Manual Test |
+| Viewer reads approval document. | Allowed read-only. | Business Decision Accepted through Step 16.6 |
 | Viewer attempts to approve lost/damaged transaction. | Denied. | Needs backend bypass/manual test |
 | Viewer attempts to read audit logs. | Business decision needed. | Needs Manual Test |
 
@@ -765,7 +801,7 @@ These tests should be performed with controlled test users.
 | Warehouse User creates transaction. | Allowed. | Needs Manual Test |
 | Warehouse User uploads transaction proof. | Allowed. | Needs Manual Test |
 | Warehouse User uploads approval document. | Denied. | Needs Manual Test |
-| Warehouse User reads approval document. | Business decision needed. | Needs Manual Test |
+| Warehouse User reads approval document. | Allowed read-only. | Business Decision Accepted through Step 16.6 |
 | Warehouse User approves lost/damaged transaction. | Denied. | Needs Manual Test |
 | Warehouse User settles lost/damaged transaction. | Denied. | Needs Manual Test |
 | Warehouse User creates worker. | Denied. | Needs backend bypass/manual test |
@@ -782,6 +818,7 @@ These tests should be performed with controlled test users.
 | Warehouse Manager creates tool. | Allowed through RPC. | App flow verified through Issue #32 |
 | Warehouse Manager creates lookup. | Allowed through RPC only; direct table write should be blocked. | App flow verified through Issue #35 |
 | Warehouse Manager uploads approval document. | Allowed. | Needs Manual Test |
+| Warehouse Manager reads approval document. | Allowed. | Business Decision Accepted through Step 16.6 |
 | Warehouse Manager approves lost/damaged transaction. | Allowed. | Needs Manual Test |
 | Warehouse Manager manages Warehouse User member lifecycle. | Allowed if intended. | Needs Manual Test |
 | Warehouse Manager manages another Warehouse Manager. | Denied. | Needs Manual Test |
@@ -802,6 +839,7 @@ These tests should be performed with controlled test users.
 | Admin deactivates Owner. | Denied. | Needs Manual Test |
 | Admin updates company settings. | Allowed. | App flow verified through Issue #34 |
 | Admin uploads company logo. | Allowed. | App flow verified through Issue #34 |
+| Admin reads approval document. | Allowed. | Business Decision Accepted through Step 16.6 |
 
 ---
 
@@ -817,6 +855,7 @@ These tests should be performed with controlled test users.
 | Owner deactivates own membership. | Denied. | Needs Manual Test |
 | Owner updates company settings. | Allowed. | App flow verified through Issue #34 |
 | Owner uploads company logo. | Allowed. | App flow verified through Issue #34 |
+| Owner reads approval document. | Allowed. | Business Decision Accepted through Step 16.6 |
 
 ---
 
@@ -854,7 +893,7 @@ Use this section to record issues found during verification.
 |---|---|---|---|---|---|---|
 | GAP-001 | Company Members | `company_members` allowed direct INSERT/UPDATE for owner, which could bypass secure member-management RPC rules and audit flow. | High | Completed. Keep member-management mutations RPC-only. | #31 | Closed |
 | GAP-002 | Workers / Tools | `workers` and `tools` had direct INSERT/UPDATE/DELETE policies for owner/admin/warehouse_manager even though Flutter uses RPCs for mutations. | High | Completed. Keep worker/tool mutations RPC-only. | #32 | Closed |
-| GAP-003 | Approval Document Read Access | `transaction-approval-documents` read policy allows active company members, which may include warehouse_user and viewer. | High | Decide intended read roles before or during Issue #28 signed PDF workflow. If documents are sensitive, restrict read/signed URL access to owner/admin/warehouse_manager or approved report roles only. | TBD | Open / Business Decision Needed |
+| GAP-003 | Approval Document Read Access | `transaction-approval-documents` read policy allows active company members, including warehouse_user and viewer. | High | Completed as accepted business decision. Keep read access available to all active company members for operational explanation and oversight. Mutation access remains restricted. | Step 16.6 | Closed |
 | GAP-004 | Public Execute Grant | `create_company_with_defaults` had EXECUTE granted to PUBLIC. | Medium / High | Completed. PUBLIC EXECUTE revoked; authenticated EXECUTE kept. | #30 | Closed |
 | GAP-005 | Custody Documents Bucket | `custody-documents` bucket and policies existed but were not part of the original active Flutter storage inventory. | Medium | Completed. Bucket classified as planned/reserved active for future signed custody PDFs. | #33 | Closed |
 | GAP-006 | Policy Cleanup | Some overlapping policies existed on `companies`, `company_report_settings`, `profiles`, and `company-assets`. | Low | Completed. Duplicate/legacy policies and dangerous unused grants cleaned for targeted scope. | #34 | Closed |
@@ -870,11 +909,11 @@ Use this section to record issues found during verification.
 | Role model matrix | Updated | Viewer role verified through Issue #29. Broader role tests still recommended. |
 | Business table matrix | Updated / Mostly hardened | Company members, workers/tools, and lookups hardened through Issues #31, #32, and #35. Remaining broad grants cleaned through Step 16.5. |
 | RPC matrix | Updated | Company creation, member management, workers/tools, and lookups incorporated from closed follow-up issues. Transaction RPCs still need broader manual role tests. |
-| Storage matrix | Updated | `custody-documents` classified through Issue #33. `company-assets` cleanup completed through Issue #34. Approval document read access still needs decision. |
+| Storage matrix | Updated | `custody-documents` classified through Issue #33. `company-assets` cleanup completed through Issue #34. Approval document read access accepted through Step 16.6. |
 | Direct write matrix | Updated / Mostly hardened | Direct mutation bypass risks closed for company_members, workers/tools, and lookups. |
-| Manual SQL queries | Updated | Query result notes updated to incorporate Issues #30–#35 and Step 16.5 broad grants cleanup. |
+| Manual SQL queries | Updated | Query result notes updated to incorporate Issues #30–#35, Step 16.5 broad grants cleanup, and Step 16.6 approval document read decision. |
 | Critical role tests | Partially verified | Viewer UI access verified through Issue #29. Worker/tool, lookup, company settings app flows partially verified through closed issues. Cross-company/inactive/bypass tests still recommended. |
-| Gap register | Updated | GAP-001, GAP-002, GAP-004, GAP-005, GAP-006, GAP-007, GAP-008 are closed. GAP-003 remains open/business decision needed. |
+| Gap register | Closed | All registered gaps GAP-001 through GAP-008 are closed or accepted as business decisions. |
 
 ---
 
@@ -1002,7 +1041,47 @@ Status:
 - GAP-007 is closed.
 - No `TRUNCATE`, `REFERENCES`, or `TRIGGER` privileges remain for `anon`, `authenticated`, or `PUBLIC` on public tables.
 
-Remaining Issue #16 items:
+---
 
-- GAP-003 — approval document read access business decision.
-- Broader manual role tests can either be completed now or moved into a dedicated follow-up issue.
+## 19. Step 16.6 Update — GAP-003 Approval Document Read Access Decision
+
+GAP-003 was closed as an accepted business decision.
+
+Decision:
+
+- `transaction-approval-documents` read access remains available to all active company members.
+- This includes:
+  - Owner
+  - Admin
+  - Warehouse Manager
+  - Warehouse User
+  - Viewer
+
+Reason:
+
+- Approval documents explain why lost/damaged transactions were approved or rejected.
+- Warehouse User needs read visibility because this role deals directly with workers and may need to explain why a transaction was approved or rejected.
+- Viewer needs read visibility because this role may represent senior company titles who need oversight without mutation access.
+
+Important restriction:
+
+- This decision is read-only.
+- Viewer and Warehouse User still cannot:
+  - upload approval documents
+  - approve lost/damaged transactions
+  - reject lost/damaged transactions
+  - settle lost/damaged transactions
+
+Documentation added:
+
+- `docs/supabase/issue_16_gap_003_approval_document_read_access_decision.sql`
+
+Status:
+
+- GAP-003 is closed.
+- All registered Issue #16 gaps GAP-001 through GAP-008 are now closed or accepted as business decisions.
+
+Remaining before closing Issue #16:
+
+- Add final Issue #16 closure comment.
+- Decide whether broader manual role tests should be moved into a separate follow-up issue instead of blocking Issue #16.
