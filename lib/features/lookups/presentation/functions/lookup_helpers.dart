@@ -1,5 +1,8 @@
 String normalizeText(String value) {
-  return value.trim().toLowerCase();
+  return value.trim().toLowerCase().replaceAll(
+    RegExp(r'[^\p{L}\p{N}]+', unicode: true),
+    '',
+  );
 }
 
 bool isSameValue(String firstValue, String secondValue) {

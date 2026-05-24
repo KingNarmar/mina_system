@@ -13,6 +13,37 @@ Future<bool> deleteJobTitleLookup({
   final cleanDepartment = department.trim();
   final cleanJobTitle = jobTitle.trim();
 
+  final lookupsCubit = context.read<LookupsCubit>();
+
+  final departmentModel = lookupsCubit.state.departmentModels
+      .where((item) => _isSameLookupName(item.name, cleanDepartment))
+      .firstOrNull;
+
+  if (departmentModel == null) {
+    showLookupMessage(
+      context,
+      'Department was not found.',
+      type: AppMessageType.warning,
+    );
+    return false;
+  }
+
+  final jobTitleModel = lookupsCubit.state.jobTitleModels.where((item) {
+    final isSameDepartment = item.departmentId == departmentModel.id;
+    final isSameJobTitle = _isSameLookupName(item.name, cleanJobTitle);
+
+    return isSameDepartment && isSameJobTitle;
+  }).firstOrNull;
+
+  if (jobTitleModel == null) {
+    showLookupMessage(
+      context,
+      'Job title was not found.',
+      type: AppMessageType.warning,
+    );
+    return false;
+  }
+
   final isJobTitleUsed = context.read<WorkersCubit>().state.workers.any((
     worker,
   ) {
@@ -29,13 +60,11 @@ Future<bool> deleteJobTitleLookup({
   if (isJobTitleUsed) {
     showLookupMessage(
       context,
-      'Cannot delete job title because it is used by workers',
+      'This job title is used by workers and cannot be deactivated.',
       type: AppMessageType.warning,
     );
     return false;
   }
-
-  final lookupsCubit = context.read<LookupsCubit>();
 
   final isDeleted = await lookupsCubit.deleteJobTitle(
     department: cleanDepartment,
@@ -49,12 +78,12 @@ Future<bool> deleteJobTitleLookup({
   if (isDeleted) {
     showLookupMessage(
       context,
-      'Job title deleted successfully',
+      'Job title deactivated successfully.',
       type: AppMessageType.success,
     );
   } else {
     final message =
-        lookupsCubit.state.errorMessage ?? 'Job title was not deleted';
+        lookupsCubit.state.errorMessage ?? 'Job title was not deactivated.';
     lookupsCubit.clearErrorMessage();
 
     showLookupMessage(context, message, type: AppMessageType.error);

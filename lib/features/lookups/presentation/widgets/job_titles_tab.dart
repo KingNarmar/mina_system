@@ -8,6 +8,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.da
 import 'package:mina_system/features/lookups/presentation/functions/add_job_title_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_job_title_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/restore_job_title_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
@@ -181,12 +182,11 @@ class _JobTitlesTabState extends State<JobTitlesTab> {
                               widget.canRestoreLookups &&
                               selectedDepartmentIsActive
                           ? () async {
-                              await context
-                                  .read<LookupsCubit>()
-                                  .reactivateJobTitle(
-                                    department: selectedDepartment,
-                                    jobTitle: jobTitle,
-                                  );
+                              await restoreJobTitleLookup(
+                                context: context,
+                                department: selectedDepartment,
+                                jobTitle: jobTitle,
+                              );
                             }
                           : null,
                     );

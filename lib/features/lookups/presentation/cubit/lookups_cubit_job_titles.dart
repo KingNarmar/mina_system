@@ -18,7 +18,7 @@ extension LookupsCubitJobTitles on LookupsCubit {
         .firstOrNull;
 
     if (departmentModel == null) {
-      emitState(state.copyWith(errorMessage: 'Department was not found'));
+      emitState(state.copyWith(errorMessage: 'Department was not found.'));
       return false;
     }
 
@@ -57,7 +57,7 @@ extension LookupsCubitJobTitles on LookupsCubit {
         emitState(
           state.copyWith(
             isSubmitting: false,
-            errorMessage: 'Job title already exists',
+            errorMessage: 'Job title already exists.',
           ),
         );
         return false;
@@ -113,7 +113,7 @@ extension LookupsCubitJobTitles on LookupsCubit {
         .firstOrNull;
 
     if (departmentModel == null) {
-      emitState(state.copyWith(errorMessage: 'Department was not found'));
+      emitState(state.copyWith(errorMessage: 'Department was not found.'));
       return false;
     }
 
@@ -125,7 +125,7 @@ extension LookupsCubitJobTitles on LookupsCubit {
     }).firstOrNull;
 
     if (jobTitleModel == null) {
-      emitState(state.copyWith(errorMessage: 'Job title was not found'));
+      emitState(state.copyWith(errorMessage: 'Job title was not found.'));
       return false;
     }
 
@@ -170,7 +170,7 @@ extension LookupsCubitJobTitles on LookupsCubit {
           isSubmitting: false,
           errorMessage: AppErrorMessage.fromError(
             error,
-            fallback: 'Unable to delete job title. Please try again.',
+            fallback: 'Unable to deactivate job title. Please try again.',
           ),
         ),
       );
@@ -212,7 +212,7 @@ extension LookupsCubitJobTitles on LookupsCubit {
 
     if (jobTitleModel == null) {
       emitState(
-        state.copyWith(errorMessage: 'Inactive job title was not found'),
+        state.copyWith(errorMessage: 'Inactive job title was not found.'),
       );
       return false;
     }
