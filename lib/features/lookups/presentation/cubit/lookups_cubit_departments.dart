@@ -18,6 +18,7 @@ extension LookupsCubitDepartments on LookupsCubit {
     if (inactiveDepartment != null) {
       emitState(
         state.copyWith(
+          isSubmitting: false,
           errorMessage:
               'Department already exists but is inactive. Restore it instead.',
         ),
@@ -33,6 +34,22 @@ extension LookupsCubitDepartments on LookupsCubit {
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
+      final isInactiveDuplicate = await _lookupsRepo.inactiveDepartmentNameExists(
+        companyId: companyId,
+        name: cleanDepartment,
+      );
+
+      if (isInactiveDuplicate) {
+        emitState(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage:
+                'Department already exists but is inactive. Restore it instead.',
+          ),
+        );
+        return false;
+      }
+
       final isDuplicated = await _lookupsRepo.departmentNameExists(
         companyId: companyId,
         name: cleanDepartment,
@@ -42,7 +59,7 @@ extension LookupsCubitDepartments on LookupsCubit {
         emitState(
           state.copyWith(
             isSubmitting: false,
-            errorMessage: 'Department already exists',
+            errorMessage: 'Department already exists.',
           ),
         );
         return false;
@@ -71,7 +88,7 @@ extension LookupsCubitDepartments on LookupsCubit {
       emitState(
         state.copyWith(
           isSubmitting: false,
-          errorMessage: AppErrorMessage.fromError(
+          errorMessage: _departmentLookupErrorMessage(
             error,
             fallback: 'Unable to add department. Please try again.',
           ),
@@ -87,7 +104,7 @@ extension LookupsCubitDepartments on LookupsCubit {
         .firstOrNull;
 
     if (departmentModel == null) {
-      emitState(state.copyWith(errorMessage: 'Department was not found'));
+      emitState(state.copyWith(errorMessage: 'Department was not found.'));
       return false;
     }
 
@@ -158,7 +175,7 @@ extension LookupsCubitDepartments on LookupsCubit {
           isSubmitting: false,
           errorMessage: AppErrorMessage.fromError(
             error,
-            fallback: 'Unable to delete department. Please try again.',
+            fallback: 'Unable to deactivate department. Please try again.',
           ),
         ),
       );
@@ -179,7 +196,7 @@ extension LookupsCubitDepartments on LookupsCubit {
 
     if (departmentModel == null) {
       emitState(
-        state.copyWith(errorMessage: 'Inactive department was not found'),
+        state.copyWith(errorMessage: 'Inactive department was not found.'),
       );
       return false;
     }
@@ -227,4 +244,32 @@ extension LookupsCubitDepartments on LookupsCubit {
       return false;
     }
   }
+}
+
+String _departmentLookupErrorMessage(
+  Object error, {
+  required String fallback,
+}) {
+  final rawMessage = error.toString().toLowerCase();
+  final normalizedMessage = rawMessage.replaceAll(
+    RegExp(r'[^a-z0-9]+'),
+    ' ',
+  );
+
+  final isDepartmentError = normalizedMessage.contains('department');
+  final isAlreadyExistsError =
+      normalizedMessage.contains('already exist') ||
+      normalizedMessage.contains('duplicate') ||
+      normalizedMessage.contains('exists');
+  final isInactiveError = normalizedMessage.contains('inactive');
+
+  if (isDepartmentError && isAlreadyExistsError && isInactiveError) {
+    return 'Department already exists but is inactive. Restore it instead.';
+  }
+
+  if (isDepartmentError && isAlreadyExistsError) {
+    return 'Department already exists.';
+  }
+
+  return AppErrorMessage.fromError(error, fallback: fallback);
 }

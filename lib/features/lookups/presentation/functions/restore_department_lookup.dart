@@ -19,7 +19,9 @@ Future<bool> restoreDepartmentLookup({
     return false;
   }
 
-  final isRestored = await context.read<LookupsCubit>().reactivateDepartment(
+  final lookupsCubit = context.read<LookupsCubit>();
+
+  final isRestored = await lookupsCubit.reactivateDepartment(
     department: cleanDepartment,
   );
 
@@ -33,7 +35,27 @@ Future<bool> restoreDepartmentLookup({
       'Department restored successfully.',
       type: AppMessageType.success,
     );
+  } else {
+    final message =
+        lookupsCubit.state.errorMessage ?? 'Department was not restored.';
+    lookupsCubit.clearErrorMessage();
+
+    showLookupMessage(
+      context,
+      message,
+      type: _departmentRestoreMessageType(message),
+    );
   }
 
   return isRestored;
+}
+
+AppMessageType _departmentRestoreMessageType(String message) {
+  final normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.contains('not found')) {
+    return AppMessageType.warning;
+  }
+
+  return AppMessageType.error;
 }

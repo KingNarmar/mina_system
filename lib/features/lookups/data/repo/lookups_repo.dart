@@ -421,6 +421,27 @@ class LookupsRepo {
     });
   }
 
+  Future<bool> inactiveDepartmentNameExists({
+    required String companyId,
+    required String name,
+  }) async {
+    final cleanName = name.trim();
+
+    if (cleanName.isEmpty) {
+      return false;
+    }
+
+    final data = await _supabase
+        .from('departments')
+        .select('id, name')
+        .eq('company_id', companyId)
+        .eq('is_active', false);
+
+    return data.any((item) {
+      return _isSameLookupName(item['name'] as String?, cleanName);
+    });
+  }
+
   Future<bool> jobTitleNameExists({
     required String companyId,
     required String departmentId,

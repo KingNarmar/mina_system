@@ -68,6 +68,12 @@ Future<bool> deleteDepartmentLookup({
       'Department deactivated successfully.',
       type: AppMessageType.success,
     );
+  } else {
+    final message =
+        lookupsCubit.state.errorMessage ?? 'Department was not deactivated.';
+    lookupsCubit.clearErrorMessage();
+
+    showLookupMessage(context, message, type: AppMessageType.error);
   }
 
   return isDeleted;

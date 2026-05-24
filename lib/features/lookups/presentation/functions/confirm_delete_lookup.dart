@@ -24,7 +24,7 @@ void confirmDeleteLookup({
               Navigator.pop(dialogContext);
               onConfirm();
             },
-            child: const Text('Delete'),
+            child: const Text('Deactivate'),
           ),
         ],
       );
