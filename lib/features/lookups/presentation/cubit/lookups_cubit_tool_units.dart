@@ -42,7 +42,7 @@ extension LookupsCubitToolUnits on LookupsCubit {
         emitState(
           state.copyWith(
             isSubmitting: false,
-            errorMessage: 'Tool unit already exists',
+            errorMessage: 'Tool unit already exists.',
           ),
         );
         return false;
@@ -93,7 +93,7 @@ extension LookupsCubitToolUnits on LookupsCubit {
         .firstOrNull;
 
     if (toolUnitModel == null) {
-      emitState(state.copyWith(errorMessage: 'Tool unit was not found'));
+      emitState(state.copyWith(errorMessage: 'Tool unit was not found.'));
       return false;
     }
 
@@ -138,7 +138,7 @@ extension LookupsCubitToolUnits on LookupsCubit {
           isSubmitting: false,
           errorMessage: AppErrorMessage.fromError(
             error,
-            fallback: 'Unable to delete tool unit. Please try again.',
+            fallback: 'Unable to deactivate tool unit. Please try again.',
           ),
         ),
       );
@@ -159,7 +159,7 @@ extension LookupsCubitToolUnits on LookupsCubit {
 
     if (toolUnitModel == null) {
       emitState(
-        state.copyWith(errorMessage: 'Inactive tool unit was not found'),
+        state.copyWith(errorMessage: 'Inactive tool unit was not found.'),
       );
       return false;
     }

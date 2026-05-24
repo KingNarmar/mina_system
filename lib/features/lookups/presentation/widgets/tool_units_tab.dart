@@ -6,6 +6,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.da
 import 'package:mina_system/features/lookups/presentation/functions/add_tool_unit_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_tool_unit_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/restore_tool_unit_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
@@ -96,7 +97,7 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                   EmptyLookupMessage(
                     message: _showInactive
                         ? 'No inactive tool units found'
-                        : 'No tool units found',
+                        : 'No active tool units found',
                   )
                 else
                   ...units.map((unit) {
@@ -104,7 +105,7 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                       title: unit,
                       subtitle: _showInactive
                           ? 'Inactive Tool Unit'
-                          : 'Tool Unit',
+                          : 'Active Tool Unit',
                       onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
@@ -123,9 +124,10 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                           : null,
                       onRestore: _showInactive && widget.canRestoreLookups
                           ? () async {
-                              await context
-                                  .read<LookupsCubit>()
-                                  .reactivateToolUnit(unit: unit);
+                              await restoreToolUnitLookup(
+                                context: context,
+                                unit: unit,
+                              );
                             }
                           : null,
                     );

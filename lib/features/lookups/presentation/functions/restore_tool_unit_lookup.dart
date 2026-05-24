@@ -1,89 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/utils/app_message.dart';
-import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/lookups/presentation/functions/show_lookup_message.dart';
 
-Future<bool> addToolUnitLookup({
+Future<bool> restoreToolUnitLookup({
   required BuildContext context,
   required String unit,
-  required List<String> units,
 }) async {
   final cleanUnit = unit.trim();
 
   if (cleanUnit.isEmpty) {
     showLookupMessage(
       context,
-      'Please enter unit name.',
+      'Tool unit was not found.',
       type: AppMessageType.warning,
     );
     return false;
   }
 
   final lookupsCubit = context.read<LookupsCubit>();
-  final state = lookupsCubit.state;
 
-  final alreadyActive = state.toolUnitModels.any((item) {
-    return _isSameLookupName(item.name, cleanUnit);
-  });
+  final inactiveToolUnitModel = lookupsCubit.state.inactiveToolUnitModels
+      .where((item) => _isSameLookupName(item.name, cleanUnit))
+      .firstOrNull;
 
-  if (alreadyActive) {
+  if (inactiveToolUnitModel == null) {
     showLookupMessage(
       context,
-      'Tool unit already exists.',
+      'Inactive tool unit was not found.',
       type: AppMessageType.warning,
     );
     return false;
   }
 
-  final alreadyInactive = state.inactiveToolUnitModels.any((item) {
-    return _isSameLookupName(item.name, cleanUnit);
-  });
-
-  if (alreadyInactive) {
-    showLookupMessage(
-      context,
-      'Tool unit already exists but is inactive. Restore it instead.',
-      type: AppMessageType.warning,
-    );
-    return false;
-  }
-
-  final companyId = context.requireCurrentCompanyId();
-
-  final isAdded = await lookupsCubit.addToolUnit(
-    companyId: companyId,
-    unit: cleanUnit,
-  );
+  final isRestored = await lookupsCubit.reactivateToolUnit(unit: cleanUnit);
 
   if (!context.mounted) {
     return false;
   }
 
-  if (isAdded) {
+  if (isRestored) {
     showLookupMessage(
       context,
-      'Tool unit added successfully.',
+      'Tool unit restored successfully.',
       type: AppMessageType.success,
     );
   } else {
     final message =
-        lookupsCubit.state.errorMessage ?? 'Tool unit was not added.';
+        lookupsCubit.state.errorMessage ?? 'Tool unit was not restored.';
     lookupsCubit.clearErrorMessage();
 
-    showLookupMessage(context, message, type: _toolUnitAddMessageType(message));
+    showLookupMessage(
+      context,
+      message,
+      type: _toolUnitRestoreMessageType(message),
+    );
   }
 
-  return isAdded;
+  return isRestored;
 }
 
-AppMessageType _toolUnitAddMessageType(String message) {
+AppMessageType _toolUnitRestoreMessageType(String message) {
   final normalizedMessage = message.toLowerCase();
 
-  if (normalizedMessage.contains('already exists') ||
-      normalizedMessage.contains('restore it instead') ||
-      normalizedMessage.contains('not found')) {
+  if (normalizedMessage.contains('not found')) {
     return AppMessageType.warning;
   }
 
