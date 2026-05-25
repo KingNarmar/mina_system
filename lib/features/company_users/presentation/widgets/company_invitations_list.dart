@@ -15,22 +15,24 @@ class CompanyInvitationsList extends StatelessWidget {
     required this.canCancelInvitations,
     required this.isActionSubmitting,
     required this.onCancelPressed,
+    this.companyTimezone,
   });
 
   final List<CompanyInvitationModel> invitations;
   final bool canCancelInvitations;
   final bool Function(String actionKey) isActionSubmitting;
   final ValueChanged<String> onCancelPressed;
+  final String? companyTimezone;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Pending Invitations', style: AppTextStyles.title),
+        const Text('Invitations', style: AppTextStyles.title),
         const Gap(12),
         if (invitations.isEmpty)
-          const Text('No pending invitations.', style: AppTextStyles.body)
+          const Text('No company invitations found.', style: AppTextStyles.body)
         else
           Column(
             children: invitations.map((invitation) {
@@ -42,6 +44,7 @@ class CompanyInvitationsList extends StatelessWidget {
                 invitation: invitation,
                 canCancelInvitations: canCancelInvitations,
                 isCancelSubmitting: isCancelSubmitting,
+                companyTimezone: companyTimezone,
                 onCancelPressed: onCancelPressed,
               );
             }).toList(),
@@ -58,15 +61,21 @@ class CompanyInvitationRow extends StatelessWidget {
     required this.canCancelInvitations,
     required this.isCancelSubmitting,
     required this.onCancelPressed,
+    this.companyTimezone,
   });
 
   final CompanyInvitationModel invitation;
   final bool canCancelInvitations;
   final bool isCancelSubmitting;
   final ValueChanged<String> onCancelPressed;
+  final String? companyTimezone;
 
   @override
   Widget build(BuildContext context) {
+    final normalizedStatus = invitation.status.trim().toLowerCase();
+    final isPendingInvitation = normalizedStatus == 'pending';
+    final canCancel = canCancelInvitations && isPendingInvitation;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -82,22 +91,22 @@ class CompanyInvitationRow extends StatelessWidget {
         children: [
           const Icon(Icons.mail_outline, color: AppColors.textSecondary),
           SizedBox(
-            width: 240,
+            width: 300,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(invitation.email, style: AppTextStyles.body),
-                const Gap(4),
-                Text(
-                  'Expires: ${formatInvitationDate(invitation.expiresAt)}',
-                  style: AppTextStyles.caption,
+                const Gap(6),
+                _InvitationAccountabilityLines(
+                  invitation: invitation,
+                  companyTimezone: companyTimezone,
                 ),
               ],
             ),
           ),
           CompanyUserStatusBadge(text: CompanyRoles.label(invitation.role)),
           CompanyUserStatusBadge(text: invitation.status),
-          if (canCancelInvitations)
+          if (canCancel)
             SizedBox(
               width: 130,
               child: MainButton(
@@ -108,6 +117,153 @@ class CompanyInvitationRow extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _InvitationAccountabilityLines extends StatelessWidget {
+  const _InvitationAccountabilityLines({
+    required this.invitation,
+    required this.companyTimezone,
+  });
+
+  final CompanyInvitationModel invitation;
+  final String? companyTimezone;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedStatus = invitation.status.trim().toLowerCase();
+
+    final hasAcceptedActor = _hasActorDisplayData(
+      profileId: invitation.acceptedByProfileId,
+      fullName: invitation.acceptedByName,
+      email: invitation.acceptedByEmail,
+    );
+
+    final hasCancelledActor = _hasActorDisplayData(
+      profileId: invitation.cancelledByProfileId,
+      fullName: invitation.cancelledByName,
+      email: invitation.cancelledByEmail,
+    );
+
+    final shouldShowAcceptedDetails =
+        normalizedStatus == 'accepted' ||
+        invitation.acceptedAt != null ||
+        hasAcceptedActor;
+
+    final shouldShowCancelledDetails =
+        normalizedStatus == 'cancelled' ||
+        invitation.cancelledAt != null ||
+        hasCancelledActor;
+
+    final expiryLabel = normalizedStatus == 'expired'
+        ? 'Expired at'
+        : 'Expires at';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _InvitationAccountabilityLine(
+          label: 'Invited by',
+          value: companyUserActorDisplayName(
+            fullName: invitation.invitedByName,
+            email: invitation.invitedByEmail,
+            fallback: 'Unknown inviter',
+          ),
+        ),
+        _InvitationAccountabilityLine(
+          label: 'Invited at',
+          value: formatInvitationDate(
+            invitation.createdAt,
+            timezone: companyTimezone,
+          ),
+        ),
+        _InvitationAccountabilityLine(
+          label: expiryLabel,
+          value: formatInvitationDate(
+            invitation.expiresAt,
+            timezone: companyTimezone,
+          ),
+        ),
+        if (shouldShowAcceptedDetails) ...[
+          _InvitationAccountabilityLine(
+            label: 'Accepted at',
+            value: formatOptionalInvitationDate(
+              invitation.acceptedAt,
+              timezone: companyTimezone,
+            ),
+          ),
+          if (hasAcceptedActor)
+            _InvitationAccountabilityLine(
+              label: 'Accepted by',
+              value: companyUserActorDisplayName(
+                fullName: invitation.acceptedByName,
+                email: invitation.acceptedByEmail,
+              ),
+            ),
+        ],
+        if (shouldShowCancelledDetails) ...[
+          _InvitationAccountabilityLine(
+            label: 'Cancelled at',
+            value: formatOptionalInvitationDate(
+              invitation.cancelledAt,
+              timezone: companyTimezone,
+            ),
+          ),
+          if (hasCancelledActor)
+            _InvitationAccountabilityLine(
+              label: 'Cancelled by',
+              value: companyUserActorDisplayName(
+                fullName: invitation.cancelledByName,
+                email: invitation.cancelledByEmail,
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  bool _hasActorDisplayData({
+    required String? profileId,
+    required String? fullName,
+    required String? email,
+  }) {
+    final hasProfileId = profileId != null && profileId.trim().isNotEmpty;
+    final hasFullName = fullName != null && fullName.trim().isNotEmpty;
+    final hasEmail = email != null && email.trim().isNotEmpty;
+
+    return hasProfileId || hasFullName || hasEmail;
+  }
+}
+
+class _InvitationAccountabilityLine extends StatelessWidget {
+  const _InvitationAccountabilityLine({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: RichText(
+        text: TextSpan(
+          style: AppTextStyles.caption,
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            TextSpan(text: value),
+          ],
+        ),
       ),
     );
   }

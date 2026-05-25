@@ -38,6 +38,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
     final companyId = context.requireCurrentCompanyId();
     final currentProfileId = context.requireCurrentProfileId();
     final currentRole = context.currentUserRole;
+    final companyTimezone = context.currentCompany?.timezone;
 
     final canViewTeam = CompanyRolePermissions.canViewTeam(currentRole);
 
@@ -153,6 +154,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                     canDeactivateMembers: canDeactivateMembers,
                     canReactivateMembers: canReactivateMembers,
                     isActionSubmitting: state.isActionSubmitting,
+                    companyTimezone: companyTimezone,
                     onChangeRolePressed: (member) {
                       showChangeRoleDialog(
                         parentContext: context,
@@ -178,9 +180,10 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                   ),
                   const Gap(24),
                   CompanyInvitationsList(
-                    invitations: state.pendingCompanyInvitations,
+                    invitations: state.companyInvitations,
                     canCancelInvitations: canCancelInvitations,
                     isActionSubmitting: state.isActionSubmitting,
+                    companyTimezone: companyTimezone,
                     onCancelPressed: (invitationId) {
                       context.read<CompanyUsersCubit>().cancelInvitation(
                         companyId: companyId,

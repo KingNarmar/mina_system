@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/company_users/data/models/company_member_model.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 
@@ -29,6 +30,32 @@ String companyMemberDisplayName(CompanyMemberModel member) {
       : member.email ?? 'Unknown user';
 }
 
+String companyUserActorDisplayName({
+  required String? fullName,
+  required String? email,
+  String fallback = 'Recorded user',
+}) {
+  final cleanName = fullName?.trim();
+  final cleanEmail = email?.trim();
+
+  final hasName = cleanName != null && cleanName.isNotEmpty;
+  final hasEmail = cleanEmail != null && cleanEmail.isNotEmpty;
+
+  if (hasName && hasEmail) {
+    return '$cleanName ($cleanEmail)';
+  }
+
+  if (hasName) {
+    return cleanName;
+  }
+
+  if (hasEmail) {
+    return cleanEmail;
+  }
+
+  return fallback;
+}
+
 String successMessageForActionKey(String? actionKey) {
   if (actionKey == CompanyUsersSubmissionKey.invite) {
     return 'Invitation sent successfully.';
@@ -53,6 +80,54 @@ String successMessageForActionKey(String? actionKey) {
   return 'Company users updated.';
 }
 
-String formatInvitationDate(DateTime value) {
-  return value.toLocal().toString().split('.').first;
+String formatInvitationDate(
+  DateTime value, {
+  String? timezone,
+  bool includeTimezone = true,
+}) {
+  return CompanyDateTimeFormatter.formatDateTime(
+    value,
+    timezone: timezone,
+    includeTimezone: includeTimezone,
+  );
+}
+
+String formatOptionalInvitationDate(
+  DateTime? value, {
+  String? timezone,
+  bool includeTimezone = true,
+  String fallback = 'Not recorded',
+}) {
+  return CompanyDateTimeFormatter.formatNullableDateTime(
+    value,
+    timezone: timezone,
+    includeTimezone: includeTimezone,
+    fallback: fallback,
+  );
+}
+
+String formatCompanyUserDate(
+  DateTime value, {
+  String? timezone,
+  bool includeTimezone = true,
+}) {
+  return CompanyDateTimeFormatter.formatDateTime(
+    value,
+    timezone: timezone,
+    includeTimezone: includeTimezone,
+  );
+}
+
+String formatOptionalCompanyUserDate(
+  DateTime? value, {
+  String? timezone,
+  bool includeTimezone = true,
+  String fallback = 'Not recorded',
+}) {
+  return CompanyDateTimeFormatter.formatNullableDateTime(
+    value,
+    timezone: timezone,
+    includeTimezone: includeTimezone,
+    fallback: fallback,
+  );
 }

@@ -34,10 +34,11 @@ extension LookupsCubitDepartments on LookupsCubit {
     emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
 
     try {
-      final isInactiveDuplicate = await _lookupsRepo.inactiveDepartmentNameExists(
-        companyId: companyId,
-        name: cleanDepartment,
-      );
+      final isInactiveDuplicate = await _lookupsRepo
+          .inactiveDepartmentNameExists(
+            companyId: companyId,
+            name: cleanDepartment,
+          );
 
       if (isInactiveDuplicate) {
         emitState(
@@ -246,15 +247,9 @@ extension LookupsCubitDepartments on LookupsCubit {
   }
 }
 
-String _departmentLookupErrorMessage(
-  Object error, {
-  required String fallback,
-}) {
+String _departmentLookupErrorMessage(Object error, {required String fallback}) {
   final rawMessage = error.toString().toLowerCase();
-  final normalizedMessage = rawMessage.replaceAll(
-    RegExp(r'[^a-z0-9]+'),
-    ' ',
-  );
+  final normalizedMessage = rawMessage.replaceAll(RegExp(r'[^a-z0-9]+'), ' ');
 
   final isDepartmentError = normalizedMessage.contains('department');
   final isAlreadyExistsError =

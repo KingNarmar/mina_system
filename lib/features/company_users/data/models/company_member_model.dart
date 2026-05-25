@@ -11,6 +11,8 @@ class CompanyMemberModel {
     this.updatedAt,
     this.fullName,
     this.email,
+    this.invitedByName,
+    this.invitedByEmail,
   });
 
   final String id;
@@ -25,6 +27,8 @@ class CompanyMemberModel {
 
   final String? fullName;
   final String? email;
+  final String? invitedByName;
+  final String? invitedByEmail;
 
   factory CompanyMemberModel.fromJson(Map<String, dynamic> json) {
     final memberProfileJson = json['member_profile'];
@@ -35,6 +39,8 @@ class CompanyMemberModel {
         : profilesJson is Map<String, dynamic>
         ? profilesJson
         : null;
+
+    final invitedByProfileJson = _mapOrNull(json['invited_by_profile']);
 
     return CompanyMemberModel(
       id: json['id'] as String,
@@ -48,7 +54,17 @@ class CompanyMemberModel {
       updatedAt: _dateTimeOrNull(json['updated_at']),
       fullName: profileJson?['full_name'] as String?,
       email: profileJson?['email'] as String?,
+      invitedByName: invitedByProfileJson?['full_name'] as String?,
+      invitedByEmail: invitedByProfileJson?['email'] as String?,
     );
+  }
+
+  static Map<String, dynamic>? _mapOrNull(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+
+    return null;
   }
 
   static DateTime? _dateTimeOrNull(dynamic value) {

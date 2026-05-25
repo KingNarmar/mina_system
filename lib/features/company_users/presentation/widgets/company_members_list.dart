@@ -21,6 +21,7 @@ class CompanyMembersList extends StatelessWidget {
     required this.onChangeRolePressed,
     required this.onDeactivatePressed,
     required this.onReactivatePressed,
+    this.companyTimezone,
   });
 
   final List<CompanyMemberModel> members;
@@ -33,6 +34,7 @@ class CompanyMembersList extends StatelessWidget {
   final ValueChanged<CompanyMemberModel> onChangeRolePressed;
   final ValueChanged<CompanyMemberModel> onDeactivatePressed;
   final ValueChanged<CompanyMemberModel> onReactivatePressed;
+  final String? companyTimezone;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +94,7 @@ class CompanyMembersList extends StatelessWidget {
                 isChangeRoleSubmitting: isChangeRoleSubmitting,
                 isDeactivateSubmitting: isDeactivateSubmitting,
                 isReactivateSubmitting: isReactivateSubmitting,
+                companyTimezone: companyTimezone,
                 onChangeRolePressed: () => onChangeRolePressed(member),
                 onDeactivatePressed: () => onDeactivatePressed(member),
                 onReactivatePressed: () => onReactivatePressed(member),
@@ -116,6 +119,7 @@ class CompanyMemberRow extends StatelessWidget {
     required this.onChangeRolePressed,
     required this.onDeactivatePressed,
     required this.onReactivatePressed,
+    this.companyTimezone,
   });
 
   final CompanyMemberModel member;
@@ -128,6 +132,7 @@ class CompanyMemberRow extends StatelessWidget {
   final VoidCallback onChangeRolePressed;
   final VoidCallback onDeactivatePressed;
   final VoidCallback onReactivatePressed;
+  final String? companyTimezone;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +153,7 @@ class CompanyMemberRow extends StatelessWidget {
         children: [
           const Icon(Icons.person_outline, color: AppColors.textSecondary),
           SizedBox(
-            width: 220,
+            width: 300,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -157,6 +162,11 @@ class CompanyMemberRow extends StatelessWidget {
                   const Gap(4),
                   Text(member.email!, style: AppTextStyles.caption),
                 ],
+                const Gap(6),
+                _MemberAccountabilityLines(
+                  member: member,
+                  companyTimezone: companyTimezone,
+                ),
               ],
             ),
           ),
@@ -192,6 +202,102 @@ class CompanyMemberRow extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _MemberAccountabilityLines extends StatelessWidget {
+  const _MemberAccountabilityLines({
+    required this.member,
+    required this.companyTimezone,
+  });
+
+  final CompanyMemberModel member;
+  final String? companyTimezone;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasInviter = _hasActorDisplayData(
+      profileId: member.invitedByProfileId,
+      fullName: member.invitedByName,
+      email: member.invitedByEmail,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _MemberAccountabilityLine(
+          label: 'Joined at',
+          value: formatOptionalCompanyUserDate(
+            member.joinedAt,
+            timezone: companyTimezone,
+          ),
+        ),
+        _MemberAccountabilityLine(
+          label: 'Created at',
+          value: formatOptionalCompanyUserDate(
+            member.createdAt,
+            timezone: companyTimezone,
+          ),
+        ),
+        _MemberAccountabilityLine(
+          label: 'Updated at',
+          value: formatOptionalCompanyUserDate(
+            member.updatedAt,
+            timezone: companyTimezone,
+          ),
+        ),
+        if (hasInviter)
+          _MemberAccountabilityLine(
+            label: 'Invited by',
+            value: companyUserActorDisplayName(
+              fullName: member.invitedByName,
+              email: member.invitedByEmail,
+              fallback: 'Recorded inviter',
+            ),
+          ),
+      ],
+    );
+  }
+
+  bool _hasActorDisplayData({
+    required String? profileId,
+    required String? fullName,
+    required String? email,
+  }) {
+    final hasProfileId = profileId != null && profileId.trim().isNotEmpty;
+    final hasFullName = fullName != null && fullName.trim().isNotEmpty;
+    final hasEmail = email != null && email.trim().isNotEmpty;
+
+    return hasProfileId || hasFullName || hasEmail;
+  }
+}
+
+class _MemberAccountabilityLine extends StatelessWidget {
+  const _MemberAccountabilityLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: RichText(
+        text: TextSpan(
+          style: AppTextStyles.caption,
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            TextSpan(text: value),
+          ],
+        ),
       ),
     );
   }

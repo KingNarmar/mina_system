@@ -28,6 +28,10 @@ class CompanyUsersRepo {
           member_profile:profiles!company_members_profile_id_fkey(
             full_name,
             email
+          ),
+          invited_by_profile:profiles!company_members_invited_by_profile_id_fkey(
+            full_name,
+            email
           )
         ''')
         .eq('company_id', companyId)
@@ -159,6 +163,14 @@ class CompanyUsersRepo {
       name
     ),
     invited_by_profile:profiles!company_invitations_invited_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    accepted_by_profile:profiles!company_invitations_accepted_by_profile_id_fkey(
+      full_name,
+      email
+    ),
+    cancelled_by_profile:profiles!company_invitations_cancelled_by_profile_id_fkey(
       full_name,
       email
     )

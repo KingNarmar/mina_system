@@ -16,6 +16,10 @@ class CompanyInvitationModel {
     this.companyName,
     this.invitedByName,
     this.invitedByEmail,
+    this.acceptedByName,
+    this.acceptedByEmail,
+    this.cancelledByName,
+    this.cancelledByEmail,
   });
 
   final String id;
@@ -35,6 +39,10 @@ class CompanyInvitationModel {
   final String? companyName;
   final String? invitedByName;
   final String? invitedByEmail;
+  final String? acceptedByName;
+  final String? acceptedByEmail;
+  final String? cancelledByName;
+  final String? cancelledByEmail;
 
   factory CompanyInvitationModel.fromJson(Map<String, dynamic> json) {
     final companyJson =
@@ -42,6 +50,10 @@ class CompanyInvitationModel {
 
     final invitedByProfileJson =
         _mapOrNull(json['invited_by_profile']) ?? _mapOrNull(json['profiles']);
+
+    final acceptedByProfileJson = _mapOrNull(json['accepted_by_profile']);
+
+    final cancelledByProfileJson = _mapOrNull(json['cancelled_by_profile']);
 
     return CompanyInvitationModel(
       id: json['id'] as String,
@@ -60,6 +72,10 @@ class CompanyInvitationModel {
       companyName: companyJson?['name'] as String?,
       invitedByName: invitedByProfileJson?['full_name'] as String?,
       invitedByEmail: invitedByProfileJson?['email'] as String?,
+      acceptedByName: acceptedByProfileJson?['full_name'] as String?,
+      acceptedByEmail: acceptedByProfileJson?['email'] as String?,
+      cancelledByName: cancelledByProfileJson?['full_name'] as String?,
+      cancelledByEmail: cancelledByProfileJson?['email'] as String?,
     );
   }
 
