@@ -1,3 +1,5 @@
+import 'package:mina_system/features/audit_logs/data/models/audit_log_model.dart';
+
 import '../../data/models/company_invitation_model.dart';
 import '../../data/models/company_member_model.dart';
 
@@ -5,6 +7,7 @@ class CompanyUsersState {
   const CompanyUsersState({
     this.members = const [],
     this.companyInvitations = const [],
+    this.companyUserLifecycleAuditLogs = const [],
     this.currentUserInvitations = const [],
     this.isLoading = false,
     this.isCurrentUserInvitationsLoading = false,
@@ -20,6 +23,10 @@ class CompanyUsersState {
   /// Invitations created for the currently managed company.
   /// Used inside Company Users / Team management by allowed roles.
   final List<CompanyInvitationModel> companyInvitations;
+
+  /// Trusted backend audit logs for company-user lifecycle actions.
+  /// Used inside Company Users / Team management as read-only history.
+  final List<AuditLogModel> companyUserLifecycleAuditLogs;
 
   /// Invitations addressed to the currently signed-in user.
   /// Used by invitation acceptance / workspace selection flows.
@@ -72,6 +79,7 @@ class CompanyUsersState {
   CompanyUsersState copyWith({
     List<CompanyMemberModel>? members,
     List<CompanyInvitationModel>? companyInvitations,
+    List<AuditLogModel>? companyUserLifecycleAuditLogs,
     List<CompanyInvitationModel>? currentUserInvitations,
     bool? isLoading,
     bool? isCurrentUserInvitationsLoading,
@@ -87,6 +95,8 @@ class CompanyUsersState {
     return CompanyUsersState(
       members: members ?? this.members,
       companyInvitations: companyInvitations ?? this.companyInvitations,
+      companyUserLifecycleAuditLogs:
+          companyUserLifecycleAuditLogs ?? this.companyUserLifecycleAuditLogs,
       currentUserInvitations:
           currentUserInvitations ?? this.currentUserInvitations,
       isLoading: isLoading ?? this.isLoading,

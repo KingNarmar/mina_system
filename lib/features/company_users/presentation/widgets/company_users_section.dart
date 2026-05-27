@@ -11,6 +11,7 @@ import 'package:mina_system/features/company_users/presentation/functions/compan
 import 'package:mina_system/features/company_users/presentation/functions/company_users_helpers.dart';
 import 'package:mina_system/features/company_users/presentation/widgets/company_invitations_list.dart';
 import 'package:mina_system/features/company_users/presentation/widgets/company_members_list.dart';
+import 'package:mina_system/features/company_users/presentation/widgets/company_user_lifecycle_audit_logs_list.dart';
 import 'package:mina_system/features/company_users/presentation/widgets/invite_company_user_form.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
@@ -190,6 +191,11 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                         invitationId: invitationId,
                       );
                     },
+                  ),
+                  const Gap(24),
+                  CompanyUserLifecycleAuditLogsList(
+                    auditLogs: state.companyUserLifecycleAuditLogs,
+                    companyTimezone: companyTimezone,
                   ),
                 ],
               ],

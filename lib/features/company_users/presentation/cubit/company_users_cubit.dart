@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
+import 'package:mina_system/features/audit_logs/data/models/audit_log_model.dart';
 
 import '../../data/models/invite_company_user_request.dart';
 import '../../data/repo/company_users_repo.dart';
@@ -42,11 +43,14 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
       final companyInvitations = await _repo.getCompanyInvitations(
         companyId: companyId,
       );
+      final companyUserLifecycleAuditLogs =
+          await _loadCompanyUserLifecycleAuditLogs(companyId: companyId);
 
       emit(
         state.copyWith(
           members: members,
           companyInvitations: companyInvitations,
+          companyUserLifecycleAuditLogs: companyUserLifecycleAuditLogs,
           isLoading: false,
           isSubmitting: false,
           clearSubmittingActionKey: true,
@@ -68,6 +72,16 @@ class CompanyUsersCubit extends Cubit<CompanyUsersState> {
           ),
         ),
       );
+    }
+  }
+
+  Future<List<AuditLogModel>> _loadCompanyUserLifecycleAuditLogs({
+    required String companyId,
+  }) async {
+    try {
+      return await _repo.getCompanyUserLifecycleAuditLogs(companyId: companyId);
+    } catch (_) {
+      return const <AuditLogModel>[];
     }
   }
 

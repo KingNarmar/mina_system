@@ -1,3 +1,4 @@
+import 'package:mina_system/features/audit_logs/data/models/audit_log_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/company_invitation_model.dart';
@@ -53,6 +54,31 @@ class CompanyUsersRepo {
 
     return data.map((item) {
       return CompanyInvitationModel.fromJson(item);
+    }).toList();
+  }
+
+  Future<List<AuditLogModel>> getCompanyUserLifecycleAuditLogs({
+    required String companyId,
+    int limit = 50,
+  }) async {
+    final cleanCompanyId = companyId.trim();
+
+    if (cleanCompanyId.isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    final safeLimit = _normalizeAuditLogLimit(limit);
+
+    final data = await _supabase
+        .from('audit_logs')
+        .select(_auditLogSelectColumns)
+        .eq('company_id', cleanCompanyId)
+        .inFilter('action', _companyUserLifecycleAuditActions)
+        .order('created_at', ascending: false)
+        .limit(safeLimit);
+
+    return data.map((item) {
+      return AuditLogModel.fromJson(item);
     }).toList();
   }
 
@@ -144,6 +170,43 @@ class CompanyUsersRepo {
 
     return companyId as String;
   }
+
+  int _normalizeAuditLogLimit(int limit) {
+    if (limit <= 0) {
+      return 50;
+    }
+
+    if (limit > 100) {
+      return 100;
+    }
+
+    return limit;
+  }
+
+  static const List<String> _companyUserLifecycleAuditActions = [
+    'company_user_invited',
+    'company_invitation_accepted',
+    'company_invitation_cancelled',
+    'company_member_role_changed',
+    'company_member_deactivated',
+    'company_member_reactivated',
+  ];
+
+  static const String _auditLogSelectColumns = '''
+    id,
+    company_id,
+    actor_profile_id,
+    actor_name_snapshot,
+    actor_email_snapshot,
+    action,
+    entity_type,
+    entity_id,
+    entity_label_snapshot,
+    old_data,
+    new_data,
+    metadata,
+    created_at
+  ''';
 
   static const String _companyInvitationSelect = '''
     id,
