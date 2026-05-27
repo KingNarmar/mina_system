@@ -36,6 +36,8 @@ class ReportPdfService {
     required CompanyProfileModel companyProfile,
     required CompanyReportSettingsModel reportSettings,
     required List<CompanyDocumentTemplateModel> documentTemplates,
+    Uint8List? workerSignatureBytes,
+    DateTime? signedAt,
   }) async {
     final pdf = pw.Document();
 
@@ -99,7 +101,11 @@ class ReportPdfService {
             ),
             if (documentTemplate != null) ...[
               pw.SizedBox(height: 20),
-              ReportPdfSignatureSection.buildSignatureSection(documentTemplate),
+              ReportPdfSignatureSection.buildSignatureSection(
+                documentTemplate,
+                workerSignatureBytes: workerSignatureBytes,
+                signedAt: signedAt,
+              ),
             ],
             pw.SizedBox(height: 24),
             ReportPdfFooterSection.buildFooter(reportSettings),

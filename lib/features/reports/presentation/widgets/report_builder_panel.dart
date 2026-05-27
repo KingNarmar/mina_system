@@ -308,6 +308,7 @@ class _ReportBuilderActions extends StatelessWidget {
 
                     showReportPdfPreview(
                       context,
+                      companyId: companySettingsState.profile.id,
                       reportType: report.type,
                       filters: filters,
                       transactions: transactions,

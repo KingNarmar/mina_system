@@ -1,13 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:mina_system/core/theme/app_pdf_colors.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
-
 import 'package:pdf/widgets.dart' as pw;
+
 import 'report_pdf_formatters.dart';
 
 class ReportPdfSignatureSection {
   static pw.Widget buildSignatureSection(
-    CompanyDocumentTemplateModel documentTemplate,
-  ) {
+    CompanyDocumentTemplateModel documentTemplate, {
+    Uint8List? workerSignatureBytes,
+    DateTime? signedAt,
+  }) {
     final signatureLabels = <String>[
       ReportPdfFormatters.getSignatureLabel(
         label: documentTemplate.workerSignatureLabel,
@@ -50,7 +54,15 @@ class ReportPdfSignatureSection {
             },
             children: [
               pw.TableRow(
-                children: signatureLabels.map(_buildSignatureBox).toList(),
+                children: [
+                  _buildSignatureBox(
+                    label: signatureLabels[0],
+                    signatureBytes: workerSignatureBytes,
+                    signedAt: signedAt,
+                  ),
+                  _buildSignatureBox(label: signatureLabels[1]),
+                  _buildSignatureBox(label: signatureLabels[2]),
+                ],
               ),
             ],
           ),
@@ -59,7 +71,11 @@ class ReportPdfSignatureSection {
     );
   }
 
-  static pw.Widget _buildSignatureBox(String label) {
+  static pw.Widget _buildSignatureBox({
+    required String label,
+    Uint8List? signatureBytes,
+    DateTime? signedAt,
+  }) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(right: 10),
       child: pw.Column(
@@ -73,8 +89,8 @@ class ReportPdfSignatureSection {
               color: AppPdfColors.blueGrey900,
             ),
           ),
-          pw.SizedBox(height: 28),
-          pw.Container(height: 1, color: AppPdfColors.grey500),
+          pw.SizedBox(height: 6),
+          _buildSignatureImageOrLine(signatureBytes),
           pw.SizedBox(height: 5),
           pw.Text(
             'Signature',
@@ -84,7 +100,7 @@ class ReportPdfSignatureSection {
             ),
           ),
           pw.SizedBox(height: 16),
-          pw.Container(height: 1, color: AppPdfColors.grey500),
+          _buildDateLine(signedAt),
           pw.SizedBox(height: 5),
           pw.Text(
             'Date',
@@ -94,6 +110,56 @@ class ReportPdfSignatureSection {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildSignatureImageOrLine(Uint8List? signatureBytes) {
+    if (signatureBytes == null || signatureBytes.isEmpty) {
+      return pw.Column(
+        children: [
+          pw.SizedBox(height: 28),
+          pw.Container(height: 1, color: AppPdfColors.grey500),
+        ],
+      );
+    }
+
+    return pw.Container(
+      height: 36,
+      alignment: pw.Alignment.bottomLeft,
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(
+          bottom: pw.BorderSide(color: AppPdfColors.grey500, width: 1),
+        ),
+      ),
+      child: pw.Image(
+        pw.MemoryImage(signatureBytes),
+        height: 32,
+        fit: pw.BoxFit.contain,
+      ),
+    );
+  }
+
+  static pw.Widget _buildDateLine(DateTime? signedAt) {
+    final formattedDate = signedAt == null
+        ? null
+        : '${signedAt.year}-${signedAt.month.toString().padLeft(2, '0')}-${signedAt.day.toString().padLeft(2, '0')}';
+
+    if (formattedDate == null) {
+      return pw.Container(height: 1, color: AppPdfColors.grey500);
+    }
+
+    return pw.Container(
+      height: 14,
+      alignment: pw.Alignment.bottomLeft,
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(
+          bottom: pw.BorderSide(color: AppPdfColors.grey500, width: 1),
+        ),
+      ),
+      child: pw.Text(
+        formattedDate,
+        style: const pw.TextStyle(fontSize: 8, color: AppPdfColors.blueGrey900),
       ),
     );
   }
