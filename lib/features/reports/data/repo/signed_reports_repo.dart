@@ -47,6 +47,66 @@ class SignedReportsRepo {
     created_at
   ''';
 
+  Future<List<SignedReportModel>> getSignedReports({
+    required String companyId,
+    String? searchTerm,
+    String? reportType,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int limit = 200,
+  }) async {
+    final cleanCompanyId = companyId.trim();
+
+    if (cleanCompanyId.isEmpty) {
+      throw StateError('Company ID was not found.');
+    }
+
+    dynamic query = _supabase
+        .from('signed_reports')
+        .select(_signedReportSelectColumns)
+        .eq('company_id', cleanCompanyId);
+
+    final cleanReportType = reportType?.trim();
+
+    if (cleanReportType != null && cleanReportType.isNotEmpty) {
+      query = query.eq('report_type', cleanReportType);
+    }
+
+    if (dateFrom != null) {
+      query = query.gte('signed_at', dateFrom.toUtc().toIso8601String());
+    }
+
+    if (dateTo != null) {
+      final inclusiveDateTo = DateTime(
+        dateTo.year,
+        dateTo.month,
+        dateTo.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      query = query.lte('signed_at', inclusiveDateTo.toUtc().toIso8601String());
+    }
+
+    final data = await query.order('signed_at', ascending: false).limit(limit);
+
+    final reports = (data as List).map((item) {
+      return SignedReportModel.fromJson(Map<String, dynamic>.from(item as Map));
+    }).toList();
+
+    final cleanSearchTerm = searchTerm?.trim().toLowerCase();
+
+    if (cleanSearchTerm == null || cleanSearchTerm.isEmpty) {
+      return reports;
+    }
+
+    return reports.where((report) {
+      return _matchesSearchTerm(report: report, searchTerm: cleanSearchTerm);
+    }).toList();
+  }
+
   Future<SignedReportModel> createSignedReport({
     required String companyId,
     required ReportType reportType,
@@ -107,6 +167,21 @@ class SignedReportsRepo {
     }
   }
 
+  Future<String> createSignedReportSignedUrl({
+    required SignedReportModel signedReport,
+    int expiresInSeconds = 60 * 10,
+  }) async {
+    if (signedReport.storageBucket !=
+        SignedReportStorageService.custodyDocumentsBucket) {
+      throw StateError('Invalid signed report storage bucket.');
+    }
+
+    return _storageService.createSignedReportUrl(
+      filePath: signedReport.filePath,
+      expiresInSeconds: expiresInSeconds,
+    );
+  }
+
   Future<SignedReportModel> _fetchSignedReportById({
     required String companyId,
     required String signedReportId,
@@ -142,6 +217,26 @@ class SignedReportsRepo {
       'date_from': filters.dateFrom?.toIso8601String(),
       'date_to': filters.dateTo?.toIso8601String(),
     };
+  }
+
+  bool _matchesSearchTerm({
+    required SignedReportModel report,
+    required String searchTerm,
+  }) {
+    final searchableValues = <String>[
+      report.reportNumber,
+      report.reportTypeLabel,
+      report.signedByName,
+      report.workerNameSnapshot ?? '',
+      report.workerHrCodeSnapshot ?? '',
+      report.transactionCodeSnapshot ?? '',
+      report.createdByDisplayName,
+      report.fileName,
+    ];
+
+    return searchableValues.any((value) {
+      return value.toLowerCase().contains(searchTerm);
+    });
   }
 
   String _readCreatedSignedReportId(dynamic rpcResult) {

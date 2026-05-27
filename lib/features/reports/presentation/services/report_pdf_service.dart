@@ -27,6 +27,13 @@ class ReportPdfService {
 
   static const int _maxReportPages = 200;
 
+  /// Minimum free space needed before starting the signature block.
+  ///
+  /// Without this guard, the PDF engine may render the "Signatures" title
+  /// at the end of one page and move the actual signature boxes to the next
+  /// page when the report table is long.
+  static const double _minimumSignatureSectionFreeSpace = 190;
+
   final SupabaseClient _supabase;
 
   Future<Uint8List> buildReportPdf({
@@ -100,6 +107,7 @@ class ReportPdfService {
               reportSettings: reportSettings,
             ),
             if (documentTemplate != null) ...[
+              pw.NewPage(freeSpace: _minimumSignatureSectionFreeSpace),
               pw.SizedBox(height: 20),
               ReportPdfSignatureSection.buildSignatureSection(
                 documentTemplate,

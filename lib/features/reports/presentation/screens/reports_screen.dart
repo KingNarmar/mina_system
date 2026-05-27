@@ -7,6 +7,7 @@ import 'package:mina_system/features/current_context/presentation/extensions/cur
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/functions/show_report_builder.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_option_card.dart';
+import 'package:mina_system/features/reports/presentation/widgets/signed_reports_panel.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -58,8 +59,12 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+    final currentCompanyId = context.currentCompanyId;
+
+    final canViewReports = CompanyRolePermissions.canViewReports(currentRole);
     final canGenerateReports = CompanyRolePermissions.canGenerateReports(
-      context.currentUserRole,
+      currentRole,
     );
 
     return LayoutBuilder(
@@ -92,6 +97,10 @@ class ReportsScreen extends StatelessWidget {
                   width: constraints.maxWidth,
                   canGenerateReports: canGenerateReports,
                 ),
+              if (canViewReports && currentCompanyId != null) ...[
+                const Gap(28),
+                SignedReportsPanel(companyId: currentCompanyId),
+              ],
             ],
           ),
         );
