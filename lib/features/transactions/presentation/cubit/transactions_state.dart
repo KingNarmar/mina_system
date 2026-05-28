@@ -6,6 +6,52 @@ class TransactionsSubmissionKeys {
   const TransactionsSubmissionKeys._();
 
   static const String add = 'transactions:add';
+
+  static String uploadApprovalDocument(TransactionModel transaction) {
+    return _transactionActionKey(
+      action: 'upload-approval-document',
+      transaction: transaction,
+    );
+  }
+
+  static String approve(TransactionModel transaction) {
+    return _transactionActionKey(action: 'approve', transaction: transaction);
+  }
+
+  static String reject(TransactionModel transaction) {
+    return _transactionActionKey(action: 'reject', transaction: transaction);
+  }
+
+  static String settle(TransactionModel transaction) {
+    return _transactionActionKey(action: 'settle', transaction: transaction);
+  }
+
+  static String _transactionActionKey({
+    required String action,
+    required TransactionModel transaction,
+  }) {
+    return 'transactions:$action:${_transactionKey(transaction)}';
+  }
+
+  static String _transactionKey(TransactionModel transaction) {
+    final transactionId = transaction.id?.trim();
+
+    if (transactionId != null && transactionId.isNotEmpty) {
+      return transactionId;
+    }
+
+    final transactionCode = transaction.transactionCode.trim();
+
+    if (transactionCode.isNotEmpty) {
+      return transactionCode;
+    }
+
+    return [
+      transaction.workerHrCode.trim(),
+      transaction.toolCode.trim(),
+      transaction.dateTime.toIso8601String(),
+    ].where((value) => value.isNotEmpty).join(':');
+  }
 }
 
 class TransactionsState {

@@ -8,6 +8,7 @@ import 'package:mina_system/features/current_context/presentation/extensions/cur
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 
 enum _ApprovalDocumentSource { camera, file }
@@ -48,6 +49,36 @@ class PendingApprovalActions extends StatelessWidget {
         transaction.approvalDocumentPath != null &&
         transaction.approvalDocumentPath!.trim().isNotEmpty;
 
+    final isSubmitting = context.select<TransactionsCubit, bool>((cubit) {
+      return cubit.state.isSubmitting;
+    });
+
+    final isUploadingApprovalDocument = context.select<TransactionsCubit, bool>(
+      (cubit) {
+        return cubit.state.isActionSubmitting(
+          TransactionsSubmissionKeys.uploadApprovalDocument(transaction),
+        );
+      },
+    );
+
+    final isApproving = context.select<TransactionsCubit, bool>((cubit) {
+      return cubit.state.isActionSubmitting(
+        TransactionsSubmissionKeys.approve(transaction),
+      );
+    });
+
+    final isRejecting = context.select<TransactionsCubit, bool>((cubit) {
+      return cubit.state.isActionSubmitting(
+        TransactionsSubmissionKeys.reject(transaction),
+      );
+    });
+
+    final isSettling = context.select<TransactionsCubit, bool>((cubit) {
+      return cubit.state.isActionSubmitting(
+        TransactionsSubmissionKeys.settle(transaction),
+      );
+    });
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -61,43 +92,59 @@ class PendingApprovalActions extends StatelessWidget {
         ),
         if (transaction.isApprovalPending && canUploadApprovalDocument)
           OutlinedButton.icon(
-            onPressed: () {
-              _pickAndUploadApprovalDocument(context, transaction);
-            },
-            icon: const Icon(Icons.upload_file_outlined, size: 18),
+            onPressed: isSubmitting
+                ? null
+                : () {
+                    _pickAndUploadApprovalDocument(context, transaction);
+                  },
+            icon: isUploadingApprovalDocument
+                ? const _ActionButtonLoader()
+                : const Icon(Icons.upload_file_outlined, size: 18),
             label: Text(
-              hasApprovalDocument ? 'Replace Signed' : 'Upload Signed',
+              isUploadingApprovalDocument
+                  ? 'Uploading...'
+                  : hasApprovalDocument
+                  ? 'Replace Signed'
+                  : 'Upload Signed',
             ),
           ),
         if (transaction.isApprovalPending && canApproveLostDamaged)
           ElevatedButton.icon(
-            onPressed: hasApprovalDocument
+            onPressed: hasApprovalDocument && !isSubmitting
                 ? () {
                     _approveTransaction(context, transaction);
                   }
                 : null,
-            icon: const Icon(Icons.check_circle_outline, size: 18),
-            label: const Text('Approve'),
+            icon: isApproving
+                ? const _ActionButtonLoader()
+                : const Icon(Icons.check_circle_outline, size: 18),
+            label: Text(isApproving ? 'Approving...' : 'Approve'),
           ),
         if (transaction.isApprovalPending && canRejectLostDamaged)
           OutlinedButton.icon(
-            onPressed: hasApprovalDocument
+            onPressed: hasApprovalDocument && !isSubmitting
                 ? () {
                     _rejectTransaction(context, transaction);
                   }
                 : null,
-            icon: const Icon(Icons.cancel_outlined, size: 18),
-            label: const Text('Reject'),
+            icon: isRejecting
+                ? const _ActionButtonLoader()
+                : const Icon(Icons.cancel_outlined, size: 18),
+            label: Text(isRejecting ? 'Rejecting...' : 'Reject'),
           ),
         if (transaction.isApprovalApproved &&
             transaction.isPendingSettlement &&
             canSettleLostDamaged)
           ElevatedButton.icon(
-            onPressed: () {
-              _settleTransaction(context, transaction);
-            },
-            icon: const Icon(Icons.price_check_outlined, size: 18),
-            label: const Text('Settle'),
+            onPressed: isSubmitting
+                ? null
+                : () {
+                    _settleTransaction(context, transaction);
+                  },
+            icon: isSettling
+                ? const _ActionButtonLoader()
+                : const Icon(Icons.price_check_outlined, size: 18),
+            label: Text(isSettling ? 'Settling...' : 'Settle'),
           ),
       ],
     );
@@ -410,6 +457,19 @@ class PendingApprovalActions extends StatelessWidget {
     );
 
     return result ?? false;
+  }
+}
+
+class _ActionButtonLoader extends StatelessWidget {
+  const _ActionButtonLoader();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 18,
+      height: 18,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
   }
 }
 

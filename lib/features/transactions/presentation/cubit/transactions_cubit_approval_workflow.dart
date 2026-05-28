@@ -30,7 +30,15 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: TransactionsSubmissionKeys.uploadApprovalDocument(
+          transaction,
+        ),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final savedTransaction = await _transactionsRepo.uploadApprovalDocument(
@@ -78,7 +86,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: TransactionsSubmissionKeys.approve(transaction),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final savedTransaction = await _transactionsRepo
@@ -127,7 +141,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: TransactionsSubmissionKeys.reject(transaction),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final savedTransaction = await _transactionsRepo
@@ -192,7 +212,13 @@ extension TransactionsCubitApprovalWorkflow on TransactionsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: TransactionsSubmissionKeys.settle(transaction),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final savedTransaction = await _transactionsRepo
