@@ -24,7 +24,13 @@ extension WorkersCubitAdd on WorkersCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: WorkersSubmissionKeys.add,
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final isDuplicatedHrCode = await _workersRepo.hrCodeExists(

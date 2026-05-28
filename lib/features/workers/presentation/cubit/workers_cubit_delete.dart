@@ -20,7 +20,13 @@ extension WorkersCubitDelete on WorkersCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: WorkersSubmissionKeys.delete(workerId),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _workersRepo.deleteWorker(companyId: companyId, workerId: workerId);
@@ -65,7 +71,13 @@ extension WorkersCubitDelete on WorkersCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: WorkersSubmissionKeys.delete(workerId),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _workersRepo.reactivateWorker(

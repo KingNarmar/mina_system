@@ -10,6 +10,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.da
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/functions/worker_form_validators.dart';
 
 class AddWorkerForm extends StatefulWidget {
@@ -70,7 +71,14 @@ class _AddWorkerFormState extends State<AddWorkerForm> {
           _selectedDepartment,
         );
 
-        final isSubmitting = context.watch<WorkersCubit>().state.isSubmitting;
+        final workersState = context.watch<WorkersCubit>().state;
+        final initialWorkerId = widget.initialWorker?.id;
+
+        final isSubmitting = _isEditMode && initialWorkerId != null
+            ? workersState.isActionSubmitting(
+                WorkersSubmissionKeys.update(initialWorkerId),
+              )
+            : workersState.isActionSubmitting(WorkersSubmissionKeys.add);
 
         return Padding(
           padding: EdgeInsets.fromLTRB(

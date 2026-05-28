@@ -100,7 +100,8 @@ class _WorkersView extends StatelessWidget {
                   );
                 },
               ),
-              if (state.isSubmitting) const _WorkersLoadingOverlay(),
+              if (state.isSubmitting && state.submittingActionKey == null)
+                const _WorkersLoadingOverlay(),
             ],
           );
         },

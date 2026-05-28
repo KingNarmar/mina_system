@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
+import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
+import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_info_row.dart';
 
 class WorkerCard extends StatelessWidget {
@@ -33,7 +36,29 @@ class WorkerCard extends StatelessWidget {
         onDelete != null ||
         onReactivate != null ||
         onViewAuditHistory != null;
+    final workerId = worker.id ?? '';
 
+    final isDeleting = context.select<WorkersCubit, bool>((cubit) {
+      if (workerId.isEmpty) {
+        return false;
+      }
+
+      return cubit.state.isActionSubmitting(
+        WorkersSubmissionKeys.delete(workerId),
+      );
+    });
+
+    final isReactivating = context.select<WorkersCubit, bool>((cubit) {
+      if (workerId.isEmpty) {
+        return false;
+      }
+
+      return cubit.state.isActionSubmitting(
+        WorkersSubmissionKeys.reactivate(workerId),
+      );
+    });
+
+    final isRowSubmitting = isDeleting || isReactivating;
     return Card(
       elevation: 0,
       color: AppColors.card,
@@ -75,22 +100,40 @@ class WorkerCard extends StatelessWidget {
                     ),
                   if (onEdit != null)
                     IconButton(
-                      onPressed: onEdit,
+                      onPressed: isRowSubmitting ? null : onEdit,
                       icon: const Icon(Icons.edit_outlined),
                       color: AppColors.accent,
                       tooltip: 'Edit',
                     ),
                   if (onDelete != null)
                     IconButton(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.delete_outline),
+                      onPressed: isRowSubmitting ? null : onDelete,
+                      icon: isDeleting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.error,
+                              ),
+                            )
+                          : const Icon(Icons.delete_outline),
                       color: AppColors.error,
                       tooltip: 'Deactivate',
                     ),
                   if (onReactivate != null)
                     IconButton(
-                      onPressed: onReactivate,
-                      icon: const Icon(Icons.restore_outlined),
+                      onPressed: isRowSubmitting ? null : onReactivate,
+                      icon: isReactivating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.accent,
+                              ),
+                            )
+                          : const Icon(Icons.restore_outlined),
                       color: AppColors.accent,
                       tooltip: 'Reactivate',
                     ),
