@@ -110,7 +110,6 @@ class PendingCompanyInvitationsScreen extends StatelessWidget {
                         ...invitations.map((invitation) {
                           return PendingCompanyInvitationCard(
                             invitation: invitation,
-                            isSubmitting: state.isSubmitting,
                           );
                         }),
                       ],

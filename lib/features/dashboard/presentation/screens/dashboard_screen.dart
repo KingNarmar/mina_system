@@ -4,7 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_state.dart';
-import 'package:mina_system/features/dashboard/presentation/widgets/dashboard_stats_grid.dart';
+import 'package:mina_system/features/dashboard/presentation/widgets/dashboard_overview_panel.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/quick_action_card.dart';
 import 'package:mina_system/features/dashboard/presentation/widgets/recent_transactions_card.dart';
 
@@ -15,65 +15,51 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-
-        final crossAxisCount = width < AppBreakpoints.tablet
-            ? 1
-            : width < AppBreakpoints.desktop
-            ? 2
-            : 4;
+        final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              BlocBuilder<DashboardCubit, DashboardState>(
-                builder: (context, state) {
-                  final summary = state.summary;
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          child: BlocBuilder<DashboardCubit, DashboardState>(
+            builder: (context, state) {
+              final summary = state.summary;
 
-                  return DashboardStatsGrid(
-                    crossAxisCount: crossAxisCount,
-                    width: constraints.maxWidth,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DashboardOverviewPanel(
                     totalWorkers: summary.totalWorkers,
                     totalTools: summary.totalTools,
                     openCustodies: summary.openCustodies,
                     closedToday: summary.closedToday,
-                  );
-                },
-              ),
-              const Gap(24),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isMobile = constraints.maxWidth < AppBreakpoints.tablet;
-
-                  if (isMobile) {
-                    return Column(
+                  ),
+                  const Gap(18),
+                  if (isMobile)
+                    Column(
                       children: [
-                        BlocBuilder<DashboardCubit, DashboardState>(
-                          builder: (context, state) {
-                            return RecentTransactionsCard(
-                              transactions: state.summary.recentTransactions,
-                            );
-                          },
+                        RecentTransactionsCard(
+                          transactions: summary.recentTransactions,
                         ),
-                        const Gap(24),
+                        const Gap(16),
                         const QuickActionsCard(),
                       ],
-                    );
-                  }
-
-                  return const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 2, child: RecentTransactionsCard()),
-                      Gap(24),
-                      Expanded(flex: 1, child: QuickActionsCard()),
-                    ],
-                  );
-                },
-              ),
-            ],
+                    )
+                  else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 7,
+                          child: RecentTransactionsCard(
+                            transactions: summary.recentTransactions,
+                          ),
+                        ),
+                        const Gap(18),
+                        const Expanded(flex: 4, child: QuickActionsCard()),
+                      ],
+                    ),
+                ],
+              );
+            },
           ),
         );
       },

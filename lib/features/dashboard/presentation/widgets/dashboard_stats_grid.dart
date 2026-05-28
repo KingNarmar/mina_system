@@ -22,10 +22,7 @@ class DashboardStatsGrid extends StatelessWidget {
   final int? openCustodies;
   final int? closedToday;
 
-  /// Kept for compatibility with the current DashboardScreen.
   final int? crossAxisCount;
-
-  /// Kept for compatibility with the current DashboardScreen.
   final double? width;
 
   @override
@@ -37,44 +34,55 @@ class DashboardStatsGrid extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) {
             final effectiveWidth = width ?? constraints.maxWidth;
+            final columns = crossAxisCount ?? _columnsForWidth(effectiveWidth);
 
-            final effectiveCrossAxisCount =
-                crossAxisCount ??
-                (effectiveWidth < AppBreakpoints.tablet ? 1 : 4);
+            const spacing = 12.0;
+            final itemWidth =
+                (constraints.maxWidth - (spacing * (columns - 1))) / columns;
 
-            return GridView.count(
-              crossAxisCount: effectiveCrossAxisCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: effectiveWidth < AppBreakpoints.tablet
-                  ? 3.2
-                  : 1.65,
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
               children: [
-                DashboardStatCard(
-                  title: 'Total Workers',
-                  value: (totalWorkers ?? summary.totalWorkers).toString(),
-                  icon: Icons.groups_outlined,
-                  color: AppColors.accent,
+                SizedBox(
+                  width: itemWidth,
+                  height: 76,
+                  child: DashboardStatCard(
+                    title: 'Workers',
+                    value: (totalWorkers ?? summary.totalWorkers).toString(),
+                    icon: Icons.groups_outlined,
+                    color: AppColors.accent,
+                  ),
                 ),
-                DashboardStatCard(
-                  title: 'Total Tools',
-                  value: (totalTools ?? summary.totalTools).toString(),
-                  icon: Icons.handyman_outlined,
-                  color: AppColors.success,
+                SizedBox(
+                  width: itemWidth,
+                  height: 76,
+                  child: DashboardStatCard(
+                    title: 'Tools',
+                    value: (totalTools ?? summary.totalTools).toString(),
+                    icon: Icons.handyman_outlined,
+                    color: AppColors.success,
+                  ),
                 ),
-                DashboardStatCard(
-                  title: 'Open Custodies',
-                  value: (openCustodies ?? summary.openCustodies).toString(),
-                  icon: Icons.inventory_2_outlined,
-                  color: AppColors.warning,
+                SizedBox(
+                  width: itemWidth,
+                  height: 76,
+                  child: DashboardStatCard(
+                    title: 'Open Custody',
+                    value: (openCustodies ?? summary.openCustodies).toString(),
+                    icon: Icons.inventory_2_outlined,
+                    color: AppColors.warning,
+                  ),
                 ),
-                DashboardStatCard(
-                  title: 'Closed Today',
-                  value: (closedToday ?? summary.closedToday).toString(),
-                  icon: Icons.task_alt_outlined,
-                  color: AppColors.error,
+                SizedBox(
+                  width: itemWidth,
+                  height: 76,
+                  child: DashboardStatCard(
+                    title: 'Closed Today',
+                    value: (closedToday ?? summary.closedToday).toString(),
+                    icon: Icons.task_alt_outlined,
+                    color: AppColors.error,
+                  ),
                 ),
               ],
             );
@@ -82,5 +90,17 @@ class DashboardStatsGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  int _columnsForWidth(double width) {
+    if (width < 340) {
+      return 1;
+    }
+
+    if (width < AppBreakpoints.tablet) {
+      return 2;
+    }
+
+    return 4;
   }
 }

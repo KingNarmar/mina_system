@@ -23,33 +23,60 @@ class RecentTransactionsCard extends StatelessWidget {
         final resolvedTransactions =
             transactions ?? state.summary.recentTransactions;
 
-        return Card(
-          elevation: 0,
-          color: AppColors.card,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: AppColors.border),
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.border),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Recent Transactions', style: AppTextStyles.title),
-                const Gap(14),
-                if (resolvedTransactions.isEmpty)
-                  const _EmptyRecentTransactions()
-                else
-                  Column(
-                    children: resolvedTransactions.map((transaction) {
-                      return _RecentTransactionTile(transaction: transaction);
-                    }).toList(),
-                  ),
-              ],
-            ),
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _CardHeader(count: resolvedTransactions.length),
+              const Gap(14),
+              if (resolvedTransactions.isEmpty)
+                const _EmptyRecentTransactions()
+              else
+                Column(
+                  children: resolvedTransactions.map((transaction) {
+                    return _RecentTransactionTile(transaction: transaction);
+                  }).toList(),
+                ),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _CardHeader extends StatelessWidget {
+  const _CardHeader({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Recent Activity',
+            style: AppTextStyles.title.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Text(
+          '$count latest',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -65,12 +92,16 @@ class _RecentTransactionTile extends StatelessWidget {
     final typeLabel = getTransactionTypeLabel(transaction.type);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () {
-        showTransactionDetails(context, transaction);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => showTransactionDetails(context, transaction),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
         child: Row(
           children: [
             Container(
@@ -83,7 +114,7 @@ class _RecentTransactionTile extends StatelessWidget {
               child: Icon(
                 getTransactionTypeIcon(transaction.type),
                 color: typeColor,
-                size: 22,
+                size: 21,
               ),
             ),
             const Gap(12),
@@ -95,7 +126,7 @@ class _RecentTransactionTile extends StatelessWidget {
                     '${transaction.transactionCode} • $typeLabel',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -105,6 +136,7 @@ class _RecentTransactionTile extends StatelessWidget {
                     '${transaction.workerName} • ${transaction.toolName}',
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -121,6 +153,12 @@ class _RecentTransactionTile extends StatelessWidget {
                 ],
               ),
             ),
+            const Gap(8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -135,13 +173,14 @@ class _EmptyRecentTransactions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.border.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
       ),
       child: Text(
-        'No recent transactions yet',
+        'No recent transactions yet.',
         style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
       ),
     );

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_form.dart';
@@ -13,76 +15,74 @@ class QuickActionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+
     final actions = [
-      _QuickActionItem(
-        title: 'Issue Tool',
-        icon: Icons.arrow_upward,
-        color: AppColors.accent,
-        onTap: () {
-          _openTransactionForm(context, TransactionType.issue);
-        },
-      ),
-      _QuickActionItem(
-        title: 'Return Tool',
-        icon: Icons.arrow_downward,
-        color: AppColors.accent,
-        onTap: () {
-          _openTransactionForm(context, TransactionType.returnTool);
-        },
-      ),
-      _QuickActionItem(
-        title: 'Add Worker',
-        icon: Icons.person_add_alt_1_outlined,
-        color: AppColors.error,
-        onTap: () {
-          _openWorkerForm(context);
-        },
-      ),
-      _QuickActionItem(
-        title: 'Add Tool',
-        icon: Icons.add_box_outlined,
-        color: AppColors.error,
-        onTap: () {
-          _openToolForm(context);
-        },
-      ),
+      if (CompanyRolePermissions.canCreateTransactions(currentRole)) ...[
+        _QuickActionItem(
+          title: 'Issue Tool',
+          subtitle: 'Create a new issue transaction',
+          icon: Icons.arrow_upward,
+          color: AppColors.accent,
+          onTap: () => _openTransactionForm(context, TransactionType.issue),
+        ),
+        _QuickActionItem(
+          title: 'Return Tool',
+          subtitle: 'Receive a returned tool',
+          icon: Icons.arrow_downward,
+          color: AppColors.success,
+          onTap: () =>
+              _openTransactionForm(context, TransactionType.returnTool),
+        ),
+      ],
+      if (CompanyRolePermissions.canCreateWorkers(currentRole))
+        _QuickActionItem(
+          title: 'Add Worker',
+          subtitle: 'Register a new worker',
+          icon: Icons.person_add_alt_1_outlined,
+          color: AppColors.warning,
+          onTap: () => _openWorkerForm(context),
+        ),
+      if (CompanyRolePermissions.canCreateTools(currentRole))
+        _QuickActionItem(
+          title: 'Add Tool',
+          subtitle: 'Register a new tool',
+          icon: Icons.add_box_outlined,
+          color: AppColors.error,
+          onTap: () => _openToolForm(context),
+        ),
     ];
 
-    return Card(
-      elevation: 0,
-      color: AppColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Quick Actions', style: AppTextStyles.title),
-            const Gap(16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isMobile = constraints.maxWidth < 420;
-                final buttonWidth = isMobile
-                    ? constraints.maxWidth
-                    : (constraints.maxWidth - 12) / 2;
-
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: actions.map((action) {
-                    return SizedBox(
-                      width: buttonWidth,
-                      child: _QuickActionButton(action: action),
-                    );
-                  }).toList(),
-                );
-              },
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Quick Actions',
+            style: AppTextStyles.title.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
             ),
-          ],
-        ),
+          ),
+          const Gap(14),
+          if (actions.isEmpty)
+            const _EmptyQuickActions()
+          else
+            Column(
+              children: actions.map((action) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _QuickActionRow(action: action),
+                );
+              }).toList(),
+            ),
+        ],
       ),
     );
   }
@@ -121,34 +121,66 @@ class QuickActionsCard extends StatelessWidget {
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({required this.action});
+class _QuickActionRow extends StatelessWidget {
+  const _QuickActionRow({required this.action});
 
   final _QuickActionItem action;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       onTap: action.onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: action.color.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: action.color.withValues(alpha: 0.18)),
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Icon(action.icon, color: action.color, size: 22),
-            const Gap(12),
-            Text(
-              action.title,
-              style: AppTextStyles.body.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: action.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(13),
               ),
+              child: Icon(action.icon, color: action.color, size: 20),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    action.title,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Gap(2),
+                  Text(
+                    action.subtitle,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Gap(8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary,
+              size: 20,
             ),
           ],
         ),
@@ -157,15 +189,38 @@ class _QuickActionButton extends StatelessWidget {
   }
 }
 
+class _EmptyQuickActions extends StatelessWidget {
+  const _EmptyQuickActions();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        'No quick actions available for your current role.',
+        style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+      ),
+    );
+  }
+}
+
 class _QuickActionItem {
   const _QuickActionItem({
     required this.title,
+    required this.subtitle,
     required this.icon,
     required this.color,
     required this.onTap,
   });
 
   final String title;
+  final String subtitle;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;

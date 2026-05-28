@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
@@ -37,6 +38,9 @@ class _MobileShellState extends State<MobileShell> {
           return previous.currentCompany?.role !=
                   current.currentCompany?.role ||
               previous.currentCompany?.id != current.currentCompany?.id ||
+              previous.currentCompany?.name != current.currentCompany?.name ||
+              previous.profile.fullName != current.profile.fullName ||
+              previous.profile.email != current.profile.email ||
               previous.hasMultipleCompanies != current.hasMultipleCompanies;
         }
 
@@ -57,7 +61,10 @@ class _MobileShellState extends State<MobileShell> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(navItems[selectedIndex].title),
+            title: _MobileTitle(
+              title: navItems[selectedIndex].title,
+              state: state,
+            ),
             actions: [
               if (state is CurrentContextLoaded &&
                   state.hasMultipleCompanies &&
@@ -120,6 +127,70 @@ class _MobileShellState extends State<MobileShell> {
       default:
         return title;
     }
+  }
+}
+
+class _MobileTitle extends StatelessWidget {
+  const _MobileTitle({required this.title, required this.state});
+
+  final String title;
+  final CurrentContextState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = _buildSubtitle();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        if (subtitle != null)
+          Text(
+            subtitle,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
+    );
+  }
+
+  String? _buildSubtitle() {
+    if (state is CurrentContextLoading) {
+      return 'Loading company...';
+    }
+
+    if (state is CurrentContextFailure) {
+      return 'Company unavailable';
+    }
+
+    if (state is! CurrentContextLoaded) {
+      return null;
+    }
+
+    final loadedState = state as CurrentContextLoaded;
+    final profile = loadedState.profile;
+    final currentCompany = loadedState.currentCompany;
+
+    final userName = profile.fullName?.trim();
+    final userEmail = profile.email?.trim();
+
+    final userLabel = userName != null && userName.isNotEmpty
+        ? userName
+        : userEmail != null && userEmail.isNotEmpty
+        ? userEmail
+        : 'Signed in user';
+
+    if (currentCompany == null) {
+      return loadedState.hasMultipleCompanies ? 'Select Company' : userLabel;
+    }
+
+    final roleLabel = CompanyRoles.label(currentCompany.role);
+
+    return '$userLabel • ${currentCompany.name} • $roleLabel';
   }
 }
 
