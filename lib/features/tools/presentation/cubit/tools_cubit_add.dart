@@ -23,8 +23,13 @@ extension ToolsCubitAdd on ToolsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
-
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: ToolsSubmissionKeys.add,
+        clearErrorMessage: true,
+      ),
+    );
     try {
       final isDuplicatedToolName = await _toolsRepo.toolNameExists(
         companyId: companyId,

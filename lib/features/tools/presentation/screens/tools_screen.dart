@@ -92,7 +92,8 @@ class _ToolsView extends StatelessWidget {
                   );
                 },
               ),
-              if (state.isSubmitting) const _ToolsLoadingOverlay(),
+              if (state.isSubmitting && state.submittingActionKey == null)
+                const _ToolsLoadingOverlay(),
             ],
           );
         },

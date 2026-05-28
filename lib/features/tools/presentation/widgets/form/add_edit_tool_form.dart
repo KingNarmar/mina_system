@@ -10,6 +10,7 @@ import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.da
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_state.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
+import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_form_validators.dart';
 
 class AddEditToolForm extends StatefulWidget {
@@ -67,7 +68,15 @@ class _AddEditToolFormState extends State<AddEditToolForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, lookupsState) {
-        final isSubmitting = context.watch<ToolsCubit>().state.isSubmitting;
+        final toolsState = context.watch<ToolsCubit>().state;
+        final initialToolCode = widget.initialTool?.toolCode;
+
+        final isSubmitting =
+            _isEditMode && initialToolCode != null && initialToolCode.isNotEmpty
+            ? toolsState.isActionSubmitting(
+                ToolsSubmissionKeys.update(initialToolCode),
+              )
+            : toolsState.isActionSubmitting(ToolsSubmissionKeys.add);
 
         return Padding(
           padding: EdgeInsets.fromLTRB(

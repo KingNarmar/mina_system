@@ -23,7 +23,13 @@ extension ToolsCubitDelete on ToolsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: ToolsSubmissionKeys.delete(tool.toolCode),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _toolsRepo.deleteTool(companyId: companyId, toolId: toolId);
@@ -71,7 +77,13 @@ extension ToolsCubitDelete on ToolsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: ToolsSubmissionKeys.reactivate(tool.toolCode),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       await _toolsRepo.reactivateTool(companyId: companyId, toolId: toolId);

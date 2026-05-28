@@ -34,7 +34,13 @@ extension ToolsCubitUpdate on ToolsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: ToolsSubmissionKeys.update(currentToolCode),
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final isDuplicatedToolCode = await _toolsRepo.toolCodeExists(
