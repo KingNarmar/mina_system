@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
+import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 import 'package:mina_system/features/company_users/presentation/widgets/company_users_section.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/features/team/presentation/widgets/team_overview_panel.dart';
+import 'package:mina_system/features/team/presentation/widgets/team_page_header.dart';
 
 class TeamScreen extends StatelessWidget {
   const TeamScreen({super.key});
@@ -13,6 +18,8 @@ class TeamScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentRole = context.currentUserRole;
     final canViewTeam = CompanyRolePermissions.canViewTeam(currentRole);
+    final canManageTeam = CompanyRolePermissions.canManageTeam(currentRole);
+    final canInviteUsers = CompanyRolePermissions.canInviteUsers(currentRole);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -22,21 +29,48 @@ class TeamScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Team', style: AppTextStyles.heading),
-            const Gap(8),
-            const Text(
-              'Manage company members, invitations, and team access.',
-              style: AppTextStyles.body,
+            TeamPageHeader(
+              currentRole: currentRole,
+              canManageTeam: canManageTeam,
+              canInviteUsers: canInviteUsers,
             ),
-            const Gap(24),
+            const Gap(16),
             if (canViewTeam)
-              const CompanyUsersSection()
+              BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
+                builder: (context, state) {
+                  return TeamOverviewPanel(
+                    totalMembers: state.members.length,
+                    activeMembers: _countMembersByStatus(
+                      state,
+                      status: 'active',
+                    ),
+                    inactiveMembers: _countMembersByStatus(
+                      state,
+                      status: 'inactive',
+                    ),
+                    pendingInvitations: state.pendingCompanyInvitations.length,
+                    recentActivityCount:
+                        state.companyUserLifecycleAuditLogs.length,
+                    isLoading: state.isLoading,
+                  );
+                },
+              )
             else
               const _NoTeamPermissionView(),
+            const Gap(18),
+            if (canViewTeam) const CompanyUsersSection(),
           ],
         ),
       ),
     );
+  }
+
+  int _countMembersByStatus(CompanyUsersState state, {required String status}) {
+    final normalizedStatus = status.trim().toLowerCase();
+
+    return state.members.where((member) {
+      return member.status.trim().toLowerCase() == normalizedStatus;
+    }).length;
   }
 }
 
@@ -49,7 +83,7 @@ class _NoTeamPermissionView extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border),
       ),
       child: const Column(

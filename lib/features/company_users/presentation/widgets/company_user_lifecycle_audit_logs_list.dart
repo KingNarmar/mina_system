@@ -18,46 +18,37 @@ class CompanyUserLifecycleAuditLogsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (auditLogs.isEmpty) {
+      return const _TeamActivityEmptyState();
+    }
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Team Activity', style: AppTextStyles.title),
-        const Gap(6),
-        const Text(
-          'Trusted lifecycle history for invitations, role changes, and member access changes.',
-          style: AppTextStyles.body,
-        ),
-        const Gap(12),
-        if (auditLogs.isEmpty)
-          const Text(
-            'No company-user lifecycle activity found yet.',
-            style: AppTextStyles.body,
-          )
-        else
-          Column(
-            children: auditLogs.map((auditLog) {
-              return _CompanyUserLifecycleAuditLogTile(
-                auditLog: auditLog,
-                companyTimezone: companyTimezone,
-              );
-            }).toList(),
-          ),
-      ],
+      children: List.generate(auditLogs.length, (index) {
+        return _TeamActivityTimelineTile(
+          auditLog: auditLogs[index],
+          companyTimezone: companyTimezone,
+          isLast: index == auditLogs.length - 1,
+        );
+      }),
     );
   }
 }
 
-class _CompanyUserLifecycleAuditLogTile extends StatelessWidget {
-  const _CompanyUserLifecycleAuditLogTile({
+class _TeamActivityTimelineTile extends StatelessWidget {
+  const _TeamActivityTimelineTile({
     required this.auditLog,
     required this.companyTimezone,
+    required this.isLast,
   });
 
   final AuditLogModel auditLog;
   final String? companyTimezone;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
+    final config = _activityConfigForAction(auditLog.action);
+
     final createdAtText = CompanyDateTimeFormatter.formatNullableDateTime(
       auditLog.createdAt,
       timezone: companyTimezone,
@@ -67,124 +58,190 @@ class _CompanyUserLifecycleAuditLogTile extends StatelessWidget {
 
     final details = _buildDetails();
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _CompanyUserLifecycleAuditHeader(
-            icon: _iconForAction(auditLog.action),
-            title: _titleForAction(auditLog.action),
-            createdAtText: createdAtText,
-          ),
-          const Gap(12),
-          _AuditDetailLine(label: 'Actor', value: _actorDisplayName(auditLog)),
-          const Gap(6),
-          _AuditDetailLine(
-            label: 'Target',
-            value: _targetDisplayName(auditLog),
-          ),
-          if (details.isNotEmpty) ...[
-            const Gap(10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: details.map((detail) {
-                return _AuditDetailPill(
-                  label: detail.label,
-                  value: detail.value,
-                );
-              }).toList(),
+          SizedBox(
+            width: 42,
+            child: Column(
+              children: [
+                _TimelineMarker(config: config),
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ],
+          ),
+          const Gap(10),
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _ActivityHeader(
+                    title: config.title,
+                    createdAtText: createdAtText,
+                  ),
+                  const Gap(14),
+                  _ActivityInfoPanel(
+                    actor: _actorDisplayName(auditLog),
+                    target: _targetDisplayName(auditLog),
+                  ),
+                  if (details.isNotEmpty) ...[
+                    const Gap(12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: details.map((detail) {
+                        return _ActivityDetailPill(
+                          label: detail.label,
+                          value: detail.value,
+                          color: detail.color,
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  List<_AuditDetail> _buildDetails() {
+  List<_ActivityDetail> _buildDetails() {
     switch (auditLog.action.trim().toLowerCase()) {
       case 'company_user_invited':
         return [
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Role',
             value: _roleLabel(_stringFromMap(auditLog.newData, 'role')),
+            color: AppColors.accent,
           ),
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Status',
             value: _statusLabel(_stringFromMap(auditLog.newData, 'status')),
+            color: AppColors.textSecondary,
           ),
         ];
 
       case 'company_invitation_accepted':
         return [
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Role',
             value: _roleLabel(
               _stringFromMap(auditLog.newData, 'role') ??
                   _stringFromMap(auditLog.oldData, 'role'),
             ),
+            color: AppColors.accent,
           ),
-          const _AuditDetail(label: 'From', value: 'Pending'),
-          const _AuditDetail(label: 'To', value: 'Accepted'),
+          const _ActivityDetail(
+            label: 'From',
+            value: 'Pending',
+            color: AppColors.warning,
+          ),
+          const _ActivityDetail(
+            label: 'To',
+            value: 'Accepted',
+            color: AppColors.success,
+          ),
         ];
 
       case 'company_invitation_cancelled':
         return [
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Role',
             value: _roleLabel(
               _stringFromMap(auditLog.newData, 'role') ??
                   _stringFromMap(auditLog.oldData, 'role'),
             ),
+            color: AppColors.accent,
           ),
-          const _AuditDetail(label: 'From', value: 'Pending'),
-          const _AuditDetail(label: 'To', value: 'Cancelled'),
+          const _ActivityDetail(
+            label: 'From',
+            value: 'Pending',
+            color: AppColors.accent,
+          ),
+          const _ActivityDetail(
+            label: 'To',
+            value: 'Cancelled',
+            color: AppColors.warning,
+          ),
         ];
 
       case 'company_member_role_changed':
         return [
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Old role',
             value: _roleLabel(_oldRole(auditLog)),
+            color: AppColors.textSecondary,
           ),
-          _AuditDetail(
+          _ActivityDetail(
             label: 'New role',
             value: _roleLabel(_newRole(auditLog)),
+            color: AppColors.accent,
           ),
         ];
 
       case 'company_member_deactivated':
         return [
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Role',
             value: _roleLabel(
               _stringFromMap(auditLog.newData, 'role') ??
                   _stringFromMap(auditLog.oldData, 'role'),
             ),
+            color: AppColors.accent,
           ),
-          const _AuditDetail(label: 'From', value: 'Active'),
-          const _AuditDetail(label: 'To', value: 'Inactive'),
+          const _ActivityDetail(
+            label: 'From',
+            value: 'Active',
+            color: AppColors.success,
+          ),
+          const _ActivityDetail(
+            label: 'To',
+            value: 'Inactive',
+            color: AppColors.warning,
+          ),
         ];
 
       case 'company_member_reactivated':
         return [
-          _AuditDetail(
+          _ActivityDetail(
             label: 'Role',
             value: _roleLabel(
               _stringFromMap(auditLog.newData, 'role') ??
                   _stringFromMap(auditLog.oldData, 'role'),
             ),
+            color: AppColors.accent,
           ),
-          const _AuditDetail(label: 'From', value: 'Inactive'),
-          const _AuditDetail(label: 'To', value: 'Active'),
+          const _ActivityDetail(
+            label: 'From',
+            value: 'Inactive',
+            color: AppColors.warning,
+          ),
+          const _ActivityDetail(
+            label: 'To',
+            value: 'Active',
+            color: AppColors.success,
+          ),
         ];
 
       default:
@@ -192,41 +249,50 @@ class _CompanyUserLifecycleAuditLogTile extends StatelessWidget {
     }
   }
 
-  IconData _iconForAction(String action) {
+  _ActivityConfig _activityConfigForAction(String action) {
     switch (action.trim().toLowerCase()) {
       case 'company_user_invited':
-        return Icons.person_add_alt_outlined;
+        return const _ActivityConfig(
+          title: 'Invitation Sent',
+          icon: Icons.person_add_alt_outlined,
+          color: AppColors.accent,
+        );
       case 'company_invitation_accepted':
-        return Icons.mark_email_read_outlined;
+        return const _ActivityConfig(
+          title: 'Invitation Accepted',
+          icon: Icons.mark_email_read_outlined,
+          color: AppColors.success,
+        );
       case 'company_invitation_cancelled':
-        return Icons.cancel_schedule_send_outlined;
+        return const _ActivityConfig(
+          title: 'Invitation Cancelled',
+          icon: Icons.cancel_schedule_send_outlined,
+          color: AppColors.warning,
+        );
       case 'company_member_role_changed':
-        return Icons.manage_accounts_outlined;
+        return const _ActivityConfig(
+          title: 'Member Role Changed',
+          icon: Icons.manage_accounts_outlined,
+          color: AppColors.accent,
+        );
       case 'company_member_deactivated':
-        return Icons.person_off_outlined;
+        return const _ActivityConfig(
+          title: 'Member Deactivated',
+          icon: Icons.person_off_outlined,
+          color: AppColors.warning,
+        );
       case 'company_member_reactivated':
-        return Icons.person_add_alt_1_outlined;
+        return const _ActivityConfig(
+          title: 'Member Reactivated',
+          icon: Icons.person_add_alt_1_outlined,
+          color: AppColors.success,
+        );
       default:
-        return Icons.history_outlined;
-    }
-  }
-
-  String _titleForAction(String action) {
-    switch (action.trim().toLowerCase()) {
-      case 'company_user_invited':
-        return 'Invitation Sent';
-      case 'company_invitation_accepted':
-        return 'Invitation Accepted';
-      case 'company_invitation_cancelled':
-        return 'Invitation Cancelled';
-      case 'company_member_role_changed':
-        return 'Member Role Changed';
-      case 'company_member_deactivated':
-        return 'Member Deactivated';
-      case 'company_member_reactivated':
-        return 'Member Reactivated';
-      default:
-        return _toTitleCase(action);
+        return _ActivityConfig(
+          title: _toTitleCase(action),
+          icon: Icons.history_outlined,
+          color: AppColors.textSecondary,
+        );
     }
   }
 
@@ -383,14 +449,29 @@ class _CompanyUserLifecycleAuditLogTile extends StatelessWidget {
   }
 }
 
-class _CompanyUserLifecycleAuditHeader extends StatelessWidget {
-  const _CompanyUserLifecycleAuditHeader({
-    required this.icon,
-    required this.title,
-    required this.createdAtText,
-  });
+class _TimelineMarker extends StatelessWidget {
+  const _TimelineMarker({required this.config});
 
-  final IconData icon;
+  final _ActivityConfig config;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: config.color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: config.color.withValues(alpha: 0.16)),
+      ),
+      child: Icon(config.icon, color: config.color, size: 22),
+    );
+  }
+}
+
+class _ActivityHeader extends StatelessWidget {
+  const _ActivityHeader({required this.title, required this.createdAtText});
+
   final String title;
   final String createdAtText;
 
@@ -399,35 +480,24 @@ class _CompanyUserLifecycleAuditHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: AppColors.accent, size: 20),
-        ),
-        const Gap(10),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Gap(2),
-              Text(
-                createdAtText,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          child: Text(
+            title,
+            style: AppTextStyles.body.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const Gap(12),
+        Flexible(
+          child: Text(
+            createdAtText,
+            textAlign: TextAlign.right,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -435,9 +505,49 @@ class _CompanyUserLifecycleAuditHeader extends StatelessWidget {
   }
 }
 
-class _AuditDetailLine extends StatelessWidget {
-  const _AuditDetailLine({required this.label, required this.value});
+class _ActivityInfoPanel extends StatelessWidget {
+  const _ActivityInfoPanel({required this.actor, required this.target});
 
+  final String actor;
+  final String target;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          _ActivityInfoLine(
+            icon: Icons.person_outline,
+            label: 'Actor',
+            value: actor,
+          ),
+          const Gap(10),
+          _ActivityInfoLine(
+            icon: Icons.adjust_outlined,
+            label: 'Target',
+            value: target,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActivityInfoLine extends StatelessWidget {
+  const _ActivityInfoLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
   final String label;
   final String value;
 
@@ -446,20 +556,26 @@ class _AuditDetailLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(icon, size: 17, color: AppColors.textSecondary),
+        const Gap(8),
         SizedBox(
-          width: 56,
+          width: 54,
           child: Text(
             label,
             style: AppTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
+        const Gap(8),
         Expanded(
           child: Text(
             value,
-            style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -467,20 +583,25 @@ class _AuditDetailLine extends StatelessWidget {
   }
 }
 
-class _AuditDetailPill extends StatelessWidget {
-  const _AuditDetailPill({required this.label, required this.value});
+class _ActivityDetailPill extends StatelessWidget {
+  const _ActivityDetailPill({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: color.withValues(alpha: 0.14)),
       ),
       child: RichText(
         text: TextSpan(
@@ -489,14 +610,15 @@ class _AuditDetailPill extends StatelessWidget {
             TextSpan(
               text: '$label: ',
               style: AppTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+                color: color,
               ),
             ),
             TextSpan(
               text: value,
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+                color: color,
               ),
             ),
           ],
@@ -506,9 +628,76 @@ class _AuditDetailPill extends StatelessWidget {
   }
 }
 
-class _AuditDetail {
-  const _AuditDetail({required this.label, required this.value});
+class _TeamActivityEmptyState extends StatelessWidget {
+  const _TeamActivityEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(
+              Icons.history_outlined,
+              color: AppColors.accent,
+              size: 28,
+            ),
+          ),
+          const Gap(12),
+          Text(
+            'No team activity yet',
+            style: AppTextStyles.body.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const Gap(6),
+          Text(
+            'Invitation, role, and access lifecycle events will appear here.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActivityConfig {
+  const _ActivityConfig({
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color color;
+}
+
+class _ActivityDetail {
+  const _ActivityDetail({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final String value;
+  final Color color;
 }

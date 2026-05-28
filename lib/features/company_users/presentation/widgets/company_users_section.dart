@@ -92,116 +92,326 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
       },
       child: BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
         builder: (context, state) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('Company Users', style: AppTextStyles.title),
-                const Gap(8),
-                const Text(
-                  'Manage company members and pending invitations.',
-                  style: AppTextStyles.body,
-                ),
-                const Gap(20),
-                if (state.isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (state.hasError)
-                  Text(
-                    state.errorMessage!,
-                    style: AppTextStyles.body.copyWith(color: AppColors.error),
-                  )
-                else ...[
-                  if (canInviteUsers && allowedInviteRoles.isNotEmpty) ...[
-                    InviteCompanyUserForm(
-                      formKey: _formKey,
-                      emailController: _emailController,
-                      selectedRole: selectedRole,
-                      allowedRoles: allowedInviteRoles,
-                      isSubmitting: state.isActionSubmitting(
-                        CompanyUsersSubmissionKey.invite,
+          if (state.isLoading) {
+            return const _TeamLoadingPanel();
+          }
+
+          if (state.hasError) {
+            return _TeamErrorPanel(message: state.errorMessage!);
+          }
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 1040;
+
+              final invitePanel =
+                  canInviteUsers && allowedInviteRoles.isNotEmpty
+                  ? _TeamSectionPanel(
+                      icon: Icons.person_add_alt_1_outlined,
+                      title: 'Invite Member',
+                      subtitle:
+                          'Send a workspace invitation using only the roles '
+                          'allowed for your current access level.',
+                      child: InviteCompanyUserForm(
+                        formKey: _formKey,
+                        emailController: _emailController,
+                        selectedRole: selectedRole,
+                        allowedRoles: allowedInviteRoles,
+                        isSubmitting: state.isActionSubmitting(
+                          CompanyUsersSubmissionKey.invite,
+                        ),
+                        onRoleChanged: (role) {
+                          if (role == null) {
+                            return;
+                          }
+
+                          setState(() => _selectedRole = role);
+                        },
+                        onInvitePressed: () {
+                          if (!_formKey.currentState!.validate()) {
+                            return;
+                          }
+
+                          context.read<CompanyUsersCubit>().inviteCompanyUser(
+                            companyId: companyId,
+                            email: _emailController.text,
+                            role: selectedRole,
+                          );
+                        },
                       ),
-                      onRoleChanged: (role) {
-                        if (role == null) {
-                          return;
-                        }
+                    )
+                  : null;
 
-                        setState(() => _selectedRole = role);
-                      },
-                      onInvitePressed: () {
-                        if (!_formKey.currentState!.validate()) {
-                          return;
-                        }
+              final membersPanel = _TeamSectionPanel(
+                icon: Icons.badge_outlined,
+                title: 'Members Directory',
+                subtitle:
+                    'Review company members, roles, status, accountability '
+                    'details, and available access actions.',
+                trailing: _SectionCounter(text: '${state.members.length}'),
+                child: CompanyMembersList(
+                  members: state.members,
+                  actorRole: currentRole,
+                  currentProfileId: currentProfileId,
+                  canChangeMemberRoles: canChangeMemberRoles,
+                  canDeactivateMembers: canDeactivateMembers,
+                  canReactivateMembers: canReactivateMembers,
+                  isActionSubmitting: state.isActionSubmitting,
+                  companyTimezone: companyTimezone,
+                  onChangeRolePressed: (member) {
+                    showChangeRoleDialog(
+                      parentContext: context,
+                      companyId: companyId,
+                      actorRole: currentRole,
+                      member: member,
+                    );
+                  },
+                  onDeactivatePressed: (member) {
+                    showDeactivateMemberDialog(
+                      parentContext: context,
+                      companyId: companyId,
+                      member: member,
+                    );
+                  },
+                  onReactivatePressed: (member) {
+                    showReactivateMemberDialog(
+                      parentContext: context,
+                      companyId: companyId,
+                      member: member,
+                    );
+                  },
+                ),
+              );
 
-                        context.read<CompanyUsersCubit>().inviteCompanyUser(
-                          companyId: companyId,
-                          email: _emailController.text,
-                          role: selectedRole,
-                        );
-                      },
-                    ),
-                    const Gap(24),
+              final invitationsPanel = _TeamSectionPanel(
+                icon: Icons.mail_outline,
+                title: 'Invitations',
+                subtitle:
+                    'Track invited users, invitation status, expiry dates, '
+                    'and cancellation access.',
+                trailing: _SectionCounter(
+                  text: '${state.companyInvitations.length}',
+                ),
+                child: CompanyInvitationsList(
+                  invitations: state.companyInvitations,
+                  canCancelInvitations: canCancelInvitations,
+                  isActionSubmitting: state.isActionSubmitting,
+                  companyTimezone: companyTimezone,
+                  onCancelPressed: (invitationId) {
+                    context.read<CompanyUsersCubit>().cancelInvitation(
+                      companyId: companyId,
+                      invitationId: invitationId,
+                    );
+                  },
+                ),
+              );
+
+              final activityPanel = _TeamSectionPanel(
+                icon: Icons.timeline_outlined,
+                title: 'Team Activity',
+                subtitle:
+                    'Trusted lifecycle history for invitations, role changes, '
+                    'and member access updates.',
+                trailing: _SectionCounter(
+                  text: '${state.companyUserLifecycleAuditLogs.length}',
+                ),
+                child: CompanyUserLifecycleAuditLogsList(
+                  auditLogs: state.companyUserLifecycleAuditLogs,
+                  companyTimezone: companyTimezone,
+                ),
+              );
+
+              if (!isWide) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (invitePanel != null) ...[invitePanel, const Gap(16)],
+                    membersPanel,
+                    const Gap(16),
+                    invitationsPanel,
+                    const Gap(16),
+                    activityPanel,
                   ],
-                  CompanyMembersList(
-                    members: state.members,
-                    actorRole: currentRole,
-                    currentProfileId: currentProfileId,
-                    canChangeMemberRoles: canChangeMemberRoles,
-                    canDeactivateMembers: canDeactivateMembers,
-                    canReactivateMembers: canReactivateMembers,
-                    isActionSubmitting: state.isActionSubmitting,
-                    companyTimezone: companyTimezone,
-                    onChangeRolePressed: (member) {
-                      showChangeRoleDialog(
-                        parentContext: context,
-                        companyId: companyId,
-                        actorRole: currentRole,
-                        member: member,
-                      );
-                    },
-                    onDeactivatePressed: (member) {
-                      showDeactivateMemberDialog(
-                        parentContext: context,
-                        companyId: companyId,
-                        member: member,
-                      );
-                    },
-                    onReactivatePressed: (member) {
-                      showReactivateMemberDialog(
-                        parentContext: context,
-                        companyId: companyId,
-                        member: member,
-                      );
-                    },
-                  ),
-                  const Gap(24),
-                  CompanyInvitationsList(
-                    invitations: state.companyInvitations,
-                    canCancelInvitations: canCancelInvitations,
-                    isActionSubmitting: state.isActionSubmitting,
-                    companyTimezone: companyTimezone,
-                    onCancelPressed: (invitationId) {
-                      context.read<CompanyUsersCubit>().cancelInvitation(
-                        companyId: companyId,
-                        invitationId: invitationId,
-                      );
-                    },
-                  ),
-                  const Gap(24),
-                  CompanyUserLifecycleAuditLogsList(
-                    auditLogs: state.companyUserLifecycleAuditLogs,
-                    companyTimezone: companyTimezone,
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (invitePanel != null) ...[invitePanel, const Gap(18)],
+                  membersPanel,
+                  const Gap(18),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 5, child: invitationsPanel),
+                      const Gap(18),
+                      Expanded(flex: 7, child: activityPanel),
+                    ],
                   ),
                 ],
-              ],
-            ),
+              );
+            },
           );
         },
+      ),
+    );
+  }
+}
+
+class _TeamSectionPanel extends StatelessWidget {
+  const _TeamSectionPanel({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget child;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.overlayDark.withValues(alpha: 0.025),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: AppColors.accent, size: 22),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.title.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[const Gap(12), trailing!],
+            ],
+          ),
+          const Gap(18),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionCounter extends StatelessWidget {
+  const _SectionCounter({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 34),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _TeamLoadingPanel extends StatelessWidget {
+  const _TeamLoadingPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(color: AppColors.accent),
+      ),
+    );
+  }
+}
+
+class _TeamErrorPanel extends StatelessWidget {
+  const _TeamErrorPanel({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.error),
+          const Gap(12),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.body.copyWith(color: AppColors.error),
+            ),
+          ),
+        ],
       ),
     );
   }
