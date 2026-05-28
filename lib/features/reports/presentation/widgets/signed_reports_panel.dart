@@ -320,8 +320,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: const Icon(Icons.calendar_today_outlined, size: 18),
-        label: Expanded(
+        label: Align(
+          alignment: Alignment.centerLeft,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
