@@ -4,6 +4,7 @@ import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/core/widgets/loading/transactions_loading_view.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
@@ -101,6 +102,10 @@ class _TransactionsViewState extends State<_TransactionsView> {
                   final isCompactSearchMode =
                       isCompactLandscape && isAnySearchFocused;
 
+                  if (state.isLoading) {
+                    return TransactionsLoadingView(isMobile: isMobile);
+                  }
+
                   return DefaultTabController(
                     length: 4,
                     child: Scaffold(
@@ -192,8 +197,7 @@ class _TransactionsViewState extends State<_TransactionsView> {
                   );
                 },
               ),
-              if (state.isLoading || state.isSubmitting)
-                const _TransactionsLoadingOverlay(),
+              if (state.isSubmitting) const _TransactionsLoadingOverlay(),
             ],
           );
         },

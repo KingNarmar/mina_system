@@ -4,6 +4,7 @@ import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/core/widgets/loading/tools_loading_view.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
@@ -64,6 +65,10 @@ class _ToolsView extends StatelessWidget {
                   final isMobile =
                       mediaSize.shortestSide < AppBreakpoints.tablet;
 
+                  if (state.isLoading) {
+                    return ToolsLoadingView(isMobile: isMobile);
+                  }
+
                   if (isMobile) {
                     return ToolsMobileLayout(
                       tools: tools,
@@ -87,8 +92,7 @@ class _ToolsView extends StatelessWidget {
                   );
                 },
               ),
-              if (state.isLoading || state.isSubmitting)
-                const _ToolsLoadingOverlay(),
+              if (state.isSubmitting) const _ToolsLoadingOverlay(),
             ],
           );
         },

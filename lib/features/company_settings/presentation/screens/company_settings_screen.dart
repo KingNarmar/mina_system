@@ -10,6 +10,7 @@ import 'package:mina_system/features/company_settings/presentation/cubit/company
 import 'package:mina_system/features/company_settings/presentation/widgets/company_document_templates_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_identity_section.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
+import 'package:mina_system/features/company_settings/presentation/widgets/loading/company_settings_loading_view.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
@@ -52,10 +53,7 @@ class _CompanySettingsViewState extends State<_CompanySettingsView> {
       builder: (context, state) {
         if (state is CompanySettingsLoading ||
             state is CompanySettingsInitial) {
-          return const Scaffold(
-            backgroundColor: AppColors.background,
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const CompanySettingsLoadingView();
         }
 
         if (state is CompanySettingsFailure) {
@@ -127,10 +125,7 @@ class _CompanySettingsViewState extends State<_CompanySettingsView> {
           );
         }
 
-        return const Scaffold(
-          backgroundColor: AppColors.background,
-          body: Center(child: CircularProgressIndicator()),
-        );
+        return const CompanySettingsLoadingView();
       },
     );
   }

@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
+import 'package:mina_system/features/reports/presentation/widgets/loading/signed_reports_loading_view.dart';
 import 'package:mina_system/features/reports/data/models/signed_report_model.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_cubit.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_state.dart';
@@ -353,10 +354,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
 
   Widget _buildContent(SignedReportsState state) {
     if (state.isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const SignedReportsLoadingView();
     }
 
     if (!state.hasReports) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/widgets/loading/audit_history_loading_view.dart';
 import 'package:mina_system/features/audit_logs/presentation/cubit/audit_logs_cubit.dart';
 import 'package:mina_system/features/audit_logs/presentation/cubit/audit_logs_state.dart';
 import 'package:mina_system/features/audit_logs/presentation/widgets/audit_log_tile.dart';
@@ -153,9 +154,7 @@ class _AuditHistoryLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.accent),
-    );
+    return const AuditHistoryLoadingView();
   }
 }
 

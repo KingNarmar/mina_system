@@ -9,6 +9,7 @@ import 'package:mina_system/features/company_settings/presentation/cubit/company
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/presentation/functions/show_report_pdf_preview.dart';
+import 'package:mina_system/features/reports/presentation/widgets/loading/report_filter_options_loading.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_filter_section.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_preview_section.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
@@ -62,7 +63,7 @@ class _ReportBuilderPanelState extends State<ReportBuilderPanel> {
             _ReportBuilderHeader(report: widget.report),
             const Gap(24),
             if (_isLoadingFilterOptions)
-              const _ReportFilterOptionsLoading()
+              const ReportFilterOptionsLoading()
             else if (_filterOptionsError != null)
               _ReportFilterOptionsError(
                 message: _filterOptionsError!,
@@ -184,36 +185,6 @@ class _ReportBuilderHeader extends StatelessWidget {
           icon: const Icon(Icons.close),
         ),
       ],
-    );
-  }
-}
-
-class _ReportFilterOptionsLoading extends StatelessWidget {
-  const _ReportFilterOptionsLoading();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: const Row(
-        children: [
-          SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          Gap(12),
-          Expanded(
-            child: Text('Loading report filters...', style: AppTextStyles.body),
-          ),
-        ],
-      ),
     );
   }
 }

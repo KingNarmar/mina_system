@@ -4,6 +4,7 @@ import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/core/widgets/loading/workers_loading_view.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
@@ -72,6 +73,10 @@ class _WorkersView extends StatelessWidget {
                   final isMobile =
                       mediaSize.shortestSide < AppBreakpoints.tablet;
 
+                  if (state.isLoading) {
+                    return WorkersLoadingView(isMobile: isMobile);
+                  }
+
                   if (isMobile) {
                     return WorkersMobileLayout(
                       workers: workers,
@@ -95,8 +100,7 @@ class _WorkersView extends StatelessWidget {
                   );
                 },
               ),
-              if (state.isLoading || state.isSubmitting)
-                const _WorkersLoadingOverlay(),
+              if (state.isSubmitting) const _WorkersLoadingOverlay(),
             ],
           );
         },
