@@ -70,7 +70,7 @@ class PendingCompanyInvitationsScreen extends StatelessWidget {
                 child: BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
                   builder: (context, state) {
                     if (state.isCurrentUserInvitationsLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const PendingInvitationsLoadingView();
                     }
 
                     if (state.hasError) {
