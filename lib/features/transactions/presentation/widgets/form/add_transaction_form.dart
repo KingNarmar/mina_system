@@ -8,6 +8,7 @@ import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
@@ -82,7 +83,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   Widget build(BuildContext context) {
     final workers = context.watch<WorkersCubit>().state.workers;
     final tools = context.watch<ToolsCubit>().state.tools;
-    final isSubmitting = context.watch<TransactionsCubit>().state.isSubmitting;
+    final transactionsState = context.watch<TransactionsCubit>().state;
+
+    final isSubmitting = transactionsState.isActionSubmitting(
+      TransactionsSubmissionKeys.add,
+    );
 
     return Padding(
       padding: EdgeInsets.fromLTRB(

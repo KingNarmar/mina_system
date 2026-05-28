@@ -197,7 +197,8 @@ class _TransactionsViewState extends State<_TransactionsView> {
                   );
                 },
               ),
-              if (state.isSubmitting) const _TransactionsLoadingOverlay(),
+              if (state.isSubmitting && state.submittingActionKey == null)
+                const _TransactionsLoadingOverlay(),
             ],
           );
         },

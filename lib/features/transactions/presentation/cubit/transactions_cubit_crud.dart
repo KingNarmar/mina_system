@@ -44,7 +44,13 @@ extension TransactionsCubitCrud on TransactionsCubit {
       return false;
     }
 
-    emitState(state.copyWith(isSubmitting: true, clearErrorMessage: true));
+    emitState(
+      state.copyWith(
+        isSubmitting: true,
+        submittingActionKey: TransactionsSubmissionKeys.add,
+        clearErrorMessage: true,
+      ),
+    );
 
     try {
       final transactionToInsert = transaction.copyWith(companyId: companyId);
