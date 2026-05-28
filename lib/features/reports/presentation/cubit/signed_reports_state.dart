@@ -15,6 +15,10 @@ class SignedReportsState {
 
   bool get hasReports => reports.isNotEmpty;
 
+  bool get isInitialLoading => isLoading && reports.isEmpty;
+
+  bool get isRefreshing => isLoading && reports.isNotEmpty;
+
   bool get isOpening => openingReportId != null;
 
   bool isOpeningReport(String reportId) {

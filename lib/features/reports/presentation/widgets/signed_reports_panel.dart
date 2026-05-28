@@ -4,10 +4,10 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
-import 'package:mina_system/features/reports/presentation/widgets/loading/signed_reports_loading_view.dart';
 import 'package:mina_system/features/reports/data/models/signed_report_model.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_cubit.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_state.dart';
+import 'package:mina_system/features/reports/presentation/widgets/loading/signed_reports_loading_view.dart';
 
 class SignedReportsPanel extends StatefulWidget {
   const SignedReportsPanel({
@@ -113,7 +113,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
               children: [
                 _buildHeader(state),
                 const Gap(18),
-                _buildFilters(),
+                _buildFilters(state),
                 const Gap(18),
                 _buildContent(state),
               ],
@@ -125,6 +125,12 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
   }
 
   Widget _buildHeader(SignedReportsState state) {
+    final refreshLabel = state.isRefreshing
+        ? 'Refreshing...'
+        : state.isLoading
+        ? 'Loading...'
+        : 'Refresh';
+
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -159,13 +165,15 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.refresh_outlined),
-          label: Text(state.isLoading ? 'Loading...' : 'Refresh'),
+          label: Text(refreshLabel),
         ),
       ],
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(SignedReportsState state) {
+    final isLoading = state.isLoading;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 840;
@@ -174,14 +182,15 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildSearchField(expand: true),
+              _buildSearchField(expand: true, enabled: !isLoading),
               const Gap(10),
-              _buildReportTypePicker(expand: true),
+              _buildReportTypePicker(expand: true, enabled: !isLoading),
               const Gap(10),
               _buildDateButton(
                 label: 'From',
                 date: _dateFrom,
                 expand: true,
+                enabled: !isLoading,
                 onPressed: () => _pickDate(isFrom: true),
               ),
               const Gap(10),
@@ -189,19 +198,26 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
                 label: 'To',
                 date: _dateTo,
                 expand: true,
+                enabled: !isLoading,
                 onPressed: () => _pickDate(isFrom: false),
               ),
               const Gap(10),
               OutlinedButton.icon(
-                onPressed: _clearFilters,
+                onPressed: isLoading ? null : _clearFilters,
                 icon: const Icon(Icons.clear_outlined),
                 label: const Text('Clear'),
               ),
               const Gap(10),
               ElevatedButton.icon(
-                onPressed: _loadSignedReports,
-                icon: const Icon(Icons.search_outlined),
-                label: const Text('Search'),
+                onPressed: isLoading ? null : _loadSignedReports,
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.search_outlined),
+                label: Text(isLoading ? 'Searching...' : 'Search'),
               ),
             ],
           );
@@ -212,24 +228,26 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
           runSpacing: 12,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            _buildSearchField(expand: false),
-            _buildReportTypePicker(expand: false),
+            _buildSearchField(expand: false, enabled: !isLoading),
+            _buildReportTypePicker(expand: false, enabled: !isLoading),
             _buildDateButton(
               label: 'From',
               date: _dateFrom,
               expand: false,
+              enabled: !isLoading,
               onPressed: () => _pickDate(isFrom: true),
             ),
             _buildDateButton(
               label: 'To',
               date: _dateTo,
               expand: false,
+              enabled: !isLoading,
               onPressed: () => _pickDate(isFrom: false),
             ),
             SizedBox(
               height: 48,
               child: OutlinedButton.icon(
-                onPressed: _clearFilters,
+                onPressed: isLoading ? null : _clearFilters,
                 icon: const Icon(Icons.clear_outlined),
                 label: const Text('Clear'),
               ),
@@ -237,9 +255,15 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
             SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: _loadSignedReports,
-                icon: const Icon(Icons.search_outlined),
-                label: const Text('Search'),
+                onPressed: isLoading ? null : _loadSignedReports,
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.search_outlined),
+                label: Text(isLoading ? 'Searching...' : 'Search'),
               ),
             ),
           ],
@@ -248,9 +272,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
     );
   }
 
-  Widget _buildSearchField({required bool expand}) {
+  Widget _buildSearchField({required bool expand, required bool enabled}) {
     final field = TextField(
       controller: _searchController,
+      enabled: enabled,
       textInputAction: TextInputAction.search,
       decoration: const InputDecoration(
         labelText: 'Search',
@@ -258,7 +283,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
         prefixIcon: Icon(Icons.search_outlined),
         border: OutlineInputBorder(),
       ),
-      onSubmitted: (_) => _loadSignedReports(),
+      onSubmitted: enabled ? (_) => _loadSignedReports() : null,
     );
 
     if (expand) {
@@ -268,10 +293,11 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
     return SizedBox(width: 300, child: field);
   }
 
-  Widget _buildReportTypePicker({required bool expand}) {
+  Widget _buildReportTypePicker({required bool expand, required bool enabled}) {
     final selectedLabel = _getSelectedReportTypeLabel();
 
     final picker = PopupMenuButton<String?>(
+      enabled: enabled,
       tooltip: 'Select report type',
       initialValue: _selectedReportType,
       onSelected: (value) {
@@ -304,7 +330,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
           selectedLabel,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+          style: TextStyle(
+            fontSize: 15,
+            color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
+          ),
         ),
       ),
     );
@@ -320,27 +349,26 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
     required String label,
     required DateTime? date,
     required bool expand,
+    required bool enabled,
     required VoidCallback onPressed,
   }) {
     final button = SizedBox(
       height: 56,
       child: OutlinedButton.icon(
-        onPressed: onPressed,
+        onPressed: enabled ? onPressed : null,
         icon: const Icon(Icons.calendar_today_outlined, size: 18),
-        label: Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(
-                date == null ? 'Any date' : _formatDate(date),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.caption,
-              ),
-            ],
-          ),
+        label: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+              date == null ? 'Any date' : _formatDate(date),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption,
+            ),
+          ],
         ),
       ),
     );
@@ -353,7 +381,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
   }
 
   Widget _buildContent(SignedReportsState state) {
-    if (state.isLoading) {
+    if (state.isInitialLoading) {
       return const SignedReportsLoadingView();
     }
 
@@ -381,17 +409,23 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
     }
 
     return Column(
-      children: state.reports.map((report) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _SignedReportCard(
-            report: report,
-            isOpening: state.isOpeningReport(report.id),
-            timezone: widget.companyTimezone,
-            onOpen: () => _signedReportsCubit.openSignedReport(report),
-          ),
-        );
-      }).toList(),
+      children: [
+        if (state.isRefreshing) ...[
+          const LinearProgressIndicator(minHeight: 2),
+          const Gap(12),
+        ],
+        ...state.reports.map((report) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _SignedReportCard(
+              report: report,
+              isOpening: state.isOpeningReport(report.id),
+              timezone: widget.companyTimezone,
+              onOpen: () => _signedReportsCubit.openSignedReport(report),
+            ),
+          );
+        }),
+      ],
     );
   }
 
@@ -431,6 +465,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
   }
 
   void _clearFilters() {
+    if (_signedReportsCubit.state.isLoading) {
+      return;
+    }
+
     setState(() {
       _searchController.clear();
       _selectedReportType = null;
@@ -442,6 +480,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
   }
 
   Future<void> _loadSignedReports() {
+    if (_signedReportsCubit.state.isLoading) {
+      return Future<void>.value();
+    }
+
     return _signedReportsCubit.loadSignedReports(
       companyId: widget.companyId,
       searchTerm: _searchController.text,
