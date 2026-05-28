@@ -113,6 +113,8 @@ class ReportPdfService {
                 documentTemplate,
                 workerSignatureBytes: workerSignatureBytes,
                 signedAt: signedAt,
+                timezone: reportSettings.defaultTimezone,
+                dateFormat: reportSettings.dateFormat,
               ),
             ],
             pw.SizedBox(height: 24),

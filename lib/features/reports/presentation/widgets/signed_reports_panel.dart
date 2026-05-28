@@ -3,14 +3,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/reports/data/models/signed_report_model.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_cubit.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_state.dart';
 
 class SignedReportsPanel extends StatefulWidget {
-  const SignedReportsPanel({super.key, required this.companyId});
+  const SignedReportsPanel({
+    super.key,
+    required this.companyId,
+    this.companyTimezone,
+  });
 
   final String companyId;
+  final String? companyTimezone;
 
   @override
   State<SignedReportsPanel> createState() => _SignedReportsPanelState();
@@ -320,10 +326,8 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: const Icon(Icons.calendar_today_outlined, size: 18),
-        label: Align(
-          alignment: Alignment.centerLeft,
+        label: Expanded(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -385,6 +389,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
           child: _SignedReportCard(
             report: report,
             isOpening: state.isOpeningReport(report.id),
+            timezone: widget.companyTimezone,
             onOpen: () => _signedReportsCubit.openSignedReport(report),
           ),
         );
@@ -463,7 +468,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
   }
 
   String _formatDate(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    return CompanyDateTimeFormatter.formatCompanyDateWithMonthName(dateTime);
   }
 }
 
@@ -471,11 +476,13 @@ class _SignedReportCard extends StatelessWidget {
   const _SignedReportCard({
     required this.report,
     required this.isOpening,
+    required this.timezone,
     required this.onOpen,
   });
 
   final SignedReportModel report;
   final bool isOpening;
+  final String? timezone;
   final VoidCallback onOpen;
 
   @override
@@ -569,15 +576,11 @@ class _SignedReportCard extends StatelessWidget {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    final local = dateTime.toLocal();
-
-    final date =
-        '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
-
-    final time =
-        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-
-    return '$date $time';
+    return CompanyDateTimeFormatter.formatDateTimeWithMonthName(
+      dateTime,
+      timezone: timezone,
+      includeTimezone: true,
+    );
   }
 
   String _formatFileSize(int bytes) {

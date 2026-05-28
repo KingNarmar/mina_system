@@ -14,6 +14,7 @@ class CompanyInvitationModel {
     this.cancelledAt,
     required this.updatedAt,
     this.companyName,
+    this.companyTimezone,
     this.invitedByName,
     this.invitedByEmail,
     this.acceptedByName,
@@ -37,6 +38,7 @@ class CompanyInvitationModel {
   final DateTime updatedAt;
 
   final String? companyName;
+  final String? companyTimezone;
   final String? invitedByName;
   final String? invitedByEmail;
   final String? acceptedByName;
@@ -70,6 +72,7 @@ class CompanyInvitationModel {
       cancelledAt: _dateTimeOrNull(json['cancelled_at']),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       companyName: companyJson?['name'] as String?,
+      companyTimezone: companyJson?['timezone'] as String?,
       invitedByName: invitedByProfileJson?['full_name'] as String?,
       invitedByEmail: invitedByProfileJson?['email'] as String?,
       acceptedByName: acceptedByProfileJson?['full_name'] as String?,

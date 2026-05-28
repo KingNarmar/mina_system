@@ -222,9 +222,10 @@ class CompanyUsersRepo {
     accepted_at,
     cancelled_at,
     updated_at,
-    company:companies!company_invitations_company_id_fkey(
-      name
-    ),
+   company:companies!company_invitations_company_id_fkey(
+  name,
+  timezone
+),
     invited_by_profile:profiles!company_invitations_invited_by_profile_id_fkey(
       full_name,
       email

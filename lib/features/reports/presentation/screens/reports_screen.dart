@@ -60,7 +60,9 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentRole = context.currentUserRole;
-    final currentCompanyId = context.currentCompanyId;
+    final currentCompany = context.currentCompany;
+    final currentCompanyId = currentCompany?.id;
+    final currentCompanyTimezone = currentCompany?.timezone;
 
     final canViewReports = CompanyRolePermissions.canViewReports(currentRole);
     final canGenerateReports = CompanyRolePermissions.canGenerateReports(
@@ -99,7 +101,10 @@ class ReportsScreen extends StatelessWidget {
                 ),
               if (canViewReports && currentCompanyId != null) ...[
                 const Gap(28),
-                SignedReportsPanel(companyId: currentCompanyId),
+                SignedReportsPanel(
+                  companyId: currentCompanyId,
+                  companyTimezone: currentCompanyTimezone,
+                ),
               ],
             ],
           ),

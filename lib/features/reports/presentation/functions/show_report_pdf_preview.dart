@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
@@ -438,7 +439,10 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
 
   String _buildPdfFileName(ReportType reportType) {
     final now = DateTime.now();
-    final date = _formatDate(now);
+    final date = CompanyDateTimeFormatter.formatDateForFileName(
+      now,
+      timezone: widget.reportSettings.defaultTimezone,
+    );
 
     switch (reportType) {
       case ReportType.workerCustody:
@@ -466,19 +470,20 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
       ReportType.toolSummary => 'TSR',
     };
 
+    final companySignedAt = CompanyDateTimeFormatter.toCompanyTime(
+      signedAt,
+      timezone: widget.reportSettings.defaultTimezone,
+    );
+
     final timestamp =
-        '${signedAt.year}'
-        '${signedAt.month.toString().padLeft(2, '0')}'
-        '${signedAt.day.toString().padLeft(2, '0')}'
-        '${signedAt.hour.toString().padLeft(2, '0')}'
-        '${signedAt.minute.toString().padLeft(2, '0')}'
-        '${signedAt.second.toString().padLeft(2, '0')}';
+        '${companySignedAt.year}'
+        '${companySignedAt.month.toString().padLeft(2, '0')}'
+        '${companySignedAt.day.toString().padLeft(2, '0')}'
+        '${companySignedAt.hour.toString().padLeft(2, '0')}'
+        '${companySignedAt.minute.toString().padLeft(2, '0')}'
+        '${companySignedAt.second.toString().padLeft(2, '0')}';
 
     return '$prefix-$timestamp';
-  }
-
-  String _formatDate(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
   }
 
   String _resolveSignatureInputMethod() {

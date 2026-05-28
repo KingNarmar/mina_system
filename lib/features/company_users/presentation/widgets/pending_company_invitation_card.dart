@@ -4,15 +4,21 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_users/data/models/company_invitation_model.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 
 class PendingCompanyInvitationCard extends StatelessWidget {
-  const PendingCompanyInvitationCard({super.key, required this.invitation});
+  const PendingCompanyInvitationCard({
+    super.key,
+    required this.invitation,
+    this.timezone,
+  });
 
   final CompanyInvitationModel invitation;
+  final String? timezone;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +33,8 @@ class PendingCompanyInvitationCard extends StatelessWidget {
     final roleLabel = CompanyRoles.label(invitation.role);
     final roleColor = _roleColor(invitation.role);
     final actionKey = CompanyUsersSubmissionKey.acceptInvitation(invitation.id);
+
+    final effectiveTimezone = timezone ?? invitation.companyTimezone;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -88,6 +96,7 @@ class PendingCompanyInvitationCard extends StatelessWidget {
                     invitedByName: invitedByName,
                     invitedByEmail: invitation.invitedByEmail,
                     expiresAt: invitation.expiresAt,
+                    timezone: effectiveTimezone,
                   ),
                   const Gap(16),
                   BlocBuilder<CompanyUsersCubit, CompanyUsersState>(
@@ -126,12 +135,14 @@ class _InvitationDetailsPanel extends StatelessWidget {
     required this.invitedByName,
     required this.invitedByEmail,
     required this.expiresAt,
+    required this.timezone,
   });
 
   final String invitedEmail;
   final String invitedByName;
   final String? invitedByEmail;
   final DateTime expiresAt;
+  final String? timezone;
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +190,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
           _InvitationDetailRow(
             icon: Icons.event_outlined,
             label: 'Expires',
-            value: _formatDate(expiresAt),
+            value: _formatDate(expiresAt, timezone: timezone),
           ),
         ],
       ),
@@ -295,6 +306,10 @@ Color _roleColor(String? role) {
   }
 }
 
-String _formatDate(DateTime value) {
-  return value.toLocal().toString().split('.').first;
+String _formatDate(DateTime value, {String? timezone}) {
+  return CompanyDateTimeFormatter.formatDateTime(
+    value,
+    timezone: timezone,
+    includeTimezone: true,
+  );
 }

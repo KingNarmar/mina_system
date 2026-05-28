@@ -160,6 +160,34 @@ class CompanyDateTimeFormatter {
     ].join(':');
   }
 
+  static String formatDateTimeWithMonthName(
+    DateTime dateTime, {
+    String? timezone,
+    bool includeTimezone = false,
+  }) {
+    final companyTime = toCompanyTime(dateTime, timezone: timezone);
+    final normalizedTimezone = AppTimezones.normalizeOrFallback(timezone);
+
+    final formattedDate = formatCompanyDateWithMonthName(companyTime);
+    final formattedTime = formatCompanyTime(companyTime);
+
+    final value = '$formattedDate - $formattedTime';
+
+    if (!includeTimezone) {
+      return value;
+    }
+
+    return '$value ($normalizedTimezone)';
+  }
+
+  static String formatCompanyDateWithMonthName(DateTime companyDateTime) {
+    return [
+      _twoDigits(companyDateTime.day),
+      _monthName(companyDateTime.month),
+      companyDateTime.year.toString(),
+    ].join(' ');
+  }
+
   static tz.Location _resolveLocation(String? timezone) {
     final normalizedTimezone = AppTimezones.normalizeOrFallback(timezone);
 
@@ -243,6 +271,29 @@ class CompanyDateTimeFormatter {
       default:
         return null;
     }
+  }
+
+  static String _monthName(int month) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    if (month < 1 || month > 12) {
+      return '-';
+    }
+
+    return monthNames[month - 1];
   }
 
   static String _twoDigits(int value) {

@@ -11,6 +11,8 @@ class ReportPdfSignatureSection {
     CompanyDocumentTemplateModel documentTemplate, {
     Uint8List? workerSignatureBytes,
     DateTime? signedAt,
+    String? timezone,
+    String? dateFormat,
   }) {
     final signatureLabels = <String>[
       ReportPdfFormatters.getSignatureLabel(
@@ -59,6 +61,8 @@ class ReportPdfSignatureSection {
                     label: signatureLabels[0],
                     signatureBytes: workerSignatureBytes,
                     signedAt: signedAt,
+                    timezone: timezone,
+                    dateFormat: dateFormat,
                   ),
                   _buildSignatureBox(label: signatureLabels[1]),
                   _buildSignatureBox(label: signatureLabels[2]),
@@ -75,6 +79,8 @@ class ReportPdfSignatureSection {
     required String label,
     Uint8List? signatureBytes,
     DateTime? signedAt,
+    String? timezone,
+    String? dateFormat,
   }) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(right: 10),
@@ -100,7 +106,7 @@ class ReportPdfSignatureSection {
             ),
           ),
           pw.SizedBox(height: 16),
-          _buildDateLine(signedAt),
+          _buildDateLine(signedAt, timezone: timezone, dateFormat: dateFormat),
           pw.SizedBox(height: 5),
           pw.Text(
             'Date',
@@ -140,10 +146,18 @@ class ReportPdfSignatureSection {
     );
   }
 
-  static pw.Widget _buildDateLine(DateTime? signedAt) {
+  static pw.Widget _buildDateLine(
+    DateTime? signedAt, {
+    String? timezone,
+    String? dateFormat,
+  }) {
     final formattedDate = signedAt == null
         ? null
-        : '${signedAt.year}-${signedAt.month.toString().padLeft(2, '0')}-${signedAt.day.toString().padLeft(2, '0')}';
+        : ReportPdfFormatters.formatDate(
+            signedAt,
+            timezone: timezone,
+            dateFormat: dateFormat,
+          );
 
     if (formattedDate == null) {
       return pw.Container(height: 1, color: AppPdfColors.grey500);
