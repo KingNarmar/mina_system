@@ -15,9 +15,19 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
   final NetworkStatusService _service;
 
   StreamSubscription<NetworkStatusSnapshot>? _statusSubscription;
+  Timer? _pollingTimer;
 
   Future<void> startWatching() async {
     await _statusSubscription?.cancel();
+    _pollingTimer?.cancel();
+
+    if (_shouldUsePolling) {
+      await refresh();
+      _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        refresh();
+      });
+      return;
+    }
 
     try {
       _statusSubscription = _service.watchStatus().listen(
@@ -77,6 +87,10 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
     }
   }
 
+  bool get _shouldUsePolling {
+    return !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+  }
+
   void _emitSnapshot(NetworkStatusSnapshot snapshot) {
     if (snapshot.isOffline) {
       emit(NetworkStatusOffline(snapshot));
@@ -89,6 +103,7 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
   @override
   Future<void> close() async {
     await _statusSubscription?.cancel();
+    _pollingTimer?.cancel();
 
     return super.close();
   }
