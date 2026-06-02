@@ -42,9 +42,20 @@ class TransactionsTableRow extends StatelessWidget {
                   flex: 1,
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: _TransactionTypeBadge(
-                      label: typeLabel,
-                      color: typeColor,
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _TransactionTypeBadge(
+                          label: typeLabel,
+                          color: typeColor,
+                        ),
+                        if (transaction.isVoided)
+                          const _TransactionTypeBadge(
+                            label: 'Voided',
+                            color: AppColors.error,
+                          ),
+                      ],
                     ),
                   ),
                 ),
