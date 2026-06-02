@@ -8,6 +8,10 @@ List<ToolCustodySummaryModel> calculateToolCustodySummaries(
   final summariesMap = <String, ToolCustodySummaryModel>{};
 
   for (final transaction in transactions) {
+    if (transaction.isVoided) {
+      continue;
+    }
+
     final key = transaction.toolCode;
     final currentSummary = summariesMap[key];
 
@@ -66,6 +70,10 @@ int calculateClosedTodayCount(List<TransactionModel> transactions) {
   final now = DateTime.now();
 
   return transactions.where((transaction) {
+    if (transaction.isVoided) {
+      return false;
+    }
+
     final isSameYear = transaction.dateTime.year == now.year;
     final isSameMonth = transaction.dateTime.month == now.month;
     final isSameDay = transaction.dateTime.day == now.day;
