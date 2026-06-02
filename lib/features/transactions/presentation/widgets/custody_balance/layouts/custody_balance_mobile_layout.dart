@@ -7,6 +7,7 @@ import 'package:mina_system/features/transactions/data/models/custody_balance_mo
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/card/custody_balance_card.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/custody_balance_search_field.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CustodyBalanceMobileLayout extends StatelessWidget {
   const CustodyBalanceMobileLayout({
@@ -54,7 +55,7 @@ class CustodyBalanceMobileLayout extends StatelessWidget {
 
           if (balances.isEmpty) {
             return const AppEmptyState(
-              icon: Icons.assignment_outlined,
+              icon: AppIcons.assignmentOutlined,
               title: 'No open custody balances',
               message:
                   'Open custody balances will appear here after tools are issued and not yet returned, lost, or damaged.',

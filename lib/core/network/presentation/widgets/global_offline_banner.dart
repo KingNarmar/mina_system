@@ -6,6 +6,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class GlobalOfflineBanner extends StatelessWidget {
   const GlobalOfflineBanner({super.key, required this.child});
@@ -55,11 +56,7 @@ class _OfflineBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
-              const Icon(
-                Icons.wifi_off_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
+              const Icon(AppIcons.offline, color: AppColors.primary, size: 22),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

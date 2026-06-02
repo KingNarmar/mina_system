@@ -9,6 +9,7 @@ import 'package:mina_system/features/tools/presentation/functions/show_tool_form
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_form.dart';
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class QuickActionsCard extends StatelessWidget {
   const QuickActionsCard({super.key});
@@ -22,14 +23,14 @@ class QuickActionsCard extends StatelessWidget {
         _QuickActionItem(
           title: 'Issue Tool',
           subtitle: 'Create a new issue transaction',
-          icon: Icons.arrow_upward,
+          icon: AppIcons.arrowUpward,
           color: AppColors.accent,
           onTap: () => _openTransactionForm(context, TransactionType.issue),
         ),
         _QuickActionItem(
           title: 'Return Tool',
           subtitle: 'Receive a returned tool',
-          icon: Icons.arrow_downward,
+          icon: AppIcons.arrowDownward,
           color: AppColors.success,
           onTap: () =>
               _openTransactionForm(context, TransactionType.returnTool),
@@ -39,7 +40,7 @@ class QuickActionsCard extends StatelessWidget {
         _QuickActionItem(
           title: 'Add Worker',
           subtitle: 'Register a new worker',
-          icon: Icons.person_add_alt_1_outlined,
+          icon: AppIcons.personAddAlt1Outlined,
           color: AppColors.warning,
           onTap: () => _openWorkerForm(context),
         ),
@@ -47,7 +48,7 @@ class QuickActionsCard extends StatelessWidget {
         _QuickActionItem(
           title: 'Add Tool',
           subtitle: 'Register a new tool',
-          icon: Icons.add_box_outlined,
+          icon: AppIcons.addBoxOutlined,
           color: AppColors.error,
           onTap: () => _openToolForm(context),
         ),
@@ -178,7 +179,7 @@ class _QuickActionRow extends StatelessWidget {
             ),
             const Gap(8),
             const Icon(
-              Icons.chevron_right,
+              AppIcons.chevronRight,
               color: AppColors.textSecondary,
               size: 20,
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 const List<String> transactionTypeLabels = [
   'Issue',
@@ -57,12 +58,12 @@ Color getTransactionTypeColor(TransactionType type) {
 IconData getTransactionTypeIcon(TransactionType type) {
   switch (type) {
     case TransactionType.issue:
-      return Icons.north_east_outlined;
+      return AppIcons.northEastOutlined;
     case TransactionType.returnTool:
-      return Icons.south_west_outlined;
+      return AppIcons.southWestOutlined;
     case TransactionType.lost:
-      return Icons.report_problem_outlined;
+      return AppIcons.reportProblemOutlined;
     case TransactionType.damaged:
-      return Icons.construction_outlined;
+      return AppIcons.constructionOutlined;
   }
 }

@@ -15,6 +15,7 @@ import 'package:mina_system/features/company_users/presentation/widgets/company_
 import 'package:mina_system/features/company_users/presentation/widgets/company_user_lifecycle_audit_logs_list.dart';
 import 'package:mina_system/features/company_users/presentation/widgets/invite_company_user_form.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CompanyUsersSection extends StatefulWidget {
   const CompanyUsersSection({super.key});
@@ -108,7 +109,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
               final invitePanel =
                   canInviteUsers && allowedInviteRoles.isNotEmpty
                   ? _TeamSectionPanel(
-                      icon: Icons.person_add_alt_1_outlined,
+                      icon: AppIcons.personAddAlt1Outlined,
                       title: 'Invite Member',
                       subtitle:
                           'Send a workspace invitation using only the roles '
@@ -144,7 +145,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
                   : null;
 
               final membersPanel = _TeamSectionPanel(
-                icon: Icons.badge_outlined,
+                icon: AppIcons.badgeOutlined,
                 title: 'Members Directory',
                 subtitle:
                     'Review company members, roles, status, accountability '
@@ -185,7 +186,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
               );
 
               final invitationsPanel = _TeamSectionPanel(
-                icon: Icons.mail_outline,
+                icon: AppIcons.mailOutline,
                 title: 'Invitations',
                 subtitle:
                     'Track invited users, invitation status, expiry dates, '
@@ -208,7 +209,7 @@ class _CompanyUsersSectionState extends State<CompanyUsersSection> {
               );
 
               final activityPanel = _TeamSectionPanel(
-                icon: Icons.timeline_outlined,
+                icon: AppIcons.timelineOutlined,
                 title: 'Team Activity',
                 subtitle:
                     'Trusted lifecycle history for invitations, role changes, '
@@ -394,7 +395,7 @@ class _TeamErrorPanel extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error),
+          const Icon(AppIcons.errorOutline, color: AppColors.error),
           const Gap(12),
           Expanded(
             child: Text(

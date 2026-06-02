@@ -7,6 +7,7 @@ import 'report_empty_preview.dart';
 import 'report_metric_row.dart';
 import 'preview_tile.dart';
 import 'more_items_note.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class TransactionListPreview extends StatelessWidget {
   const TransactionListPreview({
@@ -22,7 +23,7 @@ class TransactionListPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
       return ReportEmptyPreview(
-        icon: Icons.receipt_long_outlined,
+        icon: AppIcons.receiptLongOutlined,
         message: emptyMessage,
       );
     }

@@ -44,8 +44,8 @@ class _DocumentTemplateStatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = isActive ? 'Active' : 'Inactive';
     final icon = isActive
-        ? Icons.check_circle_outline_rounded
-        : Icons.pause_circle_outline_rounded;
+        ? AppIcons.success
+        : AppIcons.pauseCircleOutlineRounded;
 
     return Container(
       height: 30,

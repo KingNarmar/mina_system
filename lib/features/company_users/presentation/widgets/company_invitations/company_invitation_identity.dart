@@ -81,15 +81,15 @@ class _InvitationIcon extends StatelessWidget {
   IconData _statusIcon(String value) {
     switch (value.trim().toLowerCase()) {
       case 'pending':
-        return Icons.mark_email_unread_outlined;
+        return AppIcons.markEmailUnreadOutlined;
       case 'accepted':
-        return Icons.mark_email_read_outlined;
+        return AppIcons.markEmailReadOutlined;
       case 'cancelled':
-        return Icons.cancel_schedule_send_outlined;
+        return AppIcons.cancelScheduleSendOutlined;
       case 'expired':
-        return Icons.schedule_outlined;
+        return AppIcons.scheduleOutlined;
       default:
-        return Icons.mail_outline;
+        return AppIcons.mailOutline;
     }
   }
 }

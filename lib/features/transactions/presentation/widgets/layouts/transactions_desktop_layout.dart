@@ -11,6 +11,7 @@ import 'package:mina_system/features/transactions/presentation/functions/show_tr
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_search_field.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transaction_type_filter_chips.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/transactions_table.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class TransactionsDesktopLayout extends StatelessWidget {
   const TransactionsDesktopLayout({
@@ -56,7 +57,7 @@ class TransactionsDesktopLayout extends StatelessWidget {
                         onPressed: () {
                           showTransactionDialog(context);
                         },
-                        icon: const Icon(Icons.add),
+                        icon: const Icon(AppIcons.add),
                         label: const Text('Add Transaction'),
                       ),
                     ),
@@ -78,7 +79,7 @@ class TransactionsDesktopLayout extends StatelessWidget {
               const Gap(16),
               if (transactions.isEmpty)
                 AppEmptyState(
-                  icon: Icons.swap_horiz_outlined,
+                  icon: AppIcons.transactions,
                   title: 'No transactions found',
                   message: canCreateTransactions
                       ? 'Add your first custody transaction to start tracking issued and closed tools.'

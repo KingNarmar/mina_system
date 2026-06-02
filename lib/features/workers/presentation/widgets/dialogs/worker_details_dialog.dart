@@ -4,6 +4,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class WorkerDetailsDialog extends StatelessWidget {
   const WorkerDetailsDialog({
@@ -34,10 +35,7 @@ class WorkerDetailsDialog extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     backgroundColor: AppColors.accent.withValues(alpha: 0.12),
-                    child: const Icon(
-                      Icons.person_outline,
-                      color: AppColors.accent,
-                    ),
+                    child: const Icon(AppIcons.worker, color: AppColors.accent),
                   ),
                   const Gap(12),
                   Expanded(
@@ -52,7 +50,7 @@ class WorkerDetailsDialog extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(AppIcons.close),
                     color: AppColors.textSecondary,
                     tooltip: 'Close',
                   ),

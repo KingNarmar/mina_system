@@ -5,6 +5,7 @@ import 'report_empty_preview.dart';
 import 'report_metric_row.dart';
 import 'preview_tile.dart';
 import 'more_items_note.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ToolSummaryPreview extends StatelessWidget {
   const ToolSummaryPreview({super.key, required this.summaries});
@@ -15,7 +16,7 @@ class ToolSummaryPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     if (summaries.isEmpty) {
       return const ReportEmptyPreview(
-        icon: Icons.summarize_outlined,
+        icon: AppIcons.summarizeOutlined,
         message: 'No tool summary data found for the selected filters.',
       );
     }
@@ -59,7 +60,7 @@ class ToolSummaryPreview extends StatelessWidget {
         const Gap(12),
         ...summaries.take(5).map((summary) {
           return PreviewTile(
-            icon: Icons.build_outlined,
+            icon: AppIcons.tool,
             title: summary.toolName,
             subtitle:
                 'Issued: ${summary.issuedQuantity} • Returned: ${summary.returnedQuantity} • Lost: ${summary.lostQuantity} • Damaged: ${summary.damagedQuantity} • Open: ${summary.openCustodyQuantity}',

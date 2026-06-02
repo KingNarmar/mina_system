@@ -107,7 +107,7 @@ class _SignedReportsFilters extends StatelessWidget {
               const Gap(10),
               OutlinedButton.icon(
                 onPressed: isLoading ? null : onClear,
-                icon: const Icon(Icons.clear_outlined),
+                icon: const Icon(AppIcons.clearOutlined),
                 label: const Text('Clear'),
               ),
               const Gap(10),
@@ -119,7 +119,7 @@ class _SignedReportsFilters extends StatelessWidget {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.search_outlined),
+                    : const Icon(AppIcons.searchOutlined),
                 label: Text(isLoading ? 'Searching...' : 'Search'),
               ),
             ],
@@ -151,7 +151,7 @@ class _SignedReportsFilters extends StatelessWidget {
               height: 48,
               child: OutlinedButton.icon(
                 onPressed: isLoading ? null : onClear,
-                icon: const Icon(Icons.clear_outlined),
+                icon: const Icon(AppIcons.clearOutlined),
                 label: const Text('Clear'),
               ),
             ),
@@ -165,7 +165,7 @@ class _SignedReportsFilters extends StatelessWidget {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.search_outlined),
+                    : const Icon(AppIcons.searchOutlined),
                 label: Text(isLoading ? 'Searching...' : 'Search'),
               ),
             ),
@@ -183,7 +183,7 @@ class _SignedReportsFilters extends StatelessWidget {
       decoration: const InputDecoration(
         labelText: 'Search',
         hintText: 'Worker, HR, TRX, report no...',
-        prefixIcon: Icon(Icons.search_outlined),
+        prefixIcon: Icon(AppIcons.searchOutlined),
         border: OutlineInputBorder(),
       ),
       onSubmitted: enabled ? (_) => onSearch() : null,
@@ -222,7 +222,7 @@ class _SignedReportsFilters extends StatelessWidget {
         decoration: const InputDecoration(
           labelText: 'Report Type',
           border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down),
+          suffixIcon: Icon(AppIcons.arrowDropDown),
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
         child: Text(
@@ -255,7 +255,7 @@ class _SignedReportsFilters extends StatelessWidget {
       height: 56,
       child: OutlinedButton.icon(
         onPressed: enabled ? onPressed : null,
-        icon: const Icon(Icons.calendar_today_outlined, size: 18),
+        icon: const Icon(AppIcons.calendarTodayOutlined, size: 18),
         label: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

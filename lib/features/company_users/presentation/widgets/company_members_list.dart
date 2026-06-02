@@ -7,6 +7,7 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_users/data/models/company_member_model.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 import 'package:mina_system/features/company_users/presentation/functions/company_users_helpers.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 part 'company_members/company_member_row.dart';
 part 'company_members/company_member_identity.dart';
@@ -130,7 +131,7 @@ class _MembersEmptyState extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
-              Icons.group_off_outlined,
+              AppIcons.groupOffOutlined,
               color: AppColors.accent,
               size: 28,
             ),

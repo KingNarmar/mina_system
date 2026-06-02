@@ -34,7 +34,7 @@ class _SignedReportsHeader extends StatelessWidget {
           ),
         ),
         Chip(
-          avatar: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+          avatar: const Icon(AppIcons.pdf, size: 18),
           label: Text('${state.reports.length} saved'),
           backgroundColor: AppColors.accent.withValues(alpha: 0.08),
           side: BorderSide(color: AppColors.accent.withValues(alpha: 0.16)),
@@ -47,7 +47,7 @@ class _SignedReportsHeader extends StatelessWidget {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Icon(Icons.refresh_outlined),
+              : const Icon(AppIcons.refreshOutlined),
           label: Text(refreshLabel),
         ),
       ],

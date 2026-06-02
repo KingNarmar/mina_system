@@ -8,6 +8,7 @@ import 'package:mina_system/features/transactions/presentation/cubit/transaction
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/tool_custody_summary_search_field.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/tool_custody_summary_table.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ToolCustodySummaryDesktopLayout extends StatelessWidget {
   const ToolCustodySummaryDesktopLayout({
@@ -38,7 +39,7 @@ class ToolCustodySummaryDesktopLayout extends StatelessWidget {
               const Gap(16),
               if (summaries.isEmpty)
                 const AppEmptyState(
-                  icon: Icons.summarize_outlined,
+                  icon: AppIcons.summarizeOutlined,
                   title: 'No tool summary found',
                   message:
                       'Tool summaries will appear here after custody transactions are recorded.',

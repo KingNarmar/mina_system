@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class LookupAddRow extends StatefulWidget {
   const LookupAddRow({
@@ -62,7 +63,7 @@ class _LookupAddRowState extends State<LookupAddRow> {
           height: 52,
           child: ElevatedButton.icon(
             onPressed: widget.onAdd,
-            icon: const Icon(Icons.add),
+            icon: const Icon(AppIcons.add),
             label: const Text('Add'),
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class DashboardOverviewPanel extends StatelessWidget {
   const DashboardOverviewPanel({
@@ -89,7 +90,7 @@ class _PanelHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Icon(
-            Icons.dashboard_customize_outlined,
+            AppIcons.dashboardCustomizeOutlined,
             color: AppColors.accent,
             size: 22,
           ),
@@ -172,7 +173,7 @@ class _MetricsWrap extends StatelessWidget {
               child: _MetricTile(
                 label: 'Workers',
                 value: totalWorkers.toString(),
-                icon: Icons.groups_outlined,
+                icon: AppIcons.team,
                 color: AppColors.accent,
               ),
             ),
@@ -181,7 +182,7 @@ class _MetricsWrap extends StatelessWidget {
               child: _MetricTile(
                 label: 'Tools',
                 value: totalTools.toString(),
-                icon: Icons.handyman_outlined,
+                icon: AppIcons.handymanOutlined,
                 color: AppColors.success,
               ),
             ),
@@ -190,7 +191,7 @@ class _MetricsWrap extends StatelessWidget {
               child: _MetricTile(
                 label: 'Open Custody',
                 value: openCustodies.toString(),
-                icon: Icons.inventory_2_outlined,
+                icon: AppIcons.inventory2Outlined,
                 color: AppColors.warning,
               ),
             ),
@@ -199,7 +200,7 @@ class _MetricsWrap extends StatelessWidget {
               child: _MetricTile(
                 label: 'Closed Today',
                 value: closedToday.toString(),
-                icon: Icons.task_alt_outlined,
+                icon: AppIcons.done,
                 color: AppColors.error,
               ),
             ),

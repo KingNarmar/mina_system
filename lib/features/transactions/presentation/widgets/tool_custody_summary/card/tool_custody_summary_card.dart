@@ -5,6 +5,7 @@ import 'package:mina_system/features/transactions/data/models/tool_custody_summa
 import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/tool_custody_summary/card/tool_custody_summary_info_row.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ToolCustodySummaryCard extends StatelessWidget {
   const ToolCustodySummaryCard({super.key, required this.summary});
@@ -29,10 +30,7 @@ class ToolCustodySummaryCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.accent.withValues(alpha: 0.12),
-                  child: const Icon(
-                    Icons.build_outlined,
-                    color: AppColors.accent,
-                  ),
+                  child: const Icon(AppIcons.tool, color: AppColors.accent),
                 ),
                 const Gap(12),
                 Expanded(

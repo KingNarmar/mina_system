@@ -6,6 +6,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/current_context/data/models/company_model.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CompanySelectionList extends StatelessWidget {
   const CompanySelectionList({
@@ -178,11 +179,7 @@ class _MobileCompanyCard extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.verified_user_outlined,
-                          color: roleColor,
-                          size: 18,
-                        ),
+                        Icon(AppIcons.verifiedUser, color: roleColor, size: 18),
                         const Gap(8),
                         Expanded(
                           child: Text(
@@ -298,7 +295,7 @@ class _CompanyIcon extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(Icons.business_rounded, color: color, size: 24),
+      child: Icon(AppIcons.businessRounded, color: color, size: 24),
     );
   }
 }

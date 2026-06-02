@@ -12,6 +12,7 @@ import 'package:mina_system/features/company_settings/presentation/widgets/compa
 import 'package:mina_system/features/company_settings/presentation/widgets/company_report_settings_form.dart';
 import 'package:mina_system/features/company_settings/presentation/widgets/loading/company_settings_loading_view.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CompanySettingsScreen extends StatelessWidget {
   const CompanySettingsScreen({super.key});
@@ -145,7 +146,7 @@ class _CompanySettingsViewState extends State<_CompanySettingsView> {
           type: _CompanySettingsSectionType.identity,
           title: 'Company Identity',
           description: 'Profile, legal details, logo, and timezone.',
-          icon: Icons.business_rounded,
+          icon: AppIcons.businessRounded,
         ),
       );
     }
@@ -156,7 +157,7 @@ class _CompanySettingsViewState extends State<_CompanySettingsView> {
           type: _CompanySettingsSectionType.reports,
           title: 'Report Configuration',
           description: 'PDF settings, visibility, and statements.',
-          icon: Icons.description_outlined,
+          icon: AppIcons.reportDocument,
         ),
       );
     }
@@ -167,7 +168,7 @@ class _CompanySettingsViewState extends State<_CompanySettingsView> {
           type: _CompanySettingsSectionType.documents,
           title: 'Document Templates',
           description: '$documentTemplateCount configured templates.',
-          icon: Icons.article_outlined,
+          icon: AppIcons.documentTemplate,
         ),
       );
     }
@@ -247,7 +248,7 @@ class _CompanySettingsHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
-                  Icons.settings_outlined,
+                  AppIcons.settings,
                   color: AppColors.accent,
                   size: 26,
                 ),
@@ -279,11 +280,11 @@ class _CompanySettingsHeader extends StatelessWidget {
             runSpacing: 10,
             children: [
               _CompanySettingsInfoChip(
-                icon: Icons.schedule_rounded,
+                icon: AppIcons.schedule,
                 label: timezone,
               ),
               _CompanySettingsInfoChip(
-                icon: Icons.dashboard_customize_outlined,
+                icon: AppIcons.dashboardCustomizeOutlined,
                 label: '$visibleSectionCount sections',
               ),
             ],
@@ -524,7 +525,7 @@ class _CompanySettingsFailureView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
-                  Icons.error_outline,
+                  AppIcons.errorOutline,
                   size: 48,
                   color: AppColors.error,
                 ),

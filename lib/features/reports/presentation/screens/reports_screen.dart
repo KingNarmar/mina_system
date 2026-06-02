@@ -8,6 +8,7 @@ import 'package:mina_system/features/reports/data/models/report_option_model.dar
 import 'package:mina_system/features/reports/presentation/functions/show_report_builder.dart';
 import 'package:mina_system/features/reports/presentation/widgets/report_option_card.dart';
 import 'package:mina_system/features/reports/presentation/widgets/signed_reports_panel.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -18,42 +19,42 @@ class ReportsScreen extends StatelessWidget {
       title: 'Worker Custody Report',
       description:
           'View all open custody balances and movements for a selected worker.',
-      icon: Icons.person_search_outlined,
+      icon: AppIcons.personSearchOutlined,
     ),
     ReportOptionModel(
       type: ReportType.toolHistory,
       title: 'Tool History Report',
       description:
           'Track the full custody movement history for a selected tool type.',
-      icon: Icons.history_outlined,
+      icon: AppIcons.historyOutlined,
     ),
     ReportOptionModel(
       type: ReportType.transactions,
       title: 'Transactions Report',
       description:
           'Review custody transactions by worker, tool, type, and date range.',
-      icon: Icons.receipt_long_outlined,
+      icon: AppIcons.receiptLongOutlined,
     ),
     ReportOptionModel(
       type: ReportType.lostDamaged,
       title: 'Lost & Damaged Report',
       description:
           'Review tools closed as lost or damaged with notes and proof images.',
-      icon: Icons.report_problem_outlined,
+      icon: AppIcons.reportProblemOutlined,
     ),
     ReportOptionModel(
       type: ReportType.lostDamagedApproval,
       title: 'Lost/Damaged Approval Report',
       description:
           'Print a formal approval document for lost or damaged tool cases before settlement.',
-      icon: Icons.verified_user_outlined,
+      icon: AppIcons.verifiedUser,
     ),
     ReportOptionModel(
       type: ReportType.toolSummary,
       title: 'Tool Summary Report',
       description:
           'Summarize issued, returned, lost, damaged, and open custody quantities.',
-      icon: Icons.summarize_outlined,
+      icon: AppIcons.summarizeOutlined,
     ),
   ];
 

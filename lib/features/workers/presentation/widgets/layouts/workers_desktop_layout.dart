@@ -11,6 +11,7 @@ import 'package:mina_system/features/workers/presentation/functions/show_worker_
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
 import 'package:mina_system/features/workers/presentation/widgets/workers_table.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class WorkersDesktopLayout extends StatelessWidget {
   const WorkersDesktopLayout({
@@ -59,7 +60,7 @@ class WorkersDesktopLayout extends StatelessWidget {
                     onPressed: () {
                       showWorkerDialog(context);
                     },
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(AppIcons.add),
                     label: const Text('Add Worker'),
                   ),
                 ),
@@ -92,7 +93,7 @@ class WorkersDesktopLayout extends StatelessWidget {
           const Gap(16),
           if (workers.isEmpty)
             AppEmptyState(
-              icon: Icons.people_outline,
+              icon: AppIcons.workers,
               title: isActiveFilter
                   ? 'No active workers found'
                   : 'No inactive workers found',

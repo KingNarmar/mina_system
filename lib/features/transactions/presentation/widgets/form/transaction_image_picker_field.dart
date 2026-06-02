@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 enum _TransactionImageSource { camera, file }
 
@@ -71,8 +72,8 @@ class TransactionImagePickerField extends StatelessWidget {
                   children: [
                     Icon(
                       hasImage
-                          ? Icons.image_outlined
-                          : Icons.add_photo_alternate_outlined,
+                          ? AppIcons.image
+                          : AppIcons.addPhotoAlternateOutlined,
                       color: hasImage
                           ? AppColors.accent
                           : AppColors.textSecondary,
@@ -100,8 +101,8 @@ class TransactionImagePickerField extends StatelessWidget {
                     const Gap(8),
                     Icon(
                       _canCapturePhoto
-                          ? Icons.keyboard_arrow_up_rounded
-                          : Icons.attach_file_rounded,
+                          ? AppIcons.keyboardArrowUpRounded
+                          : AppIcons.attachFileRounded,
                       color: AppColors.textSecondary,
                     ),
                   ],
@@ -145,7 +146,7 @@ class TransactionImagePickerField extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _ImageSourceOptionTile(
-                  icon: Icons.photo_camera_outlined,
+                  icon: AppIcons.photoCameraOutlined,
                   title: 'Take Photo',
                   subtitle: 'Capture a new proof image using the camera.',
                   onTap: () {
@@ -155,7 +156,7 @@ class TransactionImagePickerField extends StatelessWidget {
                   },
                 ),
                 _ImageSourceOptionTile(
-                  icon: Icons.attach_file_rounded,
+                  icon: AppIcons.attachFileRounded,
                   title: 'Choose File',
                   subtitle: 'Select an existing JPG, PNG, or WEBP image.',
                   onTap: () {

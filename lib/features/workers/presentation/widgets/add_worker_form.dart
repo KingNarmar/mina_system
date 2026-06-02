@@ -12,6 +12,7 @@ import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 import 'package:mina_system/features/workers/presentation/cubit/workers_state.dart';
 import 'package:mina_system/features/workers/presentation/functions/worker_form_validators.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class AddWorkerForm extends StatefulWidget {
   const AddWorkerForm({
@@ -258,11 +259,7 @@ class _FormErrorMessage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.error,
-            size: 20,
-          ),
+          const Icon(AppIcons.error, color: AppColors.error, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

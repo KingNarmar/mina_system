@@ -38,27 +38,27 @@ class _SignedReportCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _InfoChip(
-                    icon: Icons.person_outline,
+                    icon: AppIcons.worker,
                     text: report.workerNameSnapshot?.trim().isNotEmpty == true
                         ? report.workerNameSnapshot!
                         : report.signedByName,
                   ),
                   if (report.workerHrCodeSnapshot?.trim().isNotEmpty == true)
                     _InfoChip(
-                      icon: Icons.badge_outlined,
+                      icon: AppIcons.badgeOutlined,
                       text: report.workerHrCodeSnapshot!,
                     ),
                   if (report.transactionCodeSnapshot?.trim().isNotEmpty == true)
                     _InfoChip(
-                      icon: Icons.receipt_long_outlined,
+                      icon: AppIcons.receiptLongOutlined,
                       text: report.transactionCodeSnapshot!,
                     ),
                   _InfoChip(
-                    icon: Icons.event_outlined,
+                    icon: AppIcons.eventOutlined,
                     text: _formatDateTime(report.signedAt),
                   ),
                   _InfoChip(
-                    icon: Icons.data_object_outlined,
+                    icon: AppIcons.dataObjectOutlined,
                     text: _formatFileSize(report.fileSize),
                   ),
                 ],
@@ -79,7 +79,7 @@ class _SignedReportCard extends StatelessWidget {
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.open_in_new_outlined),
+                : const Icon(AppIcons.openInNewOutlined),
             label: Text(isOpening ? 'Opening...' : 'Open PDF'),
           );
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class TeamOverviewPanel extends StatelessWidget {
   const TeamOverviewPanel({
@@ -44,14 +45,14 @@ class TeamOverviewPanel extends StatelessWidget {
           children: [
             _OverviewStatCard(
               width: cardWidth,
-              icon: Icons.groups_outlined,
+              icon: AppIcons.team,
               label: 'Total members',
               value: _formatValue(totalMembers),
               isLoading: isLoading,
             ),
             _OverviewStatCard(
               width: cardWidth,
-              icon: Icons.check_circle_outline,
+              icon: AppIcons.approve,
               label: 'Active members',
               value: _formatValue(activeMembers),
               isLoading: isLoading,
@@ -59,7 +60,7 @@ class TeamOverviewPanel extends StatelessWidget {
             ),
             _OverviewStatCard(
               width: cardWidth,
-              icon: Icons.pause_circle_outline,
+              icon: AppIcons.pauseCircleOutline,
               label: 'Inactive members',
               value: _formatValue(inactiveMembers),
               isLoading: isLoading,
@@ -67,7 +68,7 @@ class TeamOverviewPanel extends StatelessWidget {
             ),
             _OverviewStatCard(
               width: cardWidth,
-              icon: Icons.mark_email_unread_outlined,
+              icon: AppIcons.markEmailUnreadOutlined,
               label: 'Pending invites',
               value: _formatValue(pendingInvitations),
               isLoading: isLoading,
@@ -75,7 +76,7 @@ class TeamOverviewPanel extends StatelessWidget {
             ),
             _OverviewStatCard(
               width: cardWidth,
-              icon: Icons.history_outlined,
+              icon: AppIcons.historyOutlined,
               label: 'Recent activity',
               value: _formatValue(recentActivityCount),
               isLoading: isLoading,

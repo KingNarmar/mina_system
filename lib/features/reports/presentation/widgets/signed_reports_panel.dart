@@ -8,6 +8,7 @@ import 'package:mina_system/features/reports/data/models/signed_report_model.dar
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_cubit.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_state.dart';
 import 'package:mina_system/features/reports/presentation/widgets/loading/signed_reports_loading_view.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 part 'signed_reports/signed_reports_header.dart';
 part 'signed_reports/signed_reports_filters.dart';

@@ -6,6 +6,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/loading/app_skeleton.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class PendingInvitationsLoadingView extends StatelessWidget {
   const PendingInvitationsLoadingView({super.key});
@@ -43,7 +44,7 @@ class PendingInvitationsErrorView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+        const Icon(AppIcons.errorOutline, size: 48, color: AppColors.error),
         const Gap(16),
         const Text(
           'Unable to load invitations',
@@ -74,7 +75,11 @@ class NoPendingInvitationsView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.business_outlined, size: 48, color: AppColors.accent),
+        const Icon(
+          AppIcons.businessOutlined,
+          size: 48,
+          color: AppColors.accent,
+        ),
         const Gap(16),
         const Text(
           'No Pending Invitations',

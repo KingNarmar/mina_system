@@ -17,6 +17,7 @@ import 'package:mina_system/features/tools/data/repo/tools_repo.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/data/repo/workers_repo.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ReportBuilderPanel extends StatefulWidget {
   const ReportBuilderPanel({
@@ -182,7 +183,7 @@ class _ReportBuilderHeader extends StatelessWidget {
         ),
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
+          icon: const Icon(AppIcons.close),
         ),
       ],
     );
@@ -217,7 +218,7 @@ class _ReportFilterOptionsError extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: OutlinedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(AppIcons.refresh),
               label: const Text('Retry'),
             ),
           ),
@@ -289,7 +290,7 @@ class _ReportBuilderActions extends StatelessWidget {
                     );
                   }
                 : null,
-            icon: const Icon(Icons.picture_as_pdf_outlined),
+            icon: const Icon(AppIcons.pdf),
             label: const Text('Preview PDF'),
           ),
         ),

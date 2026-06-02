@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class TeamPageHeader extends StatelessWidget {
   const TeamPageHeader({
@@ -53,7 +54,7 @@ class TeamPageHeader extends StatelessWidget {
                   ),
                 ),
                 child: const Icon(
-                  Icons.groups_2_outlined,
+                  AppIcons.groups2Outlined,
                   color: AppColors.accent,
                   size: 28,
                 ),
@@ -91,12 +92,12 @@ class TeamPageHeader extends StatelessWidget {
             alignment: isCompact ? WrapAlignment.start : WrapAlignment.end,
             children: [
               _HeaderChip(
-                icon: Icons.verified_user_outlined,
+                icon: AppIcons.verifiedUser,
                 label: 'Current role',
                 value: roleLabel,
               ),
               _HeaderChip(
-                icon: Icons.tune_outlined,
+                icon: AppIcons.lookups,
                 label: 'Access mode',
                 value: _accessLabel(),
               ),

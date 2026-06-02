@@ -12,6 +12,7 @@ import 'package:mina_system/features/tools/presentation/functions/show_tool_audi
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/card/tool_card.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ToolsMobileLayout extends StatelessWidget {
   const ToolsMobileLayout({
@@ -65,7 +66,7 @@ class ToolsMobileLayout extends StatelessWidget {
 
           if (tools.isEmpty) {
             return AppEmptyState(
-              icon: Icons.build_outlined,
+              icon: AppIcons.tool,
               title: isActiveFilter
                   ? 'No active tools found'
                   : 'No inactive tools found',
@@ -108,7 +109,7 @@ class ToolsMobileLayout extends StatelessWidget {
               onPressed: () {
                 showToolBottomSheet(context);
               },
-              child: const Icon(Icons.add),
+              child: const Icon(AppIcons.add),
             )
           : null,
     );

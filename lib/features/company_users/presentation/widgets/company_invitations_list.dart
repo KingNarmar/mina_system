@@ -7,6 +7,7 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_users/data/models/company_invitation_model.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 import 'package:mina_system/features/company_users/presentation/functions/company_users_helpers.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 part 'company_invitations/company_invitation_row.dart';
 part 'company_invitations/company_invitation_identity.dart';
@@ -77,7 +78,7 @@ class _InvitationsEmptyState extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
-              Icons.mark_email_read_outlined,
+              AppIcons.markEmailReadOutlined,
               color: AppColors.accent,
               size: 28,
             ),

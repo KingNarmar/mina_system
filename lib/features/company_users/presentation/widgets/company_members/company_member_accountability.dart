@@ -30,7 +30,7 @@ class _MemberAccountabilityPanel extends StatelessWidget {
         runSpacing: 10,
         children: [
           _MemberMetaItem(
-            icon: Icons.login_outlined,
+            icon: AppIcons.loginOutlined,
             label: 'Joined',
             value: formatOptionalCompanyUserDate(
               member.joinedAt,
@@ -38,7 +38,7 @@ class _MemberAccountabilityPanel extends StatelessWidget {
             ),
           ),
           _MemberMetaItem(
-            icon: Icons.add_circle_outline,
+            icon: AppIcons.addCircleOutline,
             label: 'Created',
             value: formatOptionalCompanyUserDate(
               member.createdAt,
@@ -46,7 +46,7 @@ class _MemberAccountabilityPanel extends StatelessWidget {
             ),
           ),
           _MemberMetaItem(
-            icon: Icons.update_outlined,
+            icon: AppIcons.updateOutlined,
             label: 'Updated',
             value: formatOptionalCompanyUserDate(
               member.updatedAt,
@@ -55,7 +55,7 @@ class _MemberAccountabilityPanel extends StatelessWidget {
           ),
           if (hasInviter)
             _MemberMetaItem(
-              icon: Icons.person_add_alt_outlined,
+              icon: AppIcons.personAddAltOutlined,
               label: 'Invited by',
               value: companyUserActorDisplayName(
                 fullName: member.invitedByName,

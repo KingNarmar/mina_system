@@ -5,6 +5,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class TransactionProofImagePreview extends StatelessWidget {
   const TransactionProofImagePreview({super.key, required this.imagePath});
@@ -125,11 +126,7 @@ class EmptyDetailsBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (isOfflineMessage) ...[
-            const Icon(
-              Icons.wifi_off_rounded,
-              size: 18,
-              color: AppColors.warning,
-            ),
+            const Icon(AppIcons.offline, size: 18, color: AppColors.warning),
             const SizedBox(width: 10),
           ],
           Expanded(

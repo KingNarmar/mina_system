@@ -15,6 +15,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/company_selection_list.dart';
 import '../widgets/pending_company_invitations_section.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class SelectCompanyScreen extends StatelessWidget {
   const SelectCompanyScreen({
@@ -69,7 +70,7 @@ class SelectCompanyScreen extends StatelessWidget {
           actions: [
             TextButton.icon(
               onPressed: () => _logout(context),
-              icon: const Icon(Icons.logout, size: 18),
+              icon: const Icon(AppIcons.logout, size: 18),
               label: const Text('Logout'),
             ),
             const SizedBox(width: 12),
@@ -176,7 +177,7 @@ class _WorkspaceHeroCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: const Icon(
-                          Icons.apartment_rounded,
+                          AppIcons.company,
                           color: AppColors.accent,
                           size: 30,
                         ),
@@ -308,12 +309,12 @@ class _SignedInUserContext extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         _MiniInfoPill(
-                          icon: Icons.business_center_outlined,
+                          icon: AppIcons.businessCenterOutlined,
                           text: '$activeCompaniesCount workspaces',
                         ),
                         if (pendingInvitationsCount > 0)
                           _MiniInfoPill(
-                            icon: Icons.mark_email_unread_outlined,
+                            icon: AppIcons.markEmailUnreadOutlined,
                             text: '$pendingInvitationsCount invitations',
                           ),
                       ],

@@ -5,6 +5,7 @@ import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/audit_logs/data/models/audit_log_model.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CompanyUserLifecycleAuditLogsList extends StatelessWidget {
   const CompanyUserLifecycleAuditLogsList({
@@ -254,43 +255,43 @@ class _TeamActivityTimelineTile extends StatelessWidget {
       case 'company_user_invited':
         return const _ActivityConfig(
           title: 'Invitation Sent',
-          icon: Icons.person_add_alt_outlined,
+          icon: AppIcons.personAddAltOutlined,
           color: AppColors.accent,
         );
       case 'company_invitation_accepted':
         return const _ActivityConfig(
           title: 'Invitation Accepted',
-          icon: Icons.mark_email_read_outlined,
+          icon: AppIcons.markEmailReadOutlined,
           color: AppColors.success,
         );
       case 'company_invitation_cancelled':
         return const _ActivityConfig(
           title: 'Invitation Cancelled',
-          icon: Icons.cancel_schedule_send_outlined,
+          icon: AppIcons.cancelScheduleSendOutlined,
           color: AppColors.warning,
         );
       case 'company_member_role_changed':
         return const _ActivityConfig(
           title: 'Member Role Changed',
-          icon: Icons.manage_accounts_outlined,
+          icon: AppIcons.manageAccountsOutlined,
           color: AppColors.accent,
         );
       case 'company_member_deactivated':
         return const _ActivityConfig(
           title: 'Member Deactivated',
-          icon: Icons.person_off_outlined,
+          icon: AppIcons.personOffOutlined,
           color: AppColors.warning,
         );
       case 'company_member_reactivated':
         return const _ActivityConfig(
           title: 'Member Reactivated',
-          icon: Icons.person_add_alt_1_outlined,
+          icon: AppIcons.personAddAlt1Outlined,
           color: AppColors.success,
         );
       default:
         return _ActivityConfig(
           title: _toTitleCase(action),
-          icon: Icons.history_outlined,
+          icon: AppIcons.historyOutlined,
           color: AppColors.textSecondary,
         );
     }
@@ -524,13 +525,13 @@ class _ActivityInfoPanel extends StatelessWidget {
       child: Column(
         children: [
           _ActivityInfoLine(
-            icon: Icons.person_outline,
+            icon: AppIcons.worker,
             label: 'Actor',
             value: actor,
           ),
           const Gap(10),
           _ActivityInfoLine(
-            icon: Icons.adjust_outlined,
+            icon: AppIcons.adjustOutlined,
             label: 'Target',
             value: target,
           ),
@@ -651,7 +652,7 @@ class _TeamActivityEmptyState extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
-              Icons.history_outlined,
+              AppIcons.historyOutlined,
               color: AppColors.accent,
               size: 28,
             ),

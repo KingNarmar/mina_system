@@ -5,6 +5,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 
 import 'report_settings_form_helpers.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ReportSettingsFormatFields extends StatelessWidget {
   const ReportSettingsFormatFields({
@@ -33,7 +34,7 @@ class ReportSettingsFormatFields extends StatelessWidget {
                   label: 'Default Timezone',
                   helperText: 'Used as the default timezone for reports.',
                   controller: timezoneController,
-                  icon: Icons.public_rounded,
+                  icon: AppIcons.publicRounded,
                 ),
               ),
               const Gap(12),
@@ -42,7 +43,7 @@ class ReportSettingsFormatFields extends StatelessWidget {
                   label: 'Date Format',
                   helperText: 'Example: dd/MM/yyyy',
                   controller: dateFormatController,
-                  icon: Icons.calendar_month_outlined,
+                  icon: AppIcons.calendarMonthOutlined,
                 ),
               ),
               const Gap(12),
@@ -51,7 +52,7 @@ class ReportSettingsFormatFields extends StatelessWidget {
                   label: 'Time Format',
                   helperText: 'Example: HH:mm',
                   controller: timeFormatController,
-                  icon: Icons.schedule_rounded,
+                  icon: AppIcons.schedule,
                 ),
               ),
             ],
@@ -65,21 +66,21 @@ class ReportSettingsFormatFields extends StatelessWidget {
               label: 'Default Timezone',
               helperText: 'Used as the default timezone for reports.',
               controller: timezoneController,
-              icon: Icons.public_rounded,
+              icon: AppIcons.publicRounded,
             ),
             const Gap(12),
             _ReportFormatField(
               label: 'Date Format',
               helperText: 'Example: dd/MM/yyyy',
               controller: dateFormatController,
-              icon: Icons.calendar_month_outlined,
+              icon: AppIcons.calendarMonthOutlined,
             ),
             const Gap(12),
             _ReportFormatField(
               label: 'Time Format',
               helperText: 'Example: HH:mm',
               controller: timeFormatController,
-              icon: Icons.schedule_rounded,
+              icon: AppIcons.schedule,
             ),
           ],
         );

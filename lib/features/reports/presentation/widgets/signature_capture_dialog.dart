@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:signature/signature.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 Future<Uint8List?> showSignatureCaptureDialog(BuildContext context) {
   return showDialog<Uint8List?>(
@@ -95,7 +96,7 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
             color: AppColors.accent.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: const Icon(Icons.draw_outlined, color: AppColors.accent),
+          child: const Icon(AppIcons.drawOutlined, color: AppColors.accent),
         ),
         const Gap(12),
         const Expanded(
@@ -103,7 +104,7 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
         ),
         IconButton(
           onPressed: _isExporting ? null : () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
+          icon: const Icon(AppIcons.close),
         ),
       ],
     );
@@ -131,7 +132,7 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: _isExporting ? null : _signatureController.clear,
-            icon: const Icon(Icons.refresh_outlined),
+            icon: const Icon(AppIcons.refreshOutlined),
             label: const Text('Clear'),
           ),
         ),
@@ -152,7 +153,7 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.check_circle_outline),
+                : const Icon(AppIcons.approve),
             label: Text(_isExporting ? 'Saving...' : 'Use Signature'),
           ),
         ),

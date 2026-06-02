@@ -5,6 +5,7 @@ import 'report_empty_preview.dart';
 import 'report_metric_row.dart';
 import 'preview_tile.dart';
 import 'more_items_note.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class WorkerCustodyPreview extends StatelessWidget {
   const WorkerCustodyPreview({super.key, required this.balances});
@@ -15,7 +16,7 @@ class WorkerCustodyPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     if (balances.isEmpty) {
       return const ReportEmptyPreview(
-        icon: Icons.assignment_outlined,
+        icon: AppIcons.assignmentOutlined,
         message: 'No open custody balances found for the selected filters.',
       );
     }
@@ -29,7 +30,7 @@ class WorkerCustodyPreview extends StatelessWidget {
         const Gap(12),
         ...balances.take(5).map((balance) {
           return PreviewTile(
-            icon: Icons.assignment_outlined,
+            icon: AppIcons.assignmentOutlined,
             title: balance.workerName,
             subtitle:
                 '${balance.toolName} • ${balance.balanceQuantity} ${balance.unit}',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 void showTransactionImagePreview(BuildContext context, String imageUrl) {
   showDialog(
@@ -29,7 +30,7 @@ void showTransactionImagePreview(BuildContext context, String imageUrl) {
                     Navigator.pop(context);
                   },
                   icon: const Icon(
-                    Icons.close,
+                    AppIcons.close,
                     color: AppColors.onPrimary,
                     size: 30,
                   ),

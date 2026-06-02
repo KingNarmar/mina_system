@@ -17,6 +17,7 @@ import 'sections/transaction_details_section.dart';
 import 'sections/transaction_tool_selection.dart';
 import 'sections/transaction_type_picker.dart';
 import 'sections/transaction_worker_selection.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key, required this.onSave, this.initialType});
@@ -254,11 +255,7 @@ class _TransactionFormErrorMessage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.error,
-            size: 20,
-          ),
+          const Icon(AppIcons.error, color: AppColors.error, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

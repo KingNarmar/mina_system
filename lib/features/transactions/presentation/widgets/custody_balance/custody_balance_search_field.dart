@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CustodyBalanceSearchField extends StatefulWidget {
   const CustodyBalanceSearchField({
@@ -44,7 +45,7 @@ class _CustodyBalanceSearchFieldState extends State<CustodyBalanceSearchField> {
       hint: 'Search custody balances...',
       focusNode: _focusNode,
       controller: _controller,
-      icon: const Icon(Icons.search),
+      icon: const Icon(AppIcons.search),
       onChanged: widget.onChanged,
     );
   }

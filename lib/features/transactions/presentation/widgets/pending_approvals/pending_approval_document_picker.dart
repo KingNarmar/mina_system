@@ -34,7 +34,7 @@ Future<String?> _selectApprovalDocumentPath(BuildContext context) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               _ApprovalDocumentSourceTile(
-                icon: Icons.photo_camera_outlined,
+                icon: AppIcons.photoCameraOutlined,
                 title: 'Take Photo',
                 subtitle: 'Capture the signed approval document.',
                 onTap: () {
@@ -44,7 +44,7 @@ Future<String?> _selectApprovalDocumentPath(BuildContext context) async {
                 },
               ),
               _ApprovalDocumentSourceTile(
-                icon: Icons.attach_file_rounded,
+                icon: AppIcons.attachFileRounded,
                 title: 'Choose File',
                 subtitle: 'Select a PDF, JPG, PNG, or WEBP file.',
                 onTap: () {

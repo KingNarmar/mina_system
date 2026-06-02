@@ -16,6 +16,7 @@ import 'package:mina_system/features/reports/presentation/services/report_pdf_se
 import 'package:mina_system/features/reports/presentation/widgets/signature_capture_dialog.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:printing/printing.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 void showReportPdfPreview(
   BuildContext context, {
@@ -160,7 +161,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
           ),
           if (hasSignature)
             Chip(
-              avatar: const Icon(Icons.check_circle_outline, size: 18),
+              avatar: const Icon(AppIcons.approve, size: 18),
               label: const Text('Signature captured'),
               backgroundColor: AppColors.success.withValues(alpha: 0.10),
               side: BorderSide(
@@ -169,9 +170,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
             ),
           OutlinedButton.icon(
             onPressed: _isSavingSignedPdf ? null : _captureSignature,
-            icon: Icon(
-              hasSignature ? Icons.edit_outlined : Icons.draw_outlined,
-            ),
+            icon: Icon(hasSignature ? AppIcons.edit : AppIcons.drawOutlined),
             label: Text(
               hasSignature ? 'Replace Signature' : 'Capture Signature',
             ),
@@ -179,7 +178,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
           if (hasSignature)
             OutlinedButton.icon(
               onPressed: _isSavingSignedPdf ? null : _clearSignature,
-              icon: const Icon(Icons.clear_outlined),
+              icon: const Icon(AppIcons.clearOutlined),
               label: const Text('Clear'),
             ),
           ElevatedButton.icon(
@@ -192,12 +191,12 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.cloud_upload_outlined),
+                : const Icon(AppIcons.cloudUploadOutlined),
             label: Text(_isSavingSignedPdf ? 'Saving...' : 'Save Signed PDF'),
           ),
           IconButton(
             onPressed: _isSavingSignedPdf ? null : () => Navigator.pop(context),
-            icon: const Icon(Icons.close),
+            icon: const Icon(AppIcons.close),
           ),
         ],
       ),
@@ -232,7 +231,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
       await _showMessageDialog(
         title: 'Missing Signature',
         message: 'Please capture the worker signature first.',
-        icon: Icons.warning_amber_outlined,
+        icon: AppIcons.warningAmberOutlined,
         iconColor: AppColors.warning,
       );
       return;
@@ -302,7 +301,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         title: 'Signed PDF Saved',
         message:
             'The signed PDF has been saved successfully.\n\nReport No: ${signedReport.reportNumber}',
-        icon: Icons.check_circle_outline,
+        icon: AppIcons.approve,
         iconColor: AppColors.success,
       );
 
@@ -319,7 +318,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
       await _showMessageDialog(
         title: 'Unable to Save Signed PDF',
         message: error.toString(),
-        icon: Icons.error_outline,
+        icon: AppIcons.errorOutline,
         iconColor: AppColors.error,
       );
     } finally {

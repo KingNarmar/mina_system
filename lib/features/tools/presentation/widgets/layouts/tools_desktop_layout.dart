@@ -11,6 +11,7 @@ import 'package:mina_system/features/tools/presentation/functions/show_tool_deta
 import 'package:mina_system/features/tools/presentation/functions/show_tool_form.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tool_search_field.dart';
 import 'package:mina_system/features/tools/presentation/widgets/tools_table.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ToolsDesktopLayout extends StatelessWidget {
   const ToolsDesktopLayout({
@@ -59,7 +60,7 @@ class ToolsDesktopLayout extends StatelessWidget {
                     onPressed: () {
                       showToolDialog(context);
                     },
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(AppIcons.add),
                     label: const Text('Add Tool'),
                   ),
                 ),
@@ -92,7 +93,7 @@ class ToolsDesktopLayout extends StatelessWidget {
           const Gap(16),
           if (tools.isEmpty)
             AppEmptyState(
-              icon: Icons.build_outlined,
+              icon: AppIcons.tool,
               title: isActiveFilter
                   ? 'No active tools found'
                   : 'No inactive tools found',

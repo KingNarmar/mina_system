@@ -5,6 +5,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 
 import 'document_template_form_helpers.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class DocumentTemplateSignatureFields extends StatelessWidget {
   const DocumentTemplateSignatureFields({
@@ -38,19 +39,19 @@ class DocumentTemplateSignatureFields extends StatelessWidget {
               label: 'Prepared By Title',
               helperText: 'Role responsible for preparing the document.',
               controller: preparedByTitleController,
-              icon: Icons.edit_document,
+              icon: AppIcons.editDocument,
             ),
             _SignatureFieldData(
               label: 'Checked By Title',
               helperText: 'Role responsible for reviewing the document.',
               controller: checkedByTitleController,
-              icon: Icons.rule_folder_outlined,
+              icon: AppIcons.ruleFolderOutlined,
             ),
             _SignatureFieldData(
               label: 'Approved By Title',
               helperText: 'Role responsible for final approval.',
               controller: approvedByTitleController,
-              icon: Icons.verified_outlined,
+              icon: AppIcons.verified,
             ),
           ],
         ),
@@ -64,19 +65,19 @@ class DocumentTemplateSignatureFields extends StatelessWidget {
               label: 'Worker Signature Label',
               helperText: 'Signature label for the assigned worker.',
               controller: workerSignatureLabelController,
-              icon: Icons.badge_outlined,
+              icon: AppIcons.badgeOutlined,
             ),
             _SignatureFieldData(
               label: 'Manager Signature Label',
               helperText: 'Signature label for the responsible manager.',
               controller: managerSignatureLabelController,
-              icon: Icons.manage_accounts_outlined,
+              icon: AppIcons.manageAccountsOutlined,
             ),
             _SignatureFieldData(
               label: 'Storekeeper Signature Label',
               helperText: 'Signature label for the storekeeper.',
               controller: storekeeperSignatureLabelController,
-              icon: Icons.inventory_2_outlined,
+              icon: AppIcons.inventory2Outlined,
             ),
           ],
         ),

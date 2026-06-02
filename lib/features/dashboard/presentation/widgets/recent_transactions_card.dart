@@ -10,6 +10,7 @@ import 'package:mina_system/features/transactions/presentation/functions/format_
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class RecentTransactionsCard extends StatelessWidget {
   const RecentTransactionsCard({super.key, this.transactions});
@@ -155,7 +156,7 @@ class _RecentTransactionTile extends StatelessWidget {
             ),
             const Gap(8),
             const Icon(
-              Icons.chevron_right,
+              AppIcons.chevronRight,
               color: AppColors.textSecondary,
               size: 20,
             ),

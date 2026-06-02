@@ -41,8 +41,8 @@ class _DocumentTemplateStatusCard extends StatelessWidget {
                 ),
                 child: Icon(
                   isActive
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.pause_circle_outline_rounded,
+                      ? AppIcons.success
+                      : AppIcons.pauseCircleOutlineRounded,
                   color: isActive ? AppColors.accent : AppColors.textSecondary,
                   size: 20,
                 ),

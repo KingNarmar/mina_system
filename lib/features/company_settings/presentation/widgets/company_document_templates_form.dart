@@ -11,6 +11,7 @@ import 'package:mina_system/features/company_settings/presentation/widgets/compa
 
 import 'document_templates/document_template_card.dart';
 import 'document_templates/empty_document_templates_view.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CompanyDocumentTemplatesForm extends StatelessWidget {
   const CompanyDocumentTemplatesForm({
@@ -54,9 +55,9 @@ class CompanyDocumentTemplatesForm extends StatelessWidget {
         title: 'Document Templates',
         description:
             'Manage document control headers, revision details, effective dates, approval titles, and signature labels used across generated company reports.',
-        icon: Icons.article_outlined,
+        icon: AppIcons.documentTemplate,
         badgeLabel: templateCountLabel,
-        badgeIcon: Icons.library_books_outlined,
+        badgeIcon: AppIcons.libraryBooksOutlined,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -99,19 +100,19 @@ class _DocumentTemplatesOverview extends StatelessWidget {
 
     final metrics = [
       _DocumentTemplateMetricData(
-        icon: Icons.description_outlined,
+        icon: AppIcons.reportDocument,
         label: 'Configured Templates',
         value: documentTemplates.length.toString(),
         description: 'Available document definitions',
       ),
       _DocumentTemplateMetricData(
-        icon: Icons.verified_outlined,
+        icon: AppIcons.verified,
         label: 'Active Templates',
         value: activeTemplates.toString(),
         description: 'Ready for document generation',
       ),
       _DocumentTemplateMetricData(
-        icon: Icons.pause_circle_outline_rounded,
+        icon: AppIcons.pauseCircleOutlineRounded,
         label: 'Inactive Templates',
         value: inactiveTemplates.toString(),
         description: 'Disabled or draft templates',

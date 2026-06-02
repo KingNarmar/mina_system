@@ -12,6 +12,7 @@ import 'package:mina_system/features/company_users/presentation/widgets/pending_
 import 'package:mina_system/features/company_users/presentation/widgets/pending_invitations_views.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class PendingCompanyInvitationsScreen extends StatelessWidget {
   const PendingCompanyInvitationsScreen({super.key});
@@ -49,7 +50,7 @@ class PendingCompanyInvitationsScreen extends StatelessWidget {
           actions: [
             TextButton.icon(
               onPressed: () => _logout(context),
-              icon: const Icon(Icons.logout),
+              icon: const Icon(AppIcons.logout),
               label: const Text('Logout'),
             ),
             const SizedBox(width: 12),
@@ -90,7 +91,7 @@ class PendingCompanyInvitationsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const Icon(
-                          Icons.mark_email_unread_outlined,
+                          AppIcons.markEmailUnreadOutlined,
                           size: 48,
                           color: AppColors.accent,
                         ),

@@ -12,6 +12,7 @@ import 'package:mina_system/features/company_settings/data/models/company_profil
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_state.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CompanyLogoPicker extends StatelessWidget {
   const CompanyLogoPicker({
@@ -211,7 +212,7 @@ class _CompanyLogoHeader extends StatelessWidget {
               ),
             ),
             child: const Icon(
-              Icons.image_outlined,
+              AppIcons.image,
               color: AppColors.accent,
               size: 20,
             ),
@@ -271,7 +272,7 @@ class _CompanyLogoBadge extends StatelessWidget {
         ),
       ),
       child: Icon(
-        hasLogo ? Icons.check_rounded : Icons.priority_high_rounded,
+        hasLogo ? AppIcons.checkRounded : AppIcons.priorityHighRounded,
         size: 15,
         color: hasLogo ? AppColors.success : AppColors.warning,
       ),
@@ -359,7 +360,7 @@ class _CompanyLogoVisualState extends StatelessWidget {
         ),
       ),
       child: Icon(
-        hasLogo ? Icons.verified_rounded : Icons.add_photo_alternate_outlined,
+        hasLogo ? AppIcons.verifiedRounded : AppIcons.addPhotoAlternateOutlined,
         color: hasLogo ? AppColors.success : AppColors.warning,
         size: 22,
       ),
@@ -385,7 +386,7 @@ class _CompanyLogoPathInfo extends StatelessWidget {
       child: Row(
         children: [
           const Icon(
-            Icons.folder_outlined,
+            AppIcons.folderOutlined,
             size: 15,
             color: AppColors.textSecondary,
           ),

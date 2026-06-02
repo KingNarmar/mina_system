@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class ToolSearchField extends StatefulWidget {
   const ToolSearchField({
@@ -34,7 +35,7 @@ class _ToolSearchFieldState extends State<ToolSearchField> {
   Widget build(BuildContext context) {
     return CustomTextFormField(
       hint: 'Search tools...',
-      icon: const Icon(Icons.search),
+      icon: const Icon(AppIcons.search),
       controller: _controller,
       onChanged: widget.onChanged,
     );

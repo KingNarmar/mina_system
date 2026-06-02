@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class PendingApprovalsHeader extends StatelessWidget {
   const PendingApprovalsHeader({super.key, required this.count});
@@ -12,7 +13,7 @@ class PendingApprovalsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.verified_user_outlined, color: AppColors.accent),
+        const Icon(AppIcons.verifiedUser, color: AppColors.accent),
         const Gap(10),
         Expanded(
           child: Text(

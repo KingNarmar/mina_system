@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class RecordAccountabilitySection extends StatelessWidget {
   const RecordAccountabilitySection({
@@ -49,7 +50,7 @@ class RecordAccountabilitySection extends StatelessWidget {
           Row(
             children: [
               Icon(
-                Icons.verified_user_outlined,
+                AppIcons.verifiedUser,
                 size: 16,
                 color: AppColors.accent.withValues(alpha: 0.85),
               ),

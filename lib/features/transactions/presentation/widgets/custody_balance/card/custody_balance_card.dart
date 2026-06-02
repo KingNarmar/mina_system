@@ -5,6 +5,7 @@ import 'package:mina_system/features/transactions/data/models/custody_balance_mo
 import 'package:mina_system/features/transactions/presentation/functions/format_quantity.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/custody_balance/card/custody_balance_info_row.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CustodyBalanceCard extends StatelessWidget {
   const CustodyBalanceCard({super.key, required this.balance});
@@ -30,7 +31,7 @@ class CustodyBalanceCard extends StatelessWidget {
                 CircleAvatar(
                   backgroundColor: AppColors.accent.withValues(alpha: 0.12),
                   child: const Icon(
-                    Icons.inventory_2_outlined,
+                    AppIcons.inventory2Outlined,
                     color: AppColors.accent,
                   ),
                 ),

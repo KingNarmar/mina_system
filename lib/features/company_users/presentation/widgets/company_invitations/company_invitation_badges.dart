@@ -11,7 +11,7 @@ class _RoleBadge extends StatelessWidget {
 
     return _SoftBadge(
       text: CompanyRoles.label(role),
-      icon: Icons.admin_panel_settings_outlined,
+      icon: AppIcons.adminPanelSettingsOutlined,
       color: color,
     );
   }
@@ -52,11 +52,11 @@ class _StatusBadge extends StatelessWidget {
     };
 
     final icon = switch (normalizedStatus) {
-      'pending' => Icons.schedule_send_outlined,
-      'accepted' => Icons.check_circle_outline,
-      'cancelled' => Icons.cancel_outlined,
-      'expired' => Icons.schedule_outlined,
-      _ => Icons.info_outline,
+      'pending' => AppIcons.scheduleSendOutlined,
+      'accepted' => AppIcons.approve,
+      'cancelled' => AppIcons.reject,
+      'expired' => AppIcons.scheduleOutlined,
+      _ => AppIcons.details,
     };
 
     return _SoftBadge(text: _statusLabel(status), icon: icon, color: color);

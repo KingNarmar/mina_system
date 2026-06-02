@@ -12,6 +12,7 @@ import 'package:mina_system/features/workers/presentation/functions/show_worker_
 import 'package:mina_system/features/workers/presentation/functions/show_worker_form.dart';
 import 'package:mina_system/features/workers/presentation/widgets/card/worker_card.dart';
 import 'package:mina_system/features/workers/presentation/widgets/worker_search_field.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class WorkersMobileLayout extends StatelessWidget {
   const WorkersMobileLayout({
@@ -65,7 +66,7 @@ class WorkersMobileLayout extends StatelessWidget {
 
           if (workers.isEmpty) {
             return AppEmptyState(
-              icon: Icons.people_outline,
+              icon: AppIcons.workers,
               title: isActiveFilter
                   ? 'No active workers found'
                   : 'No inactive workers found',
@@ -108,7 +109,7 @@ class WorkersMobileLayout extends StatelessWidget {
               onPressed: () {
                 showWorkerBottomSheet(context);
               },
-              child: const Icon(Icons.add),
+              child: const Icon(AppIcons.add),
             )
           : null,
     );

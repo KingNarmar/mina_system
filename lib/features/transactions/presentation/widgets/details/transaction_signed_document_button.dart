@@ -5,6 +5,7 @@ import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class TransactionSignedDocumentButton extends StatelessWidget {
   const TransactionSignedDocumentButton({super.key, required this.transaction});
@@ -19,7 +20,7 @@ class TransactionSignedDocumentButton extends StatelessWidget {
         onPressed: () {
           _openApprovalDocument(context, transaction);
         },
-        icon: const Icon(Icons.open_in_new, size: 18),
+        icon: const Icon(AppIcons.openInNew, size: 18),
         label: const Text('View Signed Document'),
       ),
     );
@@ -49,7 +50,7 @@ class TransactionSignedDocumentButton extends StatelessWidget {
           context: context,
           title: 'Unable to open document',
           message: 'Unable to open signed document.',
-          icon: Icons.error_outline_rounded,
+          icon: AppIcons.error,
           iconColor: AppColors.error,
         );
       }
@@ -61,7 +62,7 @@ class TransactionSignedDocumentButton extends StatelessWidget {
         title: 'Offline mode',
         message:
             'Signed documents are stored online and cannot be opened while offline.',
-        icon: Icons.wifi_off_rounded,
+        icon: AppIcons.offline,
         iconColor: AppColors.warning,
       );
     } catch (error) {
@@ -74,7 +75,7 @@ class TransactionSignedDocumentButton extends StatelessWidget {
           error,
           fallback: 'Unable to open signed document. Please try again.',
         ),
-        icon: Icons.error_outline_rounded,
+        icon: AppIcons.error,
         iconColor: AppColors.error,
       );
     }

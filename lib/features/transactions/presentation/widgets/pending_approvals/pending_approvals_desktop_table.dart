@@ -10,6 +10,7 @@ import 'package:mina_system/features/transactions/presentation/functions/transac
 import 'package:mina_system/features/transactions/presentation/widgets/pending_approvals/pending_approval_actions.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/pending_approvals/pending_approval_status_chip.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/pending_approvals/pending_approvals_header.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class PendingApprovalsDesktopTable extends StatelessWidget {
   const PendingApprovalsDesktopTable({
@@ -42,7 +43,7 @@ class PendingApprovalsDesktopTable extends StatelessWidget {
               const Gap(16),
               if (transactions.isEmpty)
                 const AppEmptyState(
-                  icon: Icons.verified_user_outlined,
+                  icon: AppIcons.verifiedUser,
                   title: 'No pending approvals',
                   message:
                       'Lost or damaged transactions that require approval or settlement will appear here.',

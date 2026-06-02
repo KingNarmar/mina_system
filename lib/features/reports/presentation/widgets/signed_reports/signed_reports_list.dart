@@ -29,7 +29,7 @@ class _SignedReportsList extends StatelessWidget {
         child: const Column(
           children: [
             Icon(
-              Icons.folder_open_outlined,
+              AppIcons.folderOpenOutlined,
               size: 42,
               color: AppColors.textSecondary,
             ),

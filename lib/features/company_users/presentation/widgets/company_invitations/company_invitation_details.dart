@@ -50,7 +50,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
         runSpacing: 10,
         children: [
           _InvitationMetaItem(
-            icon: Icons.person_add_alt_outlined,
+            icon: AppIcons.personAddAltOutlined,
             label: 'Invited by',
             value: companyUserActorDisplayName(
               fullName: invitation.invitedByName,
@@ -59,7 +59,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
             ),
           ),
           _InvitationMetaItem(
-            icon: Icons.event_available_outlined,
+            icon: AppIcons.eventAvailableOutlined,
             label: 'Invited',
             value: formatInvitationDate(
               invitation.createdAt,
@@ -67,7 +67,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
             ),
           ),
           _InvitationMetaItem(
-            icon: Icons.event_busy_outlined,
+            icon: AppIcons.eventBusyOutlined,
             label: expiryLabel,
             value: formatInvitationDate(
               invitation.expiresAt,
@@ -76,7 +76,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
           ),
           if (shouldShowAcceptedDetails) ...[
             _InvitationMetaItem(
-              icon: Icons.check_circle_outline,
+              icon: AppIcons.approve,
               label: 'Accepted',
               value: formatOptionalInvitationDate(
                 invitation.acceptedAt,
@@ -85,7 +85,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
             ),
             if (hasAcceptedActor)
               _InvitationMetaItem(
-                icon: Icons.person_outline,
+                icon: AppIcons.worker,
                 label: 'Accepted by',
                 value: companyUserActorDisplayName(
                   fullName: invitation.acceptedByName,
@@ -95,7 +95,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
           ],
           if (shouldShowCancelledDetails) ...[
             _InvitationMetaItem(
-              icon: Icons.cancel_outlined,
+              icon: AppIcons.reject,
               label: 'Cancelled',
               value: formatOptionalInvitationDate(
                 invitation.cancelledAt,
@@ -104,7 +104,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
             ),
             if (hasCancelledActor)
               _InvitationMetaItem(
-                icon: Icons.person_off_outlined,
+                icon: AppIcons.personOffOutlined,
                 label: 'Cancelled by',
                 value: companyUserActorDisplayName(
                   fullName: invitation.cancelledByName,

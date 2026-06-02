@@ -9,6 +9,7 @@ import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/features/company_users/data/models/company_invitation_model.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class PendingCompanyInvitationCard extends StatelessWidget {
   const PendingCompanyInvitationCard({
@@ -158,13 +159,13 @@ class _InvitationDetailsPanel extends StatelessWidget {
       child: Column(
         children: [
           _InvitationDetailRow(
-            icon: Icons.alternate_email,
+            icon: AppIcons.alternateEmail,
             label: 'Invited email',
             value: invitedEmail,
           ),
           const Gap(10),
           _InvitationDetailRow(
-            icon: Icons.person_outline,
+            icon: AppIcons.worker,
             label: 'Invited by',
             value: invitedByName,
           ),
@@ -188,7 +189,7 @@ class _InvitationDetailsPanel extends StatelessWidget {
           ],
           const Gap(10),
           _InvitationDetailRow(
-            icon: Icons.event_outlined,
+            icon: AppIcons.eventOutlined,
             label: 'Expires',
             value: _formatDate(expiresAt, timezone: timezone),
           ),
@@ -258,7 +259,7 @@ class _InvitationIcon extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(Icons.mark_email_unread_rounded, color: color, size: 24),
+      child: Icon(AppIcons.markEmailUnreadRounded, color: color, size: 24),
     );
   }
 }

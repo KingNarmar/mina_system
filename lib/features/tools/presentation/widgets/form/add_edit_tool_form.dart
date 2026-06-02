@@ -12,6 +12,7 @@ import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
 import 'package:mina_system/features/tools/presentation/functions/tool_form_validators.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class AddEditToolForm extends StatefulWidget {
   const AddEditToolForm({
@@ -254,11 +255,7 @@ class _FormErrorMessage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.error,
-            size: 20,
-          ),
+          const Icon(AppIcons.error, color: AppColors.error, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

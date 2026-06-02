@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class DateFilterTile extends StatelessWidget {
   const DateFilterTile({
@@ -48,7 +49,7 @@ class DateFilterTile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const Icon(Icons.calendar_month_outlined, color: AppColors.accent),
+            const Icon(AppIcons.calendarMonthOutlined, color: AppColors.accent),
             const Gap(12),
             Expanded(child: Text(title, style: AppTextStyles.body)),
             const Gap(12),
@@ -69,7 +70,7 @@ class DateFilterTile extends StatelessWidget {
                 child: const Padding(
                   padding: EdgeInsets.all(4),
                   child: Icon(
-                    Icons.close,
+                    AppIcons.close,
                     size: 18,
                     color: AppColors.textSecondary,
                   ),

@@ -13,6 +13,7 @@ import 'package:mina_system/features/current_context/data/models/create_company_
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class CreateCompanyScreen extends StatefulWidget {
   const CreateCompanyScreen({super.key});
@@ -64,7 +65,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
         actions: [
           TextButton.icon(
             onPressed: _logout,
-            icon: const Icon(Icons.logout),
+            icon: const Icon(AppIcons.logout),
             label: const Text('Logout'),
           ),
           const SizedBox(width: 12),
@@ -100,7 +101,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const Icon(
-                          Icons.business_outlined,
+                          AppIcons.businessOutlined,
                           size: 48,
                           color: AppColors.accent,
                         ),

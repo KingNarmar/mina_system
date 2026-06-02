@@ -5,6 +5,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 
 import 'document_template_form_helpers.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 
 class DocumentTemplateGeneralFields extends StatelessWidget {
   const DocumentTemplateGeneralFields({
@@ -38,7 +39,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                 label: 'Document Title',
                 helperText: 'Main title printed on the generated document.',
                 controller: documentTitleController,
-                icon: Icons.title_rounded,
+                icon: AppIcons.titleRounded,
                 validator: DocumentTemplateFormHelpers.validateDocumentTitle,
               ),
               const Gap(12),
@@ -50,7 +51,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       label: 'Document Code',
                       helperText: 'Official internal document reference code.',
                       controller: documentCodeController,
-                      icon: Icons.qr_code_2_rounded,
+                      icon: AppIcons.qrCode2Rounded,
                       validator:
                           DocumentTemplateFormHelpers.validateDocumentCode,
                     ),
@@ -61,7 +62,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       label: 'Issue No.',
                       helperText: 'Current document issue number.',
                       controller: issueNoController,
-                      icon: Icons.confirmation_number_outlined,
+                      icon: AppIcons.confirmationNumberOutlined,
                       validator:
                           DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
                     ),
@@ -77,7 +78,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       label: 'Revision No.',
                       helperText: 'Latest approved revision number.',
                       controller: revisionNoController,
-                      icon: Icons.history_edu_outlined,
+                      icon: AppIcons.revision,
                       validator:
                           DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
                     ),
@@ -88,7 +89,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
                       label: 'Effective Date',
                       helperText: 'Date from which this template is valid.',
                       controller: effectiveDateController,
-                      icon: Icons.calendar_month_outlined,
+                      icon: AppIcons.calendarMonthOutlined,
                       readOnly: true,
                       onTap: onEffectiveDateTap,
                       validator:
@@ -108,7 +109,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               label: 'Document Title',
               helperText: 'Main title printed on the generated document.',
               controller: documentTitleController,
-              icon: Icons.title_rounded,
+              icon: AppIcons.titleRounded,
               validator: DocumentTemplateFormHelpers.validateDocumentTitle,
             ),
             const Gap(12),
@@ -116,7 +117,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               label: 'Document Code',
               helperText: 'Official internal document reference code.',
               controller: documentCodeController,
-              icon: Icons.qr_code_2_rounded,
+              icon: AppIcons.qrCode2Rounded,
               validator: DocumentTemplateFormHelpers.validateDocumentCode,
             ),
             const Gap(12),
@@ -124,7 +125,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               label: 'Issue No.',
               helperText: 'Current document issue number.',
               controller: issueNoController,
-              icon: Icons.confirmation_number_outlined,
+              icon: AppIcons.confirmationNumberOutlined,
               validator: DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
             ),
             const Gap(12),
@@ -132,7 +133,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               label: 'Revision No.',
               helperText: 'Latest approved revision number.',
               controller: revisionNoController,
-              icon: Icons.history_edu_outlined,
+              icon: AppIcons.revision,
               validator: DocumentTemplateFormHelpers.validateIssueOrRevisionNo,
             ),
             const Gap(12),
@@ -140,7 +141,7 @@ class DocumentTemplateGeneralFields extends StatelessWidget {
               label: 'Effective Date',
               helperText: 'Date from which this template is valid.',
               controller: effectiveDateController,
-              icon: Icons.calendar_month_outlined,
+              icon: AppIcons.calendarMonthOutlined,
               readOnly: true,
               onTap: onEffectiveDateTap,
               validator: DocumentTemplateFormHelpers.validateRequiredDate,
