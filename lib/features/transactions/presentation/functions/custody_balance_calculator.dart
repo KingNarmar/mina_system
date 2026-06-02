@@ -10,6 +10,10 @@ double calculateWorkerToolBalance({
   var balance = 0.0;
 
   for (final transaction in transactions) {
+    if (transaction.isVoided) {
+      continue;
+    }
+
     final isSameWorker =
         normalizeText(transaction.workerHrCode) == normalizeText(workerHrCode);
 
@@ -58,6 +62,10 @@ List<CustodyBalanceModel> calculateCustodyBalances(
   final balancesMap = <String, CustodyBalanceModel>{};
 
   for (final transaction in transactions) {
+    if (transaction.isVoided) {
+      continue;
+    }
+
     final key = '${transaction.workerHrCode}_${transaction.toolCode}';
 
     final currentBalance = balancesMap[key];
@@ -106,6 +114,10 @@ List<CustodyBalanceModel> calculateCustodyBalances(
 }
 
 bool shouldReduceCustodyBalance(TransactionModel transaction) {
+  if (transaction.isVoided) {
+    return false;
+  }
+
   if (transaction.isReturn) {
     return true;
   }
