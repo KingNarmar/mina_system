@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_audit_history.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_accountability_section.dart';
@@ -32,7 +33,7 @@ class TransactionDetailsDialog extends StatelessWidget {
             onPressed: () {
               showTransactionAuditHistory(context, transaction: transaction);
             },
-            icon: const Icon(Icons.history_rounded, size: 18),
+            icon: const Icon(AppIcons.auditHistory, size: 18),
             label: const Text('View Audit History'),
           ),
         ),

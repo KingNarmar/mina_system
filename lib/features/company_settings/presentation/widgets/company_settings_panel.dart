@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class CompanySettingsPanel extends StatelessWidget {
@@ -232,11 +233,7 @@ class _CompanySettingsPanelBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon ?? Icons.verified_outlined,
-            size: 14,
-            color: AppColors.accent,
-          ),
+          Icon(icon ?? AppIcons.verified, size: 14, color: AppColors.accent),
           const Gap(6),
           Text(
             label,
@@ -279,7 +276,7 @@ class _CompanySettingsPanelActions extends StatelessWidget {
           if (onViewAuditHistory != null)
             TextButton.icon(
               onPressed: onViewAuditHistory,
-              icon: const Icon(Icons.history_rounded, size: 18),
+              icon: const Icon(AppIcons.auditHistory, size: 18),
               label: Text(auditHistoryLabel),
             ),
           ?footer,

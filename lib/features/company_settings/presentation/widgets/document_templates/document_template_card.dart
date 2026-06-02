@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/core/widgets/record_accountability_section.dart';
@@ -13,10 +14,10 @@ import 'document_template_form_helpers.dart';
 import 'document_template_general_fields.dart';
 import 'document_template_signature_fields.dart';
 
+part 'document_template_card/document_template_chips.dart';
 part 'document_template_card/document_template_header.dart';
 part 'document_template_card/document_template_sections.dart';
 part 'document_template_card/document_template_status_card.dart';
-part 'document_template_card/document_template_chips.dart';
 
 class DocumentTemplateCard extends StatefulWidget {
   const DocumentTemplateCard({
@@ -120,30 +121,39 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
             ),
             const Divider(height: 1, color: AppColors.border),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _DocumentTemplateSection(
-                    icon: Icons.fact_check_outlined,
-                    title: 'Document Control',
+                    icon: AppIcons.reportDocument,
+                    title: 'Document Details',
                     description:
-                        'Define the official title, code, issue, revision, and effective date shown on generated documents.',
+                        'Control the document title, code, issue number, revision number, and effective date.',
                     child: DocumentTemplateGeneralFields(
                       documentTitleController: _documentTitleController,
                       documentCodeController: _documentCodeController,
                       issueNoController: _issueNoController,
                       revisionNoController: _revisionNoController,
                       effectiveDateController: _effectiveDateController,
-                      onEffectiveDateTap: _selectEffectiveDate,
+                      onEffectiveDateTap: _pickEffectiveDate,
                     ),
                   ),
-                  const Gap(14),
+                  const Gap(16),
+                  _DocumentTemplateStatusCard(
+                    isActive: _isActive,
+                    onChanged: (value) {
+                      setState(() {
+                        _isActive = value;
+                      });
+                    },
+                  ),
+                  const Gap(16),
                   _DocumentTemplateSection(
-                    icon: Icons.approval_outlined,
-                    title: 'Approval Titles',
+                    icon: AppIcons.responsibility,
+                    title: 'Approval & Signatures',
                     description:
-                        'Set the approval hierarchy labels printed in the document control area.',
+                        'Customize approval titles and signature labels printed on generated documents.',
                     child: DocumentTemplateSignatureFields(
                       preparedByTitleController: _preparedByTitleController,
                       checkedByTitleController: _checkedByTitleController,
@@ -156,14 +166,7 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
                           _storekeeperSignatureLabelController,
                     ),
                   ),
-                  const Gap(14),
-                  _DocumentTemplateStatusCard(
-                    isActive: _isActive,
-                    onChanged: (value) {
-                      setState(() => _isActive = value);
-                    },
-                  ),
-                  const Gap(14),
+                  const Gap(16),
                   RecordAccountabilitySection(
                     createdBy: widget.documentTemplate.createdByDisplayName,
                     updatedBy: widget.documentTemplate.updatedByDisplayName,
@@ -182,51 +185,52 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
   }
 
   void _setInitialValues() {
-    final template = widget.documentTemplate;
-
-    _effectiveDate = template.effectiveDate;
-    _isActive = template.isActive;
-
     _documentTitleController = TextEditingController(
-      text: template.documentTitle,
+      text: widget.documentTemplate.documentTitle,
     );
     _documentCodeController = TextEditingController(
-      text: template.documentCode,
+      text: widget.documentTemplate.documentCode,
     );
-    _issueNoController = TextEditingController(text: template.issueNo);
-    _revisionNoController = TextEditingController(text: template.revisionNo);
+    _issueNoController = TextEditingController(
+      text: widget.documentTemplate.issueNo,
+    );
+    _revisionNoController = TextEditingController(
+      text: widget.documentTemplate.revisionNo,
+    );
+    _effectiveDate = widget.documentTemplate.effectiveDate;
     _effectiveDateController = TextEditingController(
-      text: DocumentTemplateFormHelpers.formatDate(template.effectiveDate),
+      text: DocumentTemplateFormHelpers.formatDate(_effectiveDate),
     );
     _preparedByTitleController = TextEditingController(
-      text: template.preparedByTitle ?? '',
+      text: widget.documentTemplate.preparedByTitle,
     );
     _checkedByTitleController = TextEditingController(
-      text: template.checkedByTitle ?? '',
+      text: widget.documentTemplate.checkedByTitle,
     );
     _approvedByTitleController = TextEditingController(
-      text: template.approvedByTitle ?? '',
+      text: widget.documentTemplate.approvedByTitle,
     );
     _workerSignatureLabelController = TextEditingController(
-      text: template.workerSignatureLabel ?? '',
+      text: widget.documentTemplate.workerSignatureLabel,
     );
     _managerSignatureLabelController = TextEditingController(
-      text: template.managerSignatureLabel ?? '',
+      text: widget.documentTemplate.managerSignatureLabel,
     );
     _storekeeperSignatureLabelController = TextEditingController(
-      text: template.storekeeperSignatureLabel ?? '',
+      text: widget.documentTemplate.storekeeperSignatureLabel,
     );
+    _isActive = widget.documentTemplate.isActive;
   }
 
-  Future<void> _selectEffectiveDate() async {
+  Future<void> _pickEffectiveDate() async {
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: _effectiveDate,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(2020),
       lastDate: DateTime(2100),
     );
 
-    if (selectedDate == null || !mounted) {
+    if (selectedDate == null) {
       return;
     }
 
@@ -243,35 +247,18 @@ class _DocumentTemplateCardState extends State<DocumentTemplateCard> {
       return;
     }
 
-    final template = widget.documentTemplate;
-
-    final updatedTemplate = CompanyDocumentTemplateModel(
-      id: template.id,
-      companyId: template.companyId,
-      reportType: template.reportType,
+    final updatedTemplate = widget.documentTemplate.copyWith(
       documentTitle: _documentTitleController.text,
       documentCode: _documentCodeController.text,
       issueNo: _issueNoController.text,
       revisionNo: _revisionNoController.text,
       effectiveDate: _effectiveDate,
-      preparedByTitle: DocumentTemplateFormHelpers.emptyToNull(
-        _preparedByTitleController.text,
-      ),
-      checkedByTitle: DocumentTemplateFormHelpers.emptyToNull(
-        _checkedByTitleController.text,
-      ),
-      approvedByTitle: DocumentTemplateFormHelpers.emptyToNull(
-        _approvedByTitleController.text,
-      ),
-      workerSignatureLabel: DocumentTemplateFormHelpers.emptyToNull(
-        _workerSignatureLabelController.text,
-      ),
-      managerSignatureLabel: DocumentTemplateFormHelpers.emptyToNull(
-        _managerSignatureLabelController.text,
-      ),
-      storekeeperSignatureLabel: DocumentTemplateFormHelpers.emptyToNull(
-        _storekeeperSignatureLabelController.text,
-      ),
+      preparedByTitle: _preparedByTitleController.text,
+      checkedByTitle: _checkedByTitleController.text,
+      approvedByTitle: _approvedByTitleController.text,
+      workerSignatureLabel: _workerSignatureLabelController.text,
+      managerSignatureLabel: _managerSignatureLabelController.text,
+      storekeeperSignatureLabel: _storekeeperSignatureLabelController.text,
       isActive: _isActive,
     );
 

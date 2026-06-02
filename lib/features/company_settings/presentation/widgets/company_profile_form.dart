@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
 import 'package:mina_system/core/widgets/record_accountability_section.dart';
@@ -104,9 +105,9 @@ class _CompanyProfileFormState extends State<CompanyProfileForm> {
         title: 'Company Profile',
         description:
             'Manage the official company identity, legal information, contact details, and timezone used across reports and audit history.',
-        icon: Icons.apartment_rounded,
+        icon: AppIcons.company,
         badgeLabel: 'Core Identity',
-        badgeIcon: Icons.verified_user_outlined,
+        badgeIcon: AppIcons.verifiedUser,
         headerActions: _CompanyProfileHeaderActions(
           isSaving: widget.isSaving,
           onSavePressed: _onSavePressed,
@@ -197,7 +198,7 @@ class _CompanyProfileHeaderActions extends StatelessWidget {
               foregroundColor: AppColors.textSecondary,
               padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
-            icon: const Icon(Icons.history_rounded, size: 17),
+            icon: const Icon(AppIcons.auditHistory, size: 17),
             label: const Text('Audit History'),
           ),
         ),

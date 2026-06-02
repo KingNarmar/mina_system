@@ -41,7 +41,7 @@ class _DocumentTemplateHeader extends StatelessWidget {
                   ),
                 ),
                 child: const Icon(
-                  Icons.article_outlined,
+                  AppIcons.documentTemplate,
                   color: AppColors.accent,
                   size: 22,
                 ),
@@ -66,13 +66,13 @@ class _DocumentTemplateHeader extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         _DocumentTemplateInfoChip(
-                          icon: Icons.tag_outlined,
+                          icon: AppIcons.tag,
                           label: documentCode.trim().isEmpty
                               ? 'No Code'
                               : documentCode.trim(),
                         ),
                         _DocumentTemplateInfoChip(
-                          icon: Icons.history_edu_outlined,
+                          icon: AppIcons.revision,
                           label: revisionNo.trim().isEmpty
                               ? 'No Revision'
                               : 'Rev. ${revisionNo.trim()}',
@@ -144,7 +144,7 @@ class _DocumentTemplateHeaderActions extends StatelessWidget {
               foregroundColor: AppColors.textSecondary,
               padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
-            icon: const Icon(Icons.history_rounded, size: 17),
+            icon: const Icon(AppIcons.auditHistory, size: 17),
             label: const Text('Audit History'),
           ),
         ),

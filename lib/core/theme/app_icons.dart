@@ -31,6 +31,7 @@ class AppIcons {
   static const IconData done = Icons.task_alt_outlined;
 
   // Entity icons
+  static const IconData company = Icons.apartment_rounded;
   static const IconData worker = Icons.person_outline;
   static const IconData workers = Icons.people_outline;
   static const IconData tool = Icons.build_outlined;
@@ -49,9 +50,16 @@ class AppIcons {
 
   // Report / document icons
   static const IconData reportDocument = Icons.description_outlined;
+  static const IconData documentTemplate = Icons.article_outlined;
   static const IconData pdf = Icons.picture_as_pdf_outlined;
   static const IconData settingsTune = Icons.tune_rounded;
-  static const IconData responsibility = Icons.fact_check_outlined;
+  static const IconData responsibility = Icons.assignment_turned_in_outlined;
+  static const IconData tag = Icons.tag_outlined;
+  static const IconData revision = Icons.history_edu_outlined;
+
+  // Trust / badge icons
+  static const IconData verified = Icons.verified_outlined;
+  static const IconData verifiedUser = Icons.verified_user_outlined;
 
   // Time / date icons
   static const IconData schedule = Icons.schedule_rounded;
