@@ -57,6 +57,8 @@ class AuditLogModel {
 
       case 'transaction_created':
         return 'Created Transaction';
+      case 'transaction_voided':
+        return 'Voided Transaction';
       case 'transaction_approval_document_uploaded':
         return 'Uploaded Approval Document';
       case 'transaction_approved':
