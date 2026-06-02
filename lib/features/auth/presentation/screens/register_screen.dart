@@ -7,18 +7,16 @@ import 'package:mina_system/features/auth/presentation/layouts/register_mobile_l
 import 'package:mina_system/features/auth/presentation/layouts/register_tablet_layout.dart';
 
 class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key, required this.email});
-
-  final String email;
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AuthCubit(),
-      child: ResponsiveLayout(
-        mobile: RegisterMobileLayout(email: email),
-        tablet: RegisterTabletLayout(email: email),
-        desktop: RegisterDesktopLayout(email: email),
+      child: const ResponsiveLayout(
+        mobile: RegisterMobileLayout(),
+        tablet: RegisterTabletLayout(),
+        desktop: RegisterDesktopLayout(),
       ),
     );
   }

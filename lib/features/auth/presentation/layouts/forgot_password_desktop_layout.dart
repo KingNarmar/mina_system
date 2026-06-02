@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
-import 'package:mina_system/features/auth/presentation/widgets/login_form.dart';
+import 'package:mina_system/features/auth/presentation/widgets/forgot_password_form.dart';
 
-class LoginDesktopLayout extends StatelessWidget {
-  const LoginDesktopLayout({super.key});
+class ForgotPasswordDesktopLayout extends StatelessWidget {
+  const ForgotPasswordDesktopLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +29,14 @@ class LoginDesktopLayout extends StatelessWidget {
                   ),
                   const Gap(12),
                   Text(
-                    'Materials Inventory Navigation Assistant',
+                    'Recover account access',
                     style: AppTextStyles.title.copyWith(
                       color: AppColors.onPrimary,
                     ),
                   ),
                   const Gap(16),
                   Text(
-                    'A smart tool custody tracking platform for modern warehouses.',
+                    'Send a secure password reset email and regain access without developer intervention.',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.onPrimary.withValues(alpha: 0.7),
                     ),
@@ -46,7 +46,9 @@ class LoginDesktopLayout extends StatelessWidget {
             ),
           ),
           const Expanded(
-            child: Center(child: SizedBox(width: 420, child: LoginForm())),
+            child: Center(
+              child: SizedBox(width: 420, child: ForgotPasswordForm()),
+            ),
           ),
         ],
       ),

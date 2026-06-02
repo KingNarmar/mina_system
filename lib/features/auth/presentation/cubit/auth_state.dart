@@ -12,6 +12,12 @@ class AuthRegisterSuccess extends AuthState {
   final bool requiresEmailConfirmation;
 }
 
+class AuthPasswordResetEmailSent extends AuthState {
+  AuthPasswordResetEmailSent({required this.email});
+
+  final String email;
+}
+
 class AuthFailure extends AuthState {
   AuthFailure(this.message);
 

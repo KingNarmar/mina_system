@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mina_system/features/auth/presentation/widgets/register_form.dart';
+import 'package:mina_system/features/auth/presentation/widgets/forgot_password_form.dart';
 
-class RegisterTabletLayout extends StatelessWidget {
-  const RegisterTabletLayout({super.key});
+class ForgotPasswordTabletLayout extends StatelessWidget {
+  const ForgotPasswordTabletLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +11,7 @@ class RegisterTabletLayout extends StatelessWidget {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.all(32),
-            child: SizedBox(width: 420, child: RegisterForm()),
+            child: SizedBox(width: 420, child: ForgotPasswordForm()),
           ),
         ),
       ),

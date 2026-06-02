@@ -75,4 +75,25 @@ class AuthCubit extends Cubit<AuthState> {
       );
     }
   }
+
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    final normalizedEmail = email.trim();
+
+    emit(AuthLoading());
+
+    try {
+      await _supabase.auth.resetPasswordForEmail(normalizedEmail);
+
+      emit(AuthPasswordResetEmailSent(email: normalizedEmail));
+    } catch (error) {
+      emit(
+        AuthFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Failed to send password reset email. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
 }

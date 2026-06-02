@@ -5,9 +5,7 @@ import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/auth/presentation/widgets/register_form.dart';
 
 class RegisterDesktopLayout extends StatelessWidget {
-  const RegisterDesktopLayout({super.key, required this.email});
-
-  final String email;
+  const RegisterDesktopLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +45,8 @@ class RegisterDesktopLayout extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Center(
-              child: SizedBox(width: 420, child: RegisterForm(email: email)),
-            ),
+          const Expanded(
+            child: Center(child: SizedBox(width: 420, child: RegisterForm())),
           ),
         ],
       ),

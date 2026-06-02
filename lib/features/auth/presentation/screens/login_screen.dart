@@ -7,18 +7,16 @@ import 'package:mina_system/features/auth/presentation/layouts/login_mobile_layo
 import 'package:mina_system/features/auth/presentation/layouts/login_tablet_layout.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key, required this.email});
-
-  final String email;
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AuthCubit(),
-      child: ResponsiveLayout(
-        mobile: LoginMobileLayout(email: email),
-        tablet: LoginTabletLayout(email: email),
-        desktop: LoginDesktopLayout(email: email),
+      child: const ResponsiveLayout(
+        mobile: LoginMobileLayout(),
+        tablet: LoginTabletLayout(),
+        desktop: LoginDesktopLayout(),
       ),
     );
   }

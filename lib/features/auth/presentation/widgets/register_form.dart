@@ -14,9 +14,7 @@ import 'package:mina_system/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_state.dart';
 
 class RegisterForm extends StatefulWidget {
-  const RegisterForm({super.key, required this.email});
-
-  final String email;
+  const RegisterForm({super.key});
 
   @override
   State<RegisterForm> createState() => _RegisterFormState();
@@ -28,12 +26,6 @@ class _RegisterFormState extends State<RegisterForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController.text = widget.email;
-  }
 
   @override
   void dispose() {
@@ -63,7 +55,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     TextButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop();
-                        context.go(Routes.login, extra: widget.email);
+                        context.go(Routes.login);
                       },
                       child: const Text('Back to Login'),
                     ),
@@ -114,9 +106,8 @@ class _RegisterFormState extends State<RegisterForm> {
               CustomTextFormField(
                 hint: 'Email Address',
                 controller: _emailController,
-                validator: AppValidators.validateEmailOrUsername,
+                validator: AppValidators.validateEmail,
                 keyboardType: TextInputType.emailAddress,
-                readOnly: true,
               ),
               const Gap(12),
               PasswordTextFormField(
@@ -140,11 +131,14 @@ class _RegisterFormState extends State<RegisterForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Different email?', style: AppTextStyles.caption),
+                  const Text(
+                    'Already have an account?',
+                    style: AppTextStyles.caption,
+                  ),
                   TextButton(
-                    onPressed: () => context.go(Routes.emailEntry),
+                    onPressed: () => context.go(Routes.login),
                     child: Text(
-                      'Go back',
+                      'Login',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.accent,
                         fontWeight: FontWeight.w600,
