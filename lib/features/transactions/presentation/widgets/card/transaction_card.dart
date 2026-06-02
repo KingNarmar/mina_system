@@ -52,22 +52,18 @@ class TransactionCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: typeColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      typeLabel,
-                      style: AppTextStyles.caption.copyWith(
-                        color: typeColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.end,
+                    children: [
+                      _TransactionStatusBadge(label: typeLabel, color: typeColor),
+                      if (transaction.isVoided)
+                        const _TransactionStatusBadge(
+                          label: 'Voided',
+                          color: AppColors.error,
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -100,6 +96,31 @@ class TransactionCard extends StatelessWidget {
                 TransactionInfoRow(label: 'Note', value: transaction.note!),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransactionStatusBadge extends StatelessWidget {
+  const _TransactionStatusBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
