@@ -240,6 +240,10 @@ class _TransactionsViewState extends State<_TransactionsView> {
     List<TransactionModel> transactions,
   ) {
     return transactions.where((transaction) {
+      if (transaction.isVoided) {
+        return false;
+      }
+
       if (!transaction.isLostOrDamaged) {
         return false;
       }
