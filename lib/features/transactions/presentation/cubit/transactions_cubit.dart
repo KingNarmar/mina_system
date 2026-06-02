@@ -5,6 +5,7 @@ import 'package:mina_system/features/transactions/data/models/custody_balance_mo
 import 'package:mina_system/features/transactions/data/models/tool_custody_summary_model.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/data/repo/transactions_repo.dart';
+import 'package:mina_system/features/transactions/data/services/transaction_cancellation_service.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit_validators.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
@@ -20,8 +21,11 @@ part 'transactions_cubit_load_search.dart';
 class TransactionsCubit extends Cubit<TransactionsState> {
   TransactionsCubit({
     TransactionsRepo? transactionsRepo,
+    TransactionCancellationService? transactionCancellationService,
     NetworkStatusService? networkStatusService,
   }) : _transactionsRepo = transactionsRepo ?? TransactionsRepo(),
+       _transactionCancellationService =
+           transactionCancellationService ?? TransactionCancellationService(),
        _networkStatusService = networkStatusService ?? NetworkStatusService(),
        super(
          const TransactionsState(
@@ -35,6 +39,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
        );
 
   final TransactionsRepo _transactionsRepo;
+  final TransactionCancellationService _transactionCancellationService;
   final NetworkStatusService _networkStatusService;
 
   void emitState(TransactionsState state) => emit(state);
