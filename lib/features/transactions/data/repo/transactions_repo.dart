@@ -70,7 +70,13 @@ class TransactionsRepo {
     updated_by_name_snapshot,
     updated_by_email_snapshot,
     created_at,
-    updated_at
+    updated_at,
+    is_voided,
+    voided_at,
+    voided_by_profile_id,
+    voided_by_name_snapshot,
+    voided_by_email_snapshot,
+    void_reason
   ''';
 
   Future<List<TransactionModel>> getTransactions({

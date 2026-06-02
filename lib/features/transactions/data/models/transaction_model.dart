@@ -49,6 +49,12 @@ class TransactionModel {
     this.updatedByProfileName,
     this.updatedByProfileEmail,
     this.updatedAt,
+    this.isVoided = false,
+    this.voidedAt,
+    this.voidedByProfileId,
+    this.voidedByProfileName,
+    this.voidedByProfileEmail,
+    this.voidReason,
   });
 
   final String? id;
@@ -107,6 +113,13 @@ class TransactionModel {
   final String? updatedByProfileEmail;
   final DateTime? updatedAt;
 
+  final bool isVoided;
+  final DateTime? voidedAt;
+  final String? voidedByProfileId;
+  final String? voidedByProfileName;
+  final String? voidedByProfileEmail;
+  final String? voidReason;
+
   bool get isIssue => type == TransactionType.issue;
   bool get isReturn => type == TransactionType.returnTool;
   bool get isLost => type == TransactionType.lost;
@@ -114,6 +127,7 @@ class TransactionModel {
   bool get isLostOrDamaged => isLost || isDamaged;
 
   bool get isClosingTransaction => !isIssue;
+  bool get isActive => !isVoided;
 
   bool get hasProofImage {
     return imagePath != null && imagePath!.trim().isNotEmpty;
@@ -180,6 +194,13 @@ class TransactionModel {
     );
   }
 
+  String get voidedByDisplayName {
+    return _resolveProfileDisplayName(
+      name: voidedByProfileName,
+      email: voidedByProfileEmail,
+    );
+  }
+
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
       id: json['id'] as String?,
@@ -240,6 +261,12 @@ class TransactionModel {
       updatedByProfileName: json['updated_by_name_snapshot'] as String?,
       updatedByProfileEmail: json['updated_by_email_snapshot'] as String?,
       updatedAt: _parseDateTime(json['updated_at']),
+      isVoided: json['is_voided'] as bool? ?? false,
+      voidedAt: _parseDateTime(json['voided_at']),
+      voidedByProfileId: json['voided_by_profile_id'] as String?,
+      voidedByProfileName: json['voided_by_name_snapshot'] as String?,
+      voidedByProfileEmail: json['voided_by_email_snapshot'] as String?,
+      voidReason: json['void_reason'] as String?,
     );
   }
 
@@ -352,6 +379,12 @@ class TransactionModel {
     String? updatedByProfileName,
     String? updatedByProfileEmail,
     DateTime? updatedAt,
+    bool? isVoided,
+    DateTime? voidedAt,
+    String? voidedByProfileId,
+    String? voidedByProfileName,
+    String? voidedByProfileEmail,
+    String? voidReason,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -419,6 +452,12 @@ class TransactionModel {
       updatedByProfileEmail:
           updatedByProfileEmail ?? this.updatedByProfileEmail,
       updatedAt: updatedAt ?? this.updatedAt,
+      isVoided: isVoided ?? this.isVoided,
+      voidedAt: voidedAt ?? this.voidedAt,
+      voidedByProfileId: voidedByProfileId ?? this.voidedByProfileId,
+      voidedByProfileName: voidedByProfileName ?? this.voidedByProfileName,
+      voidedByProfileEmail: voidedByProfileEmail ?? this.voidedByProfileEmail,
+      voidReason: voidReason ?? this.voidReason,
     );
   }
 
