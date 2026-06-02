@@ -28,16 +28,10 @@ class TransactionDetailsHeader extends StatelessWidget {
         Expanded(
           child: Text(transaction.transactionCode, style: AppTextStyles.title),
         ),
-        _StatusBadge(
-          label: typeLabel,
-          color: typeColor,
-        ),
+        _StatusBadge(label: typeLabel, color: typeColor),
         if (transaction.isVoided) ...[
           const Gap(8),
-          const _StatusBadge(
-            label: 'Voided',
-            color: AppColors.error,
-          ),
+          const _StatusBadge(label: 'Voided', color: AppColors.error),
         ],
       ],
     );

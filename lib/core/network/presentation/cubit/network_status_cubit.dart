@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/config/app_environment.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 
@@ -20,6 +21,11 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
   Future<void> startWatching() async {
     await _statusSubscription?.cancel();
     _pollingTimer?.cancel();
+
+    if (_shouldUseDevelopmentOnlineFallback) {
+      _emitSnapshot(_developmentOnlineSnapshot());
+      return;
+    }
 
     if (_shouldUsePolling) {
       await refresh();
@@ -66,6 +72,11 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
   }
 
   Future<void> refresh() async {
+    if (_shouldUseDevelopmentOnlineFallback) {
+      _emitSnapshot(_developmentOnlineSnapshot());
+      return;
+    }
+
     try {
       final snapshot = await _service.getCurrentStatus();
 
@@ -89,6 +100,20 @@ class NetworkStatusCubit extends Cubit<NetworkStatusState> {
 
   bool get _shouldUsePolling {
     return !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+  }
+
+  bool get _shouldUseDevelopmentOnlineFallback {
+    return kDebugMode &&
+        AppEnvironment.isDevelopment &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.windows;
+  }
+
+  NetworkStatusSnapshot _developmentOnlineSnapshot() {
+    return const NetworkStatusSnapshot(
+      status: NetworkConnectionStatus.online,
+      connectionTypes: [],
+    );
   }
 
   void _emitSnapshot(NetworkStatusSnapshot snapshot) {
