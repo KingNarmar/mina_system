@@ -1,4 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:mina_system/core/config/app_environment.dart';
 
 enum NetworkConnectionStatus { online, offline }
 
@@ -19,6 +21,13 @@ class NetworkStatusSnapshot {
           ? NetworkConnectionStatus.offline
           : NetworkConnectionStatus.online,
       connectionTypes: List.unmodifiable(results),
+    );
+  }
+
+  factory NetworkStatusSnapshot.online() {
+    return const NetworkStatusSnapshot(
+      status: NetworkConnectionStatus.online,
+      connectionTypes: [],
     );
   }
 
@@ -56,17 +65,29 @@ class NetworkStatusService {
   final Connectivity _connectivity;
 
   Future<NetworkStatusSnapshot> getCurrentStatus() async {
+    if (_shouldUseDevelopmentOnlineFallback) {
+      return NetworkStatusSnapshot.online();
+    }
+
     try {
       final results = await _connectivity.checkConnectivity();
 
       return NetworkStatusSnapshot.fromConnectivityResults(results);
     } catch (_) {
+      if (_shouldUseDevelopmentOnlineFallback) {
+        return NetworkStatusSnapshot.online();
+      }
+
       return NetworkStatusSnapshot.offline();
     }
   }
 
   Stream<NetworkStatusSnapshot> watchStatus() async* {
     yield await getCurrentStatus();
+
+    if (_shouldUseDevelopmentOnlineFallback) {
+      return;
+    }
 
     yield* _connectivity.onConnectivityChanged.map(
       NetworkStatusSnapshot.fromConnectivityResults,
@@ -91,5 +112,12 @@ class NetworkStatusService {
     if (status.isOffline) {
       throw const NetworkUnavailableException();
     }
+  }
+
+  bool get _shouldUseDevelopmentOnlineFallback {
+    return kDebugMode &&
+        AppEnvironment.isDevelopment &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.windows;
   }
 }
