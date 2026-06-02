@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
@@ -65,7 +66,7 @@ class AppTopBar extends StatelessWidget {
           IconButton(
             tooltip: 'Logout',
             onPressed: () => _logout(context),
-            icon: const Icon(Icons.logout),
+            icon: const Icon(AppIcons.logout),
             color: AppColors.textPrimary,
           ),
         ],
@@ -174,7 +175,7 @@ class _TopBarContextInfo extends StatelessWidget {
               const Gap(10),
               TextButton.icon(
                 onPressed: onSwitchCompany,
-                icon: const Icon(Icons.swap_horiz, size: 18),
+                icon: const Icon(AppIcons.switchCompany, size: 18),
                 label: const Text('Switch Company'),
               ),
             ],

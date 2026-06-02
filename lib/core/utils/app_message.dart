@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 enum AppMessageType { success, error, warning, info }
@@ -71,25 +72,25 @@ abstract class AppMessage {
     switch (type) {
       case AppMessageType.success:
         return const _AppMessageConfig(
-          icon: Icons.check_circle_outline_rounded,
+          icon: AppIcons.success,
           backgroundColor: AppColors.success,
           foregroundColor: AppColors.onPrimary,
         );
       case AppMessageType.error:
         return const _AppMessageConfig(
-          icon: Icons.error_outline_rounded,
+          icon: AppIcons.error,
           backgroundColor: AppColors.error,
           foregroundColor: AppColors.onPrimary,
         );
       case AppMessageType.warning:
         return const _AppMessageConfig(
-          icon: Icons.warning_amber_rounded,
+          icon: AppIcons.warning,
           backgroundColor: AppColors.warning,
           foregroundColor: AppColors.primary,
         );
       case AppMessageType.info:
         return const _AppMessageConfig(
-          icon: Icons.info_outline_rounded,
+          icon: AppIcons.info,
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
         );

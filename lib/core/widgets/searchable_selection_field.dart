@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
 
@@ -52,7 +53,7 @@ class SearchableSelectionField<T> extends StatelessWidget {
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
-            suffixIcon: const Icon(Icons.search),
+            suffixIcon: const Icon(AppIcons.search),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.border),
@@ -194,7 +195,7 @@ class _SearchableSelectionBottomSheetState<T>
               CustomTextFormField(
                 hint: 'Search...',
                 controller: _searchController,
-                icon: const Icon(Icons.search),
+                icon: const Icon(AppIcons.search),
                 onChanged: _onSearchChanged,
               ),
               Gap(contentGap),

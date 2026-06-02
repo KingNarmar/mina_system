@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class PasswordTextFormField extends StatefulWidget {
@@ -13,6 +14,7 @@ class PasswordTextFormField extends StatefulWidget {
   final String? Function(String?)? validator;
   final String? hint;
   final TextEditingController? passwordController;
+
   @override
   State<PasswordTextFormField> createState() => _PasswordTextFormFieldState();
 }
@@ -34,7 +36,9 @@ class _PasswordTextFormFieldState extends State<PasswordTextFormField> {
         fillColor: AppColors.border,
         filled: true,
         suffixIcon: IconButton(
-          icon: Icon(isHidden ? Icons.visibility_off : Icons.visibility),
+          icon: Icon(
+            isHidden ? AppIcons.passwordHidden : AppIcons.passwordVisible,
+          ),
           onPressed: () {
             setState(() {
               isHidden = !isHidden;

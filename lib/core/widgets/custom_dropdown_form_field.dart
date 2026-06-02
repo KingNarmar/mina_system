@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class CustomDropdownFormField extends StatelessWidget {
@@ -57,7 +58,7 @@ class CustomDropdownFormField extends StatelessWidget {
         ),
       ),
       dropdownColor: AppColors.card,
-      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+      icon: const Icon(AppIcons.dropdown),
       isExpanded: true,
     );
   }

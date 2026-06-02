@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/features/company_settings/presentation/screens/company_settings_screen.dart';
 import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:mina_system/features/lookups/presentation/screens/lookups_screen.dart';
@@ -14,49 +14,49 @@ abstract class AppNavItems {
   static const List<AppNavItem> items = [
     AppNavItem(
       title: 'Dashboard',
-      icon: Icons.dashboard_outlined,
+      icon: AppIcons.dashboard,
       page: DashboardScreen(),
       permission: CompanyPermission.viewDashboard,
     ),
     AppNavItem(
       title: 'Workers',
-      icon: Icons.people_outline,
+      icon: AppIcons.workers,
       page: WorkersScreen(),
       permission: CompanyPermission.viewWorkers,
     ),
     AppNavItem(
       title: 'Tools',
-      icon: Icons.build_outlined,
+      icon: AppIcons.tool,
       page: ToolsScreen(),
       permission: CompanyPermission.viewTools,
     ),
     AppNavItem(
       title: 'Transactions',
-      icon: Icons.swap_horiz_outlined,
+      icon: AppIcons.transactions,
       page: TransactionsScreen(),
       permission: CompanyPermission.viewTransactions,
     ),
     AppNavItem(
       title: 'Reports',
-      icon: Icons.analytics_outlined,
+      icon: AppIcons.reports,
       page: ReportsScreen(),
       permission: CompanyPermission.viewReports,
     ),
     AppNavItem(
       title: 'Lookups',
-      icon: Icons.tune_outlined,
+      icon: AppIcons.lookups,
       page: LookupsScreen(),
       permission: CompanyPermission.viewLookups,
     ),
     AppNavItem(
       title: 'Team',
-      icon: Icons.groups_outlined,
+      icon: AppIcons.team,
       page: TeamScreen(),
       permission: CompanyPermission.viewTeam,
     ),
     AppNavItem(
       title: 'Settings',
-      icon: Icons.settings_outlined,
+      icon: AppIcons.settings,
       page: CompanySettingsScreen(),
       permission: CompanyPermission.viewCompanySettings,
     ),

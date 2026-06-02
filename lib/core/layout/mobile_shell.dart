@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
-import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
@@ -74,12 +74,12 @@ class _MobileShellState extends State<MobileShell> {
                   onPressed: () {
                     context.read<CurrentContextCubit>().openCompanySelection();
                   },
-                  icon: const Icon(Icons.swap_horiz),
+                  icon: const Icon(AppIcons.switchCompany),
                 ),
               IconButton(
                 tooltip: 'Logout',
                 onPressed: _logout,
-                icon: const Icon(Icons.logout),
+                icon: const Icon(AppIcons.logout),
               ),
             ],
           ),
@@ -176,21 +176,21 @@ class _MobileTitle extends StatelessWidget {
     final currentCompany = loadedState.currentCompany;
 
     final userName = profile.fullName?.trim();
-    final userEmail = profile.email?.trim();
+    final companyName = currentCompany?.name.trim();
 
-    final userLabel = userName != null && userName.isNotEmpty
-        ? userName
-        : userEmail != null && userEmail.isNotEmpty
-        ? userEmail
-        : 'Signed in user';
+    if (companyName != null && companyName.isNotEmpty) {
+      if (userName != null && userName.isNotEmpty) {
+        return '$companyName • $userName';
+      }
 
-    if (currentCompany == null) {
-      return loadedState.hasMultipleCompanies ? 'Select Company' : userLabel;
+      return companyName;
     }
 
-    final roleLabel = CompanyRoles.label(currentCompany.role);
+    if (userName != null && userName.isNotEmpty) {
+      return userName;
+    }
 
-    return '$userLabel • ${currentCompany.name} • $roleLabel';
+    return profile.email;
   }
 }
 
@@ -200,14 +200,14 @@ class _NoAvailablePagesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'No available pages for your current role.',
-            style: AppTextStyles.title,
-            textAlign: TextAlign.center,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'No pages are available for your current role.',
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ),
