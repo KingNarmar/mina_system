@@ -7,6 +7,7 @@ import 'package:mina_system/features/lookups/presentation/functions/add_tool_uni
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_tool_unit_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/restore_tool_unit_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/show_lookup_audit_history.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
@@ -55,7 +56,9 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
-        final units = _showInactive ? state.inactiveToolUnits : state.toolUnits;
+        final unitModels = _showInactive
+            ? state.inactiveToolUnitModels
+            : state.toolUnitModels;
 
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -93,30 +96,38 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                   ),
                   const Gap(20),
                 ],
-                if (units.isEmpty)
+                if (unitModels.isEmpty)
                   EmptyLookupMessage(
                     message: _showInactive
                         ? 'No inactive tool units found'
                         : 'No active tool units found',
                   )
                 else
-                  ...units.map((unit) {
+                  ...unitModels.map((unit) {
                     return LookupListTile(
-                      title: unit,
+                      title: unit.name,
                       subtitle: _showInactive
                           ? 'Inactive Tool Unit'
                           : 'Active Tool Unit',
+                      onViewAuditHistory: () {
+                        showLookupAuditHistory(
+                          context,
+                          entityType: 'tool_unit',
+                          entityId: unit.id,
+                          title: 'Tool Unit Audit History',
+                        );
+                      },
                       onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
                                 title: 'Deactivate Tool Unit',
                                 message:
-                                    'Are you sure you want to deactivate $unit?',
+                                    'Are you sure you want to deactivate ${unit.name}?',
                                 onConfirm: () async {
                                   await deleteToolUnitLookup(
                                     context: context,
-                                    unit: unit,
+                                    unit: unit.name,
                                   );
                                 },
                               );
@@ -126,7 +137,7 @@ class _ToolUnitsTabState extends State<ToolUnitsTab> {
                           ? () async {
                               await restoreToolUnitLookup(
                                 context: context,
-                                unit: unit,
+                                unit: unit.name,
                               );
                             }
                           : null,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_state.dart';
@@ -51,6 +52,7 @@ class ToolsTableRow extends StatelessWidget {
     });
 
     final isRowSubmitting = isDeleting || isReactivating;
+
     return Column(
       children: [
         Padding(
@@ -73,7 +75,7 @@ class ToolsTableRow extends StatelessWidget {
                           onPressed: () {
                             onViewDetails!(tool);
                           },
-                          icon: const Icon(Icons.info_outline),
+                          icon: const Icon(AppIcons.details),
                           color: AppColors.textSecondary,
                           tooltip: 'View Details',
                         ),
@@ -82,7 +84,7 @@ class ToolsTableRow extends StatelessWidget {
                           onPressed: () {
                             onViewAuditHistory!(tool);
                           },
-                          icon: const Icon(Icons.history_rounded),
+                          icon: const Icon(AppIcons.auditHistory),
                           color: AppColors.textSecondary,
                           tooltip: 'View Audit History',
                         ),
@@ -93,7 +95,7 @@ class ToolsTableRow extends StatelessWidget {
                               : () {
                                   onEdit!(tool);
                                 },
-                          icon: const Icon(Icons.edit_outlined),
+                          icon: const Icon(AppIcons.edit),
                           color: AppColors.accent,
                           tooltip: 'Edit',
                         ),
@@ -113,7 +115,7 @@ class ToolsTableRow extends StatelessWidget {
                                     color: AppColors.error,
                                   ),
                                 )
-                              : const Icon(Icons.delete_outline),
+                              : const Icon(AppIcons.deactivate),
                           color: AppColors.error,
                           tooltip: 'Deactivate',
                         ),
@@ -133,7 +135,7 @@ class ToolsTableRow extends StatelessWidget {
                                     color: AppColors.accent,
                                   ),
                                 )
-                              : const Icon(Icons.restore_outlined),
+                              : const Icon(AppIcons.restore),
                           color: AppColors.accent,
                           tooltip: 'Reactivate',
                         ),

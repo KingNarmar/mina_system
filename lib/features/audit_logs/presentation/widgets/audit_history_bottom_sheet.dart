@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/loading/audit_history_loading_view.dart';
 import 'package:mina_system/features/audit_logs/presentation/cubit/audit_logs_cubit.dart';
@@ -86,7 +87,7 @@ class AuditHistoryBottomSheet extends StatelessWidget {
                     tooltip: 'Close',
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(
-                      Icons.close_rounded,
+                      AppIcons.close,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -198,11 +199,7 @@ class _AuditHistoryErrorView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                color: AppColors.error,
-                size: 32,
-              ),
+              const Icon(AppIcons.error, color: AppColors.error, size: 32),
               const SizedBox(height: 10),
               Text(
                 message,
@@ -214,7 +211,7 @@ class _AuditHistoryErrorView extends StatelessWidget {
               const SizedBox(height: 14),
               ElevatedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(AppIcons.retry),
                 label: const Text('Retry'),
               ),
             ],

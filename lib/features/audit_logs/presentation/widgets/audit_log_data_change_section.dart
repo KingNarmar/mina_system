@@ -72,6 +72,14 @@ class AuditLogDataChangeSection extends StatelessWidget {
     final rows = <Widget>[];
 
     for (final key in keys) {
+      if (_shouldHideField(
+        fieldKey: key,
+        oldValue: null,
+        newValue: data[key],
+      )) {
+        continue;
+      }
+
       final newValue = _formatValue(fieldKey: key, value: data[key]);
 
       if (newValue == '—') {
@@ -95,6 +103,14 @@ class AuditLogDataChangeSection extends StatelessWidget {
     final rows = <Widget>[];
 
     for (final key in keys) {
+      if (_shouldHideField(
+        fieldKey: key,
+        oldValue: data[key],
+        newValue: null,
+      )) {
+        continue;
+      }
+
       final oldValue = _formatValue(fieldKey: key, value: data[key]);
 
       if (oldValue == '—') {
@@ -126,6 +142,14 @@ class AuditLogDataChangeSection extends StatelessWidget {
       final oldValue = oldValues[key];
       final newValue = newValues[key];
 
+      if (_shouldHideField(
+        fieldKey: key,
+        oldValue: oldValue,
+        newValue: newValue,
+      )) {
+        continue;
+      }
+
       if (_areSameRawValues(oldValue, newValue)) {
         continue;
       }
@@ -146,6 +170,50 @@ class AuditLogDataChangeSection extends StatelessWidget {
     return oldValue?.toString() == newValue?.toString();
   }
 
+  bool _shouldHideField({
+    required String fieldKey,
+    required dynamic oldValue,
+    required dynamic newValue,
+  }) {
+    final cleanFieldKey = fieldKey.trim().toLowerCase();
+
+    if (_isAlwaysHiddenTechnicalField(cleanFieldKey)) {
+      return true;
+    }
+
+    if (!_looksLikeIdField(cleanFieldKey)) {
+      return false;
+    }
+
+    if (!lookupResolver.isResolvableField(cleanFieldKey)) {
+      return true;
+    }
+
+    final oldResolvedValue = lookupResolver.resolveFieldValue(
+      fieldKey: cleanFieldKey,
+      value: oldValue,
+    );
+    final newResolvedValue = lookupResolver.resolveFieldValue(
+      fieldKey: cleanFieldKey,
+      value: newValue,
+    );
+
+    return (oldValue == null || oldResolvedValue == null) &&
+        (newValue == null || newResolvedValue == null);
+  }
+
+  bool _isAlwaysHiddenTechnicalField(String fieldKey) {
+    return fieldKey == 'id' ||
+        fieldKey == 'company_id' ||
+        fieldKey == 'created_by_profile_id' ||
+        fieldKey == 'updated_by_profile_id' ||
+        fieldKey == 'actor_profile_id';
+  }
+
+  bool _looksLikeIdField(String fieldKey) {
+    return fieldKey == 'id' || fieldKey.endsWith('_id');
+  }
+
   String _formatValue({required String fieldKey, required dynamic value}) {
     if (value == null) {
       return '—';
@@ -163,13 +231,7 @@ class AuditLogDataChangeSection extends StatelessWidget {
     final resolvedLabel = lookupResolver.resolveFieldLabel(fieldKey);
 
     if (resolvedLabel != null) {
-      final cleanRawValue = value.toString().trim();
-
-      if (cleanRawValue.isEmpty) {
-        return '—';
-      }
-
-      return 'Unknown $resolvedLabel';
+      return '—';
     }
 
     if (value is String) {

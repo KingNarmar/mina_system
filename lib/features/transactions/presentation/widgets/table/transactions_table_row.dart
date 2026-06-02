@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/core/utils/app_message.dart';
@@ -128,7 +129,7 @@ class _TransactionThumbnail extends StatelessWidget {
       future: _resolveTransactionImageUrl(imagePath),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const _ThumbnailFallback(icon: Icons.image_outlined);
+          return const _ThumbnailFallback(icon: AppIcons.image);
         }
 
         final result = snapshot.data;
@@ -136,8 +137,8 @@ class _TransactionThumbnail extends StatelessWidget {
         if (result == null || !result.hasImageUrl) {
           return _ThumbnailFallback(
             icon: result?.isOffline == true
-                ? Icons.wifi_off_rounded
-                : Icons.broken_image_outlined,
+                ? AppIcons.offline
+                : AppIcons.brokenImage,
             onTap: () {
               AppMessage.showWarning(
                 context,
@@ -163,7 +164,7 @@ class _TransactionThumbnail extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return _ThumbnailFallback(
-                    icon: Icons.broken_image_outlined,
+                    icon: AppIcons.brokenImage,
                     onTap: () {
                       AppMessage.showWarning(
                         context,
@@ -278,7 +279,6 @@ class _TransactionTypeBadge extends StatelessWidget {
       child: Text(
         label,
         maxLines: 1,
-        softWrap: false,
         overflow: TextOverflow.ellipsis,
         style: AppTextStyles.caption.copyWith(
           color: color,

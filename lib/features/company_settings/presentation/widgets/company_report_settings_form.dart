@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
@@ -104,9 +105,9 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
         title: 'Report Configuration',
         description:
             'Control report formatting, visibility, footer text, and responsibility statements used across generated company documents.',
-        icon: Icons.description_outlined,
+        icon: AppIcons.reportDocument,
         badgeLabel: 'PDF Defaults',
-        badgeIcon: Icons.picture_as_pdf_outlined,
+        badgeIcon: AppIcons.pdf,
         headerActions: _ReportSettingsHeaderActions(
           isSaving: widget.isSaving,
           onSavePressed: _onSavePressed,
@@ -135,7 +136,7 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _ReportSettingsGroup(
-                icon: Icons.tune_rounded,
+                icon: AppIcons.settingsTune,
                 title: 'Format & Timezone',
                 description:
                     'Set the default timezone, date format, and time format used when generating reports.',
@@ -147,7 +148,7 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
               ),
               const Gap(14),
               _ReportSettingsGroup(
-                icon: Icons.visibility_outlined,
+                icon: AppIcons.view,
                 title: 'Report Visibility',
                 description:
                     'Choose which company and document control details should appear in generated reports.',
@@ -172,7 +173,7 @@ class _CompanyReportSettingsFormState extends State<CompanyReportSettingsForm> {
               ),
               const Gap(14),
               _ReportSettingsGroup(
-                icon: Icons.fact_check_outlined,
+                icon: AppIcons.responsibility,
                 title: 'Footer & Responsibility Statements',
                 description:
                     'Customize the footer and accountability statements printed on custody and company documents.',
@@ -244,7 +245,7 @@ class _ReportSettingsHeaderActions extends StatelessWidget {
               foregroundColor: AppColors.textSecondary,
               padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
-            icon: const Icon(Icons.history_rounded, size: 17),
+            icon: const Icon(AppIcons.auditHistory, size: 17),
             label: const Text('Audit History'),
           ),
         ),

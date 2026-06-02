@@ -7,6 +7,7 @@ import 'package:mina_system/features/lookups/presentation/functions/add_departme
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_department_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/restore_department_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/show_lookup_audit_history.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
@@ -55,9 +56,9 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
-        final departments = _showInactive
-            ? state.inactiveDepartments
-            : state.departments;
+        final departmentModels = _showInactive
+            ? state.inactiveDepartmentModels
+            : state.departmentModels;
 
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -95,30 +96,38 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                   ),
                   const Gap(20),
                 ],
-                if (departments.isEmpty)
+                if (departmentModels.isEmpty)
                   EmptyLookupMessage(
                     message: _showInactive
                         ? 'No inactive departments found'
                         : 'No active departments found',
                   )
                 else
-                  ...departments.map((department) {
+                  ...departmentModels.map((department) {
                     return LookupListTile(
-                      title: department,
+                      title: department.name,
                       subtitle: _showInactive
                           ? 'Inactive Department'
                           : 'Active Department',
+                      onViewAuditHistory: () {
+                        showLookupAuditHistory(
+                          context,
+                          entityType: 'department',
+                          entityId: department.id,
+                          title: 'Department Audit History',
+                        );
+                      },
                       onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
                                 title: 'Deactivate Department',
                                 message:
-                                    'Are you sure you want to deactivate $department?',
+                                    'Are you sure you want to deactivate ${department.name}?',
                                 onConfirm: () async {
                                   await deleteDepartmentLookup(
                                     context: context,
-                                    department: department,
+                                    department: department.name,
                                   );
                                 },
                               );
@@ -128,7 +137,7 @@ class _DepartmentsTabState extends State<DepartmentsTab> {
                           ? () async {
                               await restoreDepartmentLookup(
                                 context: context,
-                                department: department,
+                                department: department.name,
                               );
                             }
                           : null,

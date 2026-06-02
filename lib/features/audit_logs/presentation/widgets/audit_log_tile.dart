@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/audit_logs/data/models/audit_log_model.dart';
@@ -84,7 +85,7 @@ class _AuditLogHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
-            Icons.history_rounded,
+            AppIcons.auditHistory,
             color: AppColors.accent,
             size: 20,
           ),

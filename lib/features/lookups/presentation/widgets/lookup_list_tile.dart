@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 
 class LookupListTile extends StatelessWidget {
@@ -7,12 +8,14 @@ class LookupListTile extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
+    this.onViewAuditHistory,
     this.onDelete,
     this.onRestore,
   });
 
   final String title;
   final String subtitle;
+  final VoidCallback? onViewAuditHistory;
   final VoidCallback? onDelete;
   final VoidCallback? onRestore;
 
@@ -33,30 +36,40 @@ class LookupListTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(subtitle, style: AppTextStyles.caption),
-        trailing: _buildTrailingAction(),
+        trailing: _buildTrailingActions(),
       ),
     );
   }
 
-  Widget? _buildTrailingAction() {
-    if (onRestore != null) {
-      return IconButton(
-        onPressed: onRestore,
-        icon: const Icon(Icons.restore),
-        color: AppColors.accent,
-        tooltip: 'Restore',
-      );
+  Widget? _buildTrailingActions() {
+    final actions = <Widget>[
+      if (onViewAuditHistory != null)
+        IconButton(
+          onPressed: onViewAuditHistory,
+          icon: const Icon(AppIcons.auditHistory),
+          color: AppColors.textSecondary,
+          tooltip: 'View Audit History',
+        ),
+      if (onRestore != null)
+        IconButton(
+          onPressed: onRestore,
+          icon: const Icon(AppIcons.restore),
+          color: AppColors.accent,
+          tooltip: 'Restore',
+        )
+      else if (onDelete != null)
+        IconButton(
+          onPressed: onDelete,
+          icon: const Icon(AppIcons.deactivate),
+          color: AppColors.error,
+          tooltip: 'Deactivate',
+        ),
+    ];
+
+    if (actions.isEmpty) {
+      return null;
     }
 
-    if (onDelete != null) {
-      return IconButton(
-        onPressed: onDelete,
-        icon: const Icon(Icons.delete_outline),
-        color: AppColors.error,
-        tooltip: 'Deactivate',
-      );
-    }
-
-    return null;
+    return Row(mainAxisSize: MainAxisSize.min, children: actions);
   }
 }

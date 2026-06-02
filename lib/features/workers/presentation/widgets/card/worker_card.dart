@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/record_accountability_section.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
@@ -59,6 +60,7 @@ class WorkerCard extends StatelessWidget {
     });
 
     final isRowSubmitting = isDeleting || isReactivating;
+
     return Card(
       elevation: 0,
       color: AppColors.card,
@@ -75,10 +77,7 @@ class WorkerCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.accent.withValues(alpha: 0.12),
-                  child: const Icon(
-                    Icons.person_outline,
-                    color: AppColors.accent,
-                  ),
+                  child: const Icon(AppIcons.worker, color: AppColors.accent),
                 ),
                 const Gap(12),
                 Expanded(
@@ -94,14 +93,14 @@ class WorkerCard extends StatelessWidget {
                   if (onViewAuditHistory != null)
                     IconButton(
                       onPressed: onViewAuditHistory,
-                      icon: const Icon(Icons.history_rounded),
+                      icon: const Icon(AppIcons.auditHistory),
                       color: AppColors.textSecondary,
                       tooltip: 'View Audit History',
                     ),
                   if (onEdit != null)
                     IconButton(
                       onPressed: isRowSubmitting ? null : onEdit,
-                      icon: const Icon(Icons.edit_outlined),
+                      icon: const Icon(AppIcons.edit),
                       color: AppColors.accent,
                       tooltip: 'Edit',
                     ),
@@ -117,7 +116,7 @@ class WorkerCard extends StatelessWidget {
                                 color: AppColors.error,
                               ),
                             )
-                          : const Icon(Icons.delete_outline),
+                          : const Icon(AppIcons.deactivate),
                       color: AppColors.error,
                       tooltip: 'Deactivate',
                     ),
@@ -133,7 +132,7 @@ class WorkerCard extends StatelessWidget {
                                 color: AppColors.accent,
                               ),
                             )
-                          : const Icon(Icons.restore_outlined),
+                          : const Icon(AppIcons.restore),
                       color: AppColors.accent,
                       tooltip: 'Reactivate',
                     ),

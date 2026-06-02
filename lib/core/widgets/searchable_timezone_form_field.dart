@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_timezones.dart';
 import 'package:mina_system/core/widgets/custom_text_form_field.dart';
@@ -79,7 +80,7 @@ class _SearchableTimezoneFormFieldState
           hint: widget.hint,
           controller: _controller,
           readOnly: true,
-          icon: const Icon(Icons.schedule_rounded),
+          icon: const Icon(AppIcons.schedule),
           fillColor: widget.fillColor,
           borderColor: widget.borderColor,
           focusedBorderColor: widget.focusedBorderColor,
@@ -210,7 +211,7 @@ class _TimezonePickerSheetState extends State<_TimezonePickerSheet> {
                   fillColor: AppColors.background,
                   hintText: 'Search by country, city, or timezone',
                   hintStyle: AppTextStyles.caption,
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: const Icon(AppIcons.search),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.border),
@@ -262,7 +263,7 @@ class _TimezonePickerSheetState extends State<_TimezonePickerSheet> {
                             ),
                             trailing: isSelected
                                 ? const Icon(
-                                    Icons.check_circle_rounded,
+                                    AppIcons.done,
                                     color: AppColors.accent,
                                   )
                                 : null,

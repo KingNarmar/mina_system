@@ -45,6 +45,7 @@ class AuditLogModel {
         return 'Deactivated Worker';
       case 'reactivate_worker':
         return 'Reactivated Worker';
+
       case 'create_tool':
         return 'Created Tool';
       case 'update_tool':
@@ -53,6 +54,7 @@ class AuditLogModel {
         return 'Deactivated Tool';
       case 'reactivate_tool':
         return 'Reactivated Tool';
+
       case 'transaction_created':
         return 'Created Transaction';
       case 'transaction_approval_document_uploaded':
@@ -63,6 +65,35 @@ class AuditLogModel {
         return 'Rejected Transaction';
       case 'transaction_settled':
         return 'Settled Transaction';
+
+      case 'department_created':
+        return 'Created Department';
+      case 'department_deactivated':
+        return 'Deactivated Department';
+      case 'department_reactivated':
+        return 'Reactivated Department';
+
+      case 'job_title_created':
+        return 'Created Job Title';
+      case 'job_title_deactivated':
+        return 'Deactivated Job Title';
+      case 'job_title_reactivated':
+        return 'Reactivated Job Title';
+
+      case 'tool_unit_created':
+        return 'Created Tool Unit';
+      case 'tool_unit_deactivated':
+        return 'Deactivated Tool Unit';
+      case 'tool_unit_reactivated':
+        return 'Reactivated Tool Unit';
+
+      case 'tool_category_created':
+        return 'Created Tool Category';
+      case 'tool_category_deactivated':
+        return 'Deactivated Tool Category';
+      case 'tool_category_reactivated':
+        return 'Reactivated Tool Category';
+
       default:
         return _toTitleCase(action);
     }
@@ -82,6 +113,16 @@ class AuditLogModel {
         return 'Company User';
       case 'company_settings':
         return 'Company Settings';
+
+      case 'department':
+        return 'Department';
+      case 'job_title':
+        return 'Job Title';
+      case 'tool_unit':
+        return 'Tool Unit';
+      case 'tool_category':
+        return 'Tool Category';
+
       default:
         return _toTitleCase(entityType);
     }

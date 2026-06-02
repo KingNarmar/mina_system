@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
@@ -12,8 +13,8 @@ import 'package:mina_system/features/transactions/presentation/cubit/transaction
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 
 part 'pending_approval_document_picker.dart';
-part 'pending_approval_workflow.dart';
 part 'pending_approval_ui_helpers.dart';
+part 'pending_approval_workflow.dart';
 
 class PendingApprovalActions extends StatelessWidget {
   const PendingApprovalActions({
@@ -75,7 +76,7 @@ class PendingApprovalActions extends StatelessWidget {
           onPressed: () {
             showTransactionDetails(context, transaction);
           },
-          icon: const Icon(Icons.visibility_outlined, size: 18),
+          icon: const Icon(AppIcons.view, size: 18),
           label: const Text('View'),
         ),
         if (transaction.isApprovalPending && canUploadApprovalDocument)
@@ -87,7 +88,7 @@ class PendingApprovalActions extends StatelessWidget {
                   },
             icon: isUploadingApprovalDocument
                 ? const _ActionButtonLoader()
-                : const Icon(Icons.upload_file_outlined, size: 18),
+                : const Icon(AppIcons.upload, size: 18),
             label: Text(
               isUploadingApprovalDocument
                   ? 'Uploading...'
@@ -105,7 +106,7 @@ class PendingApprovalActions extends StatelessWidget {
                 : null,
             icon: isApproving
                 ? const _ActionButtonLoader()
-                : const Icon(Icons.check_circle_outline, size: 18),
+                : const Icon(AppIcons.approve, size: 18),
             label: Text(isApproving ? 'Approving...' : 'Approve'),
           ),
         if (transaction.isApprovalPending && canRejectLostDamaged)
@@ -117,7 +118,7 @@ class PendingApprovalActions extends StatelessWidget {
                 : null,
             icon: isRejecting
                 ? const _ActionButtonLoader()
-                : const Icon(Icons.cancel_outlined, size: 18),
+                : const Icon(AppIcons.reject, size: 18),
             label: Text(isRejecting ? 'Rejecting...' : 'Reject'),
           ),
         if (transaction.isApprovalApproved &&
@@ -131,7 +132,7 @@ class PendingApprovalActions extends StatelessWidget {
                   },
             icon: isSettling
                 ? const _ActionButtonLoader()
-                : const Icon(Icons.price_check_outlined, size: 18),
+                : const Icon(AppIcons.settle, size: 18),
             label: Text(isSettling ? 'Settling...' : 'Settle'),
           ),
       ],

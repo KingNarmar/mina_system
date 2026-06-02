@@ -7,6 +7,7 @@ import 'package:mina_system/features/lookups/presentation/functions/add_tool_cat
 import 'package:mina_system/features/lookups/presentation/functions/confirm_delete_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/delete_tool_category_lookup.dart';
 import 'package:mina_system/features/lookups/presentation/functions/restore_tool_category_lookup.dart';
+import 'package:mina_system/features/lookups/presentation/functions/show_lookup_audit_history.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/empty_lookup_message.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_add_row.dart';
 import 'package:mina_system/features/lookups/presentation/widgets/lookup_card.dart';
@@ -55,9 +56,9 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
 
     return BlocBuilder<LookupsCubit, LookupsState>(
       builder: (context, state) {
-        final categories = _showInactive
-            ? state.inactiveToolCategories
-            : state.toolCategories;
+        final categoryModels = _showInactive
+            ? state.inactiveToolCategoryModels
+            : state.toolCategoryModels;
 
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -95,30 +96,38 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                   ),
                   const Gap(20),
                 ],
-                if (categories.isEmpty)
+                if (categoryModels.isEmpty)
                   EmptyLookupMessage(
                     message: _showInactive
                         ? 'No inactive tool categories found'
                         : 'No active tool categories found',
                   )
                 else
-                  ...categories.map((category) {
+                  ...categoryModels.map((category) {
                     return LookupListTile(
-                      title: category,
+                      title: category.name,
                       subtitle: _showInactive
                           ? 'Inactive Tool Category'
                           : 'Active Tool Category',
+                      onViewAuditHistory: () {
+                        showLookupAuditHistory(
+                          context,
+                          entityType: 'tool_category',
+                          entityId: category.id,
+                          title: 'Tool Category Audit History',
+                        );
+                      },
                       onDelete: !_showInactive && widget.canDeleteLookups
                           ? () {
                               confirmDeleteLookup(
                                 context: context,
                                 title: 'Deactivate Tool Category',
                                 message:
-                                    'Are you sure you want to deactivate $category?',
+                                    'Are you sure you want to deactivate ${category.name}?',
                                 onConfirm: () async {
                                   await deleteToolCategoryLookup(
                                     context: context,
-                                    category: category,
+                                    category: category.name,
                                   );
                                 },
                               );
@@ -128,7 +137,7 @@ class _ToolCategoriesTabState extends State<ToolCategoriesTab> {
                           ? () async {
                               await restoreToolCategoryLookup(
                                 context: context,
-                                category: category,
+                                category: category.name,
                               );
                             }
                           : null,
