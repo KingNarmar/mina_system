@@ -21,7 +21,7 @@ class AppTopBar extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    context.go(Routes.emailEntry);
+    context.go(Routes.login);
   }
 
   @override
