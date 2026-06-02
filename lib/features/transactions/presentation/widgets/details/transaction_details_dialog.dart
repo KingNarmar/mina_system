@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/permissions/company_role_permissions.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_icons.dart';
+import 'package:mina_system/core/utils/app_message.dart';
+import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_audit_history.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_accountability_section.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_approval_settlement_section.dart';
@@ -17,6 +24,9 @@ class TransactionDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentRole = context.currentUserRole;
+    final canVoidTransaction = _canVoidTransaction(currentRole, transaction);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,15 +37,51 @@ class TransactionDetailsDialog extends StatelessWidget {
         const Gap(16),
         TransactionAccountabilitySection(transaction: transaction),
         const Gap(12),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            onPressed: () {
-              showTransactionAuditHistory(context, transaction: transaction);
-            },
-            icon: const Icon(AppIcons.auditHistory, size: 18),
-            label: const Text('View Audit History'),
-          ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () {
+                showTransactionAuditHistory(context, transaction: transaction);
+              },
+              icon: const Icon(AppIcons.auditHistory, size: 18),
+              label: const Text('View Audit History'),
+            ),
+            if (canVoidTransaction)
+              BlocBuilder<TransactionsCubit, TransactionsState>(
+                builder: (context, state) {
+                  final transactionId = transaction.id?.trim() ?? '';
+                  final actionKey = 'transactions:void:$transactionId';
+                  final isSubmitting = state.isActionSubmitting(actionKey);
+
+                  return OutlinedButton.icon(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            _showVoidTransactionDialog(context);
+                          },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                    icon: isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            AppIcons.cancelScheduleSendOutlined,
+                            size: 18,
+                          ),
+                    label: Text(
+                      isSubmitting ? 'Voiding...' : 'Void Transaction',
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
         const Gap(16),
         const SectionTitle(title: 'Photo'),
@@ -57,5 +103,94 @@ class TransactionDetailsDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  bool _canVoidTransaction(String? role, TransactionModel transaction) {
+    if (transaction.isVoided) {
+      return false;
+    }
+
+    return CompanyRolePermissions.isOwner(role) ||
+        CompanyRolePermissions.isAdmin(role) ||
+        CompanyRolePermissions.isWarehouseManager(role);
+  }
+
+  Future<void> _showVoidTransactionDialog(BuildContext context) async {
+    final reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Void Transaction'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This will cancel ${transaction.transactionCode} and exclude it from custody balance calculations.',
+              ),
+              const Gap(12),
+              TextField(
+                controller: reasonController,
+                minLines: 3,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: 'Void reason',
+                  hintText:
+                      'Example: Wrong quantity entered and will be recreated correctly',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+              child: const Text('Void Transaction'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) {
+      reasonController.dispose();
+      return;
+    }
+
+    final reason = reasonController.text.trim();
+    reasonController.dispose();
+
+    if (reason.length < 3) {
+      AppMessage.showError(
+        context,
+        'Void reason must be at least 3 characters.',
+      );
+      return;
+    }
+
+    final companyId = context.currentCompanyId;
+    final success = await context.read<TransactionsCubit>().cancelTransaction(
+      transaction: transaction,
+      reason: reason,
+      companyId: companyId,
+    );
+
+    if (!context.mounted || !success) {
+      return;
+    }
+
+    AppMessage.showSuccess(context, 'Transaction voided successfully.');
+    Navigator.pop(context);
   }
 }
