@@ -118,64 +118,82 @@ class TransactionDetailsDialog extends StatelessWidget {
   Future<void> _showVoidTransactionDialog(BuildContext context) async {
     final reasonController = TextEditingController();
 
-    final confirmed = await showDialog<bool>(
+    final reason = await showDialog<String?>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Void Transaction'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This will cancel ${transaction.transactionCode} and exclude it from custody balance calculations.',
+        String? reasonError;
+
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Void Transaction'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'This will cancel ${transaction.transactionCode} and exclude it from custody balance calculations.',
+                  ),
+                  const Gap(12),
+                  TextField(
+                    controller: reasonController,
+                    minLines: 3,
+                    maxLines: 5,
+                    onChanged: (_) {
+                      if (reasonError == null) {
+                        return;
+                      }
+
+                      setDialogState(() {
+                        reasonError = null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Void reason',
+                      hintText:
+                          'Example: Wrong quantity entered and will be recreated correctly',
+                      errorText: reasonError,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
               ),
-              const Gap(12),
-              TextField(
-                controller: reasonController,
-                minLines: 3,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  labelText: 'Void reason',
-                  hintText:
-                      'Example: Wrong quantity entered and will be recreated correctly',
-                  border: OutlineInputBorder(),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
-              style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-              child: const Text('Void Transaction'),
-            ),
-          ],
+                FilledButton(
+                  onPressed: () {
+                    final cleanReason = reasonController.text.trim();
+
+                    if (cleanReason.length < 3) {
+                      setDialogState(() {
+                        reasonError =
+                            'Void reason must be at least 3 characters.';
+                      });
+                      return;
+                    }
+
+                    Navigator.pop(dialogContext, cleanReason);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                  ),
+                  child: const Text('Void Transaction'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
 
-    if (confirmed != true || !context.mounted) {
-      reasonController.dispose();
-      return;
-    }
-
-    final reason = reasonController.text.trim();
     reasonController.dispose();
 
-    if (reason.length < 3) {
-      AppMessage.showError(
-        context,
-        'Void reason must be at least 3 characters.',
-      );
+    if (reason == null || !context.mounted) {
       return;
     }
 
