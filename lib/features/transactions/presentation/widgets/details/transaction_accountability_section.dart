@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 
 class TransactionAccountabilitySection extends StatelessWidget {
   const TransactionAccountabilitySection({
@@ -117,6 +117,28 @@ class TransactionAccountabilitySection extends StatelessWidget {
                 transaction.settledAt,
                 timezone: timezone,
               ),
+            ),
+          ],
+
+          if (transaction.isVoided) ...[
+            const Gap(10),
+            const Divider(height: 1, color: AppColors.border),
+            const Gap(10),
+
+            _AccountabilityRow(
+              label: 'Voided by',
+              value: transaction.voidedByDisplayName,
+            ),
+            _AccountabilityRow(
+              label: 'Voided at',
+              value: _formatNullableDate(
+                transaction.voidedAt,
+                timezone: timezone,
+              ),
+            ),
+            _AccountabilityRow(
+              label: 'Void reason',
+              value: transaction.voidReason ?? '-',
             ),
           ],
 
