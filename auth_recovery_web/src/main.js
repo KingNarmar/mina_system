@@ -91,6 +91,35 @@ function getAuthErrorMessage() {
   );
 }
 
+async function verifyTokenHashSession(supabase, fallbackType) {
+  const tokenHash = getUrlParam("token_hash");
+  const type = getUrlParam("type") || fallbackType;
+
+  if (!tokenHash || !type) {
+    return { handled: false, error: null };
+  }
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type,
+  });
+
+  if (error) {
+    return { handled: true, error };
+  }
+
+  if (!data.session) {
+    return {
+      handled: true,
+      error: new Error(
+        "The link was verified, but no active session was returned.",
+      ),
+    };
+  }
+
+  return { handled: true, error: null };
+}
+
 if (!supabaseUrl || !supabaseAnonKey) {
   hideElement(resetPasswordView);
   hideElement(emailConfirmedView);
@@ -167,17 +196,13 @@ async function initializeRecoverySession(supabase) {
     return;
   }
 
-  const code = getUrlParam("code");
-  const accessToken = getUrlParam("access_token");
-  const refreshToken = getUrlParam("refresh_token");
-
   try {
-    if (code) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const tokenHashResult = await verifyTokenHashSession(supabase, "recovery");
 
-      if (error) {
+    if (tokenHashResult.handled) {
+      if (tokenHashResult.error) {
         showStatus(
-          error.message ||
+          tokenHashResult.error.message ||
             "This password reset link is invalid or expired. Please request a new link.",
           "error",
         );
@@ -190,6 +215,9 @@ async function initializeRecoverySession(supabase) {
       showElement(resetForm);
       return;
     }
+
+    const accessToken = getUrlParam("access_token");
+    const refreshToken = getUrlParam("refresh_token");
 
     if (accessToken && refreshToken) {
       const { error } = await supabase.auth.setSession({
@@ -213,11 +241,14 @@ async function initializeRecoverySession(supabase) {
       return;
     }
 
-    const { data } = await supabase.auth.getSession();
+    const code = getUrlParam("code");
 
-    if (data.session) {
-      hideStatus();
-      showElement(resetForm);
+    if (code) {
+      showStatus(
+        "This reset link uses the old PKCE format and cannot be completed in this browser page. Please request a new reset link after updating the Supabase email template.",
+        "error",
+      );
+      hideElement(resetForm);
       return;
     }
 
@@ -241,17 +272,13 @@ async function initializeEmailConfirmation(supabase) {
     return;
   }
 
-  const code = getUrlParam("code");
-  const accessToken = getUrlParam("access_token");
-  const refreshToken = getUrlParam("refresh_token");
-
   try {
-    if (code) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const tokenHashResult = await verifyTokenHashSession(supabase, "email");
 
-      if (error) {
+    if (tokenHashResult.handled) {
+      if (tokenHashResult.error) {
         showConfirmationStatus(
-          error.message ||
+          tokenHashResult.error.message ||
             "This confirmation link is invalid or expired. Please request a new confirmation email.",
           "error",
         );
@@ -265,6 +292,9 @@ async function initializeEmailConfirmation(supabase) {
       showElement(confirmationSuccess);
       return;
     }
+
+    const accessToken = getUrlParam("access_token");
+    const refreshToken = getUrlParam("refresh_token");
 
     if (accessToken && refreshToken) {
       const { error } = await supabase.auth.setSession({
@@ -286,6 +316,16 @@ async function initializeEmailConfirmation(supabase) {
       clearUrlParams();
       hideElement(confirmationStatus);
       showElement(confirmationSuccess);
+      return;
+    }
+
+    const code = getUrlParam("code");
+
+    if (code) {
+      showConfirmationStatus(
+        "This confirmation link uses the old PKCE format and cannot be completed in this browser page. Please request a new confirmation email after updating the Supabase email template.",
+        "error",
+      );
       return;
     }
 
