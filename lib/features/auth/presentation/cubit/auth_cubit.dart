@@ -49,9 +49,16 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
 
     try {
+      final emailConfirmationRedirectUrl = AppEnvironment
+          .emailConfirmationRedirectUrl
+          .trim();
+
       final response = await _supabase.auth.signUp(
         email: email.trim(),
         password: password.trim(),
+        emailRedirectTo: emailConfirmationRedirectUrl.isEmpty
+            ? null
+            : emailConfirmationRedirectUrl,
         data: {'full_name': fullName.trim()},
       );
 

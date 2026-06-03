@@ -12,6 +12,10 @@ abstract final class AppEnvironment {
     'PASSWORD_RESET_REDIRECT_URL',
   );
 
+  static const String emailConfirmationRedirectUrl = String.fromEnvironment(
+    'EMAIL_CONFIRMATION_REDIRECT_URL',
+  );
+
   static const String _supabasePublishableKey = String.fromEnvironment(
     'SUPABASE_PUBLISHABLE_KEY',
   );
@@ -65,6 +69,10 @@ abstract final class AppEnvironment {
       missingValues.add('PASSWORD_RESET_REDIRECT_URL');
     }
 
+    if (isProduction && emailConfirmationRedirectUrl.trim().isEmpty) {
+      missingValues.add('EMAIL_CONFIRMATION_REDIRECT_URL');
+    }
+
     if (missingValues.isNotEmpty) {
       throw StateError(
         'Missing required environment configuration: '
@@ -73,25 +81,42 @@ abstract final class AppEnvironment {
       );
     }
 
-    final parsedSupabaseUrl = Uri.tryParse(supabaseUrl.trim());
-
-    if (parsedSupabaseUrl == null ||
-        parsedSupabaseUrl.scheme != 'https' ||
-        parsedSupabaseUrl.host.trim().isEmpty) {
-      throw StateError('SUPABASE_URL must be a valid HTTPS URL.');
-    }
-
-    final parsedPasswordResetRedirectUrl = Uri.tryParse(
-      passwordResetRedirectUrl.trim(),
+    _validateHttpsUrl(
+      value: supabaseUrl,
+      variableName: 'SUPABASE_URL',
+      required: true,
     );
 
-    if (passwordResetRedirectUrl.trim().isNotEmpty &&
-        (parsedPasswordResetRedirectUrl == null ||
-            parsedPasswordResetRedirectUrl.scheme != 'https' ||
-            parsedPasswordResetRedirectUrl.host.trim().isEmpty)) {
-      throw StateError(
-        'PASSWORD_RESET_REDIRECT_URL must be a valid HTTPS URL.',
-      );
+    _validateHttpsUrl(
+      value: passwordResetRedirectUrl,
+      variableName: 'PASSWORD_RESET_REDIRECT_URL',
+      required: false,
+    );
+
+    _validateHttpsUrl(
+      value: emailConfirmationRedirectUrl,
+      variableName: 'EMAIL_CONFIRMATION_REDIRECT_URL',
+      required: false,
+    );
+  }
+
+  static void _validateHttpsUrl({
+    required String value,
+    required String variableName,
+    required bool required,
+  }) {
+    final normalizedValue = value.trim();
+
+    if (!required && normalizedValue.isEmpty) {
+      return;
+    }
+
+    final parsedUrl = Uri.tryParse(normalizedValue);
+
+    if (parsedUrl == null ||
+        parsedUrl.scheme != 'https' ||
+        parsedUrl.host.trim().isEmpty) {
+      throw StateError('$variableName must be a valid HTTPS URL.');
     }
   }
 }
