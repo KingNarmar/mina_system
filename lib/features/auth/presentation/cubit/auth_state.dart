@@ -18,6 +18,8 @@ class AuthPasswordResetEmailSent extends AuthState {
   final String email;
 }
 
+class AuthPasswordUpdated extends AuthState {}
+
 class AuthFailure extends AuthState {
   AuthFailure(this.message);
 

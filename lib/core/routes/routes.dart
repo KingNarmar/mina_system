@@ -4,6 +4,7 @@ import 'package:mina_system/features/auth/presentation/screens/email_entry_scree
 import 'package:mina_system/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:mina_system/features/auth/presentation/screens/login_screen.dart';
 import 'package:mina_system/features/auth/presentation/screens/register_screen.dart';
+import 'package:mina_system/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class Routes {
@@ -11,10 +12,7 @@ abstract class Routes {
   static const String register = '/register';
   static const String emailEntry = '/email-entry';
   static const String forgotPassword = '/forgot-password';
-
-  // This route will be activated after adding the reset password screen.
   static const String resetPassword = '/reset-password';
-
   static const String dashboard = '/dashboard';
 
   static final router = GoRouter(
@@ -26,15 +24,18 @@ abstract class Routes {
       final isGoingToRegister = state.matchedLocation == register;
       final isGoingToEmailEntry = state.matchedLocation == emailEntry;
       final isGoingToForgotPassword = state.matchedLocation == forgotPassword;
+      final isGoingToResetPassword = state.matchedLocation == resetPassword;
 
       final isGoingToAuthPage =
           isGoingToLogin ||
           isGoingToRegister ||
           isGoingToEmailEntry ||
-          isGoingToForgotPassword;
+          isGoingToForgotPassword ||
+          isGoingToResetPassword;
 
-      // Authenticated users should not access auth pages.
-      if (isLoggedIn && isGoingToAuthPage) {
+      // Authenticated users should not access regular auth pages.
+      // Reset password is excluded because password recovery creates a temporary session.
+      if (isLoggedIn && isGoingToAuthPage && !isGoingToResetPassword) {
         return dashboard;
       }
 
@@ -54,6 +55,10 @@ abstract class Routes {
       GoRoute(
         path: forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: resetPassword,
+        builder: (context, state) => const ResetPasswordScreen(),
       ),
 
       // Legacy route kept temporarily during auth flow redesign.

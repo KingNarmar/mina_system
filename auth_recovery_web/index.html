@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>M.I.N.A System | Reset Password</title>
+  </head>
+  <body>
+    <main class="page">
+      <section class="brand-panel">
+        <div>
+          <h1>M.I.N.A System</h1>
+          <p>Materials Inventory Navigation Assistant</p>
+          <span>Secure account recovery</span>
+        </div>
+      </section>
+
+      <section class="form-panel">
+        <div class="card">
+          <div class="logo">M</div>
+
+          <h2>Reset your password</h2>
+          <p class="subtitle">
+            Enter your new password below. After updating it, return to Mina
+            System and login again.
+          </p>
+
+          <div id="status" class="status hidden"></div>
+
+          <form id="reset-form" class="hidden">
+            <label for="password">New password</label>
+            <input
+              id="password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Enter new password"
+              required
+            />
+
+            <label for="confirm-password">Confirm password</label>
+            <input
+              id="confirm-password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Confirm new password"
+              required
+            />
+
+            <button id="submit-button" type="submit">Update Password</button>
+          </form>
+
+          <div id="success-view" class="success hidden">
+            <h3>Password updated successfully</h3>
+            <p>
+              You can now close this page and login to Mina System using your
+              new password.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

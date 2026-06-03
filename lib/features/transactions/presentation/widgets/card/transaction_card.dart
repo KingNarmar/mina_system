@@ -57,7 +57,10 @@ class TransactionCard extends StatelessWidget {
                     runSpacing: 8,
                     alignment: WrapAlignment.end,
                     children: [
-                      _TransactionStatusBadge(label: typeLabel, color: typeColor),
+                      _TransactionStatusBadge(
+                        label: typeLabel,
+                        color: typeColor,
+                      ),
                       if (transaction.isVoided)
                         const _TransactionStatusBadge(
                           label: 'Voided',

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/config/app_environment.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/auth/presentation/cubit/auth_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
@@ -78,11 +79,19 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> sendPasswordResetEmail({required String email}) async {
     final normalizedEmail = email.trim();
+    final redirectUrl = AppEnvironment.passwordResetRedirectUrl.trim();
 
     emit(AuthLoading());
 
     try {
-      await _supabase.auth.resetPasswordForEmail(normalizedEmail);
+      if (redirectUrl.isEmpty) {
+        await _supabase.auth.resetPasswordForEmail(normalizedEmail);
+      } else {
+        await _supabase.auth.resetPasswordForEmail(
+          normalizedEmail,
+          redirectTo: redirectUrl,
+        );
+      }
 
       emit(AuthPasswordResetEmailSent(email: normalizedEmail));
     } catch (error) {
@@ -91,6 +100,47 @@ class AuthCubit extends Cubit<AuthState> {
           AppErrorMessage.fromError(
             error,
             fallback: 'Failed to send password reset email. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> updatePassword({required String password}) async {
+    final normalizedPassword = password.trim();
+
+    emit(AuthLoading());
+
+    try {
+      final currentSession = _supabase.auth.currentSession;
+
+      if (currentSession == null) {
+        emit(
+          AuthFailure(
+            'Password recovery session is not active. Please request a new reset link.',
+          ),
+        );
+        return;
+      }
+
+      final response = await _supabase.auth.updateUser(
+        UserAttributes(password: normalizedPassword),
+      );
+
+      if (response.user == null) {
+        emit(AuthFailure('Password update failed. Please try again.'));
+        return;
+      }
+
+      await _supabase.auth.signOut();
+
+      emit(AuthPasswordUpdated());
+    } catch (error) {
+      emit(
+        AuthFailure(
+          AppErrorMessage.fromError(
+            error,
+            fallback: 'Password update failed. Please try again.',
           ),
         ),
       );

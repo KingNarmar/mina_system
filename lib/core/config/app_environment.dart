@@ -8,6 +8,10 @@ abstract final class AppEnvironment {
 
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 
+  static const String passwordResetRedirectUrl = String.fromEnvironment(
+    'PASSWORD_RESET_REDIRECT_URL',
+  );
+
   static const String _supabasePublishableKey = String.fromEnvironment(
     'SUPABASE_PUBLISHABLE_KEY',
   );
@@ -57,6 +61,10 @@ abstract final class AppEnvironment {
       missingValues.add('SUPABASE_PUBLISHABLE_KEY or SUPABASE_ANON_KEY');
     }
 
+    if (isProduction && passwordResetRedirectUrl.trim().isEmpty) {
+      missingValues.add('PASSWORD_RESET_REDIRECT_URL');
+    }
+
     if (missingValues.isNotEmpty) {
       throw StateError(
         'Missing required environment configuration: '
@@ -71,6 +79,19 @@ abstract final class AppEnvironment {
         parsedSupabaseUrl.scheme != 'https' ||
         parsedSupabaseUrl.host.trim().isEmpty) {
       throw StateError('SUPABASE_URL must be a valid HTTPS URL.');
+    }
+
+    final parsedPasswordResetRedirectUrl = Uri.tryParse(
+      passwordResetRedirectUrl.trim(),
+    );
+
+    if (passwordResetRedirectUrl.trim().isNotEmpty &&
+        (parsedPasswordResetRedirectUrl == null ||
+            parsedPasswordResetRedirectUrl.scheme != 'https' ||
+            parsedPasswordResetRedirectUrl.host.trim().isEmpty)) {
+      throw StateError(
+        'PASSWORD_RESET_REDIRECT_URL must be a valid HTTPS URL.',
+      );
     }
   }
 }
