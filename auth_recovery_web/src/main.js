@@ -4,12 +4,29 @@ import "./styles.css";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+const brandBadge = document.getElementById("brand-badge");
+
+const resetPasswordView = document.getElementById("reset-password-view");
+const emailConfirmedView = document.getElementById("email-confirmed-view");
+const notFoundView = document.getElementById("not-found-view");
+
 const statusBox = document.getElementById("status");
 const resetForm = document.getElementById("reset-form");
 const successView = document.getElementById("success-view");
 const submitButton = document.getElementById("submit-button");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirm-password");
+
+const confirmationStatus = document.getElementById("confirmation-status");
+const confirmationSuccess = document.getElementById("confirmation-success");
+
+function showElement(element) {
+  element.classList.remove("hidden");
+}
+
+function hideElement(element) {
+  element.classList.add("hidden");
+}
 
 function showStatus(message, type = "info") {
   statusBox.textContent = message;
@@ -21,16 +38,9 @@ function hideStatus() {
   statusBox.className = "status hidden";
 }
 
-function showForm() {
-  resetForm.classList.remove("hidden");
-}
-
-function hideForm() {
-  resetForm.classList.add("hidden");
-}
-
-function showSuccess() {
-  successView.classList.remove("hidden");
+function showConfirmationStatus(message, type = "info") {
+  confirmationStatus.textContent = message;
+  confirmationStatus.className = `status ${type}`;
 }
 
 function getUrlParam(name) {
@@ -46,12 +56,45 @@ function clearUrlParams() {
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  showStatus(
-    "Missing Supabase configuration. Please contact Mina System support.",
-    "error",
+function getPageType() {
+  const pathname = window.location.pathname;
+
+  if (pathname.endsWith("/reset-password")) {
+    return "reset-password";
+  }
+
+  if (pathname.endsWith("/email-confirmed")) {
+    return "email-confirmed";
+  }
+
+  if (pathname.endsWith("/mina_system/") || pathname.endsWith("/mina_system")) {
+    return "email-confirmed";
+  }
+
+  return "not-found";
+}
+
+function hasAuthError() {
+  return (
+    getUrlParam("error") ||
+    getUrlParam("error_code") ||
+    getUrlParam("error_description")
   );
-  hideForm();
+}
+
+function getAuthErrorMessage() {
+  return (
+    getUrlParam("error_description") ||
+    getUrlParam("error_code") ||
+    getUrlParam("error") ||
+    "This link is invalid or expired. Please request a new link."
+  );
+}
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  hideElement(resetPasswordView);
+  hideElement(emailConfirmedView);
+  showElement(notFoundView);
 } else {
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
@@ -62,7 +105,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
     },
   });
 
-  initializeRecoverySession(supabase);
+  const pageType = getPageType();
+
+  if (pageType === "reset-password") {
+    brandBadge.textContent = "Secure account recovery";
+    showElement(resetPasswordView);
+    initializeRecoverySession(supabase);
+  } else if (pageType === "email-confirmed") {
+    brandBadge.textContent = "Secure account confirmation";
+    showElement(emailConfirmedView);
+    initializeEmailConfirmation(supabase);
+  } else {
+    showElement(notFoundView);
+  }
 
   resetForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -97,25 +152,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
     await supabase.auth.signOut();
 
-    hideForm();
+    hideElement(resetForm);
     hideStatus();
-    showSuccess();
+    showElement(successView);
   });
 }
 
 async function initializeRecoverySession(supabase) {
   showStatus("Validating password reset link...", "info");
 
-  const errorDescription = getUrlParam("error_description");
-  const errorCode = getUrlParam("error_code") || getUrlParam("error");
-
-  if (errorCode || errorDescription) {
-    showStatus(
-      errorDescription ||
-        "This password reset link is invalid or expired. Please request a new link.",
-      "error",
-    );
-    hideForm();
+  if (hasAuthError()) {
+    showStatus(getAuthErrorMessage(), "error");
+    hideElement(resetForm);
     return;
   }
 
@@ -133,13 +181,13 @@ async function initializeRecoverySession(supabase) {
             "This password reset link is invalid or expired. Please request a new link.",
           "error",
         );
-        hideForm();
+        hideElement(resetForm);
         return;
       }
 
       clearUrlParams();
       hideStatus();
-      showForm();
+      showElement(resetForm);
       return;
     }
 
@@ -155,13 +203,13 @@ async function initializeRecoverySession(supabase) {
             "This password reset link is invalid or expired. Please request a new link.",
           "error",
         );
-        hideForm();
+        hideElement(resetForm);
         return;
       }
 
       clearUrlParams();
       hideStatus();
-      showForm();
+      showElement(resetForm);
       return;
     }
 
@@ -169,7 +217,7 @@ async function initializeRecoverySession(supabase) {
 
     if (data.session) {
       hideStatus();
-      showForm();
+      showElement(resetForm);
       return;
     }
 
@@ -177,12 +225,78 @@ async function initializeRecoverySession(supabase) {
       "No active password recovery session found. Please open the reset link from your email again.",
       "error",
     );
-    hideForm();
+    hideElement(resetForm);
   } catch (error) {
     showStatus(
       error?.message || "Something went wrong while validating the reset link.",
       "error",
     );
-    hideForm();
+    hideElement(resetForm);
+  }
+}
+
+async function initializeEmailConfirmation(supabase) {
+  if (hasAuthError()) {
+    showConfirmationStatus(getAuthErrorMessage(), "error");
+    return;
+  }
+
+  const code = getUrlParam("code");
+  const accessToken = getUrlParam("access_token");
+  const refreshToken = getUrlParam("refresh_token");
+
+  try {
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        showConfirmationStatus(
+          error.message ||
+            "This confirmation link is invalid or expired. Please request a new confirmation email.",
+          "error",
+        );
+        return;
+      }
+
+      await supabase.auth.signOut();
+
+      clearUrlParams();
+      hideElement(confirmationStatus);
+      showElement(confirmationSuccess);
+      return;
+    }
+
+    if (accessToken && refreshToken) {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (error) {
+        showConfirmationStatus(
+          error.message ||
+            "This confirmation link is invalid or expired. Please request a new confirmation email.",
+          "error",
+        );
+        return;
+      }
+
+      await supabase.auth.signOut();
+
+      clearUrlParams();
+      hideElement(confirmationStatus);
+      showElement(confirmationSuccess);
+      return;
+    }
+
+    showConfirmationStatus(
+      "No confirmation session found. Please open the confirmation link from your email again.",
+      "error",
+    );
+  } catch (error) {
+    showConfirmationStatus(
+      error?.message || "Something went wrong while confirming your account.",
+      "error",
+    );
   }
 }
