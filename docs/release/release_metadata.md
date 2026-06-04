@@ -27,8 +27,28 @@ Current target product positioning:
 | iOS test bundle identifier | com.minasystem.app.RunnerTests | Confirmed |
 | Windows display/product name | Mina System | Confirmed |
 | Windows executable filename | mina_system.exe | Confirmed for now |
-| Support email | Pending final business email/domain decision | Pending |
-| Logo/app icon | Pending final visual confirmation | Pending |
+| Temporary support email | megamarkter@gmail.com | Confirmed temporarily |
+| Final support email | Pending business domain decision, recommended: support@minasystem.app | Pending |
+| Logo direction | Approved generated Mina System logo concept | Confirmed |
+| App icon implementation | Generate platform-specific icons from approved logo direction | Pending implementation |
+
+## Logo Direction
+
+Approved direction:
+
+- Modern B2B software logo.
+- Dark navy / blue / teal palette.
+- Stylized `M` mark.
+- Inventory/tool/accountability/navigation symbolism.
+- Full logo includes `Mina System` and the subtitle `Materials Inventory Navigation Assistant`.
+
+Implementation still required:
+
+- Prepare clean full logo asset for documentation/marketing.
+- Prepare square app icon mark without long subtitle text.
+- Generate Android launcher icons.
+- Generate Windows `.ico` asset.
+- Prepare iOS app icon assets later when iOS build setup continues.
 
 ## Versioning Strategy
 
@@ -189,20 +209,24 @@ Mina System is designed for businesses that need a practical, professional, and 
 
 ## Legal / Support Metadata
 
-Pending items before closing Issue #22:
+Confirmed temporary item:
 
-- Confirm final app icon/logo assets across Android, Windows, and iOS.
-- Confirm final support email.
+- Temporary support email: `megamarkter@gmail.com`.
+
+Pending items before final production/store release:
+
+- Replace temporary support email with a final business/domain email when available.
+- Prepare final app icon assets across Android, Windows, and future iOS.
 - Confirm whether a public website/domain will exist before store submission.
 - Confirm whether a privacy policy URL will be prepared under Issue #12 or a separate legal/compliance issue.
 
 ## Current Decision
 
-Issue #22 should remain open until the pending logo/icon and support email decisions are finalized.
+Issue #22 should remain open until the pending app icon implementation and final support/domain decisions are finalized.
 
-The next recommended step after this document is added:
+The next recommended step after this document update:
 
 1. Add a progress comment to Issue #22.
 2. Keep Issue #22 open.
-3. Continue with final icon/support email decision when available.
-4. Move to Issue #12 only after deciding whether #22 is complete enough to close.
+3. Continue with platform-specific app icon implementation from the approved logo direction.
+4. Move to Issue #12 only after deciding whether #22 is complete enough to close or should remain blocked by final business/domain decisions.
