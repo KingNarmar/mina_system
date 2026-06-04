@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:signature/signature.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 
 Future<Uint8List?> showSignatureCaptureDialog(BuildContext context) {
   return showDialog<Uint8List?>(
@@ -67,18 +67,18 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
               _buildHeader(context),
               const Gap(16),
               const Text(
-                'Ask the worker to sign inside the box below. On mobile/tablet use touch or stylus. On desktop use the connected signature pad / pen tablet.',
+                'Sign inside the box below. On mobile or tablet, use touch or stylus.',
                 style: AppTextStyles.body,
               ),
               const Gap(16),
               _buildSignatureCanvas(isCompact: isCompact),
               const Gap(12),
               const Text(
-                'This signature will be embedded into the final signed PDF.',
+                'The signature will be embedded into the final signed PDF.',
                 style: AppTextStyles.caption,
               ),
               const Gap(20),
-              _buildActions(context),
+              _buildActions(context, isCompact: isCompact),
             ],
           ),
         ),
@@ -126,38 +126,64 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
     );
   }
 
-  Widget _buildActions(BuildContext context) {
+  Widget _buildActions(BuildContext context, {required bool isCompact}) {
+    if (isCompact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildUseSignatureButton(),
+          const Gap(12),
+          Row(
+            children: [
+              Expanded(child: _buildClearButton()),
+              const Gap(12),
+              Expanded(child: _buildCancelButton(context)),
+            ],
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: _isExporting ? null : _signatureController.clear,
-            icon: const Icon(AppIcons.refreshOutlined),
-            label: const Text('Clear'),
-          ),
-        ),
+        Expanded(child: _buildClearButton()),
         const Gap(12),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _isExporting ? null : () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ),
+        Expanded(child: _buildCancelButton(context)),
         const Gap(12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _isExporting ? null : _confirmSignature,
-            icon: _isExporting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(AppIcons.approve),
-            label: Text(_isExporting ? 'Saving...' : 'Use Signature'),
-          ),
-        ),
+        Expanded(child: _buildUseSignatureButton()),
       ],
+    );
+  }
+
+  Widget _buildClearButton() {
+    return OutlinedButton.icon(
+      onPressed: _isExporting ? null : _signatureController.clear,
+      icon: const Icon(AppIcons.refreshOutlined),
+      label: const Text('Clear', overflow: TextOverflow.ellipsis),
+    );
+  }
+
+  Widget _buildCancelButton(BuildContext context) {
+    return OutlinedButton(
+      onPressed: _isExporting ? null : () => Navigator.pop(context),
+      child: const Text('Cancel', overflow: TextOverflow.ellipsis),
+    );
+  }
+
+  Widget _buildUseSignatureButton() {
+    return ElevatedButton.icon(
+      onPressed: _isExporting ? null : _confirmSignature,
+      icon: _isExporting
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(AppIcons.approve),
+      label: Text(
+        _isExporting ? 'Saving...' : 'Use Signature',
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 
@@ -167,7 +193,7 @@ class _SignatureCaptureDialogState extends State<SignatureCaptureDialog> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text('Please capture the worker signature first.'),
+            content: Text('Please capture the signature first.'),
             behavior: SnackBarBehavior.floating,
           ),
         );

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
@@ -16,9 +17,14 @@ import 'package:mina_system/features/reports/presentation/services/report_pdf_se
 import 'package:mina_system/features/reports/presentation/widgets/signature_capture_dialog.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:printing/printing.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 
-void showReportPdfPreview(
+class _SignedPdfSaveResult {
+  const _SignedPdfSaveResult({required this.reportNumber});
+
+  final String reportNumber;
+}
+
+Future<void> showReportPdfPreview(
   BuildContext context, {
   required String companyId,
   required ReportType reportType,
@@ -27,7 +33,8 @@ void showReportPdfPreview(
   required CompanyProfileModel companyProfile,
   required CompanyReportSettingsModel reportSettings,
   required List<CompanyDocumentTemplateModel> documentTemplates,
-}) {
+}) async {
+  final navigator = Navigator.of(context);
   final width = MediaQuery.sizeOf(context).width;
   final height = MediaQuery.sizeOf(context).height;
   final isMobile = width < AppBreakpoints.tablet;
@@ -42,8 +49,10 @@ void showReportPdfPreview(
     documentTemplates: documentTemplates,
   );
 
+  late final _SignedPdfSaveResult? result;
+
   if (isMobile) {
-    showModalBottomSheet(
+    result = await showModalBottomSheet<_SignedPdfSaveResult>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -52,18 +61,50 @@ void showReportPdfPreview(
         return SizedBox(height: height * 0.92, child: preview);
       },
     );
+  } else {
+    result = await showDialog<_SignedPdfSaveResult>(
+      context: context,
+      builder: (_) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 1100,
+              maxHeight: height * 0.9,
+            ),
+            child: preview,
+          ),
+        );
+      },
+    );
+  }
+
+  if (!navigator.mounted || result == null) {
     return;
   }
 
-  showDialog(
-    context: context,
-    builder: (_) {
-      return Dialog(
-        insetPadding: const EdgeInsets.all(24),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 1100, maxHeight: height * 0.9),
-          child: preview,
+  await showDialog<void>(
+    context: navigator.context,
+    barrierDismissible: false,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Row(
+          children: [
+            Icon(AppIcons.approve, color: AppColors.success),
+            SizedBox(width: 10),
+            Expanded(child: Text('Signed PDF Saved')),
+          ],
         ),
+        content: Text(
+          'The signed PDF has been saved successfully.\n\n'
+          'Report No: ${result!.reportNumber}',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
+          ),
+        ],
       );
     },
   );
@@ -113,9 +154,6 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
           const Divider(height: 1),
           Expanded(
             child: PdfPreview(
-              key: ValueKey(
-                '${widget.companyId}-${_signedAt?.millisecondsSinceEpoch ?? 0}-${_workerSignatureBytes?.length ?? 0}',
-              ),
               canChangeOrientation: false,
               canChangePageFormat: false,
               canDebug: false,
@@ -147,58 +185,161 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          SizedBox(
-            width: 280,
-            child: Text(
-              _getReportTitle(widget.reportType),
-              style: AppTextStyles.title,
-            ),
-          ),
-          if (hasSignature)
-            Chip(
-              avatar: const Icon(AppIcons.approve, size: 18),
-              label: const Text('Signature captured'),
-              backgroundColor: AppColors.success.withValues(alpha: 0.10),
-              side: BorderSide(
-                color: AppColors.success.withValues(alpha: 0.25),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 600;
+
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _getReportTitle(widget.reportType),
+                        style: AppTextStyles.title,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _isSavingSignedPdf
+                          ? null
+                          : () => Navigator.pop(context),
+                      icon: const Icon(AppIcons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (hasSignature) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Chip(
+                      avatar: const Icon(AppIcons.approve, size: 18),
+                      label: const Text('Signature captured'),
+                      backgroundColor: AppColors.success.withValues(
+                        alpha: 0.10,
+                      ),
+                      side: BorderSide(
+                        color: AppColors.success.withValues(alpha: 0.25),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                OutlinedButton.icon(
+                  onPressed: _isSavingSignedPdf ? null : _captureSignature,
+                  icon: Icon(
+                    hasSignature ? AppIcons.edit : AppIcons.drawOutlined,
+                  ),
+                  label: Text(
+                    hasSignature ? 'Replace Signature' : 'Capture Signature',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (hasSignature) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _isSavingSignedPdf
+                              ? null
+                              : _clearSignature,
+                          icon: const Icon(AppIcons.clearOutlined),
+                          label: const Text(
+                            'Clear',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: !_isSavingSignedPdf
+                              ? _saveSignedPdf
+                              : null,
+                          icon: _isSavingSignedPdf
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(AppIcons.cloudUploadOutlined),
+                          label: Text(
+                            _isSavingSignedPdf ? 'Saving...' : 'Save PDF',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            );
+          }
+
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 280,
+                child: Text(
+                  _getReportTitle(widget.reportType),
+                  style: AppTextStyles.title,
+                ),
               ),
-            ),
-          OutlinedButton.icon(
-            onPressed: _isSavingSignedPdf ? null : _captureSignature,
-            icon: Icon(hasSignature ? AppIcons.edit : AppIcons.drawOutlined),
-            label: Text(
-              hasSignature ? 'Replace Signature' : 'Capture Signature',
-            ),
-          ),
-          if (hasSignature)
-            OutlinedButton.icon(
-              onPressed: _isSavingSignedPdf ? null : _clearSignature,
-              icon: const Icon(AppIcons.clearOutlined),
-              label: const Text('Clear'),
-            ),
-          ElevatedButton.icon(
-            onPressed: hasSignature && !_isSavingSignedPdf
-                ? _saveSignedPdf
-                : null,
-            icon: _isSavingSignedPdf
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(AppIcons.cloudUploadOutlined),
-            label: Text(_isSavingSignedPdf ? 'Saving...' : 'Save Signed PDF'),
-          ),
-          IconButton(
-            onPressed: _isSavingSignedPdf ? null : () => Navigator.pop(context),
-            icon: const Icon(AppIcons.close),
-          ),
-        ],
+              if (hasSignature)
+                Chip(
+                  avatar: const Icon(AppIcons.approve, size: 18),
+                  label: const Text('Signature captured'),
+                  backgroundColor: AppColors.success.withValues(alpha: 0.10),
+                  side: BorderSide(
+                    color: AppColors.success.withValues(alpha: 0.25),
+                  ),
+                ),
+              OutlinedButton.icon(
+                onPressed: _isSavingSignedPdf ? null : _captureSignature,
+                icon: Icon(
+                  hasSignature ? AppIcons.edit : AppIcons.drawOutlined,
+                ),
+                label: Text(
+                  hasSignature ? 'Replace Signature' : 'Capture Signature',
+                ),
+              ),
+              if (hasSignature)
+                OutlinedButton.icon(
+                  onPressed: _isSavingSignedPdf ? null : _clearSignature,
+                  icon: const Icon(AppIcons.clearOutlined),
+                  label: const Text('Clear'),
+                ),
+              ElevatedButton.icon(
+                onPressed: hasSignature && !_isSavingSignedPdf
+                    ? _saveSignedPdf
+                    : null,
+                icon: _isSavingSignedPdf
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(AppIcons.cloudUploadOutlined),
+                label: Text(
+                  _isSavingSignedPdf ? 'Saving...' : 'Save Signed PDF',
+                ),
+              ),
+              IconButton(
+                onPressed: _isSavingSignedPdf
+                    ? null
+                    : () => Navigator.pop(context),
+                icon: const Icon(AppIcons.close),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -247,6 +388,8 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
       _isSavingSignedPdf = true;
     });
 
+    var didSaveSuccessfully = false;
+
     try {
       final reportNumber = _buildReportNumber(widget.reportType, signedAt);
 
@@ -293,23 +436,12 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         return;
       }
 
-      setState(() {
-        _isSavingSignedPdf = false;
-      });
+      didSaveSuccessfully = true;
 
-      await _showMessageDialog(
-        title: 'Signed PDF Saved',
-        message:
-            'The signed PDF has been saved successfully.\n\nReport No: ${signedReport.reportNumber}',
-        icon: AppIcons.approve,
-        iconColor: AppColors.success,
+      Navigator.pop(
+        context,
+        _SignedPdfSaveResult(reportNumber: signedReport.reportNumber),
       );
-
-      if (!mounted) {
-        return;
-      }
-
-      Navigator.pop(context);
     } catch (error) {
       if (!mounted) {
         return;
@@ -322,7 +454,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         iconColor: AppColors.error,
       );
     } finally {
-      if (mounted && _isSavingSignedPdf) {
+      if (mounted && _isSavingSignedPdf && !didSaveSuccessfully) {
         setState(() {
           _isSavingSignedPdf = false;
         });
