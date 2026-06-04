@@ -83,6 +83,12 @@ Future<void> showReportPdfPreview(
     return;
   }
 
+  await Future<void>.delayed(const Duration(milliseconds: 300));
+
+  if (!navigator.mounted) {
+    return;
+  }
+
   await showDialog<void>(
     context: navigator.context,
     barrierDismissible: false,
@@ -139,6 +145,20 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
   Uint8List? _workerSignatureBytes;
   DateTime? _signedAt;
   bool _isSavingSignedPdf = false;
+
+  bool get _isCompactLayout {
+    return MediaQuery.sizeOf(context).width < AppBreakpoints.tablet;
+  }
+
+  String? _resolveMobileSignedByName() {
+    final workerName = widget.filters.worker?.name.trim();
+
+    if (workerName != null && workerName.isNotEmpty) {
+      return workerName;
+    }
+
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -258,17 +278,9 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
                           onPressed: !_isSavingSignedPdf
                               ? _saveSignedPdf
                               : null,
-                          icon: _isSavingSignedPdf
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(AppIcons.cloudUploadOutlined),
-                          label: Text(
-                            _isSavingSignedPdf ? 'Saving...' : 'Save PDF',
+                          icon: const Icon(AppIcons.cloudUploadOutlined),
+                          label: const Text(
+                            'Save PDF',
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -320,16 +332,8 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
                 onPressed: hasSignature && !_isSavingSignedPdf
                     ? _saveSignedPdf
                     : null,
-                icon: _isSavingSignedPdf
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(AppIcons.cloudUploadOutlined),
-                label: Text(
-                  _isSavingSignedPdf ? 'Saving...' : 'Save Signed PDF',
-                ),
+                icon: const Icon(AppIcons.cloudUploadOutlined),
+                label: const Text('Save Signed PDF'),
               ),
               IconButton(
                 onPressed: _isSavingSignedPdf
@@ -365,6 +369,10 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
   }
 
   Future<void> _saveSignedPdf() async {
+    if (_isSavingSignedPdf) {
+      return;
+    }
+
     final signatureBytes = _workerSignatureBytes;
     final signedAt = _signedAt;
 
@@ -378,19 +386,43 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
       return;
     }
 
-    final signedByName = await _askSignedByName();
-
-    if (!mounted || signedByName == null || signedByName.trim().isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _isSavingSignedPdf = true;
-    });
-
-    var didSaveSuccessfully = false;
+    _isSavingSignedPdf = true;
 
     try {
+      final String signedByName;
+
+      if (_isCompactLayout) {
+        final mobileSignedByName = _resolveMobileSignedByName();
+
+        if (mobileSignedByName == null || mobileSignedByName.trim().isEmpty) {
+          if (!mounted) {
+            return;
+          }
+
+          await _showMessageDialog(
+            title: 'Missing Signer Name',
+            message:
+                'Please select a worker before saving the signed PDF on mobile.',
+            icon: AppIcons.warningAmberOutlined,
+            iconColor: AppColors.warning,
+          );
+
+          return;
+        }
+
+        signedByName = mobileSignedByName.trim();
+      } else {
+        final dialogSignedByName = await _askSignedByName();
+
+        if (!mounted ||
+            dialogSignedByName == null ||
+            dialogSignedByName.trim().isEmpty) {
+          return;
+        }
+
+        signedByName = dialogSignedByName.trim();
+      }
+
       final reportNumber = _buildReportNumber(widget.reportType, signedAt);
 
       final filteredTransactions = applyReportTransactionFilters(
@@ -436,8 +468,6 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         return;
       }
 
-      didSaveSuccessfully = true;
-
       Navigator.pop(
         context,
         _SignedPdfSaveResult(reportNumber: signedReport.reportNumber),
@@ -454,11 +484,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         iconColor: AppColors.error,
       );
     } finally {
-      if (mounted && _isSavingSignedPdf && !didSaveSuccessfully) {
-        setState(() {
-          _isSavingSignedPdf = false;
-        });
-      }
+      _isSavingSignedPdf = false;
     }
   }
 
