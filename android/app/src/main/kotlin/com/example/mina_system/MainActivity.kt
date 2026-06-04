@@ -1,5 +1,3 @@
-package com.example.mina_system
-
-import io.flutter.embedding.android.FlutterActivity
-
-class MainActivity : FlutterActivity()
+// Legacy placeholder.
+// The active Android MainActivity lives at:
+// android/app/src/main/kotlin/com/minasystem/app/MainActivity.kt
