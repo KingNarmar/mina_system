@@ -15,10 +15,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String _privacyPolicyUrl =
-    'https://kingnarmar.github.io/mina_system/privacy-policy/';
+    'https://kingnarmar.com/mina-system/privacy-policy';
 
 const String _accountDeletionUrl =
-    'https://kingnarmar.github.io/mina_system/account-deletion/';
+    'https://kingnarmar.com/mina-system/account-deletion';
 
 Future<void> showAccountPanel(BuildContext context) async {
   final currentContextCubit = context.read<CurrentContextCubit>();
