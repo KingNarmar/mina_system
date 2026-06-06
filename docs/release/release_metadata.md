@@ -1,17 +1,17 @@
 # Mina System Release Metadata
 
-Issue: #22 — Prepare product branding, app versioning, and release metadata
-
-Last updated: 2026-06-04
+Issue: #22 — Prepare product branding, app versioning, and release metadata  
+Related release checklist: Issue #12 — Prepare Google Play release checklist  
+Last updated: 2026-06-06
 
 ## Current Scope
 
-This document captures the release metadata decisions for Mina System before moving to platform-specific release checklists.
+This document captures the release metadata decisions for Mina System before and during platform-specific release checklist work.
 
 Current target product positioning:
 
 - Windows Desktop: administration, reporting, and settings.
-- Android: mobile warehouse operations, signatures, and photos.
+- Android: mobile warehouse operations, signatures, photos, and warehouse execution workflows.
 - iOS: preparation only for now through bundle identifier/configuration; real builds require macOS/Xcode later.
 
 ## Product Identity
@@ -27,10 +27,21 @@ Current target product positioning:
 | iOS test bundle identifier | com.minasystem.app.RunnerTests | Confirmed |
 | Windows display/product name | Mina System | Confirmed |
 | Windows executable filename | mina_system.exe | Confirmed for now |
-| Temporary support email | megamarkter@gmail.com | Confirmed temporarily |
-| Final support email | Pending business domain decision, recommended: support@minasystem.app | Pending |
+| Public support email | support.mina-system@kingnarmar.com | Confirmed for Mina System release docs |
+| Privacy email | privacy.mina-system@kingnarmar.com | Confirmed for Mina System release docs |
+| Account deletion email | deletion.mina-system@kingnarmar.com | Confirmed for Mina System release docs |
+| King Narmar general contact | contact@kingnarmar.com | Confirmed for brand/business contact |
 | Logo direction | Approved generated Mina System logo concept | Confirmed |
-| App icon implementation | Generate platform-specific icons from approved logo direction | Pending implementation |
+| App icon implementation | Android launcher icons prepared; final cross-platform asset pass may continue | Partially complete |
+
+## Public Legal URLs
+
+| Page | URL | Status |
+| --- | --- | --- |
+| Privacy Policy | https://kingnarmar.com/mina-system/privacy-policy | Prepared on King Narmar domain |
+| Account Deletion | https://kingnarmar.com/mina-system/account-deletion | Prepared on King Narmar domain |
+
+Legacy GitHub Pages legal URLs should not be used as the final Google Play URLs. They may remain temporarily as moved/redirect pages for backward compatibility with older app builds or previously shared links.
 
 ## Logo Direction
 
@@ -42,12 +53,11 @@ Approved direction:
 - Inventory/tool/accountability/navigation symbolism.
 - Full logo includes `Mina System` and the subtitle `Materials Inventory Navigation Assistant`.
 
-Implementation still required:
+Implementation still required / follow-up:
 
 - Prepare clean full logo asset for documentation/marketing.
-- Prepare square app icon mark without long subtitle text.
-- Generate Android launcher icons.
-- Generate Windows `.ico` asset.
+- Keep square app icon mark without long subtitle text.
+- Prepare Windows `.ico` asset if not already finalized.
 - Prepare iOS app icon assets later when iOS build setup continues.
 
 ## Versioning Strategy
@@ -109,21 +119,21 @@ Recommended format:
 ## Mina System v1.0.0+1
 
 ### Added
-- Added cross-platform product identity for Windows, Android, and iOS preparation.
-- Added Android application ID: com.minasystem.app.
-- Added iOS bundle identifier preparation: com.minasystem.app.
+- Added Android product identity for Google Play release preparation.
+- Added legal/account actions in the in-app Account/Profile Panel.
+- Added Privacy Policy and Account Deletion links on the King Narmar domain.
 
 ### Improved
-- Improved mobile signed PDF save flow.
-- Improved mobile signature dialog layout.
+- Improved mobile account access through Account Panel.
+- Improved release legal/contact metadata.
 
 ### Fixed
-- Fixed mobile signed PDF save flow causing duplicate GlobalKey errors.
-- Fixed mobile signature action button layout.
+- Fixed offline banner visibility for users with multiple companies.
+- Fixed legacy logout redirect from company selection.
 
 ### Notes
-- Android release signing is not configured yet.
-- Google Play release checklist will continue under Issue #12.
+- No Ads, AdMob, Analytics, or Crashlytics are included in the current scope.
+- Google Play release checklist continues under Issue #12.
 ```
 
 ## Changelog Structure
@@ -139,19 +149,20 @@ Recommended structure:
 ```markdown
 # Changelog
 
-## [1.0.0+1] - 2026-06-04
+## [1.0.0+1] - 2026-06-06
 
 ### Added
-- Initial Mina System product branding.
+- Initial Mina System Android release metadata.
 - Android package ID configured as com.minasystem.app.
-- iOS bundle identifier configured as com.minasystem.app.
+- In-app Account/Profile Panel legal entry points.
+- King Narmar domain legal pages.
 
 ### Improved
-- Mobile signed PDF flow.
+- Mobile release checklist documentation.
 
 ### Fixed
-- Signature dialog layout on compact screens.
-- Duplicate GlobalKey issue during mobile signed PDF save.
+- Offline banner visibility for multiple-company users.
+- Legacy logout redirect from company selection.
 ```
 
 ## Screenshot Style
@@ -166,6 +177,7 @@ Recommended screenshots for Google Play / marketing preparation:
 6. Worker custody report.
 7. Signature capture.
 8. Signed PDF confirmation/report.
+9. Account/Profile Panel showing Privacy Policy and Request Account Deletion actions.
 
 Style rules:
 
@@ -209,24 +221,29 @@ Mina System is designed for businesses that need a practical, professional, and 
 
 ## Legal / Support Metadata
 
-Confirmed temporary item:
+Confirmed public Mina System contacts:
 
-- Temporary support email: `megamarkter@gmail.com`.
+- Support email: `support.mina-system@kingnarmar.com`
+- Privacy email: `privacy.mina-system@kingnarmar.com`
+- Account deletion email: `deletion.mina-system@kingnarmar.com`
+- General King Narmar contact: `contact@kingnarmar.com`
+
+Confirmed public legal pages:
+
+- Privacy Policy: `https://kingnarmar.com/mina-system/privacy-policy`
+- Account Deletion: `https://kingnarmar.com/mina-system/account-deletion`
 
 Pending items before final production/store release:
 
-- Replace temporary support email with a final business/domain email when available.
-- Prepare final app icon assets across Android, Windows, and future iOS.
-- Confirm whether a public website/domain will exist before store submission.
-- Confirm whether a privacy policy URL will be prepared under Issue #12 or a separate legal/compliance issue.
+- Rebuild final signed Android AAB after release checklist changes.
+- Re-run final APK/AAB permission review.
+- Prepare final screenshots using demo data only.
+- Prepare or confirm Google Play demo/review account.
+- Finalize Play Console Data Safety answers.
+- Finalize production Supabase readiness and storage bucket policies.
 
 ## Current Decision
 
-Issue #22 should remain open until the pending app icon implementation and final support/domain decisions are finalized.
+Issue #22 can remain open only for broader product branding/icon/domain follow-ups if needed.
 
-The next recommended step after this document update:
-
-1. Add a progress comment to Issue #22.
-2. Keep Issue #22 open.
-3. Continue with platform-specific app icon implementation from the approved logo direction.
-4. Move to Issue #12 only after deciding whether #22 is complete enough to close or should remain blocked by final business/domain decisions.
+Issue #12 is now the active release checklist source for Android Google Play preparation and final submission readiness.
