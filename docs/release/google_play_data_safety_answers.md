@@ -1,15 +1,15 @@
 # Google Play Data Safety Answers
 
 Issue: #12 — Prepare Google Play release checklist  
-Step: 12.5 — Data Safety Answers  
-Status: Draft Play Console answers  
-Last updated: 2026-06-04
+Step: 12.7B — Domain legal links and release contact sync  
+Status: Draft Play Console answers, updated after Account/Profile Panel and King Narmar legal pages  
+Last updated: 2026-06-06
 
 ## Purpose
 
 This document converts the Mina System data inventory into practical draft answers for the Google Play Console Data Safety form.
 
-It should be reviewed before submission. The final Play Console answers must match the real production build, backend configuration, permissions, and third-party SDK behavior.
+It should be reviewed before final submission. The final Play Console answers must match the real production build, backend configuration, permissions, and third-party SDK behavior.
 
 ## Current release assumptions
 
@@ -23,9 +23,11 @@ These answers apply to the current Android release preparation build.
 | Crashlytics / crash reporting SDK | Not included. |
 | Backend | Supabase. |
 | Email provider | Brevo or configured SMTP provider may be used for auth/support email delivery. |
-| Privacy Policy URL | `https://kingnarmar.github.io/mina_system/privacy-policy/` |
-| Account deletion URL | `https://kingnarmar.github.io/mina_system/account-deletion/` |
-| Contact email | `adlymina99@gmail.com` |
+| Privacy Policy URL | `https://kingnarmar.com/mina-system/privacy-policy` |
+| Account deletion URL | `https://kingnarmar.com/mina-system/account-deletion` |
+| Mina System support email | `support.mina-system@kingnarmar.com` |
+| Mina System privacy email | `privacy.mina-system@kingnarmar.com` |
+| Mina System account deletion email | `deletion.mina-system@kingnarmar.com` |
 
 ## Security practices section
 
@@ -52,11 +54,12 @@ Yes
 Use this public URL:
 
 ```text
-https://kingnarmar.github.io/mina_system/account-deletion/
+https://kingnarmar.com/mina-system/account-deletion
 ```
 
 Notes:
 
+- The in-app Account/Profile Panel includes a Request Account Deletion action.
 - Personal user account deletion may delete or anonymize active account profile data.
 - Historical company business records may retain limited identifying snapshots where required for company accountability, security, audit, contractual, or legal purposes.
 - Company workspace deletion is handled separately and requires authorized company owner verification.
@@ -169,7 +172,7 @@ Notes:
 Notes:
 
 - This may include company logos and transaction proof images.
-- No camera permission was found in the final APK permissions output at the time of review, but image upload/capture workflows should be rechecked before final submission.
+- No camera permission was found in the reviewed APK permissions output at the time of review, but image upload/capture workflows should be rechecked before final submission.
 
 ### 5. Files and docs — Files and docs
 
@@ -269,13 +272,13 @@ No camera, microphone, location, contacts, SMS, call log, storage, or advertisin
 ### Privacy Policy URL
 
 ```text
-https://kingnarmar.github.io/mina_system/privacy-policy/
+https://kingnarmar.com/mina-system/privacy-policy
 ```
 
 ### Account deletion URL
 
 ```text
-https://kingnarmar.github.io/mina_system/account-deletion/
+https://kingnarmar.com/mina-system/account-deletion
 ```
 
 ## Store listing notes
@@ -300,9 +303,9 @@ Do not show:
 | Re-run APK/AAB permission review | Pending |
 | Confirm no Ads SDK was added | Pending final build check |
 | Confirm no Analytics/Crashlytics SDK was added | Pending final build check |
-| Confirm final Privacy Policy URL opens publicly | Done for current URL |
-| Confirm final account deletion URL opens publicly | Done for current URL |
-| Add or confirm in-app account deletion entry point | Pending |
+| Confirm final Privacy Policy URL opens publicly | Done |
+| Confirm final account deletion URL opens publicly | Done |
+| Add or confirm in-app account deletion entry point | Done |
 | Prepare demo/review account for Google Play review | Pending |
 | Prepare final screenshots using demo data | Pending |
 | Final Play Console Data Safety submission | Pending |
@@ -317,6 +320,9 @@ Users can request data deletion: Yes
 Ads: No
 Analytics: No
 Crash reporting: No
-Privacy Policy URL: https://kingnarmar.github.io/mina_system/privacy-policy/
-Account deletion URL: https://kingnarmar.github.io/mina_system/account-deletion/
+Privacy Policy URL: https://kingnarmar.com/mina-system/privacy-policy
+Account deletion URL: https://kingnarmar.com/mina-system/account-deletion
+Support email: support.mina-system@kingnarmar.com
+Privacy email: privacy.mina-system@kingnarmar.com
+Account deletion email: deletion.mina-system@kingnarmar.com
 ```
