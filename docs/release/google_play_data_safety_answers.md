@@ -2,7 +2,7 @@
 
 Issue: #12 — Prepare Google Play release checklist  
 Step: 12.7B — Domain legal links and release contact sync  
-Status: Draft Play Console answers, updated after Account/Profile Panel and King Narmar legal pages  
+Status: Draft Play Console answers, updated after Account/Profile Panel, King Narmar legal pages, and verified inbound email routing  
 Last updated: 2026-06-06
 
 ## Purpose
@@ -25,9 +25,9 @@ These answers apply to the current Android release preparation build.
 | Email provider | Brevo or configured SMTP provider may be used for auth/support email delivery. |
 | Privacy Policy URL | `https://kingnarmar.com/mina-system/privacy-policy` |
 | Account deletion URL | `https://kingnarmar.com/mina-system/account-deletion` |
-| Mina System support email | `support.mina-system@kingnarmar.com` — selected, pending mailbox/alias creation and verification |
-| Mina System privacy email | `privacy.mina-system@kingnarmar.com` — selected, pending mailbox/alias creation and verification |
-| Mina System account deletion email | `deletion.mina-system@kingnarmar.com` — selected, pending mailbox/alias creation and verification |
+| Mina System support email | `support.mina-system@kingnarmar.com` — inbound Cloudflare Email Routing created and verified |
+| Mina System privacy email | `privacy.mina-system@kingnarmar.com` — inbound Cloudflare Email Routing created and verified |
+| Mina System account deletion email | `deletion.mina-system@kingnarmar.com` — inbound Cloudflare Email Routing created and verified |
 
 ## Security practices section
 
@@ -63,7 +63,7 @@ Notes:
 - Personal user account deletion may delete or anonymize active account profile data.
 - Historical company business records may retain limited identifying snapshots where required for company accountability, security, audit, contractual, or legal purposes.
 - Company workspace deletion is handled separately and requires authorized company owner verification.
-- The selected account deletion mailbox must be created and verified before Play Console final submission.
+- The selected account deletion email receives inbound messages through Cloudflare Email Routing.
 
 ### Has your app been independently validated against a global security standard?
 
@@ -307,7 +307,8 @@ Do not show:
 | Confirm final Privacy Policy URL opens publicly | Done |
 | Confirm final account deletion URL opens publicly | Done |
 | Add or confirm in-app account deletion entry point | Done |
-| Create and verify Mina System domain support/privacy/deletion emails | Pending |
+| Create and verify Mina System domain support/privacy/deletion emails | Done for inbound routing |
+| Configure outgoing send-as for Mina System emails, if required | Optional / pending decision |
 | Prepare demo/review account for Google Play review | Pending |
 | Prepare final screenshots using demo data | Pending |
 | Final Play Console Data Safety submission | Pending |
@@ -324,7 +325,8 @@ Analytics: No
 Crash reporting: No
 Privacy Policy URL: https://kingnarmar.com/mina-system/privacy-policy
 Account deletion URL: https://kingnarmar.com/mina-system/account-deletion
-Support email: support.mina-system@kingnarmar.com (pending mailbox/alias verification)
-Privacy email: privacy.mina-system@kingnarmar.com (pending mailbox/alias verification)
-Account deletion email: deletion.mina-system@kingnarmar.com (pending mailbox/alias verification)
+Support email: support.mina-system@kingnarmar.com
+Privacy email: privacy.mina-system@kingnarmar.com
+Account deletion email: deletion.mina-system@kingnarmar.com
+Email routing status: Inbound routing verified through Cloudflare Email Routing
 ```
