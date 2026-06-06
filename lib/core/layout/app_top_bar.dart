@@ -1,28 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
-import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/account/presentation/widgets/account_avatar.dart';
+import 'package:mina_system/features/account/presentation/widgets/account_panel.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppTopBar extends StatelessWidget {
   const AppTopBar({super.key, required this.title});
 
   final String title;
-
-  Future<void> _logout(BuildContext context) async {
-    await Supabase.instance.client.auth.signOut();
-
-    if (!context.mounted) return;
-
-    context.go(Routes.login);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,22 +43,13 @@ class AppTopBar extends StatelessWidget {
                 builder: (context, state) {
                   return _TopBarContextInfo(
                     state: state,
-                    onSwitchCompany: () {
-                      context
-                          .read<CurrentContextCubit>()
-                          .openCompanySelection();
+                    onAccountPressed: () {
+                      showAccountPanel(context);
                     },
                   );
                 },
               ),
             ),
-          ),
-          const Gap(12),
-          IconButton(
-            tooltip: 'Logout',
-            onPressed: () => _logout(context),
-            icon: const Icon(AppIcons.logout),
-            color: AppColors.textPrimary,
           ),
         ],
       ),
@@ -78,11 +60,11 @@ class AppTopBar extends StatelessWidget {
 class _TopBarContextInfo extends StatelessWidget {
   const _TopBarContextInfo({
     required this.state,
-    required this.onSwitchCompany,
+    required this.onAccountPressed,
   });
 
   final CurrentContextState state;
-  final VoidCallback onSwitchCompany;
+  final VoidCallback onAccountPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -112,76 +94,98 @@ class _TopBarContextInfo extends StatelessWidget {
         : 'Signed in user';
 
     if (currentCompany == null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _UserAvatar(label: userLabel),
-          const Gap(10),
-          Flexible(
-            child: Text(
-              loadedState.hasMultipleCompanies
-                  ? 'Select Company'
-                  : 'No Company',
-              style: AppTextStyles.body.copyWith(
-                color: AppColors.textSecondary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      return _AccountTopBarButton(
+        userLabel: userLabel,
+        title: loadedState.hasMultipleCompanies
+            ? 'Select Company'
+            : 'No Company',
+        subtitle: userEmail,
+        onPressed: onAccountPressed,
       );
     }
 
     final roleLabel = CompanyRoles.label(currentCompany.role);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final showSwitchCompanyButton =
-            loadedState.hasMultipleCompanies && constraints.maxWidth >= 420;
+    return _AccountTopBarButton(
+      userLabel: userLabel,
+      title: userLabel,
+      subtitle: '${currentCompany.name} • $roleLabel',
+      onPressed: onAccountPressed,
+    );
+  }
+}
 
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _UserAvatar(label: userLabel),
-            const Gap(10),
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    userLabel,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Gap(2),
-                  Text(
-                    '${currentCompany.name} • $roleLabel',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+class _AccountTopBarButton extends StatelessWidget {
+  const _AccountTopBarButton({
+    required this.userLabel,
+    required this.title,
+    required this.onPressed,
+    this.subtitle,
+  });
+
+  final String userLabel;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AccountAvatar(
+                label: userLabel,
+                radius: 18,
+                backgroundColor: AppColors.border,
+                foregroundColor: AppColors.textPrimary,
               ),
-            ),
-            if (showSwitchCompanyButton) ...[
               const Gap(10),
-              TextButton.icon(
-                onPressed: onSwitchCompany,
-                icon: const Icon(AppIcons.switchCompany, size: 18),
-                label: const Text('Switch Company'),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
+                      const Gap(2),
+                      Text(
+                        subtitle!,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const Gap(6),
+              const Icon(
+                AppIcons.dropdown,
+                size: 18,
+                color: AppColors.textSecondary,
               ),
             ],
-          ],
-        );
-      },
+          ),
+        ),
+      ),
     );
   }
 }
@@ -199,51 +203,5 @@ class _TopBarStatus extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
-  }
-}
-
-class _UserAvatar extends StatelessWidget {
-  const _UserAvatar({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: AppColors.border,
-      foregroundColor: AppColors.textPrimary,
-      child: Text(
-        _initials(label),
-        style: AppTextStyles.caption.copyWith(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  String _initials(String value) {
-    final cleanValue = value.trim();
-
-    if (cleanValue.isEmpty) {
-      return '?';
-    }
-
-    final parts = cleanValue
-        .split(RegExp(r'\s+'))
-        .where((part) => part.trim().isNotEmpty)
-        .toList();
-
-    if (parts.isEmpty) {
-      return '?';
-    }
-
-    if (parts.length == 1) {
-      return parts.first.substring(0, 1).toUpperCase();
-    }
-
-    return '${parts.first.substring(0, 1)}${parts[1].substring(0, 1)}'
-        .toUpperCase();
   }
 }

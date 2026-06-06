@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
@@ -15,7 +16,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/company_selection_list.dart';
 import '../widgets/pending_company_invitations_section.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 
 class SelectCompanyScreen extends StatelessWidget {
   const SelectCompanyScreen({
@@ -34,7 +34,7 @@ class SelectCompanyScreen extends StatelessWidget {
       return;
     }
 
-    context.go(Routes.emailEntry);
+    context.go(Routes.login);
   }
 
   @override

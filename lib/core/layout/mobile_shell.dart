@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
-import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/account/presentation/widgets/account_avatar.dart';
+import 'package:mina_system/features/account/presentation/widgets/account_panel.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MobileShell extends StatefulWidget {
   const MobileShell({super.key});
@@ -20,14 +18,6 @@ class MobileShell extends StatefulWidget {
 
 class _MobileShellState extends State<MobileShell> {
   int _selectedIndex = 0;
-
-  Future<void> _logout() async {
-    await Supabase.instance.client.auth.signOut();
-
-    if (!mounted) return;
-
-    context.go(Routes.login);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,21 +56,13 @@ class _MobileShellState extends State<MobileShell> {
               state: state,
             ),
             actions: [
-              if (state is CurrentContextLoaded &&
-                  state.hasMultipleCompanies &&
-                  state.currentCompany != null)
-                IconButton(
-                  tooltip: 'Switch Company',
-                  onPressed: () {
-                    context.read<CurrentContextCubit>().openCompanySelection();
-                  },
-                  icon: const Icon(AppIcons.switchCompany),
-                ),
-              IconButton(
-                tooltip: 'Logout',
-                onPressed: _logout,
-                icon: const Icon(AppIcons.logout),
+              _MobileAccountButton(
+                state: state,
+                onPressed: () {
+                  showAccountPanel(context);
+                },
               ),
+              const SizedBox(width: 8),
             ],
           ),
           body: SafeArea(child: navItems[selectedIndex].page),
@@ -127,6 +109,64 @@ class _MobileShellState extends State<MobileShell> {
       default:
         return title;
     }
+  }
+}
+
+class _MobileAccountButton extends StatelessWidget {
+  const _MobileAccountButton({required this.state, required this.onPressed});
+
+  final CurrentContextState state;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = _buildLabel();
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Tooltip(
+        message: 'Account',
+        child: Material(
+          color: AppColors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: AccountAvatar(
+                label: label,
+                radius: 17,
+                backgroundColor: AppColors.border,
+                foregroundColor: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _buildLabel() {
+    if (state is! CurrentContextLoaded) {
+      return 'Account';
+    }
+
+    final loadedState = state as CurrentContextLoaded;
+    final profile = loadedState.profile;
+
+    final fullName = profile.fullName?.trim();
+    final email = profile.email?.trim();
+
+    if (fullName != null && fullName.isNotEmpty) {
+      return fullName;
+    }
+
+    if (email != null && email.isNotEmpty) {
+      return email;
+    }
+
+    return 'Account';
   }
 }
 
