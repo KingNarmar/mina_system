@@ -147,6 +147,17 @@ class _RegisterFormState extends State<RegisterForm> {
                   ),
                 ],
               ),
+              const Gap(4),
+              TextButton(
+                onPressed: () => context.go(Routes.welcome),
+                child: Text(
+                  'Back to Welcome',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
         );

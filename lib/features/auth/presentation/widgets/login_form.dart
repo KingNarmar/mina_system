@@ -102,24 +102,15 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
               const Gap(12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Don\'t have an account?',
-                    style: AppTextStyles.caption,
+              TextButton(
+                onPressed: () => context.go(Routes.welcome),
+                child: Text(
+                  'Back to Welcome',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
                   ),
-                  TextButton(
-                    onPressed: () => context.go(Routes.register),
-                    child: Text(
-                      'Create account',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
