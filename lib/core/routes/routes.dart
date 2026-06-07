@@ -7,7 +7,6 @@ import 'package:mina_system/features/auth/presentation/screens/forgot_password_s
 import 'package:mina_system/features/auth/presentation/screens/login_screen.dart';
 import 'package:mina_system/features/auth/presentation/screens/register_screen.dart';
 import 'package:mina_system/features/auth/presentation/screens/reset_password_screen.dart';
-import 'package:mina_system/features/demo/presentation/screens/demo_placeholder_screen.dart';
 import 'package:mina_system/features/welcome/presentation/screens/welcome_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -33,8 +32,7 @@ abstract class Routes {
       final isGoingToLogin = state.matchedLocation == login;
       final isGoingToRegister = state.matchedLocation == register;
       final isGoingToEmailEntry = state.matchedLocation == emailEntry;
-      final isGoingToForgotPassword =
-          state.matchedLocation == forgotPassword;
+      final isGoingToForgotPassword = state.matchedLocation == forgotPassword;
       final isGoingToResetPassword = state.matchedLocation == resetPassword;
 
       final isGoingToAuthPage =
@@ -75,10 +73,8 @@ abstract class Routes {
       ),
       GoRoute(
         path: demo,
-        builder: (context, state) => const AppModeScope(
-          mode: AppMode.demo,
-          child: DemoPlaceholderScreen(),
-        ),
+        builder: (context, state) =>
+            const AppModeScope(mode: AppMode.demo, child: AppShell()),
       ),
       GoRoute(path: login, builder: (context, state) => const LoginScreen()),
       GoRoute(

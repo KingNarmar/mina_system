@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
@@ -22,6 +24,7 @@ const String _accountDeletionUrl =
 
 Future<void> showAccountPanel(BuildContext context) async {
   final currentContextCubit = context.read<CurrentContextCubit>();
+  final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
   final screenWidth = MediaQuery.sizeOf(context).width;
   final useBottomSheet = screenWidth < 700;
 
@@ -32,9 +35,12 @@ Future<void> showAccountPanel(BuildContext context) async {
       isScrollControlled: true,
       backgroundColor: AppColors.transparent,
       builder: (_) {
-        return BlocProvider.value(
-          value: currentContextCubit,
-          child: const AccountPanel(isBottomSheet: true),
+        return AppModeScope(
+          mode: appMode,
+          child: BlocProvider.value(
+            value: currentContextCubit,
+            child: const AccountPanel(isBottomSheet: true),
+          ),
         );
       },
     );
@@ -45,12 +51,15 @@ Future<void> showAccountPanel(BuildContext context) async {
   await showDialog<void>(
     context: context,
     builder: (_) {
-      return BlocProvider.value(
-        value: currentContextCubit,
-        child: const Dialog(
-          insetPadding: EdgeInsets.all(24),
-          backgroundColor: AppColors.transparent,
-          child: AccountPanel(),
+      return AppModeScope(
+        mode: appMode,
+        child: BlocProvider.value(
+          value: currentContextCubit,
+          child: const Dialog(
+            insetPadding: EdgeInsets.all(24),
+            backgroundColor: AppColors.transparent,
+            child: AccountPanel(),
+          ),
         ),
       );
     },
@@ -121,6 +130,9 @@ class _AccountPanelContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+    final isDemo = appMode.isDemo;
+
     final profile = state.profile;
     final currentCompany = state.currentCompany;
 
@@ -159,7 +171,8 @@ class _AccountPanelContent extends StatelessWidget {
             roleLabel: roleLabel,
           ),
           const Gap(18),
-          if (state.hasMultipleCompanies) ...[
+          if (isDemo) ...[const _DemoModeNotice(), const Gap(14)],
+          if (state.hasMultipleCompanies && !isDemo) ...[
             AccountActionTile(
               icon: AppIcons.switchCompany,
               title: 'Switch Company',
@@ -180,23 +193,27 @@ class _AccountPanelContent extends StatelessWidget {
               );
             },
           ),
-          const Gap(10),
-          AccountActionTile(
-            icon: AppIcons.manageAccountsOutlined,
-            title: 'Request Account Deletion',
-            subtitle: 'Open the verified account deletion request page.',
-            foregroundColor: AppColors.error,
-            iconColor: AppColors.error,
-            onTap: () => _confirmAccountDeletionRequest(context),
-          ),
+          if (!isDemo) ...[
+            const Gap(10),
+            AccountActionTile(
+              icon: AppIcons.manageAccountsOutlined,
+              title: 'Request Account Deletion',
+              subtitle: 'Open the verified account deletion request page.',
+              foregroundColor: AppColors.error,
+              iconColor: AppColors.error,
+              onTap: () => _confirmAccountDeletionRequest(context),
+            ),
+          ],
           const Gap(14),
           const Divider(height: 1, color: AppColors.border),
           const Gap(14),
           AccountActionTile(
-            icon: AppIcons.logout,
-            title: 'Logout',
-            subtitle: 'Sign out from this device.',
-            onTap: () => _logout(context),
+            icon: isDemo ? AppIcons.logout : AppIcons.logout,
+            title: isDemo ? 'Exit Demo' : 'Logout',
+            subtitle: isDemo
+                ? 'Return to the welcome screen.'
+                : 'Sign out from this device.',
+            onTap: isDemo ? () => _exitDemo(context) : () => _logout(context),
             trailingIcon: null,
           ),
         ],
@@ -306,6 +323,14 @@ class _AccountPanelContent extends StatelessWidget {
     }
   }
 
+  Future<void> _exitDemo(BuildContext context) async {
+    final router = GoRouter.of(context);
+
+    Navigator.of(context).maybePop();
+
+    router.go(Routes.welcome);
+  }
+
   Future<void> _logout(BuildContext context) async {
     await Supabase.instance.client.auth.signOut();
 
@@ -340,6 +365,38 @@ class _AccountPanelContent extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _DemoModeNotice extends StatelessWidget {
+  const _DemoModeNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(AppIcons.info, color: AppColors.warning, size: 22),
+          const Gap(10),
+          Expanded(
+            child: Text(
+              'Demo mode uses sample local workspace data only.',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
