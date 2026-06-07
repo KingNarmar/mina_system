@@ -17,9 +17,11 @@ import 'package:mina_system/features/current_context/presentation/cubit/current_
 import 'package:mina_system/features/current_context/presentation/widgets/current_context_gate.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/demo/data/repo/demo_dashboard_repo.dart';
+import 'package:mina_system/features/demo/data/repo/demo_lookups_repo.dart';
 import 'package:mina_system/features/demo/data/repo/demo_tools_repo.dart';
 import 'package:mina_system/features/demo/data/repo/demo_transactions_repo.dart';
 import 'package:mina_system/features/demo/data/repo/demo_workers_repo.dart';
+import 'package:mina_system/features/demo/data/services/demo_network_status_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_seed_service.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
@@ -38,7 +40,7 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => _createNetworkStatusCubit(appMode)),
         BlocProvider(create: (_) => _createCurrentContextCubit(appMode)),
         BlocProvider(create: (_) => _createWorkersCubit(appMode)),
-        BlocProvider(create: (_) => LookupsCubit()),
+        BlocProvider(create: (_) => _createLookupsCubit(appMode)),
         BlocProvider(create: (_) => _createToolsCubit(appMode)),
         BlocProvider(create: (_) => _createTransactionsCubit(appMode)),
         BlocProvider(create: (_) => _createDashboardCubit(appMode)),
@@ -73,15 +75,32 @@ class AppShell extends StatelessWidget {
 
   WorkersCubit _createWorkersCubit(AppMode appMode) {
     if (appMode.isDemo) {
-      return WorkersCubit(workersRepo: DemoWorkersRepo());
+      return WorkersCubit(
+        workersRepo: DemoWorkersRepo(),
+        networkStatusService: DemoNetworkStatusService(),
+      );
     }
 
     return WorkersCubit();
   }
 
+  LookupsCubit _createLookupsCubit(AppMode appMode) {
+    if (appMode.isDemo) {
+      return LookupsCubit(
+        lookupsRepo: DemoLookupsRepo(),
+        networkStatusService: DemoNetworkStatusService(),
+      );
+    }
+
+    return LookupsCubit();
+  }
+
   ToolsCubit _createToolsCubit(AppMode appMode) {
     if (appMode.isDemo) {
-      return ToolsCubit(toolsRepo: DemoToolsRepo());
+      return ToolsCubit(
+        toolsRepo: DemoToolsRepo(),
+        networkStatusService: DemoNetworkStatusService(),
+      );
     }
 
     return ToolsCubit();
@@ -89,7 +108,10 @@ class AppShell extends StatelessWidget {
 
   TransactionsCubit _createTransactionsCubit(AppMode appMode) {
     if (appMode.isDemo) {
-      return TransactionsCubit(transactionsRepo: DemoTransactionsRepo());
+      return TransactionsCubit(
+        transactionsRepo: DemoTransactionsRepo(),
+        networkStatusService: DemoNetworkStatusService(),
+      );
     }
 
     return TransactionsCubit();
@@ -205,6 +227,10 @@ class _DemoAppShellViewState extends State<_DemoAppShellView> {
     const companyId = DemoSeedService.demoCompanyId;
 
     await Future.wait([
+      context.read<LookupsCubit>().loadLookups(
+        companyId: companyId,
+        showLoader: false,
+      ),
       context.read<WorkersCubit>().loadWorkers(
         companyId: companyId,
         showLoader: false,
