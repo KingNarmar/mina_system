@@ -59,8 +59,10 @@ class AppShell extends StatelessWidget {
 
     if (appMode.isLive) {
       cubit.loadCurrentContext();
+      return cubit;
     }
 
+    cubit.loadDemoCurrentContext();
     return cubit;
   }
 }

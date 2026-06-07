@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
+import 'package:mina_system/features/demo/data/demo_current_context_data.dart';
 
 import '../../data/models/company_model.dart';
 import '../../data/models/create_company_request.dart';
@@ -23,6 +24,16 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
   final CurrentContextRepo _repo;
   final CurrentCompanyStorageService _currentCompanyStorageService;
   final NetworkStatusService _networkStatusService;
+
+  void loadDemoCurrentContext() {
+    emit(
+      const CurrentContextLoaded(
+        profile: DemoCurrentContextData.profile,
+        companies: DemoCurrentContextData.companies,
+        currentCompany: DemoCurrentContextData.company,
+      ),
+    );
+  }
 
   Future<void> loadCurrentContext({
     bool restoreLastSelectedCompany = true,
