@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/layout/desktop_shell.dart';
 import 'package:mina_system/core/layout/mobile_shell.dart';
 import 'package:mina_system/core/layout/tablet_shell.dart';
@@ -24,12 +26,12 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => NetworkStatusCubit()..startWatching()),
-        BlocProvider(
-          create: (_) => CurrentContextCubit()..loadCurrentContext(),
-        ),
+        BlocProvider(create: (_) => _createNetworkStatusCubit(appMode)),
+        BlocProvider(create: (_) => _createCurrentContextCubit(appMode)),
         BlocProvider(create: (_) => WorkersCubit()),
         BlocProvider(create: (_) => LookupsCubit()),
         BlocProvider(create: (_) => ToolsCubit()),
@@ -38,16 +40,42 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => CompanySettingsCubit()),
         BlocProvider(create: (_) => CompanyUsersCubit()),
       ],
-      child: const _AppShellView(),
+      child: _AppShellView(appMode: appMode),
     );
+  }
+
+  NetworkStatusCubit _createNetworkStatusCubit(AppMode appMode) {
+    final cubit = NetworkStatusCubit();
+
+    if (appMode.isLive) {
+      cubit.startWatching();
+    }
+
+    return cubit;
+  }
+
+  CurrentContextCubit _createCurrentContextCubit(AppMode appMode) {
+    final cubit = CurrentContextCubit();
+
+    if (appMode.isLive) {
+      cubit.loadCurrentContext();
+    }
+
+    return cubit;
   }
 }
 
 class _AppShellView extends StatelessWidget {
-  const _AppShellView();
+  const _AppShellView({required this.appMode});
+
+  final AppMode appMode;
 
   @override
   Widget build(BuildContext context) {
+    if (appMode.isDemo) {
+      return const _DemoAppShellView();
+    }
+
     return BlocListener<CurrentContextCubit, CurrentContextState>(
       listenWhen: (previous, current) {
         if (current is! CurrentContextLoaded) {
@@ -91,19 +119,44 @@ class _AppShellView extends StatelessWidget {
           companyId: companyId,
         );
       },
-      child: const GlobalOfflineBanner(
-        child: UserContextRealtimeSyncScope(
-          child: CurrentContextGate(
-            child: CompanyRealtimeSyncScope(
-              child: ResponsiveLayout(
-                mobile: MobileShell(),
-                tablet: TabletShell(),
-                desktop: DesktopShell(),
-              ),
-            ),
-          ),
+      child: const _LiveAppShellView(),
+    );
+  }
+}
+
+class _LiveAppShellView extends StatelessWidget {
+  const _LiveAppShellView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const GlobalOfflineBanner(
+      child: UserContextRealtimeSyncScope(
+        child: CurrentContextGate(
+          child: CompanyRealtimeSyncScope(child: _ResponsiveShellContent()),
         ),
       ),
+    );
+  }
+}
+
+class _DemoAppShellView extends StatelessWidget {
+  const _DemoAppShellView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _ResponsiveShellContent();
+  }
+}
+
+class _ResponsiveShellContent extends StatelessWidget {
+  const _ResponsiveShellContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ResponsiveLayout(
+      mobile: MobileShell(),
+      tablet: TabletShell(),
+      desktop: DesktopShell(),
     );
   }
 }
