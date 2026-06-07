@@ -16,6 +16,8 @@ import 'package:mina_system/features/current_context/presentation/cubit/current_
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:mina_system/features/current_context/presentation/widgets/current_context_gate.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:mina_system/features/demo/data/repo/demo_dashboard_repo.dart';
+import 'package:mina_system/features/demo/data/services/demo_seed_service.dart';
 import 'package:mina_system/features/lookups/presentation/cubit/lookups_cubit.dart';
 import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
@@ -36,7 +38,7 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => LookupsCubit()),
         BlocProvider(create: (_) => ToolsCubit()),
         BlocProvider(create: (_) => TransactionsCubit()),
-        BlocProvider(create: (_) => DashboardCubit()),
+        BlocProvider(create: (_) => _createDashboardCubit(appMode)),
         BlocProvider(create: (_) => CompanySettingsCubit()),
         BlocProvider(create: (_) => CompanyUsersCubit()),
       ],
@@ -64,6 +66,14 @@ class AppShell extends StatelessWidget {
 
     cubit.loadDemoCurrentContext();
     return cubit;
+  }
+
+  DashboardCubit _createDashboardCubit(AppMode appMode) {
+    if (appMode.isDemo) {
+      return DashboardCubit(dashboardRepo: DemoDashboardRepo());
+    }
+
+    return DashboardCubit();
   }
 }
 
@@ -141,12 +151,82 @@ class _LiveAppShellView extends StatelessWidget {
   }
 }
 
-class _DemoAppShellView extends StatelessWidget {
+class _DemoAppShellView extends StatefulWidget {
   const _DemoAppShellView();
 
   @override
+  State<_DemoAppShellView> createState() => _DemoAppShellViewState();
+}
+
+class _DemoAppShellViewState extends State<_DemoAppShellView> {
+  late final Future<void> _demoInitializationFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _demoInitializationFuture = _initializeDemoWorkspace();
+  }
+
+  Future<void> _initializeDemoWorkspace() async {
+    await const DemoSeedService().initializeIfNeeded();
+
+    if (!mounted) {
+      return;
+    }
+
+    await context.read<DashboardCubit>().loadDashboardSummary(
+      companyId: DemoSeedService.demoCompanyId,
+      showLoader: false,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const _ResponsiveShellContent();
+    return FutureBuilder<void>(
+      future: _demoInitializationFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _DemoInitializationLoadingView();
+        }
+
+        if (snapshot.hasError) {
+          return _DemoInitializationFailureView(error: snapshot.error);
+        }
+
+        return const _ResponsiveShellContent();
+      },
+    );
+  }
+}
+
+class _DemoInitializationLoadingView extends StatelessWidget {
+  const _DemoInitializationLoadingView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+}
+
+class _DemoInitializationFailureView extends StatelessWidget {
+  const _DemoInitializationFailureView({required this.error});
+
+  final Object? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Unable to initialize demo data.\n$error',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
   }
 }
 

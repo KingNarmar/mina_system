@@ -3,6 +3,8 @@ abstract class DemoStorageKeys {
 
   static const String departments = 'demo_departments';
   static const String jobTitles = 'demo_job_titles';
+  static const String toolCategories = 'demo_tool_categories';
+  static const String toolUnits = 'demo_tool_units';
   static const String workers = 'demo_workers';
   static const String tools = 'demo_tools';
   static const String transactions = 'demo_transactions';
@@ -15,6 +17,8 @@ abstract class DemoStorageKeys {
     isInitialized,
     departments,
     jobTitles,
+    toolCategories,
+    toolUnits,
     workers,
     tools,
     transactions,
