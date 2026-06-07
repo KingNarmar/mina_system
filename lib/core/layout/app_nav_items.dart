@@ -1,3 +1,4 @@
+import 'package:mina_system/core/app_mode/app_mode.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_icons.dart';
@@ -62,8 +63,23 @@ abstract class AppNavItems {
     ),
   ];
 
-  static List<AppNavItem> itemsForRole(String? role) {
-    return items
+  static const Set<String> _demoAllowedTitles = {
+    'Dashboard',
+    'Workers',
+    'Tools',
+    'Transactions',
+    'Reports',
+  };
+
+  static List<AppNavItem> itemsForRole(
+    String? role, {
+    AppMode appMode = AppMode.live,
+  }) {
+    final sourceItems = appMode.isDemo
+        ? items.where((item) => _demoAllowedTitles.contains(item.title))
+        : items;
+
+    return sourceItems
         .where((item) {
           return CompanyRolePermissions.hasPermission(role, item.permission);
         })

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
 import 'package:mina_system/core/layout/app_top_bar.dart';
@@ -21,6 +23,8 @@ class _DesktopShellState extends State<DesktopShell> {
 
   @override
   Widget build(BuildContext context) {
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+
     return BlocBuilder<CurrentContextCubit, CurrentContextState>(
       buildWhen: (previous, current) {
         if (previous is CurrentContextLoaded &&
@@ -37,7 +41,10 @@ class _DesktopShellState extends State<DesktopShell> {
             ? state.currentCompany?.role
             : null;
 
-        final navItems = AppNavItems.itemsForRole(currentRole);
+        final navItems = AppNavItems.itemsForRole(
+          currentRole,
+          appMode: appMode,
+        );
 
         if (navItems.isEmpty) {
           return const _NoAvailablePagesView();

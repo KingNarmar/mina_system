@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/layout/app_nav_item.dart';
 import 'package:mina_system/core/layout/app_nav_items.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
@@ -21,6 +23,8 @@ class _MobileShellState extends State<MobileShell> {
 
   @override
   Widget build(BuildContext context) {
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+
     return BlocBuilder<CurrentContextCubit, CurrentContextState>(
       buildWhen: (previous, current) {
         if (previous is CurrentContextLoaded &&
@@ -41,7 +45,10 @@ class _MobileShellState extends State<MobileShell> {
             ? state.currentCompany?.role
             : null;
 
-        final navItems = AppNavItems.itemsForRole(currentRole);
+        final navItems = AppNavItems.itemsForRole(
+          currentRole,
+          appMode: appMode,
+        );
 
         if (navItems.isEmpty) {
           return const _NoAvailablePagesView();
