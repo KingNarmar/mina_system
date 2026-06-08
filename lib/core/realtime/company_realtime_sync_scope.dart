@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/realtime/company_refresh_areas_service.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_cubit.dart';
 import 'package:mina_system/features/company_users/presentation/cubit/company_users_state.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
@@ -32,8 +33,12 @@ class CompanyRealtimeSyncScope extends StatefulWidget {
 class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     with WidgetsBindingObserver {
   static const Duration _refreshDebounceDuration = Duration(milliseconds: 700);
+  static const Duration _resumeRefreshSafetyWindow = Duration(seconds: 5);
+  static const Duration _resumeRefreshFallbackWindow = Duration(minutes: 2);
 
   final SupabaseClient _supabase = Supabase.instance.client;
+  final CompanyRefreshAreasService _refreshAreasService =
+      CompanyRefreshAreasService();
 
   RealtimeChannel? _channel;
 
@@ -45,6 +50,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
   Timer? _lookupsRefreshTimer;
 
   String? _activeCompanyId;
+  DateTime? _lastBackgroundedAt;
 
   bool _hasPendingTransactionsRefresh = false;
   bool _hasPendingCompanyUsersRefresh = false;
@@ -72,6 +78,12 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
     if (state == AppLifecycleState.resumed) {
       unawaited(_handleAppResumed());
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      _markAppBackgrounded();
     }
   }
 
@@ -182,6 +194,11 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     unawaited(_startRealtimeSync(cleanCompanyId));
   }
 
+  void _markAppBackgrounded() {
+    _lastBackgroundedAt = DateTime.now().toUtc();
+    _debugRealtime('App background timestamp recorded: $_lastBackgroundedAt');
+  }
+
   Future<void> _handleAppResumed() async {
     if (_isHandlingAppResume || !mounted) {
       return;
@@ -199,7 +216,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
     try {
       _debugRealtime(
-        'App resumed. Prioritizing transaction refresh and restarting realtime sync.',
+        'App resumed. Checking changed areas and restarting realtime sync.',
       );
 
       await _refreshCurrentContext();
@@ -220,23 +237,102 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
-      await _refreshTransactions();
+      final changedAreas = await _getChangedAreasOnResume(
+        companyId: targetCompanyId,
+      );
 
       if (!mounted) {
         return;
       }
 
-      await Future.wait([
-        _refreshLookups(),
-        _refreshCompanyUsers(),
-        _refreshWorkers(refreshDashboard: false),
-        _refreshTools(refreshDashboard: false),
-      ]);
+      if (changedAreas.isEmpty) {
+        _debugRealtime('No changed areas detected after resume.');
+        return;
+      }
+
+      _debugRealtime('Changed areas after resume: $changedAreas');
+      await _refreshChangedAreas(changedAreas);
     } catch (error, stackTrace) {
-      _debugRealtime('App resume realtime refresh error: $error');
-      _debugRealtime('App resume realtime refresh stackTrace: $stackTrace');
+      _debugRealtime('App resume targeted refresh error: $error');
+      _debugRealtime('App resume targeted refresh stackTrace: $stackTrace');
+
+      if (!mounted) {
+        return;
+      }
+
+      _debugRealtime('Falling back to transactions refresh after resume.');
+      await _refreshTransactions();
     } finally {
+      _lastBackgroundedAt = DateTime.now().toUtc();
       _isHandlingAppResume = false;
+    }
+  }
+
+  Future<Set<String>> _getChangedAreasOnResume({
+    required String companyId,
+  }) async {
+    final fallbackSince = DateTime.now().toUtc().subtract(
+      _resumeRefreshFallbackWindow,
+    );
+    final backgroundedAt = _lastBackgroundedAt;
+    final since = backgroundedAt == null
+        ? fallbackSince
+        : backgroundedAt.toUtc().subtract(_resumeRefreshSafetyWindow);
+
+    _debugRealtime('Checking refresh areas since $since.');
+
+    return _refreshAreasService.getChangedAreasSince(
+      companyId: companyId,
+      since: since,
+    );
+  }
+
+  Future<void> _refreshChangedAreas(Set<String> changedAreas) async {
+    final hasTransactions = changedAreas.contains(CompanyRefreshArea.transactions);
+    final hasWorkers = changedAreas.contains(CompanyRefreshArea.workers);
+    final hasTools = changedAreas.contains(CompanyRefreshArea.tools);
+    final hasCompanyUsers = changedAreas.contains(
+      CompanyRefreshArea.companyUsers,
+    );
+    final hasLookups = changedAreas.contains(CompanyRefreshArea.lookups);
+
+    if (hasTransactions) {
+      await _refreshTransactions();
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    final secondaryRefreshes = <Future<void>>[];
+
+    if (hasCompanyUsers) {
+      secondaryRefreshes.add(_refreshCurrentContext());
+      secondaryRefreshes.add(_refreshCompanyUsers());
+    }
+
+    if (hasLookups) {
+      secondaryRefreshes.add(_refreshLookups());
+    }
+
+    if (hasWorkers) {
+      secondaryRefreshes.add(_refreshWorkers(refreshDashboard: false));
+    }
+
+    if (hasTools) {
+      secondaryRefreshes.add(_refreshTools(refreshDashboard: false));
+    }
+
+    if (secondaryRefreshes.isNotEmpty) {
+      await Future.wait(secondaryRefreshes);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!hasTransactions && (hasWorkers || hasTools)) {
+      await _refreshDashboardSummary();
     }
   }
 
@@ -477,7 +573,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
 
     final transactionsCubit = context.read<TransactionsCubit>();
-    final dashboardCubit = context.read<DashboardCubit>();
 
     if (_shouldDeferTransactionsRefresh(transactionsCubit.state)) {
       _debugRealtime('Transactions refresh deferred.');
@@ -497,13 +592,34 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
-      await dashboardCubit.loadDashboardSummary(
-        companyId: companyId,
-        showLoader: false,
-      );
+      await _refreshDashboardSummary();
     } catch (error, stackTrace) {
       _debugRealtime('Transactions realtime refresh error: $error');
       _debugRealtime('Transactions realtime refresh stackTrace: $stackTrace');
+    }
+  }
+
+  Future<void> _refreshDashboardSummary() async {
+    if (!mounted) {
+      return;
+    }
+
+    final companyId = _activeCompanyId;
+
+    if (companyId == null || companyId.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      _debugRealtime('Refreshing dashboard summary silently.');
+
+      await context.read<DashboardCubit>().loadDashboardSummary(
+            companyId: companyId,
+            showLoader: false,
+          );
+    } catch (error, stackTrace) {
+      _debugRealtime('Dashboard realtime refresh error: $error');
+      _debugRealtime('Dashboard realtime refresh stackTrace: $stackTrace');
     }
   }
 
@@ -592,7 +708,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
 
     final workersCubit = context.read<WorkersCubit>();
-    final dashboardCubit = context.read<DashboardCubit>();
 
     if (_shouldDeferWorkersRefresh(workersCubit.state)) {
       _debugRealtime('Workers refresh deferred.');
@@ -609,10 +724,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
-      await dashboardCubit.loadDashboardSummary(
-        companyId: companyId,
-        showLoader: false,
-      );
+      await _refreshDashboardSummary();
     } catch (error, stackTrace) {
       _debugRealtime('Workers realtime refresh error: $error');
       _debugRealtime('Workers realtime refresh stackTrace: $stackTrace');
@@ -631,7 +743,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
 
     final toolsCubit = context.read<ToolsCubit>();
-    final dashboardCubit = context.read<DashboardCubit>();
 
     if (_shouldDeferToolsRefresh(toolsCubit.state)) {
       _debugRealtime('Tools refresh deferred.');
@@ -648,10 +759,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
-      await dashboardCubit.loadDashboardSummary(
-        companyId: companyId,
-        showLoader: false,
-      );
+      await _refreshDashboardSummary();
     } catch (error, stackTrace) {
       _debugRealtime('Tools realtime refresh error: $error');
       _debugRealtime('Tools realtime refresh stackTrace: $stackTrace');
