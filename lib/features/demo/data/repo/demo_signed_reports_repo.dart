@@ -191,6 +191,18 @@ class DemoSignedReportsRepo extends SignedReportsRepo {
     return file.readAsBytes();
   }
 
+  Future<void> clearSignedReportFiles({required String companyId}) async {
+    final directory = await _getDemoSignedReportsDirectory(
+      companyId: companyId,
+    );
+
+    if (!await directory.exists()) {
+      return;
+    }
+
+    await directory.delete(recursive: true);
+  }
+
   Future<Directory> _getDemoSignedReportsDirectory({
     required String companyId,
   }) async {

@@ -4,6 +4,7 @@ import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/features/company_settings/presentation/screens/company_settings_screen.dart';
 import 'package:mina_system/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:mina_system/features/demo/presentation/screens/demo_reset_screen.dart';
 import 'package:mina_system/features/lookups/presentation/screens/lookups_screen.dart';
 import 'package:mina_system/features/reports/presentation/screens/reports_screen.dart';
 import 'package:mina_system/features/team/presentation/screens/team_screen.dart';
@@ -63,6 +64,13 @@ abstract class AppNavItems {
     ),
   ];
 
+  static const AppNavItem _demoResetItem = AppNavItem(
+    title: 'Reset Demo',
+    icon: AppIcons.restore,
+    page: DemoResetScreen(),
+    permission: CompanyPermission.viewCompanySettings,
+  );
+
   static const Set<String> _demoAllowedTitles = {
     'Dashboard',
     'Workers',
@@ -78,7 +86,10 @@ abstract class AppNavItems {
     AppMode appMode = AppMode.live,
   }) {
     final sourceItems = appMode.isDemo
-        ? items.where((item) => _demoAllowedTitles.contains(item.title))
+        ? <AppNavItem>[
+            ...items.where((item) => _demoAllowedTitles.contains(item.title)),
+            _demoResetItem,
+          ]
         : items;
 
     return sourceItems
