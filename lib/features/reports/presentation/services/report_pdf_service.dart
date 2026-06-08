@@ -27,11 +27,6 @@ class ReportPdfService {
 
   static const int _maxReportPages = 200;
 
-  /// Minimum free space needed before starting the signature block.
-  ///
-  /// Without this guard, the PDF engine may render the "Signatures" title
-  /// at the end of one page and move the actual signature boxes to the next
-  /// page when the report table is long.
   static const double _minimumSignatureSectionFreeSpace = 190;
 
   final SupabaseClient _supabase;
@@ -62,6 +57,11 @@ class ReportPdfService {
     final shouldShowDocumentControl =
         reportSettings.showDocumentControl && documentTemplate != null;
 
+    final shouldShowDemoWatermark = _shouldShowDemoWatermark(
+      companyProfile: companyProfile,
+      reportSettings: reportSettings,
+    );
+
     final filteredTransactions = applyReportTransactionFilters(
       transactions: transactions,
       filters: filters,
@@ -72,8 +72,13 @@ class ReportPdfService {
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pw.PageTheme(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          buildForeground: shouldShowDemoWatermark
+              ? (_) => _buildDemoWatermark()
+              : null,
+        ),
         maxPages: _maxReportPages,
         footer: ReportPdfFooterSection.buildPageNumberFooter,
         build: (context) {
@@ -84,6 +89,10 @@ class ReportPdfService {
               reportSettings: reportSettings,
               logoBytes: logoBytes,
             ),
+            if (shouldShowDemoWatermark) ...[
+              pw.SizedBox(height: 10),
+              _buildDemoNoticeBanner(),
+            ],
             if (shouldShowDocumentControl) ...[
               pw.SizedBox(height: 16),
               ReportPdfDocumentControlSection.buildDocumentControl(
@@ -125,5 +134,74 @@ class ReportPdfService {
     );
 
     return pdf.save();
+  }
+
+  bool _shouldShowDemoWatermark({
+    required CompanyProfileModel companyProfile,
+    required CompanyReportSettingsModel reportSettings,
+  }) {
+    final companyId = companyProfile.id.trim().toLowerCase();
+    final reportSettingsId = reportSettings.id.trim().toLowerCase();
+
+    return companyId == 'demo-company-001' ||
+        reportSettingsId.startsWith('demo-');
+  }
+
+  pw.Widget _buildDemoWatermark() {
+    return pw.FullPage(
+      ignoreMargins: true,
+      child: pw.Center(
+        child: pw.Opacity(
+          opacity: 0.16,
+          child: pw.Transform.rotate(
+            angle: -0.55,
+            child: pw.Column(
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
+                pw.Text(
+                  'DEMO',
+                  style: pw.TextStyle(
+                    fontSize: 96,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text(
+                  'SAMPLE DATA ONLY',
+                  style: pw.TextStyle(
+                    fontSize: 28,
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 2,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildDemoNoticeBanner() {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.amber50,
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.amber300),
+      ),
+      child: pw.Text(
+        'DEMO MODE — This report is generated from local sample data only and is not an official custody document.',
+        textAlign: pw.TextAlign.center,
+        style: pw.TextStyle(
+          fontSize: 9,
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColors.amber900,
+        ),
+      ),
+    );
   }
 }
