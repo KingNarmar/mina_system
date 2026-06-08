@@ -3,6 +3,7 @@ import 'package:mina_system/features/company_users/data/models/company_invitatio
 import 'package:mina_system/features/company_users/data/models/company_member_model.dart';
 import 'package:mina_system/features/company_users/data/models/invite_company_user_request.dart';
 import 'package:mina_system/features/company_users/data/repo/company_users_repo.dart';
+import 'package:mina_system/features/demo/data/demo_limits.dart';
 import 'package:mina_system/features/demo/data/services/demo_local_storage_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_seed_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_storage_keys.dart';
@@ -107,6 +108,11 @@ class DemoCompanyUsersRepo extends CompanyUsersRepo {
 
     final invitationsData = await _storage.readJsonList(
       DemoStorageKeys.companyInvitations,
+    );
+
+    _ensureCanInviteCompanyUser(
+      invitationsData: invitationsData,
+      companyId: request.companyId,
     );
 
     final invitationJson = _invitationJson(
@@ -326,6 +332,23 @@ class DemoCompanyUsersRepo extends CompanyUsersRepo {
       oldData: {'status': oldMemberJson?['status']},
       newData: {'status': status},
     );
+  }
+
+  void _ensureCanInviteCompanyUser({
+    required List<Map<String, dynamic>> invitationsData,
+    required String companyId,
+  }) {
+    final pendingInvitationsCount = invitationsData.where((item) {
+      final itemCompanyId = item['company_id'] as String?;
+      final itemStatus = item['status'] as String?;
+
+      return itemCompanyId == companyId &&
+          itemStatus?.trim().toLowerCase() == 'pending';
+    }).length;
+
+    if (pendingInvitationsCount >= DemoLimits.maxPendingInvitations) {
+      throw StateError(DemoLimits.invitationsLimitMessage());
+    }
   }
 
   Future<void> _ensureTeamSeeded({required String companyId}) async {
