@@ -128,14 +128,18 @@ class DemoCompanySettingsRepo extends CompanySettingsRepo {
   Future<CompanyProfileModel> updateCompanyProfile({
     required CompanyProfileModel profile,
   }) {
-    throw UnsupportedError('Editing demo company settings is not available yet.');
+    throw UnsupportedError(
+      'Editing demo company settings is not available yet.',
+    );
   }
 
   @override
   Future<CompanyReportSettingsModel> updateCompanyReportSettings({
     required CompanyReportSettingsModel reportSettings,
   }) {
-    throw UnsupportedError('Editing demo report settings is not available yet.');
+    throw UnsupportedError(
+      'Editing demo report settings is not available yet.',
+    );
   }
 
   @override

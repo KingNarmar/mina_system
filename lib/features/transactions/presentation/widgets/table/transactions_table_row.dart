@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
@@ -137,7 +139,7 @@ class _TransactionThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_ThumbnailImageResult>(
-      future: _resolveTransactionImageUrl(imagePath),
+      future: _resolveTransactionImageSource(imagePath),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const _ThumbnailFallback(icon: AppIcons.image);
@@ -145,7 +147,7 @@ class _TransactionThumbnail extends StatelessWidget {
 
         final result = snapshot.data;
 
-        if (result == null || !result.hasImageUrl) {
+        if (result == null || !result.hasImageSource) {
           return _ThumbnailFallback(
             icon: result?.isOffline == true
                 ? AppIcons.offline
@@ -163,32 +165,52 @@ class _TransactionThumbnail extends StatelessWidget {
         return InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () {
-            showTransactionImagePreview(context, result.imageUrl!);
+            showTransactionImagePreview(context, result.imageSource!);
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
               width: 44,
               height: 36,
-              child: Image.network(
-                result.imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _ThumbnailFallback(
-                    icon: AppIcons.brokenImage,
-                    onTap: () {
-                      AppMessage.showWarning(
-                        context,
-                        AppErrorMessage.fromError(
-                          error,
-                          fallback:
-                              'Unable to load proof image. Please try again.',
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+              child: result.isLocalFile
+                  ? Image.file(
+                      File(result.imageSource!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _ThumbnailFallback(
+                          icon: AppIcons.brokenImage,
+                          onTap: () {
+                            AppMessage.showWarning(
+                              context,
+                              AppErrorMessage.fromError(
+                                error,
+                                fallback:
+                                    'Unable to load proof image. Please try again.',
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    )
+                  : Image.network(
+                      result.imageSource!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _ThumbnailFallback(
+                          icon: AppIcons.brokenImage,
+                          onTap: () {
+                            AppMessage.showWarning(
+                              context,
+                              AppErrorMessage.fromError(
+                                error,
+                                fallback:
+                                    'Unable to load proof image. Please try again.',
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ),
         );
@@ -196,19 +218,35 @@ class _TransactionThumbnail extends StatelessWidget {
     );
   }
 
-  Future<_ThumbnailImageResult> _resolveTransactionImageUrl(String path) async {
+  Future<_ThumbnailImageResult> _resolveTransactionImageSource(
+    String path,
+  ) async {
     try {
-      await NetworkStatusService().ensureOnline();
+      final cleanPath = path.trim();
 
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        return _ThumbnailImageResult.success(path);
+      if (cleanPath.isEmpty) {
+        return const _ThumbnailImageResult.failure(
+          message: 'No proof image attached.',
+        );
       }
+
+      final localFile = File(cleanPath);
+
+      if (await localFile.exists()) {
+        return _ThumbnailImageResult.local(cleanPath);
+      }
+
+      if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+        return _ThumbnailImageResult.remote(cleanPath);
+      }
+
+      await NetworkStatusService().ensureOnline();
 
       final signedUrl = await Supabase.instance.client.storage
           .from('transaction-proofs')
-          .createSignedUrl(path, 60 * 60);
+          .createSignedUrl(cleanPath, 60 * 60);
 
-      return _ThumbnailImageResult.success(signedUrl);
+      return _ThumbnailImageResult.remote(signedUrl);
     } on NetworkUnavailableException {
       return const _ThumbnailImageResult.failure(
         message:
@@ -227,20 +265,29 @@ class _TransactionThumbnail extends StatelessWidget {
 }
 
 class _ThumbnailImageResult {
-  const _ThumbnailImageResult.success(this.imageUrl)
+  const _ThumbnailImageResult.remote(this.imageSource)
     : message = null,
-      isOffline = false;
+      isOffline = false,
+      isLocalFile = false;
+
+  const _ThumbnailImageResult.local(this.imageSource)
+    : message = null,
+      isOffline = false,
+      isLocalFile = true;
 
   const _ThumbnailImageResult.failure({
     required this.message,
     this.isOffline = false,
-  }) : imageUrl = null;
+  }) : imageSource = null,
+       isLocalFile = false;
 
-  final String? imageUrl;
+  final String? imageSource;
   final String? message;
   final bool isOffline;
+  final bool isLocalFile;
 
-  bool get hasImageUrl => imageUrl != null && imageUrl!.trim().isNotEmpty;
+  bool get hasImageSource =>
+      imageSource != null && imageSource!.trim().isNotEmpty;
 }
 
 class _ThumbnailFallback extends StatelessWidget {
@@ -282,15 +329,14 @@ class _TransactionTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(
         label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
         style: AppTextStyles.caption.copyWith(
           color: color,
           fontWeight: FontWeight.w700,

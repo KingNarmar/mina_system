@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 
 class TransactionProofImagePreview extends StatelessWidget {
   const TransactionProofImagePreview({super.key, required this.imagePath});
@@ -19,7 +21,7 @@ class TransactionProofImagePreview extends StatelessWidget {
     }
 
     return FutureBuilder<_ProofImageResult>(
-      future: _resolveTransactionImageUrl(imagePath),
+      future: _resolveTransactionImageSource(imagePath),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const EmptyDetailsBox(text: 'Loading image...');
@@ -27,7 +29,7 @@ class TransactionProofImagePreview extends StatelessWidget {
 
         final result = snapshot.data;
 
-        if (result == null || !result.hasImageUrl) {
+        if (result == null || !result.hasImageSource) {
           return EmptyDetailsBox(
             text:
                 result?.message ??
@@ -38,43 +40,72 @@ class TransactionProofImagePreview extends StatelessWidget {
         return InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            showTransactionImagePreview(context, result.imageUrl!);
+            showTransactionImagePreview(context, result.imageSource!);
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              result.imageUrl!,
-              width: double.infinity,
-              height: 240,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return EmptyDetailsBox(
-                  text: AppErrorMessage.fromError(
-                    error,
-                    fallback: 'Unable to load proof image. Please try again.',
+            child: result.isLocalFile
+                ? Image.file(
+                    File(result.imageSource!),
+                    width: double.infinity,
+                    height: 240,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return EmptyDetailsBox(
+                        text: AppErrorMessage.fromError(
+                          error,
+                          fallback:
+                              'Unable to load proof image. Please try again.',
+                        ),
+                      );
+                    },
+                  )
+                : Image.network(
+                    result.imageSource!,
+                    width: double.infinity,
+                    height: 240,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return EmptyDetailsBox(
+                        text: AppErrorMessage.fromError(
+                          error,
+                          fallback:
+                              'Unable to load proof image. Please try again.',
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         );
       },
     );
   }
 
-  Future<_ProofImageResult> _resolveTransactionImageUrl(String path) async {
+  Future<_ProofImageResult> _resolveTransactionImageSource(String path) async {
     try {
-      await NetworkStatusService().ensureOnline();
+      final cleanPath = path.trim();
 
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        return _ProofImageResult.success(path);
+      if (cleanPath.isEmpty) {
+        return const _ProofImageResult.failure('No photo attached');
       }
+
+      final localFile = File(cleanPath);
+
+      if (await localFile.exists()) {
+        return _ProofImageResult.local(cleanPath);
+      }
+
+      if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+        return _ProofImageResult.remote(cleanPath);
+      }
+
+      await NetworkStatusService().ensureOnline();
 
       final signedUrl = await Supabase.instance.client.storage
           .from('transaction-proofs')
-          .createSignedUrl(path, 60 * 60);
+          .createSignedUrl(cleanPath, 60 * 60);
 
-      return _ProofImageResult.success(signedUrl);
+      return _ProofImageResult.remote(signedUrl);
     } on NetworkUnavailableException {
       return const _ProofImageResult.failure(
         'Proof images are stored online and cannot be viewed while offline.',
@@ -91,14 +122,24 @@ class TransactionProofImagePreview extends StatelessWidget {
 }
 
 class _ProofImageResult {
-  const _ProofImageResult.success(this.imageUrl) : message = null;
+  const _ProofImageResult.remote(this.imageSource)
+    : message = null,
+      isLocalFile = false;
 
-  const _ProofImageResult.failure(this.message) : imageUrl = null;
+  const _ProofImageResult.local(this.imageSource)
+    : message = null,
+      isLocalFile = true;
 
-  final String? imageUrl;
+  const _ProofImageResult.failure(this.message)
+    : imageSource = null,
+      isLocalFile = false;
+
+  final String? imageSource;
   final String? message;
+  final bool isLocalFile;
 
-  bool get hasImageUrl => imageUrl != null && imageUrl!.trim().isNotEmpty;
+  bool get hasImageSource =>
+      imageSource != null && imageSource!.trim().isNotEmpty;
 }
 
 class EmptyDetailsBox extends StatelessWidget {

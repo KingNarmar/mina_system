@@ -11,6 +11,7 @@ import 'package:mina_system/features/transactions/data/models/transaction_model.
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_state.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
+import 'package:mina_system/features/transactions/presentation/widgets/details/transaction_signed_document_button.dart';
 
 part 'pending_approval_document_picker.dart';
 part 'pending_approval_ui_helpers.dart';
@@ -79,6 +80,12 @@ class PendingApprovalActions extends StatelessWidget {
           icon: const Icon(AppIcons.view, size: 18),
           label: const Text('View'),
         ),
+        if (hasApprovalDocument)
+          TransactionSignedDocumentButton(
+            transaction: transaction,
+            compact: true,
+            label: 'View Signed',
+          ),
         if (transaction.isApprovalPending && canUploadApprovalDocument)
           OutlinedButton.icon(
             onPressed: isSubmitting
