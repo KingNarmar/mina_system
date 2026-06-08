@@ -34,7 +34,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     with WidgetsBindingObserver {
   static const Duration _refreshDebounceDuration = Duration(milliseconds: 700);
   static const Duration _resumeRefreshSafetyWindow = Duration(seconds: 5);
-  static const Duration _resumeRefreshFallbackWindow = Duration(minutes: 2);
+  static const Duration _resumeRefreshFallbackWindow = Duration(minutes: 10);
 
   final SupabaseClient _supabase = Supabase.instance.client;
   final CompanyRefreshAreasService _refreshAreasService =
@@ -81,8 +81,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       return;
     }
 
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.paused) {
       _markAppBackgrounded();
     }
   }
@@ -195,7 +194,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
   }
 
   void _markAppBackgrounded() {
-    _lastBackgroundedAt = DateTime.now().toUtc();
+    _lastBackgroundedAt ??= DateTime.now().toUtc();
     _debugRealtime('App background timestamp recorded: $_lastBackgroundedAt');
   }
 
@@ -263,7 +262,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       _debugRealtime('Falling back to transactions refresh after resume.');
       await _refreshTransactions();
     } finally {
-      _lastBackgroundedAt = DateTime.now().toUtc();
+      _lastBackgroundedAt = null;
       _isHandlingAppResume = false;
     }
   }
@@ -288,7 +287,9 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
   }
 
   Future<void> _refreshChangedAreas(Set<String> changedAreas) async {
-    final hasTransactions = changedAreas.contains(CompanyRefreshArea.transactions);
+    final hasTransactions = changedAreas.contains(
+      CompanyRefreshArea.transactions,
+    );
     final hasWorkers = changedAreas.contains(CompanyRefreshArea.workers);
     final hasTools = changedAreas.contains(CompanyRefreshArea.tools);
     final hasCompanyUsers = changedAreas.contains(
