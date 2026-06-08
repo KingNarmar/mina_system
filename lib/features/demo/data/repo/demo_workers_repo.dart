@@ -1,3 +1,4 @@
+import 'package:mina_system/features/demo/data/demo_limits.dart';
 import 'package:mina_system/features/demo/data/services/demo_local_storage_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_seed_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_storage_keys.dart';
@@ -47,6 +48,9 @@ class DemoWorkersRepo extends WorkersRepo {
   @override
   Future<WorkerModel> addWorker({required WorkerModel worker}) async {
     final workersData = await _storage.readJsonList(DemoStorageKeys.workers);
+    final targetCompanyId = worker.companyId ?? DemoSeedService.demoCompanyId;
+
+    _ensureCanAddWorker(workersData: workersData, companyId: targetCompanyId);
 
     final now = DateTime.now().toIso8601String();
     final workerId = worker.id?.trim().isNotEmpty == true
@@ -55,7 +59,7 @@ class DemoWorkersRepo extends WorkersRepo {
 
     final workerToSave = worker.copyWith(
       id: workerId,
-      companyId: worker.companyId ?? DemoSeedService.demoCompanyId,
+      companyId: targetCompanyId,
       status: 'active',
       createdByProfileId: DemoSeedService.demoProfileId,
       updatedByProfileId: DemoSeedService.demoProfileId,
@@ -259,6 +263,19 @@ class DemoWorkersRepo extends WorkersRepo {
     );
 
     return WorkerModel.fromJson(savedJson!);
+  }
+
+  void _ensureCanAddWorker({
+    required List<Map<String, dynamic>> workersData,
+    required String companyId,
+  }) {
+    final companyWorkersCount = workersData.where((item) {
+      return item['company_id'] == companyId;
+    }).length;
+
+    if (companyWorkersCount >= DemoLimits.maxWorkers) {
+      throw StateError(DemoLimits.workersLimitMessage());
+    }
   }
 
   Map<String, dynamic> _workerToJson(

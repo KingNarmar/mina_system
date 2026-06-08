@@ -1,3 +1,4 @@
+import 'package:mina_system/features/demo/data/demo_limits.dart';
 import 'package:mina_system/features/demo/data/services/demo_local_storage_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_seed_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_storage_keys.dart';
@@ -49,6 +50,9 @@ class DemoToolsRepo extends ToolsRepo {
   @override
   Future<ToolModel> addTool({required ToolModel tool}) async {
     final toolsData = await _storage.readJsonList(DemoStorageKeys.tools);
+    final targetCompanyId = tool.companyId ?? DemoSeedService.demoCompanyId;
+
+    _ensureCanAddTool(toolsData: toolsData, companyId: targetCompanyId);
 
     final now = DateTime.now().toIso8601String();
     final toolId = tool.id?.trim().isNotEmpty == true
@@ -57,7 +61,7 @@ class DemoToolsRepo extends ToolsRepo {
 
     final toolToSave = tool.copyWith(
       id: toolId,
-      companyId: tool.companyId ?? DemoSeedService.demoCompanyId,
+      companyId: targetCompanyId,
       status: 'active',
       createdByProfileId: DemoSeedService.demoProfileId,
       updatedByProfileId: DemoSeedService.demoProfileId,
@@ -239,6 +243,19 @@ class DemoToolsRepo extends ToolsRepo {
     );
 
     return ToolModel.fromJson(savedJson!);
+  }
+
+  void _ensureCanAddTool({
+    required List<Map<String, dynamic>> toolsData,
+    required String companyId,
+  }) {
+    final companyToolsCount = toolsData.where((item) {
+      return item['company_id'] == companyId;
+    }).length;
+
+    if (companyToolsCount >= DemoLimits.maxTools) {
+      throw StateError(DemoLimits.toolsLimitMessage());
+    }
   }
 
   Map<String, dynamic> _toolToJson(

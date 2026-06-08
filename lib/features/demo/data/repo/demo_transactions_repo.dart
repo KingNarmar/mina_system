@@ -1,3 +1,4 @@
+import 'package:mina_system/features/demo/data/demo_limits.dart';
 import 'package:mina_system/features/demo/data/services/demo_local_storage_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_seed_service.dart';
 import 'package:mina_system/features/demo/data/services/demo_storage_keys.dart';
@@ -60,6 +61,14 @@ class DemoTransactionsRepo extends TransactionsRepo {
       DemoStorageKeys.transactions,
     );
 
+    final targetCompanyId =
+        transaction.companyId ?? DemoSeedService.demoCompanyId;
+
+    _ensureCanAddTransaction(
+      transactionsData: transactionsData,
+      companyId: targetCompanyId,
+    );
+
     final now = DateTime.now().toIso8601String();
 
     final transactionId = transaction.id?.trim().isNotEmpty == true
@@ -73,7 +82,7 @@ class DemoTransactionsRepo extends TransactionsRepo {
     final transactionToSave = _applyDemoApprovalDefaults(
       transaction.copyWith(
         id: transactionId,
-        companyId: transaction.companyId ?? DemoSeedService.demoCompanyId,
+        companyId: targetCompanyId,
         transactionCode: transactionCode,
         dateTime: DateTime.parse(now),
         createdByProfileId: DemoSeedService.demoProfileId,
@@ -253,6 +262,19 @@ class DemoTransactionsRepo extends TransactionsRepo {
 
       return itemCode == cleanCode;
     });
+  }
+
+  void _ensureCanAddTransaction({
+    required List<Map<String, dynamic>> transactionsData,
+    required String companyId,
+  }) {
+    final companyTransactionsCount = transactionsData.where((item) {
+      return item['company_id'] == companyId;
+    }).length;
+
+    if (companyTransactionsCount >= DemoLimits.maxTransactions) {
+      throw StateError(DemoLimits.transactionsLimitMessage());
+    }
   }
 
   Future<TransactionModel> _replaceTransaction(
