@@ -245,7 +245,10 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       }
 
       if (changedAreas.isEmpty) {
-        _debugRealtime('No changed areas detected after resume.');
+        _debugRealtime(
+          'No changed areas detected after resume. Refreshing transactions as safe fallback.',
+        );
+        await _refreshTransactions();
         return;
       }
 
