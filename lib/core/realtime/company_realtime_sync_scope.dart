@@ -215,7 +215,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
     try {
       _debugRealtime(
-        'App resumed. Checking changed areas and restarting realtime sync.',
+        'App resumed. Refreshing transactions first and checking secondary areas.',
       );
 
       await _refreshCurrentContext();
@@ -236,6 +236,12 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
+      await _refreshTransactions();
+
+      if (!mounted) {
+        return;
+      }
+
       final changedAreas = await _getChangedAreasOnResume(
         companyId: targetCompanyId,
       );
@@ -244,16 +250,16 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
-      if (changedAreas.isEmpty) {
-        _debugRealtime(
-          'No changed areas detected after resume. Refreshing transactions as safe fallback.',
-        );
-        await _refreshTransactions();
+      final secondaryAreas = {...changedAreas}
+        ..remove(CompanyRefreshArea.transactions);
+
+      if (secondaryAreas.isEmpty) {
+        _debugRealtime('No secondary changed areas detected after resume.');
         return;
       }
 
-      _debugRealtime('Changed areas after resume: $changedAreas');
-      await _refreshChangedAreas(changedAreas);
+      _debugRealtime('Secondary changed areas after resume: $secondaryAreas');
+      await _refreshChangedAreas(secondaryAreas);
     } catch (error, stackTrace) {
       _debugRealtime('App resume targeted refresh error: $error');
       _debugRealtime('App resume targeted refresh stackTrace: $stackTrace');
@@ -290,23 +296,12 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
   }
 
   Future<void> _refreshChangedAreas(Set<String> changedAreas) async {
-    final hasTransactions = changedAreas.contains(
-      CompanyRefreshArea.transactions,
-    );
     final hasWorkers = changedAreas.contains(CompanyRefreshArea.workers);
     final hasTools = changedAreas.contains(CompanyRefreshArea.tools);
     final hasCompanyUsers = changedAreas.contains(
       CompanyRefreshArea.companyUsers,
     );
     final hasLookups = changedAreas.contains(CompanyRefreshArea.lookups);
-
-    if (hasTransactions) {
-      await _refreshTransactions();
-    }
-
-    if (!mounted) {
-      return;
-    }
 
     final secondaryRefreshes = <Future<void>>[];
 
@@ -329,14 +324,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
     if (secondaryRefreshes.isNotEmpty) {
       await Future.wait(secondaryRefreshes);
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    if (!hasTransactions && (hasWorkers || hasTools)) {
-      await _refreshDashboardSummary();
     }
   }
 
