@@ -199,7 +199,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
     try {
       _debugRealtime(
-        'App resumed. Refreshing company data and restarting realtime sync.',
+        'App resumed. Prioritizing transaction refresh and restarting realtime sync.',
       );
 
       await _refreshCurrentContext();
@@ -220,11 +220,18 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         return;
       }
 
-      await _refreshLookups();
-      await _refreshCompanyUsers();
-      await _refreshWorkers();
-      await _refreshTools();
       await _refreshTransactions();
+
+      if (!mounted) {
+        return;
+      }
+
+      await Future.wait([
+        _refreshLookups(),
+        _refreshCompanyUsers(),
+        _refreshWorkers(refreshDashboard: false),
+        _refreshTools(refreshDashboard: false),
+      ]);
     } catch (error, stackTrace) {
       _debugRealtime('App resume realtime refresh error: $error');
       _debugRealtime('App resume realtime refresh stackTrace: $stackTrace');
@@ -458,7 +465,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     });
   }
 
-  Future<void> _refreshTransactions() async {
+  Future<void> _refreshTransactions({bool refreshDashboard = true}) async {
     if (!mounted) {
       return;
     }
@@ -486,7 +493,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         showLoader: false,
       );
 
-      if (!mounted) {
+      if (!mounted || !refreshDashboard) {
         return;
       }
 
@@ -573,7 +580,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
   }
 
-  Future<void> _refreshWorkers() async {
+  Future<void> _refreshWorkers({bool refreshDashboard = true}) async {
     if (!mounted) {
       return;
     }
@@ -598,7 +605,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
       await workersCubit.loadWorkers(companyId: companyId, showLoader: false);
 
-      if (!mounted) {
+      if (!mounted || !refreshDashboard) {
         return;
       }
 
@@ -612,7 +619,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
   }
 
-  Future<void> _refreshTools() async {
+  Future<void> _refreshTools({bool refreshDashboard = true}) async {
     if (!mounted) {
       return;
     }
@@ -637,7 +644,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
       await toolsCubit.loadTools(companyId: companyId, showLoader: false);
 
-      if (!mounted) {
+      if (!mounted || !refreshDashboard) {
         return;
       }
 
