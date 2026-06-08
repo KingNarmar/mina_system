@@ -19,10 +19,29 @@ class DemoTransactionsRepo extends TransactionsRepo {
       DemoStorageKeys.transactions,
     );
 
-    final transactions = transactionsData
-        .where((item) {
-          return item['company_id'] == companyId;
+    var shouldPersistNormalizedData = false;
+
+    final normalizedTransactionsData = transactionsData
+        .map((item) {
+          final normalizedItem = _normalizeDemoApprovalWorkflow(item);
+
+          if (!_areMapsShallowEqual(item, normalizedItem)) {
+            shouldPersistNormalizedData = true;
+          }
+
+          return normalizedItem;
         })
+        .toList(growable: false);
+
+    if (shouldPersistNormalizedData) {
+      await _storage.writeJsonList(
+        key: DemoStorageKeys.transactions,
+        value: normalizedTransactionsData,
+      );
+    }
+
+    final transactions = normalizedTransactionsData
+        .where((item) => item['company_id'] == companyId)
         .map(TransactionModel.fromJson)
         .toList();
 
@@ -51,7 +70,7 @@ class DemoTransactionsRepo extends TransactionsRepo {
         ? transaction.transactionCode.trim()
         : _generateNextTransactionCode(transactionsData);
 
-    final savedJson = _transactionToJson(
+    final transactionToSave = _applyDemoApprovalDefaults(
       transaction.copyWith(
         id: transactionId,
         companyId: transaction.companyId ?? DemoSeedService.demoCompanyId,
@@ -62,6 +81,10 @@ class DemoTransactionsRepo extends TransactionsRepo {
         createdByProfileEmail: 'demo@mina-system.local',
         updatedAt: DateTime.parse(now),
       ),
+    );
+
+    final savedJson = _transactionToJson(
+      transactionToSave,
       createdAt: now,
       updatedAt: now,
     );
@@ -72,6 +95,271 @@ class DemoTransactionsRepo extends TransactionsRepo {
     );
 
     return TransactionModel.fromJson(savedJson);
+  }
+
+  @override
+  Future<TransactionModel> uploadApprovalDocument({
+    required TransactionModel transaction,
+    required String localDocumentPath,
+  }) async {
+    final cleanPath = localDocumentPath.trim();
+
+    if (cleanPath.isEmpty) {
+      throw StateError('Approval document path was not found.');
+    }
+
+    final now = DateTime.now();
+
+    final updatedTransaction = transaction.copyWith(
+      approvalRequired: true,
+      approvalStatus: 'pending',
+      approvalDocumentPath: cleanPath,
+      approvalDocumentUploadedByProfileId: DemoSeedService.demoProfileId,
+      approvalDocumentUploadedByProfileName: 'Demo User',
+      approvalDocumentUploadedByProfileEmail: 'demo@mina-system.local',
+      approvalDocumentUploadedAt: now,
+      updatedByProfileId: DemoSeedService.demoProfileId,
+      updatedByProfileName: 'Demo User',
+      updatedByProfileEmail: 'demo@mina-system.local',
+      updatedAt: now,
+    );
+
+    return _replaceTransaction(updatedTransaction);
+  }
+
+  @override
+  Future<String> createApprovalDocumentSignedUrl({
+    required TransactionModel transaction,
+    int expiresInSeconds = 60 * 10,
+  }) async {
+    final documentPath = transaction.approvalDocumentPath?.trim();
+
+    if (documentPath == null || documentPath.isEmpty) {
+      throw StateError('Signed approval document was not found.');
+    }
+
+    return documentPath;
+  }
+
+  @override
+  Future<TransactionModel> approveLostDamagedTransaction({
+    required TransactionModel transaction,
+    String? decisionNote,
+  }) async {
+    final now = DateTime.now();
+
+    final updatedTransaction = transaction.copyWith(
+      approvalRequired: true,
+      approvalStatus: 'approved',
+      approvalDecisionNote: decisionNote,
+      approvalDecidedByProfileId: DemoSeedService.demoProfileId,
+      approvalDecidedByProfileName: 'Demo User',
+      approvalDecidedByProfileEmail: 'demo@mina-system.local',
+      approvalDecidedAt: now,
+      settlementStatus: 'pending_settlement',
+      updatedByProfileId: DemoSeedService.demoProfileId,
+      updatedByProfileName: 'Demo User',
+      updatedByProfileEmail: 'demo@mina-system.local',
+      updatedAt: now,
+    );
+
+    return _replaceTransaction(updatedTransaction);
+  }
+
+  @override
+  Future<TransactionModel> rejectLostDamagedTransaction({
+    required TransactionModel transaction,
+    String? decisionNote,
+  }) async {
+    final now = DateTime.now();
+
+    final updatedTransaction = transaction.copyWith(
+      approvalRequired: true,
+      approvalStatus: 'rejected',
+      approvalDecisionNote: decisionNote,
+      approvalDecidedByProfileId: DemoSeedService.demoProfileId,
+      approvalDecidedByProfileName: 'Demo User',
+      approvalDecidedByProfileEmail: 'demo@mina-system.local',
+      approvalDecidedAt: now,
+      settlementStatus: 'not_required',
+      updatedByProfileId: DemoSeedService.demoProfileId,
+      updatedByProfileName: 'Demo User',
+      updatedByProfileEmail: 'demo@mina-system.local',
+      updatedAt: now,
+    );
+
+    return _replaceTransaction(updatedTransaction);
+  }
+
+  @override
+  Future<TransactionModel> settleApprovedLostDamagedTransaction({
+    required TransactionModel transaction,
+    String? settlementNote,
+  }) async {
+    final now = DateTime.now();
+
+    final updatedTransaction = transaction.copyWith(
+      settlementStatus: 'settled',
+      settlementNote: settlementNote,
+      settledByProfileId: DemoSeedService.demoProfileId,
+      settledByProfileName: 'Demo User',
+      settledByProfileEmail: 'demo@mina-system.local',
+      settledAt: now,
+      updatedByProfileId: DemoSeedService.demoProfileId,
+      updatedByProfileName: 'Demo User',
+      updatedByProfileEmail: 'demo@mina-system.local',
+      updatedAt: now,
+    );
+
+    return _replaceTransaction(updatedTransaction);
+  }
+
+  @override
+  Future<String> generateNextTransactionCode({
+    required String companyId,
+  }) async {
+    final transactionsData = await _storage.readJsonList(
+      DemoStorageKeys.transactions,
+    );
+
+    return _generateNextTransactionCode(transactionsData);
+  }
+
+  @override
+  Future<bool> transactionCodeExists({
+    required String companyId,
+    required String transactionCode,
+    String? ignoredTransactionId,
+  }) async {
+    final transactionsData = await _storage.readJsonList(
+      DemoStorageKeys.transactions,
+    );
+
+    final cleanCode = transactionCode.trim().toLowerCase();
+
+    return transactionsData.any((item) {
+      if (item['company_id'] != companyId) {
+        return false;
+      }
+
+      if (ignoredTransactionId != null && item['id'] == ignoredTransactionId) {
+        return false;
+      }
+
+      final itemCode = item['transaction_code']
+          ?.toString()
+          .trim()
+          .toLowerCase();
+
+      return itemCode == cleanCode;
+    });
+  }
+
+  Future<TransactionModel> _replaceTransaction(
+    TransactionModel updatedTransaction,
+  ) async {
+    final transactionId = updatedTransaction.id?.trim();
+
+    if (transactionId == null || transactionId.isEmpty) {
+      throw StateError('Transaction ID was not found.');
+    }
+
+    final transactionsData = await _storage.readJsonList(
+      DemoStorageKeys.transactions,
+    );
+
+    final now = DateTime.now().toIso8601String();
+
+    Map<String, dynamic>? savedJson;
+
+    final updatedTransactions = transactionsData
+        .map((item) {
+          if (item['id'] != transactionId) {
+            return item;
+          }
+
+          final createdAt = item['created_at'] as String? ?? now;
+
+          savedJson = _transactionToJson(
+            updatedTransaction,
+            createdAt: createdAt,
+            updatedAt: now,
+          );
+
+          return savedJson!;
+        })
+        .toList(growable: false);
+
+    if (savedJson == null) {
+      throw StateError('Demo transaction was not found.');
+    }
+
+    await _storage.writeJsonList(
+      key: DemoStorageKeys.transactions,
+      value: updatedTransactions,
+    );
+
+    return TransactionModel.fromJson(savedJson!);
+  }
+
+  TransactionModel _applyDemoApprovalDefaults(TransactionModel transaction) {
+    if (!transaction.isLostOrDamaged) {
+      return transaction.copyWith(
+        approvalRequired: false,
+        approvalStatus: 'not_required',
+        settlementStatus: 'not_required',
+      );
+    }
+
+    if (transaction.isApprovalApproved ||
+        transaction.isApprovalRejected ||
+        transaction.isApprovalPending) {
+      return transaction.copyWith(approvalRequired: true);
+    }
+
+    return transaction.copyWith(
+      approvalRequired: true,
+      approvalStatus: 'pending',
+      settlementStatus: 'not_required',
+    );
+  }
+
+  Map<String, dynamic> _normalizeDemoApprovalWorkflow(
+    Map<String, dynamic> transactionJson,
+  ) {
+    final transactionType = transactionJson['transaction_type'] as String?;
+
+    final isLostOrDamaged =
+        transactionType == 'lost' || transactionType == 'damaged';
+
+    if (!isLostOrDamaged) {
+      return {
+        ...transactionJson,
+        'approval_required': false,
+        'approval_status': 'not_required',
+        'settlement_status': 'not_required',
+      };
+    }
+
+    final approvalStatus = (transactionJson['approval_status'] as String?)
+        ?.trim()
+        .toLowerCase();
+
+    final hasValidApprovalStatus =
+        approvalStatus == 'pending' ||
+        approvalStatus == 'approved' ||
+        approvalStatus == 'rejected';
+
+    if (hasValidApprovalStatus) {
+      return {...transactionJson, 'approval_required': true};
+    }
+
+    return {
+      ...transactionJson,
+      'approval_required': true,
+      'approval_status': 'pending',
+      'settlement_status': 'not_required',
+    };
   }
 
   String _generateNextTransactionCode(List<Map<String, dynamic>> transactions) {
@@ -118,8 +406,27 @@ class DemoTransactionsRepo extends TransactionsRepo {
       'approval_required': transaction.approvalRequired,
       'approval_status': transaction.approvalStatus,
       'approval_document_path': transaction.approvalDocumentPath,
+      'approval_document_uploaded_by_profile_id':
+          transaction.approvalDocumentUploadedByProfileId,
+      'approval_document_uploaded_by_name_snapshot':
+          transaction.approvalDocumentUploadedByProfileName,
+      'approval_document_uploaded_by_email_snapshot':
+          transaction.approvalDocumentUploadedByProfileEmail,
+      'approval_document_uploaded_at': transaction.approvalDocumentUploadedAt
+          ?.toIso8601String(),
+      'approval_decision_note': transaction.approvalDecisionNote,
+      'approval_decided_by_profile_id': transaction.approvalDecidedByProfileId,
+      'approval_decided_by_name_snapshot':
+          transaction.approvalDecidedByProfileName,
+      'approval_decided_by_email_snapshot':
+          transaction.approvalDecidedByProfileEmail,
+      'approval_decided_at': transaction.approvalDecidedAt?.toIso8601String(),
       'settlement_status': transaction.settlementStatus,
       'settlement_note': transaction.settlementNote,
+      'settled_by_profile_id': transaction.settledByProfileId,
+      'settled_by_name_snapshot': transaction.settledByProfileName,
+      'settled_by_email_snapshot': transaction.settledByProfileEmail,
+      'settled_at': transaction.settledAt?.toIso8601String(),
       'created_by_profile_id':
           transaction.createdByProfileId ?? DemoSeedService.demoProfileId,
       'created_by_name_snapshot':
@@ -172,5 +479,22 @@ class DemoTransactionsRepo extends TransactionsRepo {
     }
 
     return int.tryParse(match.group(1) ?? '') ?? 0;
+  }
+
+  bool _areMapsShallowEqual(
+    Map<String, dynamic> first,
+    Map<String, dynamic> second,
+  ) {
+    if (first.length != second.length) {
+      return false;
+    }
+
+    for (final key in first.keys) {
+      if (first[key] != second[key]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
