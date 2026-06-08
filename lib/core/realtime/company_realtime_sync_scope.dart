@@ -29,7 +29,8 @@ class CompanyRealtimeSyncScope extends StatefulWidget {
       _CompanyRealtimeSyncScopeState();
 }
 
-class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
+class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
+    with WidgetsBindingObserver {
   static const Duration _refreshDebounceDuration = Duration(milliseconds: 700);
 
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -51,11 +52,27 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
   bool _hasPendingWorkersRefresh = false;
   bool _hasPendingToolsRefresh = false;
   bool _hasPendingLookupsRefresh = false;
+  bool _isHandlingAppResume = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _syncWithCompanyId(context.currentCompanyId);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_handleAppResumed());
+    }
   }
 
   @override
@@ -163,6 +180,57 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
     }
 
     unawaited(_startRealtimeSync(cleanCompanyId));
+  }
+
+  Future<void> _handleAppResumed() async {
+    if (_isHandlingAppResume || !mounted) {
+      return;
+    }
+
+    final currentCompanyId = _activeCompanyId?.trim().isNotEmpty == true
+        ? _activeCompanyId!.trim()
+        : context.currentCompanyId?.trim();
+
+    if (currentCompanyId == null || currentCompanyId.isEmpty) {
+      return;
+    }
+
+    _isHandlingAppResume = true;
+
+    try {
+      _debugRealtime(
+        'App resumed. Refreshing company data and restarting realtime sync.',
+      );
+
+      await _refreshCurrentContext();
+
+      if (!mounted) {
+        return;
+      }
+
+      final refreshedCompanyId = context.currentCompanyId?.trim();
+      final targetCompanyId = refreshedCompanyId != null &&
+              refreshedCompanyId.isNotEmpty
+          ? refreshedCompanyId
+          : currentCompanyId;
+
+      await _startRealtimeSync(targetCompanyId);
+
+      if (!mounted) {
+        return;
+      }
+
+      await _refreshLookups();
+      await _refreshCompanyUsers();
+      await _refreshWorkers();
+      await _refreshTools();
+      await _refreshTransactions();
+    } catch (error, stackTrace) {
+      _debugRealtime('App resume realtime refresh error: $error');
+      _debugRealtime('App resume realtime refresh stackTrace: $stackTrace');
+    } finally {
+      _isHandlingAppResume = false;
+    }
   }
 
   Future<void> _startRealtimeSync(String companyId) async {
@@ -753,6 +821,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     unawaited(_stopRealtimeSync());
     super.dispose();
   }
