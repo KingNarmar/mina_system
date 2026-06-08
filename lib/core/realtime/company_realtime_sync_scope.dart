@@ -225,8 +225,8 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       }
 
       final refreshedCompanyId = context.currentCompanyId?.trim();
-      final targetCompanyId = refreshedCompanyId != null &&
-              refreshedCompanyId.isNotEmpty
+      final targetCompanyId =
+          refreshedCompanyId != null && refreshedCompanyId.isNotEmpty
           ? refreshedCompanyId
           : currentCompanyId;
 
@@ -605,9 +605,9 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       _debugRealtime('Refreshing dashboard summary silently.');
 
       await context.read<DashboardCubit>().loadDashboardSummary(
-            companyId: companyId,
-            showLoader: false,
-          );
+        companyId: companyId,
+        showLoader: false,
+      );
     } catch (error, stackTrace) {
       _debugRealtime('Dashboard realtime refresh error: $error');
       _debugRealtime('Dashboard realtime refresh stackTrace: $stackTrace');

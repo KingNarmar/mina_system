@@ -52,12 +52,16 @@ class CompanyMemberModel {
       invitedByProfileId: json['invited_by_profile_id'] as String?,
       createdAt: _dateTimeOrNull(json['created_at']),
       updatedAt: _dateTimeOrNull(json['updated_at']),
-      fullName: _stringOrNull(json['full_name']) ??
+      fullName:
+          _stringOrNull(json['full_name']) ??
           _stringOrNull(profileJson?['full_name']),
-      email: _stringOrNull(json['email']) ?? _stringOrNull(profileJson?['email']),
-      invitedByName: _stringOrNull(json['invited_by_name']) ??
+      email:
+          _stringOrNull(json['email']) ?? _stringOrNull(profileJson?['email']),
+      invitedByName:
+          _stringOrNull(json['invited_by_name']) ??
           _stringOrNull(invitedByProfileJson?['full_name']),
-      invitedByEmail: _stringOrNull(json['invited_by_email']) ??
+      invitedByEmail:
+          _stringOrNull(json['invited_by_email']) ??
           _stringOrNull(invitedByProfileJson?['email']),
     );
   }

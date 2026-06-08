@@ -60,7 +60,7 @@ class CompanyRefreshAreaResult {
 
 class CompanyRefreshAreasService {
   CompanyRefreshAreasService({SupabaseClient? supabaseClient})
-      : _supabase = supabaseClient ?? Supabase.instance.client;
+    : _supabase = supabaseClient ?? Supabase.instance.client;
 
   final SupabaseClient _supabase;
 
