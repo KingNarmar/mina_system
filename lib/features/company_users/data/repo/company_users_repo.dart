@@ -14,33 +14,19 @@ class CompanyUsersRepo {
   Future<List<CompanyMemberModel>> getCompanyMembers({
     required String companyId,
   }) async {
-    final data = await _supabase
-        .from('company_members')
-        .select('''
-          id,
-          company_id,
-          profile_id,
-          role,
-          status,
-          joined_at,
-          invited_by_profile_id,
-          created_at,
-          updated_at,
-          member_profile:profiles!company_members_profile_id_fkey(
-            full_name,
-            email
-          ),
-          invited_by_profile:profiles!company_members_invited_by_profile_id_fkey(
-            full_name,
-            email
-          )
-        ''')
-        .eq('company_id', companyId)
-        .order('created_at');
+    final data = await _supabase.rpc(
+      'get_company_members_for_team',
+      params: {'p_company_id': companyId},
+    );
 
-    return data.map((item) {
-      return CompanyMemberModel.fromJson(item);
-    }).toList();
+    if (data is! List) {
+      return const <CompanyMemberModel>[];
+    }
+
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(CompanyMemberModel.fromJson)
+        .toList(growable: false);
   }
 
   Future<List<CompanyInvitationModel>> getCompanyInvitations({
