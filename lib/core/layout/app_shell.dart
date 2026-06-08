@@ -17,6 +17,7 @@ import 'package:mina_system/features/current_context/presentation/cubit/current_
 import 'package:mina_system/features/current_context/presentation/widgets/current_context_gate.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:mina_system/features/demo/data/repo/demo_company_settings_repo.dart';
+import 'package:mina_system/features/demo/data/repo/demo_company_users_repo.dart';
 import 'package:mina_system/features/demo/data/repo/demo_dashboard_repo.dart';
 import 'package:mina_system/features/demo/data/repo/demo_lookups_repo.dart';
 import 'package:mina_system/features/demo/data/repo/demo_tools_repo.dart';
@@ -46,7 +47,7 @@ class AppShell extends StatelessWidget {
         BlocProvider(create: (_) => _createTransactionsCubit(appMode)),
         BlocProvider(create: (_) => _createDashboardCubit(appMode)),
         BlocProvider(create: (_) => _createCompanySettingsCubit(appMode)),
-        BlocProvider(create: (_) => CompanyUsersCubit()),
+        BlocProvider(create: (_) => _createCompanyUsersCubit(appMode)),
       ],
       child: _AppShellView(appMode: appMode),
     );
@@ -135,6 +136,17 @@ class AppShell extends StatelessWidget {
     }
 
     return CompanySettingsCubit();
+  }
+
+  CompanyUsersCubit _createCompanyUsersCubit(AppMode appMode) {
+    if (appMode.isDemo) {
+      return CompanyUsersCubit(
+        repo: DemoCompanyUsersRepo(),
+        networkStatusService: DemoNetworkStatusService(),
+      );
+    }
+
+    return CompanyUsersCubit();
   }
 }
 
@@ -260,6 +272,10 @@ class _DemoAppShellViewState extends State<_DemoAppShellView> {
         showLoader: false,
       ),
       context.read<CompanySettingsCubit>().loadCompanyProfile(
+        companyId: companyId,
+        showLoader: false,
+      ),
+      context.read<CompanyUsersCubit>().loadCompanyUsers(
         companyId: companyId,
         showLoader: false,
       ),

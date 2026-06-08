@@ -13,6 +13,10 @@ abstract class DemoStorageKeys {
   static const String reportSettings = 'demo_report_settings';
   static const String signedReportsMetadata = 'demo_signed_reports_metadata';
 
+  static const String companyMembers = 'demo_company_members';
+  static const String companyInvitations = 'demo_company_invitations';
+  static const String companyUserAuditLogs = 'demo_company_user_audit_logs';
+
   static const List<String> allKeys = [
     isInitialized,
     departments,
@@ -25,5 +29,8 @@ abstract class DemoStorageKeys {
     companyProfile,
     reportSettings,
     signedReportsMetadata,
+    companyMembers,
+    companyInvitations,
+    companyUserAuditLogs,
   ];
 }

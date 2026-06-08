@@ -69,6 +69,8 @@ abstract class AppNavItems {
     'Tools',
     'Transactions',
     'Reports',
+    'Team',
+    'Settings',
   };
 
   static List<AppNavItem> itemsForRole(
