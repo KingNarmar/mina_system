@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_icons.dart';
@@ -9,6 +11,7 @@ import 'package:mina_system/core/utils/company_date_time_formatter.dart';
 import 'package:mina_system/features/company_settings/data/models/company_document_template_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_profile_model.dart';
 import 'package:mina_system/features/company_settings/data/models/company_report_settings_model.dart';
+import 'package:mina_system/features/demo/data/repo/demo_signed_reports_repo.dart';
 import 'package:mina_system/features/reports/data/models/report_filter_model.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
 import 'package:mina_system/features/reports/data/repo/signed_reports_repo.dart';
@@ -35,18 +38,22 @@ Future<void> showReportPdfPreview(
   required List<CompanyDocumentTemplateModel> documentTemplates,
 }) async {
   final navigator = Navigator.of(context);
+  final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
   final width = MediaQuery.sizeOf(context).width;
   final height = MediaQuery.sizeOf(context).height;
   final isMobile = width < AppBreakpoints.tablet;
 
-  final preview = _ReportPdfPreview(
-    companyId: companyId,
-    reportType: reportType,
-    filters: filters,
-    transactions: transactions,
-    companyProfile: companyProfile,
-    reportSettings: reportSettings,
-    documentTemplates: documentTemplates,
+  final preview = AppModeScope(
+    mode: appMode,
+    child: _ReportPdfPreview(
+      companyId: companyId,
+      reportType: reportType,
+      filters: filters,
+      transactions: transactions,
+      companyProfile: companyProfile,
+      reportSettings: reportSettings,
+      documentTemplates: documentTemplates,
+    ),
   );
 
   late final _SignedPdfSaveResult? result;
@@ -145,6 +152,12 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
   Uint8List? _workerSignatureBytes;
   DateTime? _signedAt;
   bool _isSavingSignedPdf = false;
+
+  bool get _isDemo {
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+
+    return appMode.isDemo;
+  }
 
   bool get _isCompactLayout {
     return MediaQuery.sizeOf(context).width < AppBreakpoints.tablet;
@@ -333,7 +346,7 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
                     ? _saveSignedPdf
                     : null,
                 icon: const Icon(AppIcons.cloudUploadOutlined),
-                label: const Text('Save Signed PDF'),
+                label: Text(_isDemo ? 'Save Locally' : 'Save Signed PDF'),
               ),
               IconButton(
                 onPressed: _isSavingSignedPdf
@@ -395,22 +408,26 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         final mobileSignedByName = _resolveMobileSignedByName();
 
         if (mobileSignedByName == null || mobileSignedByName.trim().isEmpty) {
-          if (!mounted) {
+          if (_isDemo) {
+            signedByName = 'Demo User';
+          } else {
+            if (!mounted) {
+              return;
+            }
+
+            await _showMessageDialog(
+              title: 'Missing Signer Name',
+              message:
+                  'Please select a worker before saving the signed PDF on mobile.',
+              icon: AppIcons.warningAmberOutlined,
+              iconColor: AppColors.warning,
+            );
+
             return;
           }
-
-          await _showMessageDialog(
-            title: 'Missing Signer Name',
-            message:
-                'Please select a worker before saving the signed PDF on mobile.',
-            icon: AppIcons.warningAmberOutlined,
-            iconColor: AppColors.warning,
-          );
-
-          return;
+        } else {
+          signedByName = mobileSignedByName.trim();
         }
-
-        signedByName = mobileSignedByName.trim();
       } else {
         final dialogSignedByName = await _askSignedByName();
 
@@ -450,7 +467,11 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
         signedAt: signedAt,
       );
 
-      final signedReport = await _signedReportsRepo.createSignedReport(
+      final signedReportsRepo = _isDemo
+          ? DemoSignedReportsRepo()
+          : _signedReportsRepo;
+
+      final signedReport = await signedReportsRepo.createSignedReport(
         companyId: widget.companyId,
         reportType: widget.reportType,
         reportNumber: reportNumber,
@@ -621,45 +642,36 @@ class _ReportPdfPreviewState extends State<_ReportPdfPreview> {
     final prefix = switch (reportType) {
       ReportType.workerCustody => 'WCR',
       ReportType.toolHistory => 'THR',
-      ReportType.transactions => 'TRR',
+      ReportType.transactions => 'TRX',
       ReportType.lostDamaged => 'LDR',
-      ReportType.lostDamagedApproval => 'LDAR',
+      ReportType.lostDamagedApproval => 'LDA',
       ReportType.toolSummary => 'TSR',
     };
 
-    final companySignedAt = CompanyDateTimeFormatter.toCompanyTime(
+    final companyTime = CompanyDateTimeFormatter.toCompanyTime(
       signedAt,
       timezone: widget.reportSettings.defaultTimezone,
     );
 
-    final timestamp =
-        '${companySignedAt.year}'
-        '${companySignedAt.month.toString().padLeft(2, '0')}'
-        '${companySignedAt.day.toString().padLeft(2, '0')}'
-        '${companySignedAt.hour.toString().padLeft(2, '0')}'
-        '${companySignedAt.minute.toString().padLeft(2, '0')}'
-        '${companySignedAt.second.toString().padLeft(2, '0')}';
+    final timestamp = [
+      companyTime.year.toString(),
+      companyTime.month.toString().padLeft(2, '0'),
+      companyTime.day.toString().padLeft(2, '0'),
+      companyTime.hour.toString().padLeft(2, '0'),
+      companyTime.minute.toString().padLeft(2, '0'),
+      companyTime.second.toString().padLeft(2, '0'),
+    ].join('-');
 
     return '$prefix-$timestamp';
   }
 
   String _resolveSignatureInputMethod() {
-    final platform = Theme.of(context).platform;
-
-    switch (platform) {
-      case TargetPlatform.android:
-      case TargetPlatform.iOS:
-        return 'touch_or_stylus';
-      case TargetPlatform.windows:
-      case TargetPlatform.macOS:
-      case TargetPlatform.linux:
-        return 'external_signature_pad_or_pen_tablet';
-      case TargetPlatform.fuchsia:
-        return 'unknown';
-    }
+    return _isCompactLayout ? 'touch' : 'mouse_or_touch';
   }
 
   String _resolveSignaturePlatform() {
-    return Theme.of(context).platform.name;
+    final platform = Theme.of(context).platform;
+
+    return platform.name;
   }
 }

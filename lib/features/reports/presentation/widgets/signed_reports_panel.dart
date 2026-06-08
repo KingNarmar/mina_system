@@ -2,28 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/company_date_time_formatter.dart';
+import 'package:mina_system/features/demo/data/repo/demo_signed_reports_repo.dart';
 import 'package:mina_system/features/reports/data/models/signed_report_model.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_cubit.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_state.dart';
 import 'package:mina_system/features/reports/presentation/widgets/loading/signed_reports_loading_view.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
 
-part 'signed_reports/signed_reports_header.dart';
-part 'signed_reports/signed_reports_filters.dart';
-part 'signed_reports/signed_reports_list.dart';
 part 'signed_reports/signed_report_card.dart';
+part 'signed_reports/signed_reports_filters.dart';
+part 'signed_reports/signed_reports_header.dart';
+part 'signed_reports/signed_reports_list.dart';
 
 class SignedReportsPanel extends StatefulWidget {
   const SignedReportsPanel({
     super.key,
     required this.companyId,
     this.companyTimezone,
+    this.isDemo = false,
   });
 
   final String companyId;
   final String? companyTimezone;
+  final bool isDemo;
 
   @override
   State<SignedReportsPanel> createState() => _SignedReportsPanelState();
@@ -41,7 +44,9 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
   void initState() {
     super.initState();
 
-    _signedReportsCubit = SignedReportsCubit();
+    _signedReportsCubit = SignedReportsCubit(
+      signedReportsRepo: widget.isDemo ? DemoSignedReportsRepo() : null,
+    );
     _searchController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,6 +99,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
                   state: state,
                   onRefresh: _loadSignedReports,
                 ),
+                if (widget.isDemo) ...[
+                  const Gap(12),
+                  const _DemoSignedReportsNotice(),
+                ],
                 const Gap(18),
                 _SignedReportsFilters(
                   isLoading: state.isLoading,
@@ -186,6 +195,39 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
       reportType: _selectedReportType,
       dateFrom: _dateFrom,
       dateTo: _dateTo,
+    );
+  }
+}
+
+class _DemoSignedReportsNotice extends StatelessWidget {
+  const _DemoSignedReportsNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(AppIcons.info, color: AppColors.warning, size: 20),
+          const Gap(10),
+          Expanded(
+            child: Text(
+              'Demo signed reports are saved locally on this device only. No Supabase upload is performed.',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
