@@ -9,6 +9,7 @@ import 'package:mina_system/features/demo/data/repo/demo_signed_reports_repo.dar
 import 'package:mina_system/features/reports/data/models/signed_report_model.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_cubit.dart';
 import 'package:mina_system/features/reports/presentation/cubit/signed_reports_state.dart';
+import 'package:mina_system/features/reports/presentation/functions/show_demo_signed_report_pdf_preview.dart';
 import 'package:mina_system/features/reports/presentation/widgets/loading/signed_reports_loading_view.dart';
 
 part 'signed_reports/signed_report_card.dart';
@@ -68,6 +69,10 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
       value: _signedReportsCubit,
       child: BlocConsumer<SignedReportsCubit, SignedReportsState>(
         listener: (context, state) {
+          if (widget.isDemo) {
+            return;
+          }
+
           final errorMessage = state.errorMessage;
 
           if (errorMessage == null || errorMessage.trim().isEmpty) {
@@ -123,8 +128,7 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
                 _SignedReportsList(
                   state: state,
                   companyTimezone: widget.companyTimezone,
-                  onOpenReport: (report) =>
-                      _signedReportsCubit.openSignedReport(report),
+                  onOpenReport: _openSignedReport,
                 ),
               ],
             ),
@@ -132,6 +136,15 @@ class _SignedReportsPanelState extends State<SignedReportsPanel> {
         },
       ),
     );
+  }
+
+  Future<void> _openSignedReport(SignedReportModel report) async {
+    if (widget.isDemo) {
+      await showDemoSignedReportPdfPreview(context, signedReport: report);
+      return;
+    }
+
+    await _signedReportsCubit.openSignedReport(report);
   }
 
   Future<void> _pickDate({required bool isFrom}) async {
