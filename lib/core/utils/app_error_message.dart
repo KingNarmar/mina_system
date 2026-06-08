@@ -191,6 +191,7 @@ abstract class AppErrorMessage {
     return _isSafeFileOrImageError(normalizedMessage) ||
         _isSafeTransactionBusinessError(normalizedMessage) ||
         _isSafeCompanyUserBusinessError(normalizedMessage) ||
+        _isSafeDemoLimitError(normalizedMessage) ||
         _isSafeMissingIdentifierError(normalizedMessage);
   }
 
@@ -199,6 +200,7 @@ abstract class AppErrorMessage {
 
     return _isSafeTransactionBusinessError(normalizedMessage) ||
         _isSafeCompanyUserBusinessError(normalizedMessage) ||
+        _isSafeDemoLimitError(normalizedMessage) ||
         _isSafeMissingIdentifierError(normalizedMessage);
   }
 
@@ -244,6 +246,10 @@ abstract class AppErrorMessage {
         message.contains(
           'you do not have permission to cancel this invitation',
         );
+  }
+
+  static bool _isSafeDemoLimitError(String message) {
+    return message.startsWith('demo mode limit reached:');
   }
 
   static bool _isSafeMissingIdentifierError(String message) {
