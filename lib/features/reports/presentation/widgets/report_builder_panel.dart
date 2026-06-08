@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
+import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
@@ -14,10 +17,11 @@ import 'package:mina_system/features/reports/presentation/widgets/report_filter_
 import 'package:mina_system/features/reports/presentation/widgets/report_preview_section.dart';
 import 'package:mina_system/features/tools/data/models/tool_model.dart';
 import 'package:mina_system/features/tools/data/repo/tools_repo.dart';
+import 'package:mina_system/features/tools/presentation/cubit/tools_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/workers/data/models/worker_model.dart';
 import 'package:mina_system/features/workers/data/repo/workers_repo.dart';
-import 'package:mina_system/core/theme/app_icons.dart';
+import 'package:mina_system/features/workers/presentation/cubit/workers_cubit.dart';
 
 class ReportBuilderPanel extends StatefulWidget {
   const ReportBuilderPanel({
@@ -102,6 +106,26 @@ class _ReportBuilderPanelState extends State<ReportBuilderPanel> {
     });
 
     try {
+      final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+
+      if (appMode.isDemo) {
+        final workers = context.read<WorkersCubit>().state.workers;
+        final tools = context.read<ToolsCubit>().state.tools;
+
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _reportWorkers = workers;
+          _reportTools = tools;
+          _isLoadingFilterOptions = false;
+          _filterOptionsError = null;
+        });
+
+        return;
+      }
+
       final companyId = widget.companyId;
 
       final workersFuture = _workersRepo.getWorkers(
@@ -158,34 +182,75 @@ class _ReportBuilderHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(report.icon, color: AppColors.accent, size: 28),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(report.icon, color: AppColors.accent, size: 28),
+            ),
+            const Gap(16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(report.title, style: AppTextStyles.title),
+                  const Gap(8),
+                  Text(report.description, style: AppTextStyles.body),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(AppIcons.close),
+            ),
+          ],
         ),
-        const Gap(16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(report.title, style: AppTextStyles.title),
-              const Gap(8),
-              Text(report.description, style: AppTextStyles.body),
-            ],
-          ),
-        ),
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(AppIcons.close),
-        ),
+        if (appMode.isDemo) ...[const Gap(14), const _DemoReportNotice()],
       ],
+    );
+  }
+}
+
+class _DemoReportNotice extends StatelessWidget {
+  const _DemoReportNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(AppIcons.info, color: AppColors.warning, size: 20),
+          const Gap(10),
+          Expanded(
+            child: Text(
+              'Demo reports use local sample data only. Signed report local saving will be enabled in a later step.',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

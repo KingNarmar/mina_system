@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/permissions/company_role_permissions.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
+import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/reports/data/models/report_option_model.dart';
@@ -60,6 +63,9 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
+    final isDemo = appMode.isDemo;
+
     final currentRole = context.currentUserRole;
     final currentCompany = context.currentCompany;
     final currentCompanyId = currentCompany?.id;
@@ -88,6 +94,10 @@ class ReportsScreen extends StatelessWidget {
                     : 'You can view available report types, but your current role cannot generate reports.',
                 style: AppTextStyles.body,
               ),
+              if (isDemo) ...[
+                const Gap(16),
+                const _DemoReportsBanner(),
+              ],
               const Gap(24),
               if (isMobile)
                 _ReportsList(
@@ -100,7 +110,7 @@ class ReportsScreen extends StatelessWidget {
                   width: constraints.maxWidth,
                   canGenerateReports: canGenerateReports,
                 ),
-              if (canViewReports && currentCompanyId != null) ...[
+              if (!isDemo && canViewReports && currentCompanyId != null) ...[
                 const Gap(28),
                 SignedReportsPanel(
                   companyId: currentCompanyId,
@@ -111,6 +121,40 @@ class ReportsScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _DemoReportsBanner extends StatelessWidget {
+  const _DemoReportsBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(AppIcons.info, color: AppColors.warning, size: 22),
+          const Gap(10),
+          Expanded(
+            child: Text(
+              'Demo mode can preview reports from local sample data. '
+              'Signed reports history and local signed PDF saving are still pending.',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

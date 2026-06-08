@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/app_mode/app_mode.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/responsive/app_breakpoints.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/company_settings/presentation/cubit/company_settings_cubit.dart';
@@ -22,6 +24,7 @@ void showReportBuilder(
     return;
   }
 
+  final appMode = AppModeScope.maybeOf(context) ?? AppMode.live;
   final width = MediaQuery.sizeOf(context).width;
   final isMobile = width < AppBreakpoints.tablet;
 
@@ -30,17 +33,20 @@ void showReportBuilder(
   final toolsCubit = context.read<ToolsCubit>();
   final companySettingsCubit = context.read<CompanySettingsCubit>();
 
-  final reportBuilder = MultiBlocProvider(
-    providers: [
-      BlocProvider.value(value: transactionsCubit),
-      BlocProvider.value(value: workersCubit),
-      BlocProvider.value(value: toolsCubit),
-      BlocProvider.value(value: companySettingsCubit),
-    ],
-    child: ReportBuilderPanel(
-      report: report,
-      companyId: companyId,
-      canGenerateReports: canGenerateReports,
+  final reportBuilder = AppModeScope(
+    mode: appMode,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: transactionsCubit),
+        BlocProvider.value(value: workersCubit),
+        BlocProvider.value(value: toolsCubit),
+        BlocProvider.value(value: companySettingsCubit),
+      ],
+      child: ReportBuilderPanel(
+        report: report,
+        companyId: companyId,
+        canGenerateReports: canGenerateReports,
+      ),
     ),
   );
 
