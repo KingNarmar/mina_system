@@ -5,10 +5,11 @@ import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+class NoCompanyAccessScreen extends StatelessWidget {
+  const NoCompanyAccessScreen({super.key});
 
   static const String _supportEmail = 'support.mina-system@kingnarmar.com';
   static const String _supportSubject = 'Mina System Company Access Request';
@@ -35,48 +36,40 @@ class WelcomeScreen extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(AppImages.logo, height: 120),
+                      Image.asset(AppImages.logo, height: 110),
                       const SizedBox(height: 20),
                       Text(
-                        'Welcome to Mina System',
-                        style: AppTextStyles.heading.copyWith(fontSize: 26),
+                        'Company access required',
+                        style: AppTextStyles.heading.copyWith(fontSize: 24),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Manage workers, tools, custody transactions, photos, signatures, and reports in one secure workspace.',
+                        'Your account is not linked to an active company workspace. Mina System workspaces are created through approved company onboarding only.',
                         style: AppTextStyles.body,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
-                      const _InfoPanel(),
-                      const SizedBox(height: 24),
-                      MainButton(
-                        text: 'Explore Demo',
-                        onPressed: () => context.go(Routes.demo),
-                      ),
                       const SizedBox(height: 12),
+                      const Text(
+                        'Contact Mina System support or ask your company administrator to send you an invitation.',
+                        style: AppTextStyles.caption,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
                       MainButton(
-                        text: 'Sign In',
-                        color: AppColors.card,
-                        onPressed: () => context.go(Routes.login),
+                        text: 'Request Company Access',
+                        onPressed: () => _requestCompanyAccess(context),
                       ),
                       const SizedBox(height: 12),
                       TextButton(
-                        onPressed: () => _requestCompanyAccess(context),
+                        onPressed: () => _signOut(context),
                         child: Text(
-                          'Request Company Access',
+                          'Sign Out',
                           style: AppTextStyles.body.copyWith(
-                            color: AppColors.accent,
+                            color: AppColors.textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Demo mode uses sample data only and does not require a real company account.',
-                        style: AppTextStyles.caption,
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -119,49 +112,14 @@ class WelcomeScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _InfoPanel extends StatelessWidget {
-  const _InfoPanel();
+  Future<void> _signOut(BuildContext context) async {
+    await Supabase.instance.client.auth.signOut();
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _WelcomeBullet(text: 'Try a safe local demo workspace.'),
-          SizedBox(height: 8),
-          _WelcomeBullet(text: 'Sign in to access an activated company.'),
-          SizedBox(height: 8),
-          _WelcomeBullet(text: 'Request onboarding for company access.'),
-        ],
-      ),
-    );
-  }
-}
+    if (!context.mounted) {
+      return;
+    }
 
-class _WelcomeBullet extends StatelessWidget {
-  const _WelcomeBullet({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.check_circle, size: 18, color: AppColors.success),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text, style: AppTextStyles.caption)),
-      ],
-    );
+    context.go(Routes.welcome);
   }
 }
