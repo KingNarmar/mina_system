@@ -11,6 +11,8 @@ class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   static const String _supportEmail = 'support.mina-system@kingnarmar.com';
+  static const String _supportSubject =
+      'Mina System Company Access Request';
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +91,8 @@ class WelcomeScreen extends StatelessWidget {
   }
 
   Future<void> _requestCompanyAccess(BuildContext context) async {
-    final emailUri = Uri(
-      scheme: 'mailto',
-      path: _supportEmail,
-      queryParameters: const {'subject': 'Mina System Company Access Request'},
+    final emailUri = Uri.parse(
+      'mailto:$_supportEmail?subject=${Uri.encodeComponent(_supportSubject)}',
     );
 
     try {
