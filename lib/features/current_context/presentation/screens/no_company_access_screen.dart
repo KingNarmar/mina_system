@@ -11,8 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 class NoCompanyAccessScreen extends StatelessWidget {
   const NoCompanyAccessScreen({super.key});
 
-  static const String _supportEmail =
-      'support.mina-system@kingnarmar.com';
+  static const String _supportEmail = 'support.mina-system@kingnarmar.com';
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +85,7 @@ class NoCompanyAccessScreen extends StatelessWidget {
     final emailUri = Uri(
       scheme: 'mailto',
       path: _supportEmail,
-      queryParameters: const {
-        'subject': 'Mina System Company Access Request',
-      },
+      queryParameters: const {'subject': 'Mina System Company Access Request'},
     );
 
     try {
