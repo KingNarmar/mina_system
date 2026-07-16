@@ -7,7 +7,7 @@ import 'package:mina_system/features/company_users/presentation/cubit/company_us
 import 'package:mina_system/features/company_users/presentation/screens/pending_company_invitations_screen.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
-import 'package:mina_system/features/current_context/presentation/screens/create_company_screen.dart';
+import 'package:mina_system/features/current_context/presentation/screens/no_company_access_screen.dart';
 import 'package:mina_system/features/current_context/presentation/screens/select_company_screen.dart';
 
 import 'views/current_context_failure_view.dart';
@@ -93,7 +93,7 @@ class _NoCompanyInvitationGateState extends State<_NoCompanyInvitationGate> {
           return const PendingCompanyInvitationsScreen();
         }
 
-        return const CreateCompanyScreen();
+        return const NoCompanyAccessScreen();
       },
     );
   }
