@@ -5,9 +5,13 @@ import 'package:mina_system/core/routes/routes.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/widgets/main_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
+
+  static const String _supportEmail =
+      'support.mina-system@kingnarmar.com';
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       TextButton(
-                        onPressed: () => _showRequestAccessMessage(context),
+                        onPressed: () => _requestCompanyAccess(context),
                         child: Text(
                           'Request Company Access',
                           style: AppTextStyles.body.copyWith(
@@ -85,11 +89,36 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  void _showRequestAccessMessage(BuildContext context) {
+  Future<void> _requestCompanyAccess(BuildContext context) async {
+    final emailUri = Uri(
+      scheme: 'mailto',
+      path: _supportEmail,
+      queryParameters: const {
+        'subject': 'Mina System Company Access Request',
+      },
+    );
+
+    try {
+      final launched = await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (launched) {
+        return;
+      }
+    } catch (_) {
+      // Show the support address below when no email application is available.
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Company onboarding requests will be handled through the official support channel.',
+          'Email support.mina-system@kingnarmar.com to request company access.',
         ),
       ),
     );
