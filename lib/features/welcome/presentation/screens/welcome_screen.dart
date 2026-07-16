@@ -11,8 +11,7 @@ class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   static const String _supportEmail = 'support.mina-system@kingnarmar.com';
-  static const String _supportSubject =
-      'Mina System Company Access Request';
+  static const String _supportSubject = 'Mina System Company Access Request';
 
   @override
   Widget build(BuildContext context) {
