@@ -15,7 +15,7 @@ class MinaSystem extends StatelessWidget {
     return AppModeScope(
       mode: AppMode.live,
       child: MaterialApp.router(
-        title: 'M.I.N.A System',
+        title: 'Mina System',
         debugShowCheckedModeBanner: false,
         locale: locale,
         builder: appBuilder,
