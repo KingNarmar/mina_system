@@ -37,6 +37,13 @@ migrate_working_dir/
 *.jks
 *.keystore
 
+# Windows release signing secrets and local outputs
+*.pfx
+*.p12
+*.pvk
+*.snk
+/dist/
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
