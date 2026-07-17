@@ -8,12 +8,15 @@ void main() {
     final buildScript = File(
       'scripts/build_windows_release.ps1',
     ).readAsStringSync();
+    final checksumScript = File(
+      'scripts/create_release_checksums.ps1',
+    ).readAsStringSync();
 
     expect(installer, contains('MINA-System-Windows-x64-Setup'));
     expect(installer, contains('ArchitecturesAllowed=x64compatible'));
     expect(installer, contains('SignedUninstaller=yes'));
     expect(buildScript, contains('MINA-System-Windows-x64-Portable.zip'));
-    expect(buildScript, contains('SHA256SUMS.txt'));
+    expect(checksumScript, contains("'SHA256SUMS.txt'"));
     expect(buildScript, contains('--dart-define=APP_ENV=production'));
   });
 
