@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Mina System" "\0"
-            VALUE "FileDescription", "Mina System" "\0"
+            VALUE "CompanyName", "King Narmar" "\0"
+            VALUE "FileDescription", "M.I.N.A System" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "mina_system" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Mina System. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 King Narmar. All rights reserved." "\0"
             VALUE "OriginalFilename", "mina_system.exe" "\0"
-            VALUE "ProductName", "Mina System" "\0"
+            VALUE "ProductName", "M.I.N.A System" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
@@ -114,6 +114,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
+
 
 
 /////////////////////////////////////////////////////////////////////////////
