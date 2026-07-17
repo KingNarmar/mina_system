@@ -102,7 +102,12 @@ try {
     Invoke-Checked 'dart' @('format', '--output=none', '--set-exit-if-changed', 'lib', 'test')
     Invoke-Checked $flutter @('analyze')
     Invoke-Checked $flutter @('test')
-    Invoke-Checked 'pwsh' @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check_architecture_dependencies.ps1'))
+    $architectureArguments = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check_architecture_dependencies.ps1'))
+    & git rev-parse --verify origin/main *> $null
+    if ($LASTEXITCODE -eq 0) {
+      $architectureArguments += @('-BaseRef', 'origin/main')
+    }
+    Invoke-Checked 'pwsh' $architectureArguments
     Invoke-Checked 'pwsh' @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check_repository_secrets.ps1'))
   }
 
