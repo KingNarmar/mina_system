@@ -21,22 +21,25 @@ void showToolBottomSheet(BuildContext context, {ToolModel? tool}) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (sheetContext) {
-      return MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: toolsCubit),
-          BlocProvider.value(value: lookupsCubit),
-        ],
-        child: AddEditToolForm(
-          initialTool: tool,
-          isToolCodeAlreadyUsed: toolsCubit.isToolCodeAlreadyUsed,
-          isToolNameAlreadyUsed: toolsCubit.isToolNameAlreadyUsed,
-          onSave: (savedTool) async {
-            return _saveTool(
-              context: context,
-              currentTool: tool,
-              savedTool: savedTool,
-            );
-          },
+      return SafeArea(
+        top: false,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: toolsCubit),
+            BlocProvider.value(value: lookupsCubit),
+          ],
+          child: AddEditToolForm(
+            initialTool: tool,
+            isToolCodeAlreadyUsed: toolsCubit.isToolCodeAlreadyUsed,
+            isToolNameAlreadyUsed: toolsCubit.isToolNameAlreadyUsed,
+            onSave: (savedTool) async {
+              return _saveTool(
+                context: context,
+                currentTool: tool,
+                savedTool: savedTool,
+              );
+            },
+          ),
         ),
       );
     },
