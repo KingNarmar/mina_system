@@ -1,0 +1,153 @@
+name: Windows release validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'windows/**'
+      - 'android/**'
+      - 'installer/**'
+      - 'scripts/**'
+      - 'docs/release/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/windows-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-package:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder_00000000000000000000000000000000
+      PASSWORD_RESET_REDIRECT_URL: https://example.com/reset-password
+      EMAIL_CONFIRMATION_REDIRECT_URL: https://example.com/confirm-email
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: stable
+          cache: true
+
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --yes --no-progress
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Check Dart formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze Flutter project
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Check architecture dependency direction
+        shell: pwsh
+        run: ./scripts/check_architecture_dependencies.ps1
+
+      - name: Scan tracked repository files for secrets
+        shell: pwsh
+        run: ./scripts/check_repository_secrets.ps1
+
+      - name: Verify Android still compiles
+        shell: pwsh
+        run: |
+          flutter build apk --debug `
+            --dart-define=APP_ENV=production `
+            --dart-define=SUPABASE_URL=$env:SUPABASE_URL `
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=$env:SUPABASE_PUBLISHABLE_KEY `
+            --dart-define=PASSWORD_RESET_REDIRECT_URL=$env:PASSWORD_RESET_REDIRECT_URL `
+            --dart-define=EMAIL_CONFIRMATION_REDIRECT_URL=$env:EMAIL_CONFIRMATION_REDIRECT_URL
+
+      - name: Build Windows installer and portable package
+        shell: pwsh
+        run: |
+          ./scripts/build_windows_release.ps1 `
+            -SkipValidation `
+            -SkipSigning
+
+      - name: Verify portable bundle structure
+        shell: pwsh
+        run: |
+          $zip = 'dist/windows/MINA-System-Windows-x64-Portable.zip'
+          $extract = Join-Path $env:RUNNER_TEMP 'mina-portable-smoke'
+          Expand-Archive -LiteralPath $zip -DestinationPath $extract -Force
+          $required = @(
+            (Join-Path $extract 'mina_system.exe'),
+            (Join-Path $extract 'flutter_windows.dll'),
+            (Join-Path $extract 'data/flutter_assets'),
+            (Join-Path $extract 'README-Windows.txt')
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Portable bundle entry missing: $path"
+            }
+          }
+
+      - name: Smoke test installer, reinstall, and uninstall
+        shell: pwsh
+        run: |
+          $installer = (Resolve-Path 'dist/windows/MINA-System-Windows-x64-Setup.exe').Path
+          $installDir = Join-Path $env:RUNNER_TEMP 'mina-install-smoke'
+          $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$installDir")
+
+          foreach ($attempt in 1..2) {
+            $process = Start-Process -FilePath $installer -ArgumentList $arguments -Wait -PassThru
+            if ($process.ExitCode -ne 0) {
+              throw "Installer attempt $attempt failed with exit code $($process.ExitCode)."
+            }
+            if (-not (Test-Path -LiteralPath (Join-Path $installDir 'mina_system.exe'))) {
+              throw "Installed executable missing after attempt $attempt."
+            }
+          }
+
+          $uninstaller = Get-ChildItem -LiteralPath $installDir -Filter 'unins*.exe' -File | Select-Object -First 1
+          if (-not $uninstaller) {
+            throw 'Uninstaller executable was not created.'
+          }
+          $process = Start-Process -FilePath $uninstaller.FullName -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Uninstaller failed with exit code $($process.ExitCode)."
+          }
+          if (Test-Path -LiteralPath (Join-Path $installDir 'mina_system.exe')) {
+            throw 'Installed executable remained after uninstall.'
+          }
+
+      - name: Verify checksums
+        shell: pwsh
+        run: |
+          $lines = Get-Content 'dist/windows/SHA256SUMS.txt'
+          if ($lines.Count -ne 2) {
+            throw "Expected two release asset checksums, found $($lines.Count)."
+          }
+          foreach ($line in $lines) {
+            if ($line -notmatch '^[0-9a-f]{64}  MINA-System-Windows-x64-(Setup\.exe|Portable\.zip)$') {
+              throw "Invalid checksum line: $line"
+            }
+          }
+
+      - name: Upload unsigned validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mina-windows-release-unsigned-${{ github.sha }}
+          path: |
+            dist/windows/MINA-System-Windows-x64-Setup.exe
+            dist/windows/MINA-System-Windows-x64-Portable.zip
+            dist/windows/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
