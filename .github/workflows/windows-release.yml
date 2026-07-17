@@ -70,7 +70,24 @@ jobs:
         shell: pwsh
         run: ./scripts/check_repository_secrets.ps1
 
+      - name: Detect Android regression scope
+        id: android_scope
+        shell: pwsh
+        run: |
+          $changed = @(git diff --name-only origin/main...HEAD)
+          $relevant = @($changed | Where-Object {
+            $_ -match '^(lib/|android/|pubspec\.yaml$|pubspec\.lock$)'
+          })
+          $required = if ($relevant.Count -gt 0) { 'true' } else { 'false' }
+          "required=$required" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          if ($required -eq 'true') {
+            Write-Host "Android compile required for: $($relevant -join ', ')"
+          } else {
+            Write-Host 'Android compile skipped: no shared Dart, Android, or dependency manifest changes.'
+          }
+
       - name: Prepare temporary Android CI signing config
+        if: steps.android_scope.outputs.required == 'true'
         shell: pwsh
         run: |
           $keystore = Join-Path $PWD 'android/app/ci-debug.jks'
@@ -94,6 +111,7 @@ jobs:
           "@ | Set-Content -LiteralPath 'android/key.properties' -Encoding ascii
 
       - name: Verify Android still compiles
+        if: steps.android_scope.outputs.required == 'true'
         shell: pwsh
         run: |
           flutter build apk --debug `
@@ -104,7 +122,7 @@ jobs:
             --dart-define=EMAIL_CONFIRMATION_REDIRECT_URL=$env:EMAIL_CONFIRMATION_REDIRECT_URL
 
       - name: Remove temporary Android CI signing config
-        if: always()
+        if: ${{ always() && steps.android_scope.outputs.required == 'true' }}
         shell: pwsh
         run: |
           Remove-Item -LiteralPath 'android/key.properties' -Force -ErrorAction SilentlyContinue
