@@ -32,20 +32,23 @@ void showTransactionBottomSheet(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (sheetContext) {
-      return BlocProvider.value(
-        value: transactionsCubit,
-        child: AddTransactionForm(
-          companyId: companyId,
-          initialType: initialType,
-          workersRepo: repositories.workersRepo,
-          toolsRepo: repositories.toolsRepo,
-          onSave: (transaction) async {
-            return _saveTransaction(
-              context: parentContext,
-              popContext: sheetContext,
-              transaction: transaction,
-            );
-          },
+      return SafeArea(
+        top: false,
+        child: BlocProvider.value(
+          value: transactionsCubit,
+          child: AddTransactionForm(
+            companyId: companyId,
+            initialType: initialType,
+            workersRepo: repositories.workersRepo,
+            toolsRepo: repositories.toolsRepo,
+            onSave: (transaction) async {
+              return _saveTransaction(
+                context: parentContext,
+                popContext: sheetContext,
+                transaction: transaction,
+              );
+            },
+          ),
         ),
       );
     },
