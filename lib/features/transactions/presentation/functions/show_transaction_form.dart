@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/app_mode/app_mode_scope.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/utils/app_message.dart';
 import 'package:mina_system/features/current_context/presentation/extensions/current_context_extensions.dart';
 import 'package:mina_system/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:mina_system/features/demo/data/repo/demo_tools_repo.dart';
+import 'package:mina_system/features/demo/data/repo/demo_workers_repo.dart';
+import 'package:mina_system/features/tools/data/repo/tools_repo.dart';
 import 'package:mina_system/features/transactions/data/models/transaction_model.dart';
 import 'package:mina_system/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/form/add_transaction_form.dart';
+import 'package:mina_system/features/workers/data/repo/workers_repo.dart';
 
 void showTransactionBottomSheet(
   BuildContext context, {
@@ -15,6 +20,7 @@ void showTransactionBottomSheet(
   final parentContext = context;
   final companyId = context.currentCompanyId ?? '';
   final transactionsCubit = context.read<TransactionsCubit>();
+  final repositories = _resolveTransactionOptionRepositories(context);
 
   transactionsCubit.markTransactionFormOpened();
 
@@ -31,6 +37,8 @@ void showTransactionBottomSheet(
         child: AddTransactionForm(
           companyId: companyId,
           initialType: initialType,
+          workersRepo: repositories.workersRepo,
+          toolsRepo: repositories.toolsRepo,
           onSave: (transaction) async {
             return _saveTransaction(
               context: parentContext,
@@ -51,6 +59,7 @@ void showTransactionDialog(
   final parentContext = context;
   final companyId = context.currentCompanyId ?? '';
   final transactionsCubit = context.read<TransactionsCubit>();
+  final repositories = _resolveTransactionOptionRepositories(context);
 
   transactionsCubit.markTransactionFormOpened();
 
@@ -66,6 +75,8 @@ void showTransactionDialog(
             child: AddTransactionForm(
               companyId: companyId,
               initialType: initialType,
+              workersRepo: repositories.workersRepo,
+              toolsRepo: repositories.toolsRepo,
               onSave: (transaction) async {
                 return _saveTransaction(
                   context: parentContext,
@@ -79,6 +90,17 @@ void showTransactionDialog(
       );
     },
   ).whenComplete(transactionsCubit.markTransactionFormClosed);
+}
+
+({WorkersRepo? workersRepo, ToolsRepo? toolsRepo})
+_resolveTransactionOptionRepositories(BuildContext context) {
+  final isDemo = AppModeScope.maybeOf(context)?.isDemo ?? false;
+
+  if (!isDemo) {
+    return (workersRepo: null, toolsRepo: null);
+  }
+
+  return (workersRepo: DemoWorkersRepo(), toolsRepo: DemoToolsRepo());
 }
 
 Future<String?> _saveTransaction({
