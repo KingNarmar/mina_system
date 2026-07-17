@@ -70,6 +70,29 @@ jobs:
         shell: pwsh
         run: ./scripts/check_repository_secrets.ps1
 
+      - name: Prepare temporary Android CI signing config
+        shell: pwsh
+        run: |
+          $keystore = Join-Path $PWD 'android/app/ci-debug.jks'
+          & keytool -genkeypair -noprompt `
+            -keystore $keystore `
+            -storepass ci-only-password `
+            -keypass ci-only-password `
+            -alias ci-debug `
+            -keyalg RSA `
+            -keysize 2048 `
+            -validity 1 `
+            -dname 'CN=M.I.N.A CI, OU=CI, O=King Narmar, L=Dubai, ST=Dubai, C=AE'
+          if ($LASTEXITCODE -ne 0) {
+            throw "keytool failed with exit code $LASTEXITCODE."
+          }
+          @"
+          storePassword=ci-only-password
+          keyPassword=ci-only-password
+          keyAlias=ci-debug
+          storeFile=ci-debug.jks
+          "@ | Set-Content -LiteralPath 'android/key.properties' -Encoding ascii
+
       - name: Verify Android still compiles
         shell: pwsh
         run: |
@@ -79,6 +102,13 @@ jobs:
             --dart-define=SUPABASE_PUBLISHABLE_KEY=$env:SUPABASE_PUBLISHABLE_KEY `
             --dart-define=PASSWORD_RESET_REDIRECT_URL=$env:PASSWORD_RESET_REDIRECT_URL `
             --dart-define=EMAIL_CONFIRMATION_REDIRECT_URL=$env:EMAIL_CONFIRMATION_REDIRECT_URL
+
+      - name: Remove temporary Android CI signing config
+        if: always()
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath 'android/key.properties' -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath 'android/app/ci-debug.jks' -Force -ErrorAction SilentlyContinue
 
       - name: Build Windows installer and portable package
         shell: pwsh
