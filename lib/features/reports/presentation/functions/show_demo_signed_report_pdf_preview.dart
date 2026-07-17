@@ -26,7 +26,10 @@ Future<void> showDemoSignedReportPdfPreview(
       useSafeArea: true,
       backgroundColor: AppColors.background,
       builder: (_) {
-        return SizedBox(height: height * 0.92, child: preview);
+        return SizedBox(
+          height: height * 0.92,
+          child: SafeArea(top: false, child: preview),
+        );
       },
     );
 

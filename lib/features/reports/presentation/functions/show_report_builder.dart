@@ -56,7 +56,7 @@ void showReportBuilder(
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) {
-        return reportBuilder;
+        return SafeArea(top: false, child: reportBuilder);
       },
     );
     return;
