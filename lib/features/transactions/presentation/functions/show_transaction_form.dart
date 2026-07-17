@@ -100,10 +100,7 @@ _resolveTransactionOptionRepositories(BuildContext context) {
     return (workersRepo: null, toolsRepo: null);
   }
 
-  return (
-    workersRepo: DemoWorkersRepo(),
-    toolsRepo: DemoToolsRepo(),
-  );
+  return (workersRepo: DemoWorkersRepo(), toolsRepo: DemoToolsRepo());
 }
 
 Future<String?> _saveTransaction({
