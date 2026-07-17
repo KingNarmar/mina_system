@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -58,7 +60,7 @@ jobs:
 
       - name: Check architecture dependency direction
         shell: pwsh
-        run: ./scripts/check_architecture_dependencies.ps1
+        run: ./scripts/check_architecture_dependencies.ps1 -BaseRef origin/main
 
       - name: Scan tracked repository files for secrets
         shell: pwsh
