@@ -21,22 +21,25 @@ void showWorkerBottomSheet(BuildContext context, {WorkerModel? worker}) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (_) {
-      return MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: workersCubit),
-          BlocProvider.value(value: lookupsCubit),
-        ],
-        child: AddWorkerForm(
-          initialWorker: worker,
-          isHrCodeAlreadyUsed: workersCubit.isHrCodeAlreadyUsed,
-          isWorkerNameAlreadyUsed: workersCubit.isWorkerNameAlreadyUsed,
-          onSave: (savedWorker) {
-            return _saveWorker(
-              context: context,
-              originalWorker: worker,
-              savedWorker: savedWorker,
-            );
-          },
+      return SafeArea(
+        top: false,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: workersCubit),
+            BlocProvider.value(value: lookupsCubit),
+          ],
+          child: AddWorkerForm(
+            initialWorker: worker,
+            isHrCodeAlreadyUsed: workersCubit.isHrCodeAlreadyUsed,
+            isWorkerNameAlreadyUsed: workersCubit.isWorkerNameAlreadyUsed,
+            onSave: (savedWorker) {
+              return _saveWorker(
+                context: context,
+                originalWorker: worker,
+                savedWorker: savedWorker,
+              );
+            },
+          ),
         ),
       );
     },
