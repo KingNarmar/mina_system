@@ -7,12 +7,14 @@ environment declarations.
 
 ## Required variables
 
-| Variable                   | Required  | Description                                                                                     |
-| -------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
-| `APP_ENV`                  | No        | App environment name. Defaults to `development`. Supported values: `development`, `production`. |
-| `SUPABASE_URL`             | Yes       | Supabase project URL. Must be a valid HTTPS URL.                                                |
-| `SUPABASE_PUBLISHABLE_KEY` | Preferred | Supabase client-side publishable/anon key.                                                      |
-| `SUPABASE_ANON_KEY`        | Fallback  | Supported for the current `supabase_flutter` version used by the project.                       |
+| Variable                          | Required              | Description                                                                                     |
+| --------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------- |
+| `APP_ENV`                         | No                    | App environment name. Defaults to `development`. Supported values: `development`, `production`. |
+| `SUPABASE_URL`                    | Yes                   | Supabase project URL. Must be a valid HTTPS URL.                                                |
+| `SUPABASE_PUBLISHABLE_KEY`        | Preferred             | Supabase client-side publishable/anon key.                                                      |
+| `SUPABASE_ANON_KEY`               | Fallback              | Supported for the current `supabase_flutter` version used by the project.                       |
+| `PASSWORD_RESET_REDIRECT_URL`     | Required in production | HTTPS destination used by the password-reset flow.                                             |
+| `EMAIL_CONFIRMATION_REDIRECT_URL` | Required in production | HTTPS destination used by the email-confirmation flow.                                         |
 
 Use either `SUPABASE_PUBLISHABLE_KEY` or `SUPABASE_ANON_KEY`.
 
@@ -58,25 +60,31 @@ flutter run -t lib/main_device_preview.dart `
   --dart-define=SUPABASE_ANON_KEY=YOUR_DEV_SUPABASE_ANON_KEY
 ```
 
-## Production build example
+## Production Google Play AAB build example
 
 Windows CMD:
 
 ```bash
-flutter build apk --release ^
+flutter build appbundle --release ^
   --dart-define=APP_ENV=production ^
   --dart-define=SUPABASE_URL=YOUR_PRODUCTION_SUPABASE_URL ^
-  --dart-define=SUPABASE_ANON_KEY=YOUR_PRODUCTION_SUPABASE_ANON_KEY
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=YOUR_PRODUCTION_PUBLISHABLE_KEY ^
+  --dart-define=PASSWORD_RESET_REDIRECT_URL=YOUR_PASSWORD_RESET_URL ^
+  --dart-define=EMAIL_CONFIRMATION_REDIRECT_URL=YOUR_EMAIL_CONFIRMATION_URL
 ```
 
 PowerShell:
 
 ```powershell
-flutter build apk --release `
+flutter build appbundle --release `
   --dart-define=APP_ENV=production `
   --dart-define=SUPABASE_URL=YOUR_PRODUCTION_SUPABASE_URL `
-  --dart-define=SUPABASE_ANON_KEY=YOUR_PRODUCTION_SUPABASE_ANON_KEY
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=YOUR_PRODUCTION_PUBLISHABLE_KEY `
+  --dart-define=PASSWORD_RESET_REDIRECT_URL=YOUR_PASSWORD_RESET_URL `
+  --dart-define=EMAIL_CONFIRMATION_REDIRECT_URL=YOUR_EMAIL_CONFIRMATION_URL
 ```
+
+The generated bundle is expected at `build/app/outputs/bundle/release/app-release.aab`.
 
 ## Safety notes
 
@@ -194,6 +202,8 @@ Run this checklist before generating any release build:
 - Confirm `APP_ENV=production` is passed.
 - Confirm `SUPABASE_URL` points to the production Supabase project.
 - Confirm `SUPABASE_ANON_KEY` or `SUPABASE_PUBLISHABLE_KEY` belongs to the production project.
+- Confirm `PASSWORD_RESET_REDIRECT_URL` is a valid production HTTPS URL.
+- Confirm `EMAIL_CONFIRMATION_REDIRECT_URL` is a valid production HTTPS URL.
 - Confirm no real keys are committed in Dart files.
 - Confirm no real keys are committed in Markdown files.
 - Confirm no real `.env` files are committed.
