@@ -31,10 +31,11 @@ try {
     throw "Tracked secret-bearing file types detected:`n$($badFiles -join "`n")"
   }
 
+  $privateKeyPattern = '-----BEGIN ' + '(RSA |EC |OPENSSH )?' + 'PRIVATE KEY-----'
   $contentPatterns = @(
     '(?i)service[_ -]?role\s*[:=]\s*["''][A-Za-z0-9._-]{24,}',
     '(?i)(password|token|secret|private[_ -]?key)\s*[:=]\s*["''][^"'']{16,}["'']',
-    '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'
+    $privateKeyPattern
   )
 
   $violations = New-Object System.Collections.Generic.List[string]
