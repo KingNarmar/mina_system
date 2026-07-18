@@ -61,6 +61,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  msix: ^3.18.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -102,3 +103,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+msix_config:
+  display_name: M.I.N.A System
+  logo_path: assets/branding/mina_system_app_icon_1024.png
+  publisher_display_name: King Narmar
+  identity_name: KingNarmar.M.I.N.ASystem
+  publisher: CN=E9CE55B8-AEDA-43A1-9E0C-43ADE997A176
+  msix_version: 1.0.0.0
+  store: true
+  architecture: x64
+  build_windows: false
+  output_name: MINA-System-Windows-x64
