@@ -1,249 +1,223 @@
-# Mina System Release Metadata
+# M.I.N.A System — Release Metadata
 
-Issue: #22 — Prepare product branding, app versioning, and release metadata  
-Related release checklist: Issue #12 — Prepare Google Play release checklist  
-Last updated: 2026-06-06
+Issue: #59 — Align release metadata and version mapping
 
-## Current Scope
+Parent epic: #11 — Windows Release Readiness
 
-This document captures the release metadata decisions for Mina System before and during platform-specific release checklist work.
+Last updated: 2026-07-18
 
-Current target product positioning:
+## 1. Purpose
 
-- Windows Desktop: administration, reporting, and settings.
-- Android: mobile warehouse operations, signatures, photos, and warehouse execution workflows.
-- iOS: preparation only for now through bundle identifier/configuration; real builds require macOS/Xcode later.
+This document is the canonical source for confirmed M.I.N.A System product identity, public release metadata, platform version mapping, legal links, and support contacts.
 
-## Product Identity
+It does not authorize a Production release, Microsoft Store submission change, Google Play rollout, public download activation, or website deployment.
 
-| Item | Decision | Status |
+## 2. Product identity
+
+| Item | Confirmed value | Notes |
 | --- | --- | --- |
-| Product name | Mina System | Confirmed |
-| Meaning | Materials Inventory Navigation Assistant | Confirmed |
-| Dart package name | mina_system | Confirmed |
-| Android application ID | com.minasystem.app | Confirmed |
-| Android namespace | com.minasystem.app | Confirmed |
-| iOS bundle identifier | com.minasystem.app | Confirmed |
-| iOS test bundle identifier | com.minasystem.app.RunnerTests | Confirmed |
-| Windows display/product name | Mina System | Confirmed |
-| Windows executable filename | mina_system.exe | Confirmed for now |
-| Public support email | support.mina-system@kingnarmar.com | Confirmed for Mina System release docs |
-| Privacy email | privacy.mina-system@kingnarmar.com | Confirmed for Mina System release docs |
-| Account deletion email | deletion.mina-system@kingnarmar.com | Confirmed for Mina System release docs |
-| King Narmar general contact | contact@kingnarmar.com | Confirmed for brand/business contact |
-| Logo direction | Approved generated Mina System logo concept | Confirmed |
-| App icon implementation | Android launcher icons prepared; final cross-platform asset pass may continue | Partially complete |
+| Public product name | M.I.N.A System | Use this form in public release and support material |
+| Full name | Materials Inventory Navigation Assistant | Confirmed product expansion |
+| Dart package name | `mina_system` | Internal source package identifier |
+| Android application ID | `com.minasystem.app` | Existing Android identity |
+| Android namespace | `com.minasystem.app` | Existing Android namespace |
+| iOS bundle identifier | `com.minasystem.app` | iOS release remains future work |
+| Windows executable | `mina_system.exe` | Generated Flutter Windows executable |
+| Windows display name | `M.I.N.A System` | Current MSIX configuration |
+| Microsoft Store identity | `KingNarmar.M.I.N.ASystem` | Assigned Partner Center identity |
+| Microsoft publisher | `CN=E9CE55B8-AEDA-43A1-9E0C-43ADE997A176` | Assigned Store publisher value; not a private signing secret |
+| Publisher display name | `King Narmar` | Current Store display metadata |
+| Windows architecture | x64 | Current configured Store architecture |
+| Windows package output name | `MINA-System-Windows-x64` | Current MSIX output name |
 
-## Public Legal URLs
+Public-facing material should not alternate between `Mina System` and `M.I.N.A System`. The approved public form is `M.I.N.A System`.
 
-| Page | URL | Status |
+## 3. Current platform status
+
+| Platform | Current confirmed status | Public-link rule |
 | --- | --- | --- |
-| Privacy Policy | https://kingnarmar.com/mina-system/privacy-policy | Prepared on King Narmar domain |
-| Account Deletion | https://kingnarmar.com/mina-system/account-deletion | Prepared on King Narmar domain |
+| Android | Google Play Closed Testing | Do not invent or publish a Store URL that has not been confirmed |
+| Windows | Microsoft Store submission `In certification` | Keep the website button disabled until an official public listing URL exists and activation is explicitly approved |
+| iOS | Coming Soon | Do not publish a placeholder App Store URL |
 
-Legacy GitHub Pages legal URLs should not be used as the final Google Play URLs. They may remain temporarily as moved/redirect pages for backward compatibility with older app builds or previously shared links.
+The source version in `pubspec.yaml` does not by itself prove which Android build is currently available in Google Play. Uploaded-track status must be confirmed separately from Play Console.
 
-## Logo Direction
+## 4. Current source and package versions
 
-Approved direction:
+| Version field | Current value | Source / meaning |
+| --- | --- | --- |
+| Flutter application version | `1.0.0+3` | Current `pubspec.yaml` value on `main` |
+| Flutter version name | `1.0.0` | Human-readable application version |
+| Flutter build number | `3` | Android `versionCode` when used for an Android build |
+| Microsoft Store MSIX version | `1.0.0.0` | Current `msix_config.msix_version` submitted for certification |
 
-- Modern B2B software logo.
-- Dark navy / blue / teal palette.
-- Stylized `M` mark.
-- Inventory/tool/accountability/navigation symbolism.
-- Full logo includes `Mina System` and the subtitle `Materials Inventory Navigation Assistant`.
+Current repository baseline at this update:
 
-Implementation still required / follow-up:
+```text
+e4f6d05a3850e153a117a511b0f514eb31a4101d
+```
 
-- Prepare clean full logo asset for documentation/marketing.
-- Keep square app icon mark without long subtitle text.
-- Prepare Windows `.ico` asset if not already finalized.
-- Prepare iOS app icon assets later when iOS build setup continues.
+This is the squash merge commit for PR #68, which added the Windows release-readiness document.
 
-## Versioning Strategy
+## 5. Version mapping rules
 
-Mina System uses Flutter's standard version format:
+M.I.N.A System currently uses two different version formats.
+
+### Flutter and Android
+
+Flutter uses:
 
 ```text
 MAJOR.MINOR.PATCH+BUILD
 ```
 
-Examples:
+Current value:
 
 ```text
-1.0.0+1
-1.0.1+2
-1.1.0+3
-2.0.0+4
+1.0.0+3
+```
+
+For Android builds:
+
+- `1.0.0` is the user-facing version name.
+- `3` is the build number / Android version code.
+- Every newly uploaded Android release must use a version code higher than any previously uploaded code for the same application ID.
+- Changing `pubspec.yaml` does not confirm that the build was uploaded or promoted in Google Play.
+
+### Microsoft Store MSIX
+
+Microsoft Store packages use a four-part numeric version:
+
+```text
+MAJOR.MINOR.BUILD.REVISION
+```
+
+Current submitted value:
+
+```text
+1.0.0.0
 ```
 
 Rules:
 
-- `MAJOR`: major release or breaking product/business change.
-- `MINOR`: new user-facing feature or important workflow expansion.
-- `PATCH`: bug fix, UI improvement, stability fix, or small enhancement.
-- `BUILD`: increases with every distributed release build.
+- The MSIX version is independent from the Flutter `+BUILD` value.
+- `1.0.0+3` and `1.0.0.0` must not be presented as the same version field.
+- Do not reuse, reduce, or replace the submitted Microsoft Store package version without confirming Partner Center requirements and reviewing the release impact.
+- Do not change the current package while certification is active unless Microsoft reports a failure that requires a reviewed fix.
 
-Current version:
+## 6. Windows package configuration
+
+The current confirmed `msix_config` values are:
+
+```yaml
+display_name: M.I.N.A System
+publisher_display_name: King Narmar
+identity_name: KingNarmar.M.I.N.ASystem
+publisher: CN=E9CE55B8-AEDA-43A1-9E0C-43ADE997A176
+msix_version: 1.0.0.0
+store: true
+architecture: x64
+build_windows: false
+output_name: MINA-System-Windows-x64
+```
+
+PR #57 documented successful:
+
+- dependency resolution;
+- Flutter static analysis;
+- Windows x64 Production build;
+- limited application launch smoke test;
+- MSIX package creation;
+- package-manifest identity validation;
+- Windows App Certification Kit run with exit code `0`.
+
+These recorded checks do not replace the manual Windows functional matrix in Issue #65.
+
+## 7. Public legal URLs
+
+| Page | Confirmed URL |
+| --- | --- |
+| Privacy Policy | `https://kingnarmar.com/mina-system/privacy-policy` |
+| Account Deletion | `https://kingnarmar.com/mina-system/account-deletion` |
+
+Rules:
+
+- Production legal URLs must use HTTPS.
+- Do not replace these URLs with `href="#"`, fake Store links, or unverified placeholder pages.
+- Legacy URLs may remain only where required for backward-compatible redirects; they are not the preferred public release links.
+
+## 8. Public support contacts
+
+| Purpose | Confirmed email |
+| --- | --- |
+| Product support | `support.mina-system@kingnarmar.com` |
+| Privacy requests | `privacy.mina-system@kingnarmar.com` |
+| Account deletion | `deletion.mina-system@kingnarmar.com` |
+| General King Narmar contact | `contact@kingnarmar.com` |
+
+Do not publish passwords, tokens, production keys, customer data, certificate passwords, or signing material through support documents or public issue evidence.
+
+## 9. Store-description baseline
+
+### Short description
 
 ```text
-1.0.0+1
+Manage workers, tools, custody transactions, approvals, attachments, and signed reports.
 ```
 
-This is acceptable as the first internal/product identity validation build. Before Google Play or production distribution, the build number must be increased if another APK/AAB has already been distributed with the same version code.
+### Product description baseline
 
-## Build Number Strategy
+M.I.N.A System is a multi-company materials inventory and custody management solution for warehouses, workshops, maintenance teams, and industrial operations.
 
-The build number must increase monotonically for Android release builds.
+Confirmed product areas include:
 
-Recommended examples:
+- workers and organization records;
+- tools and material records;
+- issue, return, lost, and damaged transaction workflows;
+- custody balances and transaction history;
+- approvals and supporting documents;
+- photo, image, and PDF attachments;
+- worker signatures;
+- reports and signed PDF output;
+- Demo Mode and Live Mode separation;
+- responsive mobile, tablet, and desktop layouts.
 
-```text
-1.0.0+1  first internal build
-1.0.0+2  second internal build
-1.0.1+3  bug-fix build
-1.1.0+4  feature build
-```
+Public descriptions must remain limited to features supported by current code and recorded evidence. Do not invent pricing, subscriptions, service-level guarantees, automatic in-app updates, or platform availability.
 
-Notes:
+## 10. Screenshot and marketing-data rules
 
-- Android uses the part after `+` as `versionCode`.
-- Google Play does not accept a lower or repeated `versionCode` for the same app.
-- The human-readable version before `+` should only change when the release meaning changes.
-
-## Release Notes Format
-
-Recommended format:
-
-```markdown
-## Mina System v1.0.0+1
-
-### Added
-- Added Android product identity for Google Play release preparation.
-- Added legal/account actions in the in-app Account/Profile Panel.
-- Added Privacy Policy and Account Deletion links on the King Narmar domain.
-
-### Improved
-- Improved mobile account access through Account Panel.
-- Improved release legal/contact metadata.
-
-### Fixed
-- Fixed offline banner visibility for users with multiple companies.
-- Fixed legacy logout redirect from company selection.
-
-### Notes
-- No Ads, AdMob, Analytics, or Crashlytics are included in the current scope.
-- Google Play release checklist continues under Issue #12.
-```
-
-## Changelog Structure
-
-Recommended file to add later:
-
-```text
-CHANGELOG.md
-```
-
-Recommended structure:
-
-```markdown
-# Changelog
-
-## [1.0.0+1] - 2026-06-06
-
-### Added
-- Initial Mina System Android release metadata.
-- Android package ID configured as com.minasystem.app.
-- In-app Account/Profile Panel legal entry points.
-- King Narmar domain legal pages.
-
-### Improved
-- Mobile release checklist documentation.
-
-### Fixed
-- Offline banner visibility for multiple-company users.
-- Legacy logout redirect from company selection.
-```
-
-## Screenshot Style
-
-Recommended screenshots for Google Play / marketing preparation:
-
-1. Login / welcome screen.
-2. Dashboard.
-3. Workers management.
-4. Tools management.
-5. Transactions flow.
-6. Worker custody report.
-7. Signature capture.
-8. Signed PDF confirmation/report.
-9. Account/Profile Panel showing Privacy Policy and Request Account Deletion actions.
-
-Style rules:
-
-- Use clean business screenshots.
 - Use demo data only.
-- Do not show real personal, company, or customer data.
-- Use a demo company name.
-- Use demo workers, tools, and transactions.
-- Show real workflows, not empty screens.
-- Use Android phone frames for Google Play screenshots.
-- Use desktop screenshots later for website/Windows release material.
+- Do not expose real worker, company, customer, authentication, or operational data.
+- Show populated real workflows rather than misleading empty-state mockups.
+- Use platform-appropriate device frames.
+- Keep Android, Windows, and iOS status text accurate at the time the material is published.
 
-## Store Short Description
+## 11. Related release documents
 
-Draft:
+- `WINDOWS_RELEASE_READINESS.md` — canonical Windows checklist and evidence model.
+- Issue #60 — Microsoft Store release notes.
+- Issue #61 — Windows Support / FAQ.
+- Issue #62 — targeted security and release static checks.
+- Issue #65 — manual Windows validation matrix execution.
+- `KingNarmar/king-narmar-website#25` — official Store-link activation after certification approval.
 
-```text
-Manage tools, inventory custody, workers, transactions, and signed reports.
-```
+## 12. Release controls
 
-## Store Full Description
+- No direct push to `main`.
+- Every release task uses a dedicated branch and PR.
+- No Production release or public Store-link activation without explicit approval.
+- Application and website changes remain in separate repositories and PRs.
+- Do not commit `.env` files, production secrets, service-role keys, certificates, keystores, or signing passwords.
+- Do not claim a runtime test passed unless it was actually executed and recorded.
 
-Draft:
+## 13. Current decision
 
-```text
-Mina System is a cross-platform materials inventory and custody management solution designed for warehouses, workshops, maintenance teams, and industrial operations.
+The current confirmed Windows state is:
 
-The system helps companies manage workers, tools, custody transactions, returns, signed PDF reports, and accountability records from one organized platform.
+- Flutter source version: `1.0.0+3`.
+- Microsoft Store package version: `1.0.0.0`.
+- Microsoft Store status: `In certification`.
+- Public Microsoft Store URL: not available.
+- Website Windows button: must remain disabled.
 
-Key features:
-- Manage workers, departments, and job titles.
-- Manage tools and units.
-- Issue and return tools with clear transaction history.
-- Capture worker signatures on mobile devices.
-- Generate signed PDF custody reports.
-- Track accountability and open custody balances.
-- Support warehouse and operations teams with organized reporting.
-
-Mina System is designed for businesses that need a practical, professional, and auditable way to manage tool custody and material accountability across teams.
-```
-
-## Legal / Support Metadata
-
-Confirmed public Mina System contacts:
-
-- Support email: `support.mina-system@kingnarmar.com`
-- Privacy email: `privacy.mina-system@kingnarmar.com`
-- Account deletion email: `deletion.mina-system@kingnarmar.com`
-- General King Narmar contact: `contact@kingnarmar.com`
-
-Confirmed public legal pages:
-
-- Privacy Policy: `https://kingnarmar.com/mina-system/privacy-policy`
-- Account Deletion: `https://kingnarmar.com/mina-system/account-deletion`
-
-Pending items before final production/store release:
-
-- Rebuild final signed Android AAB after release checklist changes.
-- Re-run final APK/AAB permission review.
-- Prepare final screenshots using demo data only.
-- Prepare or confirm Google Play demo/review account.
-- Finalize Play Console Data Safety answers.
-- Finalize production Supabase readiness and storage bucket policies.
-
-## Current Decision
-
-Issue #22 can remain open only for broader product branding/icon/domain follow-ups if needed.
-
-Issue #12 is now the active release checklist source for Android Google Play preparation and final submission readiness.
+Any later certification result, approved package update, official Store URL, or platform release status must be recorded through a new reviewed change rather than silently editing historical evidence.
