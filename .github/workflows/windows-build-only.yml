@@ -1,0 +1,107 @@
+name: Windows build only
+
+on:
+  push:
+    branches:
+      - release/windows-build-only
+    paths:
+      - '.github/workflows/windows-build-only.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-only
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY || vars.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
+      PASSWORD_RESET_REDIRECT_URL: ${{ secrets.PASSWORD_RESET_REDIRECT_URL || vars.PASSWORD_RESET_REDIRECT_URL }}
+      EMAIL_CONFIRMATION_REDIRECT_URL: ${{ secrets.EMAIL_CONFIRMATION_REDIRECT_URL || vars.EMAIL_CONFIRMATION_REDIRECT_URL }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: stable
+          cache: true
+
+      - name: Validate production build configuration
+        shell: pwsh
+        run: |
+          $required = @(
+            'SUPABASE_URL',
+            'SUPABASE_PUBLISHABLE_KEY',
+            'PASSWORD_RESET_REDIRECT_URL',
+            'EMAIL_CONFIRMATION_REDIRECT_URL'
+          )
+          $missing = @($required | Where-Object {
+            [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_))
+          })
+          if ($missing.Count -gt 0) {
+            throw "Missing GitHub Actions secrets or variables: $($missing -join ', ')"
+          }
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build Windows release
+        shell: pwsh
+        run: |
+          flutter build windows --release `
+            --dart-define=APP_ENV=production `
+            --dart-define=SUPABASE_URL=$env:SUPABASE_URL `
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=$env:SUPABASE_PUBLISHABLE_KEY `
+            --dart-define=PASSWORD_RESET_REDIRECT_URL=$env:PASSWORD_RESET_REDIRECT_URL `
+            --dart-define=EMAIL_CONFIRMATION_REDIRECT_URL=$env:EMAIL_CONFIRMATION_REDIRECT_URL
+          if ($LASTEXITCODE -ne 0) {
+            throw "Flutter Windows build failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Package complete Windows bundle
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -LiteralPath 'build/windows' -Recurse -File -Filter 'mina_system.exe' |
+            Where-Object { $_.FullName -match '[\\/]Release[\\/]mina_system\.exe$' } |
+            Select-Object -First 1
+          if (-not $exe) {
+            throw 'mina_system.exe was not found in the Windows release output.'
+          }
+
+          $bundle = $exe.Directory.FullName
+          $required = @(
+            (Join-Path $bundle 'mina_system.exe'),
+            (Join-Path $bundle 'flutter_windows.dll'),
+            (Join-Path $bundle 'data/flutter_assets')
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Required Windows bundle entry is missing: $path"
+            }
+          }
+
+          New-Item -ItemType Directory -Path 'dist/windows' -Force | Out-Null
+          $zip = (Join-Path $PWD 'dist/windows/MINA-System-Windows-x64-Portable.zip')
+          Compress-Archive -Path (Join-Path $bundle '*') -DestinationPath $zip -CompressionLevel Optimal -Force
+          $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  MINA-System-Windows-x64-Portable.zip" | Set-Content -LiteralPath 'dist/windows/SHA256SUMS.txt' -Encoding ascii
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: MINA-System-Windows-x64-1.0.0-build-3
+          path: |
+            dist/windows/MINA-System-Windows-x64-Portable.zip
+            dist/windows/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
