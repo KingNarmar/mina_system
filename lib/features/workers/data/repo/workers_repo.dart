@@ -4,9 +4,12 @@ import '../models/worker_model.dart';
 
 class WorkersRepo {
   WorkersRepo({SupabaseClient? supabaseClient})
-    : _supabase = supabaseClient ?? Supabase.instance.client;
+    : _supabaseClient = supabaseClient;
 
-  final SupabaseClient _supabase;
+  final SupabaseClient? _supabaseClient;
+
+  late final SupabaseClient _supabase =
+      _supabaseClient ?? Supabase.instance.client;
 
   static const String _workerSelectColumns = '''
     id,

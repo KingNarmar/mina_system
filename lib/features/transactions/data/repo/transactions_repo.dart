@@ -7,21 +7,22 @@ import '../services/transaction_storage_service.dart';
 
 class TransactionsRepo {
   TransactionsRepo({SupabaseClient? supabaseClient})
-    : _supabase = supabaseClient ?? Supabase.instance.client,
-      _storageService = TransactionStorageService(
-        supabaseClient: supabaseClient ?? Supabase.instance.client,
-      ),
-      _approvalService = TransactionApprovalService(
-        supabase: supabaseClient ?? Supabase.instance.client,
-      ),
-      _codeService = TransactionCodeService(
-        supabase: supabaseClient ?? Supabase.instance.client,
-      );
+    : _supabaseClient = supabaseClient;
 
-  final SupabaseClient _supabase;
-  final TransactionStorageService _storageService;
-  final TransactionApprovalService _approvalService;
-  final TransactionCodeService _codeService;
+  final SupabaseClient? _supabaseClient;
+
+  late final SupabaseClient _supabase =
+      _supabaseClient ?? Supabase.instance.client;
+
+  late final TransactionStorageService _storageService =
+      TransactionStorageService(supabaseClient: _supabase);
+
+  late final TransactionApprovalService _approvalService =
+      TransactionApprovalService(supabase: _supabase);
+
+  late final TransactionCodeService _codeService = TransactionCodeService(
+    supabase: _supabase,
+  );
 
   static const String _transactionSelectColumns = '''
     id,

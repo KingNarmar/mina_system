@@ -20,7 +20,9 @@ void showTransactionBottomSheet(
   final parentContext = context;
   final companyId = context.currentCompanyId ?? '';
   final transactionsCubit = context.read<TransactionsCubit>();
-  final repositories = _resolveTransactionOptionRepositories(context);
+  final repositories = resolveTransactionOptionRepositories(
+    isDemo: AppModeScope.maybeOf(context)?.isDemo ?? false,
+  );
 
   transactionsCubit.markTransactionFormOpened();
 
@@ -62,7 +64,9 @@ void showTransactionDialog(
   final parentContext = context;
   final companyId = context.currentCompanyId ?? '';
   final transactionsCubit = context.read<TransactionsCubit>();
-  final repositories = _resolveTransactionOptionRepositories(context);
+  final repositories = resolveTransactionOptionRepositories(
+    isDemo: AppModeScope.maybeOf(context)?.isDemo ?? false,
+  );
 
   transactionsCubit.markTransactionFormOpened();
 
@@ -96,9 +100,7 @@ void showTransactionDialog(
 }
 
 ({WorkersRepo? workersRepo, ToolsRepo? toolsRepo})
-_resolveTransactionOptionRepositories(BuildContext context) {
-  final isDemo = AppModeScope.maybeOf(context)?.isDemo ?? false;
-
+resolveTransactionOptionRepositories({required bool isDemo}) {
   if (!isDemo) {
     return (workersRepo: null, toolsRepo: null);
   }
