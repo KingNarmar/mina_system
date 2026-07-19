@@ -12,7 +12,10 @@ void main() {
 
     test('validates email format', () {
       expect(AppValidators.validateEmail(null), 'Email is required');
-      expect(AppValidators.validateEmail('invalid'), 'Enter a valid email address');
+      expect(
+        AppValidators.validateEmail('invalid'),
+        'Enter a valid email address',
+      );
       expect(AppValidators.validateEmail('mina@example.com'), isNull);
     });
 

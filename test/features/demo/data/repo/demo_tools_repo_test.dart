@@ -124,10 +124,7 @@ void main() {
       final repo = DemoToolsRepo();
 
       expect(
-        await repo.toolCodeExists(
-          companyId: 'company-1',
-          toolCode: 'tool 001',
-        ),
+        await repo.toolCodeExists(companyId: 'company-1', toolCode: 'tool 001'),
         isTrue,
       );
       expect(

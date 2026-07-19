@@ -55,10 +55,7 @@ void main() {
         companyId: 'company-1',
         status: 'inactive',
       );
-      final all = await repo.getWorkers(
-        companyId: 'company-1',
-        status: null,
-      );
+      final all = await repo.getWorkers(companyId: 'company-1', status: null);
 
       expect(active.map((worker) => worker.name), [
         'Alpha Worker',
@@ -92,10 +89,7 @@ void main() {
       );
       expect(updated.name, 'Updated Worker');
 
-      await repo.deleteWorker(
-        companyId: 'company-1',
-        workerId: added.id!,
-      );
+      await repo.deleteWorker(companyId: 'company-1', workerId: added.id!);
       expect(await repo.getWorkers(companyId: 'company-1'), isEmpty);
       expect(
         await repo.getWorkers(companyId: 'company-1', status: 'inactive'),

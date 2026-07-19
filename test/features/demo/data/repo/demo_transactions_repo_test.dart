@@ -50,61 +50,70 @@ void main() {
       ]);
     });
 
-    test('generates codes and persists issue and return transactions', () async {
-      _seedTransactions([
-        _transactionJson(
-          id: 'trx-1',
-          companyId: 'company-1',
-          code: 'TRX-001',
-          type: TransactionType.issue,
-          createdAt: '2026-01-01T00:00:00.000Z',
-        ),
-        _transactionJson(
-          id: 'trx-9',
-          companyId: 'company-1',
-          code: 'TRX-009',
-          type: TransactionType.returnTool,
-          createdAt: '2026-01-02T00:00:00.000Z',
-        ),
-      ]);
+    test(
+      'generates codes and persists issue and return transactions',
+      () async {
+        _seedTransactions([
+          _transactionJson(
+            id: 'trx-1',
+            companyId: 'company-1',
+            code: 'TRX-001',
+            type: TransactionType.issue,
+            createdAt: '2026-01-01T00:00:00.000Z',
+          ),
+          _transactionJson(
+            id: 'trx-9',
+            companyId: 'company-1',
+            code: 'TRX-009',
+            type: TransactionType.returnTool,
+            createdAt: '2026-01-02T00:00:00.000Z',
+          ),
+        ]);
 
-      final repo = DemoTransactionsRepo();
+        final repo = DemoTransactionsRepo();
 
-      expect(
-        await repo.generateNextTransactionCode(companyId: 'company-1'),
-        'TRX-010',
-      );
+        expect(
+          await repo.generateNextTransactionCode(companyId: 'company-1'),
+          'TRX-010',
+        );
 
-      final addedIssue = await repo.addTransaction(
-        transaction: _transaction(
-          companyId: 'company-1',
-          code: '',
-          type: TransactionType.issue,
-        ),
-      );
-      final addedReturn = await repo.addTransaction(
-        transaction: _transaction(
-          companyId: 'company-1',
-          code: 'TRX-011',
-          type: TransactionType.returnTool,
-        ),
-      );
+        final addedIssue = await repo.addTransaction(
+          transaction: _transaction(
+            companyId: 'company-1',
+            code: '',
+            type: TransactionType.issue,
+          ),
+        );
+        final addedReturn = await repo.addTransaction(
+          transaction: _transaction(
+            companyId: 'company-1',
+            code: 'TRX-011',
+            type: TransactionType.returnTool,
+          ),
+        );
 
-      expect(addedIssue.transactionCode, 'TRX-010');
-      expect(addedReturn.transactionCode, 'TRX-011');
-      expect(
-        await repo.transactionCodeExists(
-          companyId: 'company-1',
-          transactionCode: ' trx-010 ',
-        ),
-        isTrue,
-      );
+        expect(addedIssue.transactionCode, 'TRX-010');
+        expect(addedReturn.transactionCode, 'TRX-011');
+        expect(
+          await repo.transactionCodeExists(
+            companyId: 'company-1',
+            transactionCode: ' trx-010 ',
+          ),
+          isTrue,
+        );
 
-      final persisted = await repo.getTransactions(companyId: 'company-1');
-      expect(persisted, hasLength(4));
-      expect(persisted.where((transaction) => transaction.isIssue), hasLength(2));
-      expect(persisted.where((transaction) => transaction.isReturn), hasLength(2));
-    });
+        final persisted = await repo.getTransactions(companyId: 'company-1');
+        expect(persisted, hasLength(4));
+        expect(
+          persisted.where((transaction) => transaction.isIssue),
+          hasLength(2),
+        );
+        expect(
+          persisted.where((transaction) => transaction.isReturn),
+          hasLength(2),
+        );
+      },
+    );
 
     test('applies lost and damaged approval state transitions', () async {
       final repo = DemoTransactionsRepo();

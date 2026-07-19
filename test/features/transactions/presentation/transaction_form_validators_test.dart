@@ -4,10 +4,7 @@ import 'package:mina_system/features/transactions/presentation/functions/transac
 void main() {
   group('transaction form validators', () {
     test('requires text, dropdown, and selection values', () {
-      expect(
-        validateRequiredTransactionText('  '),
-        'This field is required',
-      );
+      expect(validateRequiredTransactionText('  '), 'This field is required');
       expect(
         validateRequiredTransactionDropdown(null),
         'Please select a value',

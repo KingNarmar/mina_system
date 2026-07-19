@@ -20,46 +20,45 @@ void main() {
       expect(updatedDamaged.approvalStatus, 'pending');
     });
 
-    test('clears approval and settlement for issue and return transactions', () {
-      final issue = _transaction(
-        type: TransactionType.issue,
-        approvalRequired: true,
-        approvalStatus: 'approved',
-        settlementStatus: 'settled',
-      );
-      final returned = _transaction(
-        type: TransactionType.returnTool,
-        approvalRequired: true,
-        approvalStatus: 'pending',
-        settlementStatus: 'pending_settlement',
-      );
+    test(
+      'clears approval and settlement for issue and return transactions',
+      () {
+        final issue = _transaction(
+          type: TransactionType.issue,
+          approvalRequired: true,
+          approvalStatus: 'approved',
+          settlementStatus: 'settled',
+        );
+        final returned = _transaction(
+          type: TransactionType.returnTool,
+          approvalRequired: true,
+          approvalStatus: 'pending',
+          settlementStatus: 'pending_settlement',
+        );
 
-      final updatedIssue = TransactionsCubitHelpers.applyApprovalRules(issue);
-      final updatedReturn = TransactionsCubitHelpers.applyApprovalRules(
-        returned,
-      );
+        final updatedIssue = TransactionsCubitHelpers.applyApprovalRules(issue);
+        final updatedReturn = TransactionsCubitHelpers.applyApprovalRules(
+          returned,
+        );
 
-      for (final transaction in [updatedIssue, updatedReturn]) {
-        expect(transaction.approvalRequired, isFalse);
-        expect(transaction.approvalStatus, 'not_required');
-        expect(transaction.settlementStatus, 'not_required');
-      }
-    });
+        for (final transaction in [updatedIssue, updatedReturn]) {
+          expect(transaction.approvalRequired, isFalse);
+          expect(transaction.approvalStatus, 'not_required');
+          expect(transaction.settlementStatus, 'not_required');
+        }
+      },
+    );
   });
 
   test('replaces only the saved transaction in a list', () {
     final first = _transaction(id: 'trx-1', code: 'TRX-001');
     final second = _transaction(id: 'trx-2', code: 'TRX-002');
-    final saved = _transaction(
-      id: 'trx-2',
-      code: 'TRX-002',
-      quantity: 3,
-    );
+    final saved = _transaction(id: 'trx-2', code: 'TRX-002', quantity: 3);
 
-    final result = TransactionsCubitHelpers.replaceTransactionInList(
-      [first, second],
-      saved,
-    );
+    final result = TransactionsCubitHelpers.replaceTransactionInList([
+      first,
+      second,
+    ], saved);
 
     expect(result.first, same(first));
     expect(result.last, same(saved));
@@ -87,11 +86,10 @@ void main() {
       errorMessage: 'old error',
     );
 
-    final updated = TransactionsCubitHelpers.updateTransactionsList(
-      state,
-      [grinder, drill],
-      isLoading: false,
-    );
+    final updated = TransactionsCubitHelpers.updateTransactionsList(state, [
+      grinder,
+      drill,
+    ], isLoading: false);
 
     expect(updated.transactions, [grinder, drill]);
     expect(updated.filteredTransactions, [drill]);
