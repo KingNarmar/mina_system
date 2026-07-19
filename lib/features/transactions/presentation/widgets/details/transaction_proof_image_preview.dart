@@ -7,6 +7,7 @@ import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
+import 'package:mina_system/features/transactions/presentation/functions/transaction_image_reference.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TransactionProofImagePreview extends StatelessWidget {
@@ -95,17 +96,32 @@ class TransactionProofImagePreview extends StatelessWidget {
         return _ProofImageResult.local(cleanPath);
       }
 
-      if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
-        return _ProofImageResult.remote(cleanPath);
+      final reference = classifyTransactionImageReference(cleanPath);
+
+      if (reference.isSecureRemoteUrl) {
+        return _ProofImageResult.remote(reference.value);
+      }
+
+      if (reference.isRejectedRemoteUrl) {
+        return const _ProofImageResult.failure(
+          'Unable to load proof image. Please try again.',
+        );
       }
 
       await NetworkStatusService().ensureOnline();
 
       final signedUrl = await Supabase.instance.client.storage
           .from('transaction-proofs')
-          .createSignedUrl(cleanPath, 60 * 60);
+          .createSignedUrl(reference.value, 60 * 60);
+      final signedReference = classifyTransactionImageReference(signedUrl);
 
-      return _ProofImageResult.remote(signedUrl);
+      if (!signedReference.isSecureRemoteUrl) {
+        return const _ProofImageResult.failure(
+          'Unable to load proof image. Please try again.',
+        );
+      }
+
+      return _ProofImageResult.remote(signedReference.value);
     } on NetworkUnavailableException {
       return const _ProofImageResult.failure(
         'Proof images are stored online and cannot be viewed while offline.',
