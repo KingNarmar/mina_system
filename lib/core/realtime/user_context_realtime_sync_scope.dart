@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/realtime/realtime_diagnostics.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_cubit.dart';
 import 'package:mina_system/features/current_context/presentation/cubit/current_context_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -71,7 +71,11 @@ class _UserContextRealtimeSyncScopeState
     final cleanProfileId = profileId?.trim();
 
     if (cleanProfileId == null || cleanProfileId.isEmpty) {
-      _debugRealtime('No active profile. Stopping user context sync.');
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.sync,
+        action: RealtimeDiagnosticAction.unavailable,
+      );
       unawaited(_stopRealtimeSync());
       return;
     }
@@ -92,7 +96,11 @@ class _UserContextRealtimeSyncScopeState
 
     _activeProfileId = profileId;
 
-    _debugRealtime('Starting user context sync for profile_id=$profileId');
+    RealtimeDiagnostics.write(
+      scope: RealtimeDiagnosticScope.userContext,
+      area: RealtimeDiagnosticArea.sync,
+      action: RealtimeDiagnosticAction.starting,
+    );
 
     final channel = _supabase.channel(
       'user-context-sync:$profileId:${DateTime.now().millisecondsSinceEpoch}',
@@ -113,18 +121,29 @@ class _UserContextRealtimeSyncScopeState
     _channel = channel;
 
     channel.subscribe((status, [error]) {
-      _debugRealtime('User context sync status: $status');
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.subscription,
+        action: RealtimeDiagnosticAction.statusChanged,
+        status: status,
+      );
 
       if (error != null) {
-        _debugRealtime('User context sync error: $error');
+        RealtimeDiagnostics.write(
+          scope: RealtimeDiagnosticScope.userContext,
+          area: RealtimeDiagnosticArea.subscription,
+          action: RealtimeDiagnosticAction.subscriptionFailed,
+        );
       }
     });
   }
 
   void _handleUserContextEvent(PostgresChangePayload payload) {
-    _debugRealtime(
-      'USER CONTEXT EVENT => event=${payload.eventType}, '
-      'new=${payload.newRecord}, old=${payload.oldRecord}',
+    RealtimeDiagnostics.write(
+      scope: RealtimeDiagnosticScope.userContext,
+      area: RealtimeDiagnosticArea.currentContext,
+      action: RealtimeDiagnosticAction.eventReceived,
+      eventType: payload.eventType,
     );
 
     _scheduleCurrentContextRefresh();
@@ -146,22 +165,10 @@ class _UserContextRealtimeSyncScopeState
     _isRefreshingCurrentContext = true;
 
     try {
-      final oldState = context.read<CurrentContextCubit>().state;
-
-      String? oldCompanyId;
-      String? oldRole;
-      int? oldCompaniesCount;
-
-      if (oldState is CurrentContextLoaded) {
-        oldCompanyId = oldState.currentCompany?.id;
-        oldRole = oldState.currentCompany?.role;
-        oldCompaniesCount = oldState.companies.length;
-      }
-
-      _debugRealtime(
-        'Refreshing CurrentContext from user event. '
-        'oldCompanyId=$oldCompanyId, oldRole=$oldRole, '
-        'oldCompaniesCount=$oldCompaniesCount',
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.currentContext,
+        action: RealtimeDiagnosticAction.refreshStarted,
       );
 
       await context.read<CurrentContextCubit>().refreshCurrentContextSilently();
@@ -170,19 +177,17 @@ class _UserContextRealtimeSyncScopeState
         return;
       }
 
-      final newState = context.read<CurrentContextCubit>().state;
-
-      if (newState is CurrentContextLoaded) {
-        _debugRealtime(
-          'CurrentContext refreshed from user event. '
-          'newCompanyId=${newState.currentCompany?.id}, '
-          'newRole=${newState.currentCompany?.role}, '
-          'newCompaniesCount=${newState.companies.length}',
-        );
-      }
-    } catch (error, stackTrace) {
-      _debugRealtime('User context refresh error: $error');
-      _debugRealtime('User context refresh stackTrace: $stackTrace');
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.currentContext,
+        action: RealtimeDiagnosticAction.refreshCompleted,
+      );
+    } catch (_) {
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.currentContext,
+        action: RealtimeDiagnosticAction.refreshFailed,
+      );
     } finally {
       _isRefreshingCurrentContext = false;
     }
@@ -203,20 +208,19 @@ class _UserContextRealtimeSyncScopeState
     }
 
     try {
-      _debugRealtime('Stopping user context sync.');
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.sync,
+        action: RealtimeDiagnosticAction.stopping,
+      );
       await _supabase.removeChannel(channel);
-    } catch (error, stackTrace) {
-      _debugRealtime('Stop user context sync error: $error');
-      _debugRealtime('Stop user context sync stackTrace: $stackTrace');
+    } catch (_) {
+      RealtimeDiagnostics.write(
+        scope: RealtimeDiagnosticScope.userContext,
+        area: RealtimeDiagnosticArea.sync,
+        action: RealtimeDiagnosticAction.refreshFailed,
+      );
     }
-  }
-
-  void _debugRealtime(String message) {
-    if (!kDebugMode) {
-      return;
-    }
-
-    debugPrint('[MinaUserContextRealtime] $message');
   }
 
   @override
