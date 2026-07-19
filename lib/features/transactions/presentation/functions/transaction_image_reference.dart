@@ -86,5 +86,7 @@ bool _looksLikeWindowsDrivePath(String value) {
     return false;
   }
 
-  return value[2] == r'\' || value[2] == '/';
+  final separatorCode = value.codeUnitAt(2);
+
+  return separatorCode == 92 || separatorCode == 47;
 }
