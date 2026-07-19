@@ -12,6 +12,7 @@ import 'package:mina_system/features/transactions/data/models/transaction_model.
 import 'package:mina_system/features/transactions/presentation/functions/format_transaction_date.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_details.dart';
 import 'package:mina_system/features/transactions/presentation/functions/show_transaction_image_preview.dart';
+import 'package:mina_system/features/transactions/presentation/functions/transaction_image_reference.dart';
 import 'package:mina_system/features/transactions/presentation/functions/transaction_type_helpers.dart';
 import 'package:mina_system/features/transactions/presentation/widgets/table/transactions_table_cell.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -236,17 +237,32 @@ class _TransactionThumbnail extends StatelessWidget {
         return _ThumbnailImageResult.local(cleanPath);
       }
 
-      if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
-        return _ThumbnailImageResult.remote(cleanPath);
+      final reference = classifyTransactionImageReference(cleanPath);
+
+      if (reference.isSecureRemoteUrl) {
+        return _ThumbnailImageResult.remote(reference.value);
+      }
+
+      if (reference.isRejectedRemoteUrl) {
+        return const _ThumbnailImageResult.failure(
+          message: 'Unable to load proof image. Please try again.',
+        );
       }
 
       await NetworkStatusService().ensureOnline();
 
       final signedUrl = await Supabase.instance.client.storage
           .from('transaction-proofs')
-          .createSignedUrl(cleanPath, 60 * 60);
+          .createSignedUrl(reference.value, 60 * 60);
+      final signedReference = classifyTransactionImageReference(signedUrl);
 
-      return _ThumbnailImageResult.remote(signedUrl);
+      if (!signedReference.isSecureRemoteUrl) {
+        return const _ThumbnailImageResult.failure(
+          message: 'Unable to load proof image. Please try again.',
+        );
+      }
+
+      return _ThumbnailImageResult.remote(signedReference.value);
     } on NetworkUnavailableException {
       return const _ThumbnailImageResult.failure(
         message:
@@ -329,11 +345,11 @@ class _TransactionTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Text(
         label,
