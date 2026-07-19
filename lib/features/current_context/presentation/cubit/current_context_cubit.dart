@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mina_system/core/realtime/realtime_diagnostics.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/demo/data/demo_current_context_data.dart';
@@ -51,12 +49,7 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       emit(loadedContext);
     } on NetworkUnavailableException catch (error) {
       emit(CurrentContextFailure(error.message));
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        _debugCurrentContext('CurrentContext error: $error');
-        _debugCurrentContext('CurrentContext stackTrace: $stackTrace');
-      }
-
+    } catch (error) {
       emit(
         CurrentContextFailure(
           AppErrorMessage.fromError(
@@ -79,14 +72,7 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       );
 
       emit(loadedContext);
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        _debugCurrentContext('Silent CurrentContext refresh error: $error');
-        _debugCurrentContext(
-          'Silent CurrentContext refresh stackTrace: $stackTrace',
-        );
-      }
-    }
+    } catch (_) {}
   }
 
   Future<void> validateCurrentCompanyAccessSilently() async {
@@ -111,13 +97,6 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       );
 
       if (activeMembershipRole == null) {
-        if (kDebugMode) {
-          _debugCurrentContext(
-            'Current company access lost. Refreshing CurrentContext silently. '
-            'companyId=${currentCompany.id}',
-          );
-        }
-
         await refreshCurrentContextSilently();
         return;
       }
@@ -129,25 +108,8 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
         return;
       }
 
-      if (kDebugMode) {
-        _debugCurrentContext(
-          'Current company role changed. Refreshing CurrentContext silently. '
-          'companyId=${currentCompany.id}, oldRole=$currentRole, '
-          'newRole=$freshRole',
-        );
-      }
-
       await refreshCurrentContextSilently();
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        _debugCurrentContext(
-          'Silent current company access validation error: $error',
-        );
-        _debugCurrentContext(
-          'Silent current company access validation stackTrace: $stackTrace',
-        );
-      }
-    }
+    } catch (_) {}
   }
 
   Future<void> createCompany({required CreateCompanyRequest request}) async {
@@ -161,12 +123,7 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       await loadCurrentContext();
     } on NetworkUnavailableException catch (error) {
       emit(CurrentContextFailure(error.message));
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        _debugCurrentContext('CreateCompany error: $error');
-        _debugCurrentContext('CreateCompany stackTrace: $stackTrace');
-      }
-
+    } catch (error) {
       emit(
         CurrentContextFailure(
           AppErrorMessage.fromError(
@@ -354,11 +311,4 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
   String _normalizeRole(String? role) {
     return role?.trim().toLowerCase() ?? '';
   }
-}
-
-void _debugCurrentContext(String message) {
-  RealtimeDiagnostics.writeSanitizedText(
-    scope: RealtimeDiagnosticScope.userContext,
-    message: message,
-  );
 }
