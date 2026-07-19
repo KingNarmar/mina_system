@@ -8,7 +8,7 @@ void main() {
         scope: RealtimeDiagnosticScope.company,
         area: RealtimeDiagnosticArea.transactions,
         action: RealtimeDiagnosticAction.eventReceived,
-        eventType: _KnownValue('PostgresChangeEvent.update'),
+        eventType: const _KnownValue('PostgresChangeEvent.update'),
       );
 
       expect(
@@ -25,7 +25,7 @@ void main() {
         scope: RealtimeDiagnosticScope.userContext,
         area: RealtimeDiagnosticArea.subscription,
         action: RealtimeDiagnosticAction.statusChanged,
-        status: _KnownValue('RealtimeSubscribeStatus.channelError'),
+        status: const _KnownValue('RealtimeSubscribeStatus.channelError'),
       );
 
       expect(message, contains('scope=user_context'));
@@ -37,10 +37,10 @@ void main() {
         scope: RealtimeDiagnosticScope.company,
         area: RealtimeDiagnosticArea.subscription,
         action: RealtimeDiagnosticAction.subscriptionFailed,
-        eventType: _KnownValue(
+        eventType: const _KnownValue(
           'insert token=secret signedUrl=https://example.com/private',
         ),
-        status: _KnownValue(
+        status: const _KnownValue(
           r'C:\private\worker-photo.jpg profile_id=profile-secret',
         ),
       );

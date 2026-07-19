@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:mina_system/core/realtime/realtime_diagnostics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/realtime/company_refresh_areas_service.dart';
@@ -918,11 +918,10 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
   }
 
   void _debugRealtime(String message) {
-    if (!kDebugMode) {
-      return;
-    }
-
-    debugPrint('[MinaRealtime] $message');
+    RealtimeDiagnostics.writeSanitizedText(
+      scope: RealtimeDiagnosticScope.company,
+      message: message,
+    );
   }
 
   @override

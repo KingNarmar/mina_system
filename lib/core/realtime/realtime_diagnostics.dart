@@ -105,10 +105,8 @@ abstract final class RealtimeDiagnostics {
     );
   }
 
-  static ({
-    RealtimeDiagnosticArea area,
-    RealtimeDiagnosticAction action,
-  }) _classifySanitizedText(String message) {
+  static ({RealtimeDiagnosticArea area, RealtimeDiagnosticAction action})
+  _classifySanitizedText(String message) {
     final normalized = message.trim().toLowerCase();
     final area = _classifyArea(normalized);
 
@@ -258,7 +256,8 @@ abstract final class RealtimeDiagnostics {
 
     for (var index = 0; index < value.length; index++) {
       final character = value[index];
-      final isUppercase = character.toUpperCase() == character &&
+      final isUppercase =
+          character.toUpperCase() == character &&
           character.toLowerCase() != character;
 
       if (isUppercase && index > 0) {

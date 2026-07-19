@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mina_system/core/realtime/realtime_diagnostics.dart';
 import 'package:mina_system/core/services/network_status_service.dart';
 import 'package:mina_system/core/utils/app_error_message.dart';
 import 'package:mina_system/features/demo/data/demo_current_context_data.dart';
@@ -52,8 +53,8 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       emit(CurrentContextFailure(error.message));
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('CurrentContext error: $error');
-        debugPrint('CurrentContext stackTrace: $stackTrace');
+        _debugCurrentContext('CurrentContext error: $error');
+        _debugCurrentContext('CurrentContext stackTrace: $stackTrace');
       }
 
       emit(
@@ -80,8 +81,10 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       emit(loadedContext);
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('Silent CurrentContext refresh error: $error');
-        debugPrint('Silent CurrentContext refresh stackTrace: $stackTrace');
+        _debugCurrentContext('Silent CurrentContext refresh error: $error');
+        _debugCurrentContext(
+          'Silent CurrentContext refresh stackTrace: $stackTrace',
+        );
       }
     }
   }
@@ -109,7 +112,7 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
 
       if (activeMembershipRole == null) {
         if (kDebugMode) {
-          debugPrint(
+          _debugCurrentContext(
             'Current company access lost. Refreshing CurrentContext silently. '
             'companyId=${currentCompany.id}',
           );
@@ -127,7 +130,7 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       }
 
       if (kDebugMode) {
-        debugPrint(
+        _debugCurrentContext(
           'Current company role changed. Refreshing CurrentContext silently. '
           'companyId=${currentCompany.id}, oldRole=$currentRole, '
           'newRole=$freshRole',
@@ -137,8 +140,10 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       await refreshCurrentContextSilently();
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('Silent current company access validation error: $error');
-        debugPrint(
+        _debugCurrentContext(
+          'Silent current company access validation error: $error',
+        );
+        _debugCurrentContext(
           'Silent current company access validation stackTrace: $stackTrace',
         );
       }
@@ -158,8 +163,8 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
       emit(CurrentContextFailure(error.message));
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        debugPrint('CreateCompany error: $error');
-        debugPrint('CreateCompany stackTrace: $stackTrace');
+        _debugCurrentContext('CreateCompany error: $error');
+        _debugCurrentContext('CreateCompany stackTrace: $stackTrace');
       }
 
       emit(
@@ -349,4 +354,11 @@ class CurrentContextCubit extends Cubit<CurrentContextState> {
   String _normalizeRole(String? role) {
     return role?.trim().toLowerCase() ?? '';
   }
+}
+
+void _debugCurrentContext(String message) {
+  RealtimeDiagnostics.writeSanitizedText(
+    scope: RealtimeDiagnosticScope.userContext,
+    message: message,
+  );
 }
