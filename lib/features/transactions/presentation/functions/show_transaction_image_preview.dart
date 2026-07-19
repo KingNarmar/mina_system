@@ -4,42 +4,45 @@ import 'package:flutter/material.dart';
 import 'package:mina_system/core/theme/app_colors.dart';
 import 'package:mina_system/core/theme/app_icons.dart';
 import 'package:mina_system/core/theme/app_text_styles.dart';
+import 'package:mina_system/features/transactions/presentation/functions/transaction_image_reference.dart';
 
 void showTransactionImagePreview(BuildContext context, String imagePathOrUrl) {
-  final cleanValue = imagePathOrUrl.trim();
+  final reference = classifyTransactionImageReference(imagePathOrUrl);
 
   showDialog(
     context: context,
     builder: (_) {
-      final isNetworkImage =
-          cleanValue.startsWith('http://') || cleanValue.startsWith('https://');
-
-      final localFile = isNetworkImage ? null : File(cleanValue);
+      final localFile = reference.kind == TransactionImageReferenceKind.path
+          ? File(reference.value)
+          : null;
       final isLocalImage = localFile != null && localFile.existsSync();
+      final isNetworkImage = reference.isSecureRemoteUrl;
+
+      Widget imageContent = const _ImageErrorMessage();
+
+      if (isLocalImage) {
+        imageContent = Image.file(
+          localFile,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return const _ImageErrorMessage();
+          },
+        );
+      } else if (isNetworkImage) {
+        imageContent = Image.network(
+          reference.value,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return const _ImageErrorMessage();
+          },
+        );
+      }
 
       return Dialog.fullscreen(
         backgroundColor: AppColors.overlayDark,
         child: Stack(
           children: [
-            Center(
-              child: InteractiveViewer(
-                child: isLocalImage
-                    ? Image.file(
-                        localFile,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const _ImageErrorMessage();
-                        },
-                      )
-                    : Image.network(
-                        cleanValue,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const _ImageErrorMessage();
-                        },
-                      ),
-              ),
-            ),
+            Center(child: InteractiveViewer(child: imageContent)),
             SafeArea(
               child: Align(
                 alignment: Alignment.topRight,
