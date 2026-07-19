@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mina_system/core/realtime/company_refresh_areas_service.dart';
@@ -181,7 +180,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final cleanCompanyId = companyId?.trim();
 
     if (cleanCompanyId == null || cleanCompanyId.isEmpty) {
-      _debugRealtime('No active company. Stopping company realtime sync.');
       unawaited(_stopRealtimeSync());
       return;
     }
@@ -195,7 +193,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
   void _markAppBackgrounded() {
     _lastBackgroundedAt ??= DateTime.now().toUtc();
-    _debugRealtime('App background timestamp recorded: $_lastBackgroundedAt');
   }
 
   Future<void> _handleAppResumed() async {
@@ -214,10 +211,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     _isHandlingAppResume = true;
 
     try {
-      _debugRealtime(
-        'App resumed. Refreshing transactions first and checking secondary areas.',
-      );
-
       await _refreshCurrentContext();
 
       if (!mounted) {
@@ -254,21 +247,15 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         ..remove(CompanyRefreshArea.transactions);
 
       if (secondaryAreas.isEmpty) {
-        _debugRealtime('No secondary changed areas detected after resume.');
         return;
       }
 
-      _debugRealtime('Secondary changed areas after resume: $secondaryAreas');
       await _refreshChangedAreas(secondaryAreas);
-    } catch (error, stackTrace) {
-      _debugRealtime('App resume targeted refresh error: $error');
-      _debugRealtime('App resume targeted refresh stackTrace: $stackTrace');
-
+    } catch (_) {
       if (!mounted) {
         return;
       }
 
-      _debugRealtime('Falling back to transactions refresh after resume.');
       await _refreshTransactions();
     } finally {
       _lastBackgroundedAt = null;
@@ -286,8 +273,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final since = backgroundedAt == null
         ? fallbackSince
         : backgroundedAt.toUtc().subtract(_resumeRefreshSafetyWindow);
-
-    _debugRealtime('Checking refresh areas since $since.');
 
     return _refreshAreasService.getChangedAreasSince(
       companyId: companyId,
@@ -336,8 +321,6 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
 
     _activeCompanyId = companyId;
 
-    _debugRealtime('Starting company realtime sync for company_id=$companyId');
-
     final channel = _supabase.channel(
       'company-realtime-sync:$companyId:${DateTime.now().millisecondsSinceEpoch}',
     );
@@ -351,12 +334,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         column: 'company_id',
         value: companyId,
       ),
-      callback: (payload) {
-        _debugRealtime(
-          'TRANSACTIONS EVENT => event=${payload.eventType}, '
-          'new=${payload.newRecord}, old=${payload.oldRecord}',
-        );
-
+      callback: (_) {
         _scheduleTransactionsRefresh();
       },
     );
@@ -406,9 +384,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         column: 'company_id',
         value: companyId,
       ),
-      callback: (payload) {
-        _handleLookupChange(tableName: 'departments', payload: payload);
-      },
+      callback: _handleLookupChange,
     );
 
     channel.onPostgresChanges(
@@ -420,9 +396,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         column: 'company_id',
         value: companyId,
       ),
-      callback: (payload) {
-        _handleLookupChange(tableName: 'job_titles', payload: payload);
-      },
+      callback: _handleLookupChange,
     );
 
     channel.onPostgresChanges(
@@ -434,9 +408,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         column: 'company_id',
         value: companyId,
       ),
-      callback: (payload) {
-        _handleLookupChange(tableName: 'tool_units', payload: payload);
-      },
+      callback: _handleLookupChange,
     );
 
     channel.onPostgresChanges(
@@ -448,59 +420,28 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
         column: 'company_id',
         value: companyId,
       ),
-      callback: (payload) {
-        _handleLookupChange(tableName: 'tool_categories', payload: payload);
-      },
+      callback: _handleLookupChange,
     );
 
     _channel = channel;
 
-    channel.subscribe((status, [error]) {
-      _debugRealtime('Company realtime sync status: $status');
-
-      if (error != null) {
-        _debugRealtime('Company realtime sync error: $error');
-      }
-    });
+    channel.subscribe();
   }
 
-  void _handleCompanyMemberChange(PostgresChangePayload payload) {
-    _debugRealtime(
-      'COMPANY MEMBERS EVENT => event=${payload.eventType}, '
-      'new=${payload.newRecord}, old=${payload.oldRecord}',
-    );
-
+  void _handleCompanyMemberChange(PostgresChangePayload _) {
     _scheduleCompanyUsersRefresh();
     _scheduleCurrentContextRefresh();
   }
 
-  void _handleWorkerChange(PostgresChangePayload payload) {
-    _debugRealtime(
-      'WORKERS EVENT => event=${payload.eventType}, '
-      'new=${payload.newRecord}, old=${payload.oldRecord}',
-    );
-
+  void _handleWorkerChange(PostgresChangePayload _) {
     _scheduleWorkersRefresh();
   }
 
-  void _handleToolChange(PostgresChangePayload payload) {
-    _debugRealtime(
-      'TOOLS EVENT => event=${payload.eventType}, '
-      'new=${payload.newRecord}, old=${payload.oldRecord}',
-    );
-
+  void _handleToolChange(PostgresChangePayload _) {
     _scheduleToolsRefresh();
   }
 
-  void _handleLookupChange({
-    required String tableName,
-    required PostgresChangePayload payload,
-  }) {
-    _debugRealtime(
-      'LOOKUPS/$tableName EVENT => event=${payload.eventType}, '
-      'new=${payload.newRecord}, old=${payload.oldRecord}',
-    );
-
+  void _handleLookupChange(PostgresChangePayload _) {
     _scheduleLookupsRefresh();
   }
 
@@ -566,14 +507,11 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final transactionsCubit = context.read<TransactionsCubit>();
 
     if (_shouldDeferTransactionsRefresh(transactionsCubit.state)) {
-      _debugRealtime('Transactions refresh deferred.');
       _hasPendingTransactionsRefresh = true;
       return;
     }
 
     try {
-      _debugRealtime('Refreshing transactions silently.');
-
       await transactionsCubit.loadTransactions(
         companyId: companyId,
         showLoader: false,
@@ -584,10 +522,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       }
 
       await _refreshDashboardSummary();
-    } catch (error, stackTrace) {
-      _debugRealtime('Transactions realtime refresh error: $error');
-      _debugRealtime('Transactions realtime refresh stackTrace: $stackTrace');
-    }
+    } catch (_) {}
   }
 
   Future<void> _refreshDashboardSummary() async {
@@ -602,16 +537,11 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
 
     try {
-      _debugRealtime('Refreshing dashboard summary silently.');
-
       await context.read<DashboardCubit>().loadDashboardSummary(
         companyId: companyId,
         showLoader: false,
       );
-    } catch (error, stackTrace) {
-      _debugRealtime('Dashboard realtime refresh error: $error');
-      _debugRealtime('Dashboard realtime refresh stackTrace: $stackTrace');
-    }
+    } catch (_) {}
   }
 
   Future<void> _refreshCompanyUsers() async {
@@ -628,22 +558,16 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final companyUsersCubit = context.read<CompanyUsersCubit>();
 
     if (_shouldDeferCompanyUsersRefresh(companyUsersCubit.state)) {
-      _debugRealtime('Company users refresh deferred.');
       _hasPendingCompanyUsersRefresh = true;
       return;
     }
 
     try {
-      _debugRealtime('Refreshing company users silently.');
-
       await companyUsersCubit.loadCompanyUsers(
         companyId: companyId,
         showLoader: false,
       );
-    } catch (error, stackTrace) {
-      _debugRealtime('Company users realtime refresh error: $error');
-      _debugRealtime('Company users realtime refresh stackTrace: $stackTrace');
-    }
+    } catch (_) {}
   }
 
   Future<void> _refreshCurrentContext() async {
@@ -654,37 +578,17 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final companyUsersCubit = context.read<CompanyUsersCubit>();
 
     if (_shouldDeferCompanyUsersRefresh(companyUsersCubit.state)) {
-      _debugRealtime('CurrentContext refresh deferred.');
       _hasPendingCurrentContextRefresh = true;
       return;
     }
 
     try {
-      final oldRole = context.currentUserRole;
-      final oldCompanyId = context.currentCompanyId;
-
-      _debugRealtime(
-        'Refreshing CurrentContext silently. '
-        'oldCompanyId=$oldCompanyId, oldRole=$oldRole',
-      );
-
       await context.read<CurrentContextCubit>().refreshCurrentContextSilently();
 
       if (!mounted) {
         return;
       }
-
-      _debugRealtime(
-        'CurrentContext refreshed. '
-        'newCompanyId=${context.currentCompanyId}, '
-        'newRole=${context.currentUserRole}',
-      );
-    } catch (error, stackTrace) {
-      _debugRealtime('Current context realtime refresh error: $error');
-      _debugRealtime(
-        'Current context realtime refresh stackTrace: $stackTrace',
-      );
-    }
+    } catch (_) {}
   }
 
   Future<void> _refreshWorkers({bool refreshDashboard = true}) async {
@@ -701,14 +605,11 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final workersCubit = context.read<WorkersCubit>();
 
     if (_shouldDeferWorkersRefresh(workersCubit.state)) {
-      _debugRealtime('Workers refresh deferred.');
       _hasPendingWorkersRefresh = true;
       return;
     }
 
     try {
-      _debugRealtime('Refreshing workers silently.');
-
       await workersCubit.loadWorkers(companyId: companyId, showLoader: false);
 
       if (!mounted || !refreshDashboard) {
@@ -716,10 +617,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       }
 
       await _refreshDashboardSummary();
-    } catch (error, stackTrace) {
-      _debugRealtime('Workers realtime refresh error: $error');
-      _debugRealtime('Workers realtime refresh stackTrace: $stackTrace');
-    }
+    } catch (_) {}
   }
 
   Future<void> _refreshTools({bool refreshDashboard = true}) async {
@@ -736,14 +634,11 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final toolsCubit = context.read<ToolsCubit>();
 
     if (_shouldDeferToolsRefresh(toolsCubit.state)) {
-      _debugRealtime('Tools refresh deferred.');
       _hasPendingToolsRefresh = true;
       return;
     }
 
     try {
-      _debugRealtime('Refreshing tools silently.');
-
       await toolsCubit.loadTools(companyId: companyId, showLoader: false);
 
       if (!mounted || !refreshDashboard) {
@@ -751,10 +646,7 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
       }
 
       await _refreshDashboardSummary();
-    } catch (error, stackTrace) {
-      _debugRealtime('Tools realtime refresh error: $error');
-      _debugRealtime('Tools realtime refresh stackTrace: $stackTrace');
-    }
+    } catch (_) {}
   }
 
   Future<void> _refreshLookups() async {
@@ -771,19 +663,13 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     final lookupsCubit = context.read<LookupsCubit>();
 
     if (_shouldDeferLookupsRefresh(lookupsCubit.state)) {
-      _debugRealtime('Lookups refresh deferred.');
       _hasPendingLookupsRefresh = true;
       return;
     }
 
     try {
-      _debugRealtime('Refreshing lookups silently.');
-
       await lookupsCubit.loadLookups(companyId: companyId, showLoader: false);
-    } catch (error, stackTrace) {
-      _debugRealtime('Lookups realtime refresh error: $error');
-      _debugRealtime('Lookups realtime refresh stackTrace: $stackTrace');
-    }
+    } catch (_) {}
   }
 
   bool _shouldDeferTransactionsRefresh(TransactionsState state) {
@@ -909,20 +795,8 @@ class _CompanyRealtimeSyncScopeState extends State<CompanyRealtimeSyncScope>
     }
 
     try {
-      _debugRealtime('Stopping company realtime sync.');
       await _supabase.removeChannel(channel);
-    } catch (error, stackTrace) {
-      _debugRealtime('Stop company realtime sync error: $error');
-      _debugRealtime('Stop company realtime sync stackTrace: $stackTrace');
-    }
-  }
-
-  void _debugRealtime(String message) {
-    if (!kDebugMode) {
-      return;
-    }
-
-    debugPrint('[MinaRealtime] $message');
+    } catch (_) {}
   }
 
   @override
