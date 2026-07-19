@@ -57,9 +57,7 @@ void main() {
         TransactionImageReferenceKind.path,
       );
       expect(
-        classifyTransactionImageReference(
-          r'\\server\share\proof.jpg',
-        ).kind,
+        classifyTransactionImageReference(r'\\server\share\proof.jpg').kind,
         TransactionImageReferenceKind.path,
       );
     });
